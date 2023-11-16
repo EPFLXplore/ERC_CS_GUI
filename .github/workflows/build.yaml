@@ -29,6 +29,6 @@ jobs:
                   personal_token: ${{ secrets.API_TOKEN_GITHUB_SERVER }}
                   src_path: build
                   dst_path: ./cs_ws/src/control_station_pkg/control_station_pkg/csApp/frontend/build
-                  dst_owner: TheGuyWithoutH
+                  dst_owner: EPFLXplore
                   dst_repo_name: ERC_CS_ControlStation
                   dst_branch: main
