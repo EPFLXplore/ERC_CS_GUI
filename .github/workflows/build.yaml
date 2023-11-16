@@ -33,5 +33,5 @@ jobs:
               with:
                   source-files: "build/"
                   destination-directory: "./cs_ws/src/control_station_pkg/control_station_pkg/csApp/frontend/build"
-                  destination-username: "git@github.com:EPFLXplore/ERC_CS_ControlStation.git"
-                  destination-repository: "ERC_CS_ControlStation"
+                  destination-username: "EPFLXplore"
+                  destination-repository: "git@github.com:EPFLXplore/ERC_CS_ControlStation.git"
