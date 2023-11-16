@@ -31,7 +31,6 @@ jobs:
               env:
                   API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  user-name: ${{ github.actor }}
                   source-files: "./build"
                   destination-directory: "./cs_ws/src/control_station_pkg/control_station_pkg/csApp/frontend/build"
                   destination-username: "EPFLXplore"
