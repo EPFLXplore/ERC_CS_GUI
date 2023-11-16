@@ -7,6 +7,9 @@ jobs:
         name: create-package
         runs-on: ubuntu-latest
 
+        permissions:
+            contents: write
+
         strategy:
             matrix:
                 node-version: [16]
