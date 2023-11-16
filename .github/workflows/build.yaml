@@ -27,11 +27,16 @@ jobs:
                   CI: false
             - run: ls
             - name: Copy to another repo
-              uses: andstor/copycat-action@v3
-              with:
-                  personal_token: ${{ secrets.API_TOKEN_GITHUB_SERVER }}
-                  src_path: build
-                  dst_path: ./cs_ws/src/control_station_pkg/control_station_pkg/csApp/frontend/build
-                  dst_owner: EPFLXplore
-                  dst_repo_name: ERC_CS_ControlStation
-                  dst_branch: main
+              id: push_directory
+              uses: cpina/github-action-push-to-another-repository@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
+               with:
+                user-name: ${{ github.actor }}
+                source-directory: './build'
+                target-directory:  './cs_ws/src/control_station_pkg/control_station_pkg/csApp/frontend/build'
+                destination-github-username: 'EPFLXplore'
+                destination-repository-name: 'ERC_CS_ControlStation'
+                commit-message: See ORIGIN_COMMIT from $GITHUB_REF
+                target-branch: main
+                create-target-branch-if-needed: true
