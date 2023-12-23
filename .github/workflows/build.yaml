@@ -25,13 +25,3 @@ jobs:
             - run: npm run build --if-present
               env:
                   CI: false
-            - run: ls
-            - name: Copy to another repo
-              uses: nkoppel/push-files-to-another-repository@v1.1.2
-              env:
-                  API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  source-files: "build/"
-                  destination-directory: "./cs_ws/src/control_station_pkg/control_station_pkg/csApp/frontend/build"
-                  destination-username: "EPFLXplore"
-                  destination-repository: "git@github.com:EPFLXplore/ERC_CS_ControlStation.git"
