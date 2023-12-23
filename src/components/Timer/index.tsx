@@ -6,7 +6,7 @@ import PauseIcon from "@mui/icons-material/PauseRounded";
 import Replay10Icon from "@mui/icons-material/Replay10Rounded";
 import PersonIcon from "@mui/icons-material/PersonRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
-import CellWifiIcon from '@mui/icons-material/CellWifi';
+import CellWifiIcon from "@mui/icons-material/CellWifi";
 import {
 	Battery2Bar,
 	Battery0Bar,
@@ -19,7 +19,7 @@ import {
 } from "@mui/icons-material";
 import { Size } from "../../utils/size.type";
 import useTimer from "../../hooks/timerHooks";
-const useSession from "../../hooks/sessionHooks";
+import useSession from "../../hooks/sessionHooks";
 
 const Timer = ({
 	end,
@@ -179,7 +179,7 @@ const Timer = ({
 						<PersonIcon className={styles.icon} />
 					)}
 				</div>
-				<p className={styles.connectionsText}>{networkState + ' dBm'}</p>
+				<p className={styles.connectionsText}>{networkState + " dBm"}</p>
 				<div className={styles.connectionsIcon}>
 					<CellWifiIcon className={styles.icon} />
 				</div>
