@@ -6,6 +6,7 @@ function useSession() {
 	const [userCount, setUserCount] = React.useState<number>(0);
 	const [roverState, setRoverState] = React.useState<number>(-1);
 	const [subsystemState, setSubsystemState] = React.useState<number>(-1);
+	const [networkState, setNetworkState] = React.useState<number>(0);
 
 	useEffect(() => {
 		let sessionSocket = new WebSocket("ws://" + window.location.host + "/ws/csApp/session/");
@@ -15,6 +16,7 @@ function useSession() {
 			setUserCount(data.nb_users);
 			setRoverState(data.rover_state);
 			setSubsystemState(data.subsystem_state);
+			setNetworkState(data.signal_strength);
 		};
 
 		sessionSocket.onerror = (e) => {
@@ -25,7 +27,7 @@ function useSession() {
 		setSocket(sessionSocket);
 	}, []);
 
-	return [userCount, roverState, subsystemState] as const;
+	return [userCount, roverState, subsystemState, networkState] as const;
 }
 
 export default useSession;

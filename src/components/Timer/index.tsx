@@ -6,6 +6,7 @@ import PauseIcon from "@mui/icons-material/PauseRounded";
 import Replay10Icon from "@mui/icons-material/Replay10Rounded";
 import PersonIcon from "@mui/icons-material/PersonRounded";
 import PeopleAltRoundedIcon from "@mui/icons-material/PeopleAltRounded";
+import CellWifiIcon from '@mui/icons-material/CellWifi';
 import {
 	Battery2Bar,
 	Battery0Bar,
@@ -18,6 +19,7 @@ import {
 } from "@mui/icons-material";
 import { Size } from "../../utils/size.type";
 import useTimer from "../../hooks/timerHooks";
+const useSession from "../../hooks/sessionHooks";
 
 const Timer = ({
 	end,
@@ -35,6 +37,7 @@ const Timer = ({
 	size?: Omit<Size, Size.MEDIUM>;
 }) => {
 	const [minutes, seconds, active, changeTime, setActive] = useTimer(onFinished);
+	const [userCount, roverState, subsystemState, networkState] = useSession();
 	const [controls, setControls] = useState(false);
 
 	//SMALL SIZE TIMER
@@ -168,13 +171,17 @@ const Timer = ({
 				</div>
 			</div>
 			<div className={styles.connections}>
-				<p className={styles.connectionsText}>{connection}</p>
+				<p className={styles.connectionsText}>{userCount}</p>
 				<div className={styles.connectionsIcon}>
 					{connection > 1 ? (
 						<PeopleAltRoundedIcon className={styles.icon} />
 					) : (
 						<PersonIcon className={styles.icon} />
 					)}
+				</div>
+				<p className={styles.connectionsText}>{networkState + ' dBm'}</p>
+				<div className={styles.connectionsIcon}>
+					<CellWifiIcon className={styles.icon} />
 				</div>
 			</div>
 		</div>
