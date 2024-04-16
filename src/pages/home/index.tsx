@@ -19,14 +19,9 @@ export default () => {
 				<Logo size={Size.LARGE} />
 			</div>
 			<div className={styles.body}>
-				<Button
-					size={Size.LARGE}
-					radius={20}
-					text="Start Rover"
-					theme={Themes.DARK}
-					outline
-					onClick={() => navigate("/menu")}
-				/>
+				<a className={styles.buttonStart} onClick={() => navigate("/new_control_page")}>
+					Start
+				</a>
 			</div>
 			<div className={styles.footer}>
 				<Button

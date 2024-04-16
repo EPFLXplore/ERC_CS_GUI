@@ -15,12 +15,11 @@ import {
 	Logs,
 	NotFound,
 	Drill,
+	New_control_page,
+	Simulation,
 } from "./pages";
 import { Mode } from "./utils/mode.type";
-import useSession from "./hooks/sessionHooks";
-import ManualNavigation from "./pages/manualNavigation";
 import Manual from "./pages/manual";
-import { Task } from "./utils/tasks.type";
 
 const router = createBrowserRouter([
 	{
@@ -66,6 +65,14 @@ const router = createBrowserRouter([
 	{
 		path: "/logs",
 		element: <Logs />,
+	},
+	{
+		path: "/new_control_page",
+		element: <New_control_page />,
+	},
+	{
+		path: "/simulation",
+		element: <Simulation />,
 	},
 	{
 		path: "*",

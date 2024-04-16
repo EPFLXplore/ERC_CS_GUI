@@ -6,13 +6,14 @@
 import Home from "./home";
 import Navigation from "./navigation";
 import HandlingDevice from "./handlingDevice";
-import ManualTask from "./manualNavigation";
 import Science from "./science";
 import Logs from "./logs";
 import Camera from "./camera";
 import Menu from "./menu";
 import NotFound from "./notFound";
 import Drill from "./drill";
+import New_control_page from "./new_control_page";
+import Simulation from "./simulation";
 
 export const DefaultPage = () => <Home />;
 
@@ -20,11 +21,12 @@ export {
 	Home,
 	Navigation,
 	HandlingDevice,
-	ManualTask,
 	Science,
 	Logs,
 	Camera,
 	Menu,
 	NotFound,
 	Drill,
+	New_control_page,
+	Simulation,
 };
