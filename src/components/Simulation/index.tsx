@@ -10,10 +10,12 @@ function Simulation({
 	armJointAngles,
 	wheelsSpeed,
 	wheelsSteeringAngle,
+	pivotAngle,
 }: {
 	armJointAngles: number[];
 	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
+	pivotAngle: number;
 }) {
 	const textureLoader = new TextureLoader();
 	const texture = textureLoader.load(MarsYard);
@@ -41,6 +43,7 @@ function Simulation({
 					armJointAngles={armJointAngles}
 					wheelsSpeed={wheelsSpeed}
 					wheelsSteeringAngle={wheelsSteeringAngle}
+					pivotAngle={pivotAngle}
 				/>
 			</Suspense>
 			<Plane

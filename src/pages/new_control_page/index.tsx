@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import styles from "./style.module.sass";
-import Logo from "../../components/Logo";
 import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
 import ExpandButton from "../../components/ExpandButton";
@@ -9,32 +8,90 @@ import GamepadHint from "../../components/GamepadHint";
 import QuickAction from "../../components/QuickAction";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
-import ScienceIcon from "../../assets/images/icons/science_logo.png";
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
 import Drill from "../../assets/images/icons/drill.png";
 import SystemMode from "../../components/SystemMode";
 import Simulation from "../../components/Simulation";
+import RoverData from "../../components/RoverData";
+
+import logo from "../../assets/images/logos/logo_XPlore.png";
 
 export default () => {
 	const [dataOpen, setDataOpen] = useState(false);
 	const [dataJson, setDataJson] = useState({});
 	const [display, setDisplay] = useState("camera");
 
+	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
+	const [modal, setModal] = useState<ReactElement | null>(null);
+
+	const [dataFocus, setDataFocus] = useState<string[]>([]);
+
+	const displaySystemModal = (index: number) => {
+		setSystemsModalOpen((old) => {
+			const newModalOpen = [...old];
+			newModalOpen[index] = !old[index];
+
+			if (newModalOpen[index]) {
+				for (let i = 0; i < newModalOpen.length; i++) {
+					if (i !== index) {
+						newModalOpen[i] = false;
+					}
+				}
+
+				setModal(<></>);
+			} else {
+				setModal(null);
+			}
+
+			return newModalOpen;
+		});
+	};
+
+	const triggerDataFocus = (data: string) => {
+		setDataFocus((old) => {
+			const newFocus = [...old];
+			const index = old.indexOf(data);
+
+			if (index === -1) {
+				newFocus.push(data);
+			} else {
+				newFocus.splice(index, 1);
+			}
+
+			return newFocus;
+		});
+	};
+
+	// Temporary data fetching
+	useEffect(() => {
+		const fetchData = async () => {
+			const response = await fetch("/config/data/example.json");
+			const data = await response.json();
+			setDataJson(data);
+		};
+
+		fetchData();
+	}, []);
+
+	useEffect(() => {
+		console.log(dataJson);
+	}, [dataJson]);
+
 	return (
 		<div className={"page " + styles.mainPage}>
 			<div className={styles.header}>
-				<Logo size={Size.SMALL} />
+				<img src={logo} className={styles.logo} alt="Logo Xplore" />
 				<div className={styles.systems}>
 					<SystemMode
 						system="Navigation"
-						currentMode="Auto"
+						currentMode="Manual"
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => console.log(mode)}
 					/>
 					<SystemMode
 						system="Handling Device"
-						currentMode="Auto"
+						currentMode="Off"
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => console.log(mode)}
 					/>
@@ -54,11 +111,24 @@ export default () => {
 				<Timer end={Date.now() + 10000} size={Size.SMALL} />
 			</div>
 			<div className={styles.control}>
-				<div className={styles.data} style={{ width: dataOpen ? "15%" : 0 }}>
+				<div
+					className={styles.data}
+					style={{ width: dataOpen ? "18%" : 0, marginLeft: dataOpen ? 20 : 0 }}
+				>
 					{dataOpen && <h1>Rover Data</h1>}
 					{
 						// @ts-ignore
 						dataOpen && !dataJson["rover"] && <p>No data yet</p>
+					}
+					{
+						// @ts-ignore
+						dataOpen && dataJson["rover"] && (
+							<RoverData
+								json={dataJson}
+								triggerDataFocus={triggerDataFocus}
+								focusedData={dataFocus}
+							/>
+						)
 					}
 				</div>
 				<div className={styles.visualization}>
@@ -71,7 +141,12 @@ export default () => {
 					{display === "camera" ? (
 						<CameraView images={[]} />
 					) : (
-						<Simulation armJointAngles={[]} wheelsSpeed={[]} wheelsSteeringAngle={[]} />
+						<Simulation
+							armJointAngles={getJointsPositions(dataJson)}
+							wheelsSpeed={getWheelsSpeed(dataJson)}
+							wheelsSteeringAngle={getSteeringAngles(dataJson)}
+							pivotAngle={getPivotAngle(dataJson)}
+						/>
 					)}
 					<div className={styles.infos}>
 						<div>
@@ -89,29 +164,102 @@ export default () => {
 						<GamepadHint mode="NAV" selectorCallback={() => {}} visible />
 						<div
 							className={styles.simulation}
-							onDoubleClick={() =>
-								setDisplay((old) => (old === "camera" ? "simulation" : "camera"))
-							}
+							onDoubleClick={(e) => {
+								e.stopPropagation();
+								setDisplay((old) => (old === "camera" ? "simulation" : "camera"));
+							}}
 						>
 							{display !== "camera" ? (
 								<CameraView images={[]} />
 							) : (
 								<Simulation
-									armJointAngles={[]}
-									wheelsSpeed={[]}
-									wheelsSteeringAngle={[]}
+									armJointAngles={getJointsPositions(dataJson)}
+									wheelsSpeed={getWheelsSpeed(dataJson)}
+									wheelsSteeringAngle={getSteeringAngles(dataJson)}
+									pivotAngle={getPivotAngle(dataJson)}
 								/>
 							)}
 						</div>
 					</div>
 					<div className={styles.actions}>
-						<QuickAction onClick={() => {}} selected={false} icon={NavIcon} />
-						<QuickAction onClick={() => {}} selected={true} icon={HDIcon} />
-						<QuickAction onClick={() => {}} selected={false} icon={Drill} />
-						<QuickAction onClick={() => {}} selected={false} icon={Stop} />
+						<QuickAction
+							onClick={() => displaySystemModal(0)}
+							selected={systemsModalOpen[0]}
+							icon={NavIcon}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal(1)}
+							selected={systemsModalOpen[1]}
+							icon={HDIcon}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal(2)}
+							selected={systemsModalOpen[2]}
+							icon={Drill}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal(3)}
+							selected={systemsModalOpen[3]}
+							icon={Stop}
+						/>
 					</div>
 				</div>
 			</div>
 		</div>
 	);
+};
+
+const getJointsPositions = (data: any) => {
+	if (!data["handling_device"]) {
+		return [];
+	}
+
+	const joints = data["handling_device"]["joints"];
+	const positions = [];
+
+	for (const joint in joints) {
+		positions.push(joints[joint]["angle"]);
+	}
+
+	return positions;
+};
+
+const getWheelsSpeed = (data: any) => {
+	if (!data["navigation"]) {
+		return [];
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const speeds = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		speeds.push(wheels[wheel]["speed"]);
+	}
+
+	return speeds;
+};
+
+const getSteeringAngles = (data: any) => {
+	if (!data["navigation"]) {
+		return [];
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const angles = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		angles.push(wheels[wheel]["steering_angle"]);
+	}
+
+	return angles;
+};
+
+const getPivotAngle = (data: any) => {
+	if (!data["navigation"]) {
+		return 0;
+	}
+
+	return data["navigation"]["wheels"]["pivot"]["angle"];
 };

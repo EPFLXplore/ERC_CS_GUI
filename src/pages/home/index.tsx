@@ -1,16 +1,13 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Background from "../../components/Background";
-import Button from "../../components/Button";
 import Logo from "../../components/Logo";
 import { Size } from "../../utils/size.type";
-import { Themes } from "../../utils/themes";
 import styles from "./style.module.sass";
-import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
-import AddToDriveRoundedIcon from "@mui/icons-material/AddToDriveRounded";
 
 export default () => {
 	const navigate = useNavigate();
+	const [connected, setConnected] = React.useState(false);
 
 	return (
 		<div className="page">
@@ -19,37 +16,47 @@ export default () => {
 				<Logo size={Size.LARGE} />
 			</div>
 			<div className={styles.body}>
-				<a className={styles.buttonStart} onClick={() => navigate("/new_control_page")}>
+				<a
+					className={styles.buttonStart}
+					onClick={() => {
+						if (connected) navigate("/new_control_page");
+					}}
+				>
 					Start
 				</a>
 			</div>
 			<div className={styles.footer}>
-				<Button
-					size={Size.MEDIUM}
-					radius={15}
-					text="Documentation"
-					theme={Themes.DARK}
-					icon={<MenuBookRoundedIcon />}
-					onClick={() =>
-						window.open(
-							"https://hospitable-taste-374.notion.site/Xplore-Wiki-for-Software-Engineers-and-Roboticists-5615d07f70814ab0b3901beb31920236",
-							"_blank"
-						)
-					}
-				/>
-				<Button
-					size={Size.MEDIUM}
-					radius={15}
-					text="Drive"
-					theme={Themes.DARK}
-					icon={<AddToDriveRoundedIcon />}
-					onClick={() =>
-						window.open(
-							"https://drive.google.com/drive/folders/0AEpe4eawL6pdUk9PVA",
-							"_blank"
-						)
-					}
-				/>
+				<div className={styles.links}>
+					<a
+						className={styles.buttonLinks}
+						onClick={() =>
+							window.open(
+								"https://www.notion.so/xplore-doc/ERC-Workspace-8d4df6e2dbc441deac23240e28c90b46?pvs=4",
+								"_blank"
+							)
+						}
+					>
+						Documentation
+					</a>
+					<a
+						className={styles.buttonLinks}
+						onClick={() =>
+							window.open(
+								"https://drive.google.com/drive/folders/0AEpe4eawL6pdUk9PVA",
+								"_blank"
+							)
+						}
+					>
+						Drive
+					</a>
+				</div>
+				<div className={styles.state}>
+					<div
+						className={styles.indicator}
+						style={{ background: connected ? "#5CCE7C" : "#FF4444" }}
+					/>
+					<div className={styles.text}>Rover {connected ? "Connected" : "Off"}</div>
+				</div>
 			</div>
 		</div>
 	);

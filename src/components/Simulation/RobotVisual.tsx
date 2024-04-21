@@ -1,10 +1,10 @@
 // @ts-nocheck
 import * as THREE from "three";
-import React, { useRef } from "react";
-import { useLoader, useThree } from "@react-three/fiber";
+import { useRef } from "react";
+import { useLoader } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
-import URDFLoader, { URDFRobot } from "urdf-loader";
+import URDFLoader from "urdf-loader";
 
 /*
 Reference coordinate frames for THREE.js and ROS.
@@ -33,18 +33,15 @@ ROS URDf
 
 */
 
-const isJoint = (j) => {
-	return j.isURDFJoint && j.jointType !== "fixed";
-};
-
 const RobotVisual = ({
 	armJointAngles,
-	wheelsSpeed,
 	wheelsSteeringAngle,
+	pivotAngle,
 }: {
 	armJointAngles: number[];
 	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
+	pivotAngle: number;
 }) => {
 	var filepath = "/kerby_description/urdf/kerby_compiled.urdf";
 
@@ -68,8 +65,6 @@ const RobotVisual = ({
 		};
 	});
 
-	//console.log(robot);
-
 	// Set joint angles
 	for (let i = 0; i < armJointAngles.length; i++) {
 		robot.joints[`joint${i + 1}`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
@@ -82,48 +77,9 @@ const RobotVisual = ({
 		);
 	}
 
-	/*robot.joints["shoulder_pan_joint"].setJointValue(THREE.MathUtils.degToRad(0));
-  robot.joints["shoulder_lift_joint"].setJointValue(
-    THREE.MathUtils.degToRad(-60)
-  );
-  robot.joints["elbow_joint"].setJointValue(THREE.MathUtils.degToRad(60));
-  robot.joints["wrist_1_joint"].setJointValue(THREE.MathUtils.degToRad(-90));
-  robot.joints["wrist_2_joint"].setJointValue(THREE.MathUtils.degToRad(-90));
-  robot.joints["wrist_3_joint"].setJointValue(THREE.MathUtils.degToRad(0));*/
-	// const robot = useLoader(URDFLoader, robot_urdf);
-
-	// The highlight material
-	const highlightMaterial = new THREE.MeshPhongMaterial({
-		shininess: 10,
-		color: "#FFFFFF",
-		emissive: "#FFFFFF",
-		emissiveIntensity: 0.25,
-	});
-
-	// Highlight the link geometry under a joint
-	const highlightLinkGeometry = (m, revert) => {
-		const traverse = (c) => {
-			// Set or revert the highlight color
-			if (c.type === "Mesh") {
-				if (revert) {
-					c.material = c.__origMaterial;
-					delete c.__origMaterial;
-				} else {
-					c.__origMaterial = c.material;
-					c.material = highlightMaterial;
-				}
-			}
-
-			// Look into the children and stop if the next child is
-			// another joint
-			if (c === m || !isJoint(c)) {
-				for (let i = 0; i < c.children.length; i++) {
-					traverse(c.children[i]);
-				}
-			}
-		};
-		traverse(m);
-	};
+	// Set pivot angle
+	robot.joints["pivot_droit"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
+	robot.joints["pivot_gauche"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
 
 	return (
 		<group>

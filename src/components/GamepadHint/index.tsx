@@ -78,7 +78,7 @@ const GamepadHint = ({
 					]}
 					select={gamepadState.buttons[8]}
 					start={gamepadState.buttons[9]}
-					activeColor="#402921"
+					activeColor="#FF4345"
 				/>
 			</div>
 		);

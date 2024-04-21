@@ -1,5 +1,7 @@
 import Simulation from "../../components/Simulation";
 
 export default () => {
-	return <Simulation armJointAngles={[]} wheelsSpeed={[]} wheelsSteeringAngle={[]} />;
+	return (
+		<Simulation armJointAngles={[]} wheelsSpeed={[]} wheelsSteeringAngle={[]} pivotAngle={0} />
+	);
 };
