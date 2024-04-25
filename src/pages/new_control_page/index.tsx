@@ -16,10 +16,13 @@ import Simulation from "../../components/Simulation";
 import RoverData from "../../components/RoverData";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
+import useRoverState from "../../hooks/roverStateHooks";
 
 export default () => {
+	const DEBUG = true;
+
+	const [roverState] = useRoverState(DEBUG);
 	const [dataOpen, setDataOpen] = useState(false);
-	const [dataJson, setDataJson] = useState({});
 	const [display, setDisplay] = useState("camera");
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
@@ -63,21 +66,6 @@ export default () => {
 		});
 	};
 
-	// Temporary data fetching
-	useEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch("/config/data/example.json");
-			const data = await response.json();
-			setDataJson(data);
-		};
-
-		fetchData();
-	}, []);
-
-	useEffect(() => {
-		console.log(dataJson);
-	}, [dataJson]);
-
 	return (
 		<div className={"page " + styles.mainPage}>
 			<div className={styles.header}>
@@ -118,13 +106,13 @@ export default () => {
 					{dataOpen && <h1>Rover Data</h1>}
 					{
 						// @ts-ignore
-						dataOpen && !dataJson["rover"] && <p>No data yet</p>
+						dataOpen && !roverState["rover"] && <p>No data yet</p>
 					}
 					{
 						// @ts-ignore
-						dataOpen && dataJson["rover"] && (
+						dataOpen && roverState["rover"] && (
 							<RoverData
-								json={dataJson}
+								json={roverState}
 								triggerDataFocus={triggerDataFocus}
 								focusedData={dataFocus}
 							/>
@@ -142,10 +130,10 @@ export default () => {
 						<CameraView images={[]} />
 					) : (
 						<Simulation
-							armJointAngles={getJointsPositions(dataJson)}
-							wheelsSpeed={getWheelsSpeed(dataJson)}
-							wheelsSteeringAngle={getSteeringAngles(dataJson)}
-							pivotAngle={getPivotAngle(dataJson)}
+							armJointAngles={getJointsPositions(roverState)}
+							wheelsSpeed={getWheelsSpeed(roverState)}
+							wheelsSteeringAngle={getSteeringAngles(roverState)}
+							pivotAngle={getPivotAngle(roverState)}
 						/>
 					)}
 					<div className={styles.infos}>
@@ -173,10 +161,10 @@ export default () => {
 								<CameraView images={[]} />
 							) : (
 								<Simulation
-									armJointAngles={getJointsPositions(dataJson)}
-									wheelsSpeed={getWheelsSpeed(dataJson)}
-									wheelsSteeringAngle={getSteeringAngles(dataJson)}
-									pivotAngle={getPivotAngle(dataJson)}
+									armJointAngles={getJointsPositions(roverState)}
+									wheelsSpeed={getWheelsSpeed(roverState)}
+									wheelsSteeringAngle={getSteeringAngles(roverState)}
+									pivotAngle={getPivotAngle(roverState)}
 								/>
 							)}
 						</div>
