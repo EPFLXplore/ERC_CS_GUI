@@ -1,9 +1,8 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useState } from "react";
 import styles from "./style.module.sass";
 import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
 import ExpandButton from "../../components/ExpandButton";
-import CameraView from "../../components/CameraView";
 import GamepadHint from "../../components/GamepadHint";
 import QuickAction from "../../components/QuickAction";
 
@@ -17,6 +16,8 @@ import RoverData from "../../components/RoverData";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRoverState from "../../hooks/roverStateHooks";
+import CameraViewRTC from "../../components/CameraViewRTC";
+import useConnectWebRTC from "../../utils/connectWebRTC";
 
 export default () => {
 	const DEBUG = true;
@@ -27,6 +28,7 @@ export default () => {
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
 	const [modal, setModal] = useState<ReactElement | null>(null);
+	const [videoSrc] = useConnectWebRTC();
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
@@ -127,7 +129,7 @@ export default () => {
 						/>
 					</div>
 					{display === "camera" ? (
-						<CameraView images={[]} />
+						<CameraViewRTC src={videoSrc} rotate={false} setRotateCams={() => {}} />
 					) : (
 						<Simulation
 							armJointAngles={getJointsPositions(roverState)}
@@ -158,7 +160,11 @@ export default () => {
 							}}
 						>
 							{display !== "camera" ? (
-								<CameraView images={[]} />
+								<CameraViewRTC
+									src={videoSrc}
+									rotate={false}
+									setRotateCams={() => {}}
+								/>
 							) : (
 								<Simulation
 									armJointAngles={getJointsPositions(roverState)}
