@@ -17,15 +17,14 @@ function useRoverState(debug: boolean = false) {
 		} else {
 			let sessionSocket = new WebSocket(
 				"ws://" + window.location.host + "/ws/csApp/rover_state/"
-			);
+			);	
 
 			sessionSocket.onmessage = (e) => {
 				const data = JSON.parse(e.data);
-				setRoverState(data.rover_state);
+				setRoverState(JSON.parse(data.rover_state.replaceAll("'", "\"")));
 			};
 
 			sessionSocket.onerror = (e) => {
-				console.log(e);
 				setSocket(null);
 			};
 

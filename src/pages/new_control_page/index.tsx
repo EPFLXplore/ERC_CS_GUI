@@ -20,7 +20,7 @@ import CameraViewRTC from "../../components/CameraViewRTC";
 import useConnectWebRTC from "../../utils/connectWebRTC";
 
 export default () => {
-	const DEBUG = true;
+	const DEBUG = false;
 
 	const [roverState] = useRoverState(DEBUG);
 	const [dataOpen, setDataOpen] = useState(false);
