@@ -58,6 +58,7 @@ const useConnectWebRTC = () => {
 	const start = () => {
 		var config = {
 			sdpSemantics: "unified-plan",
+			iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
 		};
 
 		// @ts-ignore
