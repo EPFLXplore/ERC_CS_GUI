@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useState } from "react";
 
 const useConnectWebRTC = () => {
@@ -6,22 +7,29 @@ const useConnectWebRTC = () => {
 	const [pc, setPc] = useState<RTCPeerConnection | null>(null);
 
 	const negotiate = () => {
-		pc?.addTransceiver("video", { direction: "recvonly" });
+		if(!pc) {
+			console.log("Did not create Peer Connection");
+			return;
+		}
+
+		pc.addTransceiver("video", { direction: "recvonly" });
+		console.log("Start connecting")
 		//
 		return pc
-			?.createOffer()
+			.createOffer()
 			.then((offer) => {
+				console.log("Offer")
 				return pc?.setLocalDescription(offer);
 			})
 			.then(() => {
 				// wait for ICE gathering to complete
 				return new Promise<void>((resolve) => {
-					if (pc?.iceGatheringState === "complete") {
+					if (pc.iceGatheringState === "complete") {
 						resolve();
 					} else {
 						const checkState = () => {
-							if (pc?.iceGatheringState === "complete") {
-								pc?.removeEventListener("icegatheringstatechange", checkState);
+							if (pc.iceGatheringState === "complete") {
+								pc.removeEventListener("icegatheringstatechange", checkState);
 								resolve();
 							}
 						};
@@ -30,8 +38,8 @@ const useConnectWebRTC = () => {
 				});
 			})
 			.then(() => {
-				var offer = pc?.localDescription;
-				return fetch("169.254.55.234:8080/offer", {
+				var offer = pc.localDescription;
+				return fetch("http://169.254.55.234:8080/offer", {
 					body: JSON.stringify({
 						// @ts-ignore
 						sdp: offer.sdp,
@@ -45,6 +53,7 @@ const useConnectWebRTC = () => {
 				});
 			})
 			.then((response) => {
+				console.log("Response from webRTC server")
 				return response.json();
 			})
 			.then((answer) => {
@@ -61,11 +70,10 @@ const useConnectWebRTC = () => {
 			iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
 		};
 
-		// @ts-ignore
-		setPc(new RTCPeerConnection(config));
-
+		const _pc = new RTCPeerConnection(config)
+		
 		// connect audio / video
-		pc?.addEventListener("track", (evt) => {
+		_pc.addEventListener("track", (evt) => {
 			if (evt.track.kind == "video") {
 				setVideoSrc(evt.streams[0]);
 			} else {
@@ -73,13 +81,15 @@ const useConnectWebRTC = () => {
 			}
 		});
 
-		negotiate();
+		// @ts-ignore
+		setPc(_pc);
+
 	};
 
 	const stop = () => {
 		// close peer connection
 		setTimeout(() => {
-			pc?.close();
+			if(pc) pc.close();
 		}, 500);
 	};
 
@@ -89,6 +99,10 @@ const useConnectWebRTC = () => {
 			stop();
 		};
 	}, []);
+
+	useEffect(() => {
+		negotiate();
+	}, [pc])
 
 	return [videoSrc, start, stop] as const;
 };
