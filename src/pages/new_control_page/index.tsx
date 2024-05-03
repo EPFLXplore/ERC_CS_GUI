@@ -20,7 +20,7 @@ import CameraViewRTC from "../../components/CameraViewRTC";
 import useConnectWebRTC from "../../utils/connectWebRTC";
 
 export default () => {
-	const DEBUG = true;
+	const DEBUG = false;
 	const MAX_CAMERAS = 2;
 
 	const [roverState] = useRoverState(DEBUG);

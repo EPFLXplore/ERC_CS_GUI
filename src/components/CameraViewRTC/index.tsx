@@ -37,7 +37,7 @@ const CameraViewRTC = ({
 					}
 				}}
 			/>
-			<img src={DefaultImage} alt="Camera" className={styles.Placeholder} />
+			{!src && <img src={DefaultImage} alt="Camera" className={styles.Placeholder} />}
 		</div>
 	);
 };
