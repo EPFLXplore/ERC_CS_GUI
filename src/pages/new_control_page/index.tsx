@@ -1,4 +1,4 @@
-import { ReactElement, useState } from "react";
+import { ReactElement, useEffect, useState } from "react";
 import styles from "./style.module.sass";
 import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
@@ -21,6 +21,7 @@ import useConnectWebRTC from "../../utils/connectWebRTC";
 
 export default () => {
 	const DEBUG = true;
+	const MAX_CAMERAS = 2;
 
 	const [roverState] = useRoverState(DEBUG);
 	const [dataOpen, setDataOpen] = useState(false);
@@ -28,7 +29,7 @@ export default () => {
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
 	const [modal, setModal] = useState<ReactElement | null>(null);
-	const [videoSrc] = useConnectWebRTC();
+	const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
@@ -67,6 +68,26 @@ export default () => {
 			return newFocus;
 		});
 	};
+
+	useEffect(() => {
+		const handleNext = (event: { key: string }) => {
+			if (event.key === "ArrowRight") {
+				console.log("Next camera");
+				setVideoId((old) => {
+					if (old === MAX_CAMERAS - 1) {
+						return 0;
+					} else {
+						return old + 1;
+					}
+				});
+			}
+		};
+		window.addEventListener("keydown", handleNext);
+
+		return () => {
+			window.removeEventListener("keydown", handleNext);
+		};
+	}, []);
 
 	return (
 		<div className={"page " + styles.mainPage}>

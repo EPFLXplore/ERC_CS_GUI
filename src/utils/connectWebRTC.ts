@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 const useConnectWebRTC = () => {
 	const [rotate, setRotate] = useState(false);
+	const [videoId, setVideoId] = useState(0);
 	const [videoSrc, setVideoSrc] = useState<MediaStream | null>(null);
 	const [pc, setPc] = useState<RTCPeerConnection | null>(null);
 
@@ -37,6 +38,7 @@ const useConnectWebRTC = () => {
 						sdp: offer.sdp,
 						// @ts-ignore
 						type: offer.type,
+						video: videoId,
 					}),
 					headers: {
 						"Content-Type": "application/json",
@@ -89,7 +91,7 @@ const useConnectWebRTC = () => {
 		};
 	}, []);
 
-	return [videoSrc, start, stop] as const;
+	return [videoSrc, videoId, setVideoId, start, stop] as const;
 };
 
 export default useConnectWebRTC;
