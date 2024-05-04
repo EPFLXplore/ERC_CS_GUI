@@ -1,6 +1,6 @@
 // @ts-nocheck
 import * as THREE from "three";
-import { useRef } from "react";
+import { useRef, memo } from "react";
 import { useLoader } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -111,4 +111,4 @@ const RobotVisual = ({
 	);
 };
 
-export default RobotVisual;
+export default memo(RobotVisual);

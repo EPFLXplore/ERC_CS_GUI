@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { Suspense } from "react";
+import { Suspense, memo } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Plane } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
@@ -58,4 +58,4 @@ function Simulation({
 	);
 }
 
-export default Simulation;
+export default memo(Simulation);

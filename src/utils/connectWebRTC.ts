@@ -40,6 +40,7 @@ const useConnectWebRTC = () => {
 			})
 			.then(() => {
 				var offer = pc.localDescription;
+				console.log("Connecting to camera /dev/video" + videoId)
 				return fetch("http://169.254.55.234:8080/offer", {
 					body: JSON.stringify({
 						// @ts-ignore
@@ -69,7 +70,7 @@ const useConnectWebRTC = () => {
 	const start = () => {
 		var config = {
 			sdpSemantics: "unified-plan",
-			iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
+			//iceServers: [{ urls: ["stun:stun.l.google.com:19302"] }],
 		};
 
 		const _pc = new RTCPeerConnection(config);
@@ -99,7 +100,7 @@ const useConnectWebRTC = () => {
 		return () => {
 			stop();
 		};
-	}, []);
+	}, [videoId]);
 
 	useEffect(() => {
 		negotiate();
