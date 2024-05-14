@@ -14,6 +14,8 @@ import SystemMode from "../../components/SystemMode";
 import Simulation from "../../components/Simulation";
 import RoverData from "../../components/RoverData";
 
+import requestChangeMode from "../../utils/changeSystemMode";
+
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRoverState from "../../hooks/roverStateHooks";
 import CameraViewRTC from "../../components/CameraViewRTC";
@@ -98,25 +100,25 @@ export default () => {
 						system="Navigation"
 						currentMode="Manual"
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => console.log(mode)}
+						onSelect={(mode) => requestChangeMode("navigation", mode)}
 					/>
 					<SystemMode
 						system="Handling Device"
 						currentMode="Off"
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => console.log(mode)}
+						onSelect={(mode) => requestChangeMode("handling_device", mode)}
 					/>
 					<SystemMode
 						system="Cameras"
 						currentMode="Stream"
 						modes={["Stream", "Off"]}
-						onSelect={(mode) => console.log(mode)}
+						onSelect={(mode) => requestChangeMode("cameras", mode)}
 					/>
 					<SystemMode
 						system="Drill"
 						currentMode="Off"
 						modes={["On", "Off"]}
-						onSelect={(mode) => console.log(mode)}
+						onSelect={(mode) => requestChangeMode("drill", mode)}
 					/>
 				</div>
 				<Timer end={Date.now() + 10000} size={Size.SMALL} />
