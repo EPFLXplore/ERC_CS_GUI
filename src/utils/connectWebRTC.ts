@@ -41,7 +41,7 @@ const useConnectWebRTC = () => {
 			.then(() => {
 				var offer = pc.localDescription;
 				console.log("Connecting to camera /dev/video" + videoId)
-				return fetch("http://169.254.55.234:8080/offer", {
+				return fetch("http://192.168.243.66:8080/offer", {
 					body: JSON.stringify({
 						// @ts-ignore
 						sdp: offer.sdp,

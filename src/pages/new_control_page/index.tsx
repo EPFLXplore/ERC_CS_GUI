@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ReactElement, useEffect, useState } from "react";
 import styles from "./style.module.sass";
 import { Size } from "../../utils/size.type";
@@ -98,25 +99,25 @@ export default () => {
 				<div className={styles.systems}>
 					<SystemMode
 						system="Navigation"
-						currentMode="Manual"
+						currentMode={!roverState['rover'] ? 'Off' : roverState['rover']['status']['systems']['navigation']['status']}
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => requestChangeMode("navigation", mode)}
 					/>
 					<SystemMode
 						system="Handling Device"
-						currentMode="Off"
+						currentMode={!roverState['rover'] ? 'Off' : roverState['rover']['status']['systems']['handling_device']['status']}
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => requestChangeMode("handling_device", mode)}
 					/>
 					<SystemMode
 						system="Cameras"
-						currentMode="Stream"
+						currentMode={!roverState['rover'] ? 'Off' : roverState['rover']['status']['systems']['cameras']['status']}
 						modes={["Stream", "Off"]}
 						onSelect={(mode) => requestChangeMode("cameras", mode)}
 					/>
 					<SystemMode
 						system="Drill"
-						currentMode="Off"
+						currentMode={!roverState['rover'] ? 'Off' : roverState['rover']['status']['systems']['drill']['status']}
 						modes={["On", "Off"]}
 						onSelect={(mode) => requestChangeMode("drill", mode)}
 					/>
