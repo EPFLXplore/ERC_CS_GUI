@@ -7,10 +7,19 @@ function SystemMode({
 	onSelect,
 }: {
 	system: string;
-	currentMode: string;
+	currentMode: any;
 	modes: string[];
-	onSelect: (mode: string) => void;
+	onSelect: (mode: string) => Promise<any>;
 }) {
+
+	console.log("currentmode " + currentMode)
+
+	const changeMode = async (e: string) => {
+		await onSelect(e).then((value) => {
+			//console.log(value)
+		}).catch(err => console.log(err))
+	}
+
 	return (
 		<div className={`${styles.system}`}>
 			<h2 className={`${styles.name}`}>{system}</h2>
