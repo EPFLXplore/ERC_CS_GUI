@@ -32,7 +32,7 @@ function useRoverState(debug: boolean = false) {
 		}
 	}, []);
 
-	return [roverState] as const;
+	return [roverState];
 }
 
 export default useRoverState;

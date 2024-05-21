@@ -7,13 +7,17 @@ function SystemMode({
 	onSelect,
 }: {
 	system: string;
-	currentMode: string;
+	currentMode: any;
 	modes: string[];
-	onSelect: (mode: string) => void;
+	onSelect: (mode: string) => Promise<any>;
 }) {
 
-	if (!currentMode) {
-		currentMode = 'Off'
+	console.log("currentmode " + currentMode)
+
+	const changeMode = async (e: string) => {
+		await onSelect(e).then((value) => {
+			//console.log(value)
+		}).catch(err => console.log(err))
 	}
 
 	return (
@@ -21,10 +25,7 @@ function SystemMode({
 			<h2 className={`${styles.name}`}>{system}</h2>
 			<select name="mode" id="mode" value={currentMode} className={styles.select}>
 				{modes.map((mode) => (
-					<option value={mode} onClick={() => {
-						onSelect(mode);
-					}
-					}>
+					<option value={mode} onClick={() => onSelect(mode)}>
 						{mode}
 					</option>
 				))}

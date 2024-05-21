@@ -1,10 +1,10 @@
 import { constants } from "fs";
 import { getCookie } from "./requests"
 
-const requestChangeMode = (system: string, mode: string) => {
-    const csrftoken = getCookie("csrftoken");
+const requestChangeMode =  async (system: string, mode: string) => {
+	const csrftoken = getCookie("csrftoken");
 	console.log("send request")
-    const data = new FormData();
+	const data = new FormData();
 
 	if(system == "drill") {
 		data.append("system", "0");
@@ -28,21 +28,21 @@ const requestChangeMode = (system: string, mode: string) => {
 		
 	} 
 
-    const request = new Request("http://" + window.location.host + "/csApp/changeModeSystem", { //window.location.host
+	const request = new Request("http://" + window.location.host + "/csApp/changeModeSystem", {
 		method: "POST",
 		body: data,
 		headers: { "X-CSRFToken": csrftoken ?? "" },
 	});
 
-	fetch(request)
-			.then((data) => data.json())
-			.then((values) => {
-				// values holds the response of the service sent
-				console.log(values)
-
-				// todo launch popup if error
-			})
-			.catch((err) => console.log(err));
+	await fetch(request)
+		.then((data) => data.json())
+		.then((values) => {
+			// values holds the response of the service sent
+			console.log(values)
+			return values;
+			// todo launch popup if error
+		})
+		.catch((err) => console.log(err));
 }
 
 export default requestChangeMode

@@ -16,7 +16,6 @@ function RoverData({
 	return (
 		<div className={`${styles.container}`}>
 			{Object.keys(json).map((key) => {
-				console.log(key);
 				return (
 					<div className={styles.systems}>
 						<RoverCategory
