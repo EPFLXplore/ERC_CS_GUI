@@ -35,109 +35,96 @@ export default () => {
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
 
-	const [systemsModalOpen, setSystemsModalOpen] = useState([
-		[
-			"navigation",
-			new Action("navigation", false, [
-				["drill", false],
-				["handling_device", true],
-			]),
-		],
-		["handling_device", new Action("handling_device", false, [])],
-		[
-			"drill",
-			new Action("drill", false, [
-				["navigation", false],
-				["handling_device", true],
-			]),
-		],
-		["cancel", false],
-	]);
+	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false])
+
+	const [stateActions, setStateActions] = useState([["navigation",        Action("navigation", false, [["drill", false], ["handling_device", true]])], 
+																["handling_device", Action("handling_device", false, [])], 
+																["drill",           Action("drill", false, [["navigation", false], ["handling_device", true]])], 
+																["cancel",          false]]);
 	const [modal, setModal] = useState<ReactElement | null>(null);
 	const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
+	const launchAction = (index: number, ) => {
+
+	}
+
 	const displaySystemModal = (index: number) => {
 		setSystemsModalOpen((old) => {
 			const newModalOpen = [...old];
-			return newModalOpen;
-			// if (index == NBR_ACTIONS) {
-			// 	// cancel all actions
-			// 	cancelAllGoal()
-			// 		.then((data) => data.json())
-			// 		.then((values) => {
-			// 			// values holds values with true or false if all actions are not on
-			// 			console.log(values);
-			// 			for (let i = 0; i < NBR_ACTIONS; i++) {
-			// 				if (values["status"][i] == false) {
-			// 					newModalOpen[i][1].status = false;
-			// 				} else {
-			// 					// should throw a pop up danger an action is on!!
-			// 				}
-			// 			}
-			// 		})
-			// 		.catch((err) => {
-			// 			console.log(err);
-			// 			// what do we do
-			// 		});
 
-			// 	return newModalOpen;
-			// } else {
-			// 	if (old[index][1].status) {
-			// 		// this action is already running, cancel it or just do nothing?
-			// 		actionGoal(old[index][0], false)
-			// 			.then((data) => {
-			// 				return data.json();
-			// 			})
-			// 			.then((values) => {
-			// 				if (values["status"] == false) {
-			// 					newModalOpen[index][1].status = false;
-			// 				} else {
-			// 					// error the action has not been canceled!
-			// 				}
-			// 			})
-			// 			.catch((err) => {
-			// 				console.log(err);
-			// 				// what do we do
-			// 			});
+			if(index == NBR_ACTIONS) {
+				// cancel all actions
+				cancelAllGoal().then((data) => data.json())
+				.then((values) => {
+					// values holds values with true or false if all actions are not on
+					console.log(values)
+					for (let i = 0; i < NBR_ACTIONS; i++) {
+						if(values['status'][i] == false) {
+							newModalOpen[i][1].status = false
+						} else {
+							// should throw a pop up danger an action is on!!
+						}
+					}
+				})
+				.catch((err) => {
+					console.log(err);
+					// what do we do
+				});
 
-			// 		return newModalOpen;
-			// 	} else {
-			// 		// check compatibility. the subsystem needs to be on + the compatibility needs good also
-			// 		if (roverState["rover"]["status"]["systems"][old[index][0]]["status"] != "On") {
-			// 			// subsystem is not on, action canceled
-			// 			// pop up saying action the service?
-			// 			return newModalOpen;
-			// 		} else {
-			// 			// subsystem is on, check compatibility now
-			// 			for (let i = 0; i < NBR_ACTIONS; i++) {
-			// 				if (index !== i) {
-			// 					if (!newModalOpen[i][1].check(old[index][0])) {
-			// 						// not good, compatibility check
-			// 						// pop up?
-			// 						return newModalOpen;
-			// 					}
-			// 				}
-			// 			}
+				return newModalOpen;
 
-			// 			// Activation
-			// 			actionGoal(old[index][0], true)
-			// 				.then((data) => {
-			// 					return data.json();
-			// 				})
-			// 				.then((values) => {
-			// 					newModalOpen[index][1].status = true;
-			// 				})
-			// 				.catch((err) => {
-			// 					console.log(err);
-			// 					newModalOpen[index][1].status = false;
-			// 				});
+			} else {
 
-			// 			return newModalOpen;
-			// 		}
-			// 	}
-			// }
+				if(old[index][1].status) {
+					// this action is already running, cancel it or just do nothing?
+					actionGoal(old[index][0], false)
+						.then((data) => {
+							return data.json()
+						})
+						.then((values) => {
+							if(values['status'] == false) {
+								newModalOpen[index][1].status = false;
+							} else {
+								// error the action has not been canceled!
+							}
+						})
+						.catch(err => {
+							console.log(err)
+							// what do we do
+						});
+
+					return newModalOpen;
+
+				} else {
+
+					// check compatibility. the subsystem needs to be on + the compatibility needs good also
+					if(roverState['rover']['status']['systems'][old[index][0]]['status'] != 'On') {
+						// subsystem is not on, action canceled
+						// pop up saying action the service?
+						return newModalOpen
+
+					} else {
+						// subsystem is on, check compatibility now
+						for (let i = 0; i < NBR_ACTIONS; i++) {
+							if(index !== i) {
+								if(!newModalOpen[i][1].check(old[index][0])) {
+									// not good, compatibility check
+									// pop up?
+									return newModalOpen;
+								}
+							}
+						}
+
+						// Activation
+						// Here we don't put the state cs after having certitude that the action has correctly been started because
+						// the button will not start the action. So now its good
+						newModalOpen[index][1].status = true;			
+						return newModalOpen;
+					}
+				}
+			}
 		});
 	};
 

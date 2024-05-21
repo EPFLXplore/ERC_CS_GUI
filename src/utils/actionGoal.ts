@@ -1,14 +1,14 @@
 import { getCookie } from "./requests"
 
-const actionGoal = async (system: string, start: boolean) => { // need to add kwargs....
+const actionGoal = async (system: string, start: boolean, ...args: any[]) => {
 	const csrftoken = getCookie("csrftoken");
 	const data = new FormData();
 	let request: Request
 
+	data.append("name", system)
+
 	if(!start) {
 		// cancel action
-
-		data.append("name", system)
 
 		request = new Request("http://" + window.location.host + "/csApp/cancelAction", {
 			method: "POST",
@@ -20,6 +20,9 @@ const actionGoal = async (system: string, start: boolean) => { // need to add kw
 		// start action
 
 		// add data
+		for(let i = 0; i < args.length; i++) {
+			data.append(i.toString(), args[i].toString())
+		}
 
 		request = new Request("http://" + window.location.host + "/csApp/startAction", {
 		method: "POST",
