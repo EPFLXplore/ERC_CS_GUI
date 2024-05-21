@@ -1,6 +1,6 @@
 import { getCookie } from "./requests"
 
-const cancelAllGoal = async () => {
+const cancelAllActions = async () => {
 	const csrftoken = getCookie("csrftoken");
 	const data = new FormData();
 
@@ -13,4 +13,4 @@ const cancelAllGoal = async () => {
 	return await fetch(request)
 }
 
-export default cancelAllGoal
+export default cancelAllActions

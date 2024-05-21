@@ -21,7 +21,7 @@ import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRoverState from "../../hooks/roverStateHooks";
 import CameraViewRTC from "../../components/CameraViewRTC";
 import useConnectWebRTC from "../../utils/connectWebRTC";
-import cancelAllGoal from "../../utils/cancelAllActions";
+import cancelAllActions from "../../utils/cancelAllActions";
 import actionGoal from "../../utils/actionGoal";
 import Action from "../../utils/Action";
 import NavigationGoalModal from "../../components/NavigationGoalModal";
@@ -37,17 +37,85 @@ export default () => {
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false])
 
-	const [stateActions, setStateActions] = useState([["navigation",        Action("navigation", false, [["drill", false], ["handling_device", true]])], 
-																["handling_device", Action("handling_device", false, [])], 
-																["drill",           Action("drill", false, [["navigation", false], ["handling_device", true]])], 
-																["cancel",          false]]);
+	const [stateActions, setStateActions] = useState([
+		{
+			name: "navigation",
+			action: new Action("navigation", false, [["drill", false], ["handling_device", true]])
+		},
+		{
+			name: "handling_device",
+			action: new Action("handling_device", false, [])
+		},
+		{
+			name: "drill",
+			action: new Action("drill", false, [["navigation", false], ["handling_device", true]])
+		}
+	])
+	
 	const [modal, setModal] = useState<ReactElement | null>(null);
 	const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
-	const launchAction = (index: number, ) => {
+	const launchAction = (index: number, ...args: any[]) => {
+		if(!stateActions[index].action.status) {
+			
+			actionGoal(old[index][0], true, args)
+				.then((data) => {
+					return data.json()
+				})
+				.then((values) => {
+					
+				})
+				.catch(err => {
+					console.log(err)
+¨				});
 
+			actionGoal(old[index][0], false)
+				.then((data) => {
+					return data.json()
+				})
+				.then((values) => {
+					if(values['status'] == false) {
+						newModalOpen[index][1].status = false;
+					} else {
+						// error the action has not been canceled!
+					}
+				})
+				.catch(err => {
+					console.log(err)
+					// what do we do
+				});
+
+			return newModalOpen;
+
+		} else {
+
+			// check compatibility. the subsystem needs to be on + the compatibility needs good also
+			if(roverState['rover']['status']['systems'][old[index][0]]['status'] != 'On') {
+				// subsystem is not on, action canceled
+				// pop up saying action the service?
+				return newModalOpen
+
+			} else {
+				// subsystem is on, check compatibility now
+				for (let i = 0; i < NBR_ACTIONS; i++) {
+					if(index !== i) {
+						if(!newModalOpen[i][1].check(old[index][0])) {
+							// not good, compatibility check
+							// pop up?
+							return newModalOpen;
+						}
+					}
+				}
+
+				// Activation
+				// Here we don't put the state cs after having certitude that the action has correctly been started because
+				// the button will not start the action. So now its good
+				newModalOpen[index][1].status = true;			
+				return newModalOpen;
+			}
+		}
 	}
 
 	const displaySystemModal = (index: number) => {
@@ -55,75 +123,25 @@ export default () => {
 			const newModalOpen = [...old];
 
 			if(index == NBR_ACTIONS) {
-				// cancel all actions
-				cancelAllGoal().then((data) => data.json())
-				.then((values) => {
-					// values holds values with true or false if all actions are not on
-					console.log(values)
-					for (let i = 0; i < NBR_ACTIONS; i++) {
-						if(values['status'][i] == false) {
-							newModalOpen[i][1].status = false
-						} else {
-							// should throw a pop up danger an action is on!!
+				cancelAllActions().then((data) => data.json())
+					.then((values) => {
+						for (let i = 0; i < NBR_ACTIONS; i++) {
+							if(values['status'][i] == false) {
+								newModalOpen[i][1].status = false
+							} else {
+								// should throw a pop up danger an action is on!!
+							}
 						}
-					}
-				})
-				.catch((err) => {
-					console.log(err);
-					// what do we do
-				});
+					})
+					.catch((err) => {
+						console.log(err);
+					});
 
 				return newModalOpen;
 
 			} else {
-
-				if(old[index][1].status) {
-					// this action is already running, cancel it or just do nothing?
-					actionGoal(old[index][0], false)
-						.then((data) => {
-							return data.json()
-						})
-						.then((values) => {
-							if(values['status'] == false) {
-								newModalOpen[index][1].status = false;
-							} else {
-								// error the action has not been canceled!
-							}
-						})
-						.catch(err => {
-							console.log(err)
-							// what do we do
-						});
-
-					return newModalOpen;
-
-				} else {
-
-					// check compatibility. the subsystem needs to be on + the compatibility needs good also
-					if(roverState['rover']['status']['systems'][old[index][0]]['status'] != 'On') {
-						// subsystem is not on, action canceled
-						// pop up saying action the service?
-						return newModalOpen
-
-					} else {
-						// subsystem is on, check compatibility now
-						for (let i = 0; i < NBR_ACTIONS; i++) {
-							if(index !== i) {
-								if(!newModalOpen[i][1].check(old[index][0])) {
-									// not good, compatibility check
-									// pop up?
-									return newModalOpen;
-								}
-							}
-						}
-
-						// Activation
-						// Here we don't put the state cs after having certitude that the action has correctly been started because
-						// the button will not start the action. So now its good
-						newModalOpen[index][1].status = true;			
-						return newModalOpen;
-					}
-				}
+				newModalOpen[index][1].status = true ? old[index][1].status == false : true
+				return newModalOpen;
 			}
 		});
 	};
@@ -310,7 +328,8 @@ export default () => {
 							icon={Stop}
 						/>
 					</div>
-					<NavigationGoalModal />
+					<NavigationGoalModal start={true} onSetGoal={launchAction(0)} onCancelGoal={actionGoal}
+					 onClose={setSystemsModalOpen(0)} />
 				</div>
 			</div>
 		</div>

@@ -2,13 +2,17 @@ import React from "react";
 import styles from "./style.module.sass";
 
 function NavigationGoalModal({
+	start,
 	onSetGoal,
+	onCancelGoal,
 	onClose,
-	currentPos,
+	//currentPos,
 }: {
-	onSetGoal: () => void;
+	start: boolean,
+	onSetGoal: (system: string, start: boolean, ...args: any[]) => void;
+	onCancelGoal: (system: string, start: boolean, ...args: any[]) => void;
 	onClose: () => void;
-	currentPos: { x: number; y: number; o: number };
+	//currentPos: { x: number; y: number; o: number };
 }) {
 	const [xCord, setXCord] = React.useState(0);
 	const [yCord, setYCord] = React.useState(0);
@@ -57,11 +61,21 @@ function NavigationGoalModal({
 				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
-							onSetGoal();
+							onSetGoal(system, start, xCord, yCord, orientation);
 							onClose();
 						}}
 					>
 						Set Goal
+					</button>
+				</div>
+				<div className={styles.ModalFooter}>
+					<button
+						onClick={() => {
+							onCancelGoal(system, start);
+							onClose();
+						}}
+					>
+						Cancel Goal
 					</button>
 				</div>
 			</div>
