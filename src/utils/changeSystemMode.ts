@@ -1,7 +1,8 @@
 import { constants } from "fs";
 import { getCookie } from "./requests"
 
-const requestChangeMode =  async (system: string, mode: string) => {
+const requestChangeMode = (system: string, mode: string) => {
+	console.log("send request")
 	const csrftoken = getCookie("csrftoken");
 	console.log("send request")
 	const data = new FormData();
@@ -26,7 +27,7 @@ const requestChangeMode =  async (system: string, mode: string) => {
 		mode = (mode == "Off") ? "0" : "1";
 		data.append("mode", mode);
 		
-	} 
+	}
 
 	const request = new Request("http://" + window.location.host + "/csApp/changeModeSystem", {
 		method: "POST",
@@ -34,7 +35,7 @@ const requestChangeMode =  async (system: string, mode: string) => {
 		headers: { "X-CSRFToken": csrftoken ?? "" },
 	});
 
-	await fetch(request)
+	fetch(request)
 		.then((data) => data.json())
 		.then((values) => {
 			// values holds the response of the service sent

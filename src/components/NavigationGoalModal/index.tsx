@@ -1,16 +1,13 @@
 import React from "react";
 import styles from "./style.module.sass";
+import { Pose2D } from "../../utils/CustomMsgObjects";
 
 function NavigationGoalModal({
-	start,
 	onSetGoal,
-	onCancelGoal,
 	onClose,
 	//currentPos,
 }: {
-	start: boolean,
 	onSetGoal: (system: string, start: boolean, ...args: any[]) => void;
-	onCancelGoal: (system: string, start: boolean, ...args: any[]) => void;
 	onClose: () => void;
 	//currentPos: { x: number; y: number; o: number };
 }) {
@@ -61,7 +58,7 @@ function NavigationGoalModal({
 				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
-							onSetGoal(system, start, xCord, yCord, orientation);
+							onSetGoal("navigation", true, 0, new Pose2D(xCord, yCord, orientation))
 							onClose();
 						}}
 					>
@@ -71,7 +68,7 @@ function NavigationGoalModal({
 				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
-							onCancelGoal(system, start);
+							onSetGoal("navigation", false);
 							onClose();
 						}}
 					>

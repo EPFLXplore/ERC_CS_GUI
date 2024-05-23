@@ -52,70 +52,68 @@ export default () => {
 		}
 	])
 	
-	const [modal, setModal] = useState<ReactElement | null>(null);
+	const [modal, setModal] = useState<ReactElement | null>(<></>);
 	const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
-	const launchAction = (index: number, ...args: any[]) => {
-		if(!stateActions[index].action.status) {
-			
-			actionGoal(old[index][0], true, args)
-				.then((data) => {
-					return data.json()
-				})
-				.then((values) => {
-					
-				})
-				.catch(err => {
-					console.log(err)
-¨				});
+	const cancelAction = async (index: number) => {
+		setStateActions((old) => {
+			newStates = [...old]
 
-			actionGoal(old[index][0], false)
+			actionGoal(old[index].name, false)
 				.then((data) => {
 					return data.json()
 				})
 				.then((values) => {
 					if(values['status'] == false) {
-						newModalOpen[index][1].status = false;
+						stateActions[index].action.status = false;
 					} else {
 						// error the action has not been canceled!
 					}
 				})
 				.catch(err => {
 					console.log(err)
-					// what do we do
 				});
+		})
+	}
 
-			return newModalOpen;
+	const launchAction = async (index: number, ...args: any[]) => {
+		setStateActions((old) => {
+			newStates = [...old]
 
-		} else {
-
-			// check compatibility. the subsystem needs to be on + the compatibility needs good also
-			if(roverState['rover']['status']['systems'][old[index][0]]['status'] != 'On') {
-				// subsystem is not on, action canceled
-				// pop up saying action the service?
-				return newModalOpen
-
+			if(newStates[index].action.status) {
+				// print something since an action is running
+				return newStates;
 			} else {
-				// subsystem is on, check compatibility now
-				for (let i = 0; i < NBR_ACTIONS; i++) {
-					if(index !== i) {
-						if(!newModalOpen[i][1].check(old[index][0])) {
-							// not good, compatibility check
-							// pop up?
-							return newModalOpen;
+				if(roverState['rover']['status']['systems'][old[index].name]['status'] != 'On') {
+					// print something since we need to put on the service
+					return newStates;
+				} else {
+
+					for (let i = 0; i < NBR_ACTIONS; i++) {
+						if(index !== i) {
+							if(!newModalOpen[i][1].check(old[index][0])) {
+								// not good, compatibility check
+								// pop up something also
+								return newStates;
+							}
 						}
 					}
-				}
 
-				// Activation
-				// Here we don't put the state cs after having certitude that the action has correctly been started because
-				// the button will not start the action. So now its good
-				newModalOpen[index][1].status = true;			
-				return newModalOpen;
+					actionGoal(stateActions[index][0], true, args)
+					.then((data) => {
+						return data.json()
+					})
+					.then((values) => {
+						// print something like action successfully done
+					})
+					.catch(err => {
+						console.log(err)
+					});
+				}
 			}
-		}
+		})
 	}
 
 	const displaySystemModal = (index: number) => {
@@ -127,7 +125,7 @@ export default () => {
 					.then((values) => {
 						for (let i = 0; i < NBR_ACTIONS; i++) {
 							if(values['status'][i] == false) {
-								newModalOpen[i][1].status = false
+								newModalOpen[i] = false
 							} else {
 								// should throw a pop up danger an action is on!!
 							}
@@ -140,7 +138,7 @@ export default () => {
 				return newModalOpen;
 
 			} else {
-				newModalOpen[index][1].status = true ? old[index][1].status == false : true
+				newModalOpen[index] = !old[index];
 				return newModalOpen;
 			}
 		});
@@ -194,7 +192,7 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["navigation"]["status"]
 						}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => requestChangeMode("navigation", mode)}
+						onSelect={(mode) => console.log("regijhrougihrtouglihreoiéghrekulhelgioejg")}
 					/>
 					<SystemMode
 						system="Handling Device"
@@ -309,27 +307,27 @@ export default () => {
 					<div className={styles.actions}>
 						<QuickAction
 							onClick={() => displaySystemModal(0)}
-							selected={systemsModalOpen[0][1].status}
+							selected={stateActions[0].action.status}
 							icon={NavIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(1)}
-							selected={systemsModalOpen[1][1].status}
+							selected={stateActions[1].action.status}
 							icon={HDIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(2)}
-							selected={systemsModalOpen[2][1].status}
+							selected={stateActions[2].action.status}
 							icon={Drill}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal(3)}
-							selected={systemsModalOpen[3][1].status}
+							onClick={() => displaySystemModal(NBR_ACTIONS)}
+							selected={false}
 							icon={Stop}
 						/>
 					</div>
-					<NavigationGoalModal start={true} onSetGoal={launchAction(0)} onCancelGoal={actionGoal}
-					 onClose={setSystemsModalOpen(0)} />
+					
+					
 				</div>
 			</div>
 		</div>
