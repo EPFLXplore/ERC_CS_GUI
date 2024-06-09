@@ -19,6 +19,7 @@ import requestChangeMode from "../../utils/changeSystemMode";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRoverState from "../../hooks/roverStateHooks";
+import CameraView from "../../components/CameraView";
 import CameraViewRTC from "../../components/CameraViewRTC";
 import useConnectWebRTC from "../../utils/connectWebRTC";
 import cancelAllActions from "../../utils/cancelAllActions";
@@ -26,6 +27,7 @@ import actionGoal from "../../utils/actionGoal";
 import Action from "../../utils/Action";
 import NavigationGoalModal from "../../components/NavigationGoalModal";
 import useRosBridge from "../../hooks/rosbridgeHooks";
+import useNewCamera from "../../hooks/newCameraHooks";
 
 export default () => {
 	const DEBUG = true;
@@ -55,7 +57,8 @@ export default () => {
 	])
 	
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
+	// const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
+	const [images, rotateCams] = useNewCamera(ros);
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
@@ -260,7 +263,7 @@ export default () => {
 						/>
 					</div>
 					{display === "camera" ? (
-						<CameraViewRTC src={videoSrc} rotate={false} setRotateCams={() => {}} />
+						<CameraView images={images} rotate={rotateCams} setRotateCams={() => {}} />
 					) : (
 						<Simulation
 							armJointAngles={getJointsPositions(roverState)}
@@ -291,11 +294,7 @@ export default () => {
 							}}
 						>
 							{display !== "camera" ? (
-								<CameraViewRTC
-									src={videoSrc}
-									rotate={false}
-									setRotateCams={() => {}}
-								/>
+								<CameraView images={images} rotate={rotateCams} setRotateCams={() => {}} />
 							) : (
 								<Simulation
 									armJointAngles={getJointsPositions(roverState)}
