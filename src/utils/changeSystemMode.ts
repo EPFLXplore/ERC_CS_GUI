@@ -1,10 +1,6 @@
-import { constants } from "fs";
-import { getCookie } from "./requests"
+import ROSLIB from 'roslib';
 
-const requestChangeMode = (system: string, mode: string) => {
-	console.log("send request")
-	const csrftoken = getCookie("csrftoken");
-	console.log("send request")
+const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string) => {
 	const data = new FormData();
 
 	if(system == "drill") {
@@ -29,21 +25,22 @@ const requestChangeMode = (system: string, mode: string) => {
 		
 	}
 
-	const request = new Request("http://" + window.location.host + "/csApp/changeModeSystem", {
-		method: "POST",
-		body: data,
-		headers: { "X-CSRFToken": csrftoken ?? "" },
-	});
-
-	fetch(request)
-		.then((data) => data.json())
-		.then((values) => {
-			// values holds the response of the service sent
-			console.log(values)
-			return values;
-			// todo launch popup if error
-		})
-		.catch((err) => console.log(err));
+	if(ros) {
+		var setBoolServer = new ROSLIB.Service({
+			ros : ros,
+			name : '/set_bool',
+			serviceType : 'std_srvs/SetBool'
+		});
+		
+		// Use the advertise() method to indicate that we want to provide this service
+		setBoolServer.advertise(function(request, response) {
+			console.log('Received service request on ' + setBoolServer.name + ': ' + request.data);
+			response['success'] = true;
+			response['message'] = 'Set successfully';
+			return true;
+		});
+	}
+	
 }
 
 export default requestChangeMode

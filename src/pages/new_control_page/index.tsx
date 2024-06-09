@@ -25,15 +25,17 @@ import cancelAllActions from "../../utils/cancelAllActions";
 import actionGoal from "../../utils/actionGoal";
 import Action from "../../utils/Action";
 import NavigationGoalModal from "../../components/NavigationGoalModal";
+import useRosBridge from "../../hooks/rosbridgeHooks";
 
 export default () => {
 	const DEBUG = true;
 	const MAX_CAMERAS = 2;
 	const NBR_ACTIONS = 3;
 
-	const [roverState] = useRoverState(DEBUG);
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
+	const [ros] = useRosBridge()
+	const [roverState] = useRoverState(ros);
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false])
 
