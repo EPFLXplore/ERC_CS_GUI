@@ -6,6 +6,7 @@ export interface GamepadControllerState {
 	isConnected: boolean;
 	buttons: readonly boolean[];
 	axes: readonly number[];
+	triggers: readonly number[];
 	//profile: DeviceProfile;
 }
 
@@ -333,6 +334,9 @@ class GamepadController {
 				? this.gamepad.buttons.map((button) => button.pressed).slice(0, 17)
 				: [],
 			axes: this.gamepad ? this.gamepad.axes : [],
+			triggers: this.gamepad
+				? this.gamepad.buttons.map((button) => button.value).slice(0, 17)
+				: [],
 		};
 
 		return state;

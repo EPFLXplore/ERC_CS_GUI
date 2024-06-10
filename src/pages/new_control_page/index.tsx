@@ -5,6 +5,7 @@ import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
 import ExpandButton from "../../components/ExpandButton";
 import GamepadHint from "../../components/GamepadHint";
+import Gamepad from "../../components/Gamepad";
 import QuickAction from "../../components/QuickAction";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
@@ -36,26 +37,32 @@ export default () => {
 
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
-	const [ros] = useRosBridge()
+	const [ros] = useRosBridge();
 	const [roverState] = useRoverState(ros);
 
-	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false])
+	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
 
 	const [stateActions, setStateActions] = useState([
 		{
 			name: "navigation",
-			action: new Action("navigation", false, [["drill", false], ["handling_device", true]])
+			action: new Action("navigation", false, [
+				["drill", false],
+				["handling_device", true],
+			]),
 		},
 		{
 			name: "handling_device",
-			action: new Action("handling_device", false, [])
+			action: new Action("handling_device", false, []),
 		},
 		{
 			name: "drill",
-			action: new Action("drill", false, [["navigation", false], ["handling_device", true]])
-		}
-	])
-	
+			action: new Action("drill", false, [
+				["navigation", false],
+				["handling_device", true],
+			]),
+		},
+	]);
+
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
 	// const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 	const [images, rotateCams] = useNewCamera(ros);
@@ -64,41 +71,40 @@ export default () => {
 
 	const cancelAction = async (index: number) => {
 		setStateActions((old) => {
-			newStates = [...old]
+			newStates = [...old];
 
 			actionGoal(old[index].name, false)
 				.then((data) => {
-					return data.json()
+					return data.json();
 				})
 				.then((values) => {
-					if(values['status'] == false) {
+					if (values["status"] == false) {
 						stateActions[index].action.status = false;
 					} else {
 						// error the action has not been canceled!
 					}
 				})
-				.catch(err => {
-					console.log(err)
+				.catch((err) => {
+					console.log(err);
 				});
-		})
-	}
+		});
+	};
 
 	const launchAction = async (index: number, ...args: any[]) => {
 		setStateActions((old) => {
-			newStates = [...old]
+			newStates = [...old];
 
-			if(newStates[index].action.status) {
+			if (newStates[index].action.status) {
 				// print something since an action is running
 				return newStates;
 			} else {
-				if(roverState['rover']['status']['systems'][old[index].name]['status'] != 'On') {
+				if (roverState["rover"]["status"]["systems"][old[index].name]["status"] != "On") {
 					// print something since we need to put on the service
 					return newStates;
 				} else {
-
 					for (let i = 0; i < NBR_ACTIONS; i++) {
-						if(index !== i) {
-							if(!newModalOpen[i][1].check(old[index][0])) {
+						if (index !== i) {
+							if (!newModalOpen[i][1].check(old[index][0])) {
 								// not good, compatibility check
 								// pop up something also
 								return newStates;
@@ -107,30 +113,31 @@ export default () => {
 					}
 
 					actionGoal(stateActions[index][0], true, args)
-					.then((data) => {
-						return data.json()
-					})
-					.then((values) => {
-						// print something like action successfully done
-					})
-					.catch(err => {
-						console.log(err)
-					});
+						.then((data) => {
+							return data.json();
+						})
+						.then((values) => {
+							// print something like action successfully done
+						})
+						.catch((err) => {
+							console.log(err);
+						});
 				}
 			}
-		})
-	}
+		});
+	};
 
 	const displaySystemModal = (index: number) => {
 		setSystemsModalOpen((old) => {
 			const newModalOpen = [...old];
 
-			if(index == NBR_ACTIONS) {
-				cancelAllActions().then((data) => data.json())
+			if (index == NBR_ACTIONS) {
+				cancelAllActions()
+					.then((data) => data.json())
 					.then((values) => {
 						for (let i = 0; i < NBR_ACTIONS; i++) {
-							if(values['status'][i] == false) {
-								newModalOpen[i] = false
+							if (values["status"][i] == false) {
+								newModalOpen[i] = false;
 							} else {
 								// should throw a pop up danger an action is on!!
 							}
@@ -141,7 +148,6 @@ export default () => {
 					});
 
 				return newModalOpen;
-
 			} else {
 				newModalOpen[index] = !old[index];
 				return newModalOpen;
@@ -197,7 +203,9 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["navigation"]["status"]
 						}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => console.log("regijhrougihrtouglihreoiéghrekulhelgioejg")}
+						onSelect={(mode) =>
+							console.log("regijhrougihrtouglihreoiéghrekulhelgioejg")
+						}
 					/>
 					<SystemMode
 						system="Handling Device"
@@ -285,7 +293,7 @@ export default () => {
 						</div>
 					</div>
 					<div className={styles.previews}>
-						<GamepadHint mode="NAV" selectorCallback={() => {}} visible />
+						<Gamepad mode="NAV" selectorCallback={() => {}} visible />
 						<div
 							className={styles.simulation}
 							onDoubleClick={(e) => {
@@ -294,7 +302,11 @@ export default () => {
 							}}
 						>
 							{display !== "camera" ? (
-								<CameraView images={images} rotate={rotateCams} setRotateCams={() => {}} />
+								<CameraView
+									images={images}
+									rotate={rotateCams}
+									setRotateCams={() => {}}
+								/>
 							) : (
 								<Simulation
 									armJointAngles={getJointsPositions(roverState)}
@@ -327,8 +339,6 @@ export default () => {
 							icon={Stop}
 						/>
 					</div>
-					
-					
 				</div>
 			</div>
 		</div>
