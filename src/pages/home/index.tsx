@@ -4,10 +4,44 @@ import Background from "../../components/Background";
 import Logo from "../../components/Logo";
 import { Size } from "../../utils/size.type";
 import styles from "./style.module.sass";
+import useRosBridge from "../../hooks/rosbridgeHooks";
 
 export default () => {
 	const navigate = useNavigate();
 	const [connected, setConnected] = React.useState(false);
+
+	const [ros] = useRosBridge();
+
+	// Check if the rover is connected
+	React.useEffect(() => {
+		if (ros) {
+			let num_checks = 0;
+			const check = setInterval(() => {
+				ros.getNodes(
+					(nodes) => {
+						if (nodes.includes("/Rover")) {
+							setConnected(true);
+							clearInterval(check);
+						} else {
+							num_checks++;
+
+							setConnected(false);
+
+							if (num_checks % 20 === 0) {
+								// Show a snackbar
+								setConnected(false);
+							}
+						}
+					},
+					(error) => {
+						// Show a snackbar
+						console.error(error);
+						clearInterval(check);
+					}
+				);
+			}, 1000);
+		}
+	}, [ros]);
 
 	return (
 		<div className="page">
@@ -17,7 +51,7 @@ export default () => {
 			</div>
 			<div className={styles.body}>
 				<a
-					className={styles.buttonStart}
+					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
 						if (connected) navigate("/new_control_page");
 					}}
@@ -42,7 +76,7 @@ export default () => {
 						className={styles.buttonLinks}
 						onClick={() =>
 							window.open(
-								"https://drive.google.com/drive/folders/0AEpe4eawL6pdUk9PVA",
+								"https://drive.google.com/drive/folders/0ALNSOmBqG6aAUk9PVA",
 								"_blank"
 							)
 						}

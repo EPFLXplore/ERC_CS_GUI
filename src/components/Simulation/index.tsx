@@ -5,6 +5,7 @@ import { OrbitControls, Plane } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../assets/images/mars_yard_2023_2.png";
 import { TextureLoader } from "three";
+import Pin from "./Pin";
 
 function Simulation({
 	armJointAngles,
@@ -39,6 +40,7 @@ function Simulation({
 			<ambientLight intensity={0.2} color={0xffffff} />
 			<Suspense fallback={null}>
 				<OrbitControls enableZoom={true} />
+				<Pin coordinates={{ x: -10, y: -10 }} />
 				<RobotVisual
 					armJointAngles={armJointAngles}
 					wheelsSpeed={wheelsSpeed}
@@ -51,8 +53,9 @@ function Simulation({
 				rotation={[-Math.PI / 2, 0, Math.PI / 2]}
 				position={[-22, -0.47, -3.2]}
 				receiveShadow
+				traverseVisible={true}
 			>
-				<meshStandardMaterial map={texture} opacity={0.9} />
+				<meshStandardMaterial map={texture} opacity={0.9} side={2} />
 			</Plane>
 		</Canvas>
 	);

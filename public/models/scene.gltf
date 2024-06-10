@@ -1,0 +1,313 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 8880,
+      "max": [
+        0.6204729080200195,
+        0.2150137573480606,
+        0.9552562236785889
+      ],
+      "min": [
+        -0.6204506754875183,
+        -0.21501410007476807,
+        -0.8143841624259949
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 106560,
+      "componentType": 5126,
+      "count": 8880,
+      "max": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 8880,
+      "max": [
+        0.0,
+        0.0
+      ],
+      "min": [
+        0.0,
+        0.0
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 53280,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 213120,
+      "componentType": 5126,
+      "count": 37442,
+      "max": [
+        0.7275838255882263,
+        0.7275838255882263,
+        -0.8022578358650208
+      ],
+      "min": [
+        -0.7275838851928711,
+        -0.7275838255882263,
+        -0.9554508328437805
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 662424,
+      "componentType": 5126,
+      "count": 37442,
+      "max": [
+        1.0,
+        1.0,
+        0.9998818039894104
+      ],
+      "min": [
+        -1.0,
+        -1.0,
+        -0.9998819231987
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 71040,
+      "componentType": 5126,
+      "count": 37442,
+      "max": [
+        1.0000001192092896,
+        1.0000001192092896
+      ],
+      "min": [
+        -4.440892627896218e-16,
+        2.220446049250313e-16
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 213120,
+      "componentType": 5125,
+      "count": 221184,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "vijay verma (https://sketchfab.com/realvjy)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/map-pinfbx-e0d51ef7fcc140659dac7425cf52b97f",
+      "title": "map-pin.fbx"
+    },
+    "generator": "Sketchfab-12.66.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 1097856,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 370576,
+      "byteOffset": 1097856,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1111728,
+      "byteOffset": 1468432,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 2580160,
+      "uri": "scene.bin"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Color_-_Red_Pin",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.428691,
+          0.0159962,
+          0.0395463,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.9721044068347064
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Color_-_Red_Ripple",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.710593,
+          0.721628,
+          0.755331,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.8090520757535905
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Map-Pin_Color - Red Pin_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TEXCOORD_0": 2
+          },
+          "indices": 3,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Map-Pin_Color - Red Ripple_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 5,
+            "POSITION": 4,
+            "TEXCOORD_0": 6
+          },
+          "indices": 7,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.009999999776482582,
+        0.0,
+        0.0,
+        -0.009999999776482582,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "dfacba3587d24958bb9119ff48f7cb6a.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        4,
+        5
+      ],
+      "matrix": [
+        100.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        -1.629206793918314e-05,
+        -99.99999999999868,
+        0.0,
+        0.0,
+        99.99999999999868,
+        -1.629206793918314e-05,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Map-Pin"
+    },
+    {
+      "mesh": 0,
+      "name": "Map-Pin_Color - Red Pin_0"
+    },
+    {
+      "mesh": 1,
+      "name": "Map-Pin_Color - Red Ripple_0"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}
