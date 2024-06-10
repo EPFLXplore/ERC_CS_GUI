@@ -1,46 +1,57 @@
 import ROSLIB from 'roslib';
 
 const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string) => {
-	const data = new FormData();
 
-	if(system == "drill") {
-		data.append("system", "0");
-		mode = (mode == "Off") ? "0" : "1";
-		data.append("mode", mode);
+	let request;
 
+	if (system == "navigation") {
+		request = {
+			system: 0,
+			mode: (mode == "Off") ? "0" : ((mode == "Manual") ? "1" : "2")
+		};
+	
 	} else if (system == "handling_device") {
-		data.append("system", "1");
-		mode = (mode == "Off") ? "0" : ((mode == "Manual") ? "1" : "2");
-		data.append("mode", mode);
+		request = {
+			system: 1,
+			mode: (mode == "Off") ? "0" : ((mode == "Manual") ? "1" : "2")
+		};
 
-	} else if (system == "navigation") {
-		data.append("system", "2");
-		mode = (mode == "Off") ? "0" : ((mode == "Manual") ? "1" : "2");
-		data.append("mode", mode);
-		
 	} else if (system == "cameras") {
-		data.append("system", "3");
-		mode = (mode == "Off") ? "0" : "1";
-		data.append("mode", mode);
-		
+		request = {
+			system: 2,
+			mode: (mode == "Off") ? "0" : "1"
+		};
+	} else if(system == "drill") {
+		request = {
+			system: 3,
+			mode: (mode == "Off") ? "0" : "1"
+		};
+
 	}
 
 	if(ros) {
-		var setBoolServer = new ROSLIB.Service({
+		var changeModeSystem = new ROSLIB.Service({
 			ros : ros,
-			name : '/set_bool',
-			serviceType : 'std_srvs/SetBool'
+			name : '/Rover/ChangeModeSystem',
+			serviceType : ''
 		});
-		
-		// Use the advertise() method to indicate that we want to provide this service
-		setBoolServer.advertise(function(request, response) {
-			console.log('Received service request on ' + setBoolServer.name + ': ' + request.data);
-			response['success'] = true;
-			response['message'] = 'Set successfully';
-			return true;
-		});
+
+		changeModeSystem.callService(request, successfullChange, failChange);
 	}
 	
+}
+
+const successfullChange = (result: any) => {
+	if(result['error_types'] == 0) {
+		// no error has occured
+		console.log("pop up something for good change mode system")
+	} else {
+		console.log(result['error_message'])
+	}
+}
+
+const failChange = (error: string) => {
+	console.log(error)
 }
 
 export default requestChangeMode

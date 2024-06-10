@@ -20,24 +20,24 @@ import requestChangeMode from "../../utils/changeSystemMode";
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRoverState from "../../hooks/roverStateHooks";
 import CameraView from "../../components/CameraView";
-import CameraViewRTC from "../../components/CameraViewRTC";
-import useConnectWebRTC from "../../utils/connectWebRTC";
 import cancelAllActions from "../../utils/cancelAllActions";
 import actionGoal from "../../utils/actionGoal";
 import Action from "../../utils/Action";
-import NavigationGoalModal from "../../components/NavigationGoalModal";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNewCamera from "../../hooks/newCameraHooks";
+import useService from "../../hooks/serviceHooks";
 
 export default () => {
-	const DEBUG = true;
 	const MAX_CAMERAS = 2;
 	const NBR_ACTIONS = 3;
+	const NBR_SERVICES = 4;
 
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
+
 	const [ros] = useRosBridge()
 	const [roverState] = useRoverState(ros);
+	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES)
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false])
 
@@ -56,8 +56,6 @@ export default () => {
 		}
 	])
 	
-	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	// const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 	const [images, rotateCams] = useNewCamera(ros);
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
@@ -119,6 +117,27 @@ export default () => {
 				}
 			}
 		})
+	}
+
+	const startService = async (index: number, mode: string) => {
+		if(stateServices[index].action.status) {
+			// print something since an action is running
+			console.log("service already running")
+			return;
+		}
+
+		for (let i = 0; i < NBR_SERVICES; i++) {
+			if(index !== i) {
+				if(!stateServices[i].service.check(stateServices[index].name)) {
+					// not good, compatibility check
+					// pop up something also
+					console.log("compatibility not good to activate this service")
+					return;
+				}
+			}
+		}
+
+		requestChangeMode(ros, stateServices[index].name, mode)
 	}
 
 	const displaySystemModal = (index: number) => {
@@ -197,7 +216,7 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["navigation"]["status"]
 						}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => console.log("regijhrougihrtouglihreoiéghrekulhelgioejg")}
+						onSelect={(mode) => startService(0, mode)}
 					/>
 					<SystemMode
 						system="Handling Device"
@@ -209,7 +228,7 @@ export default () => {
 								  ]
 						}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => requestChangeMode("handling_device", mode)}
+						onSelect={(mode) => startService(1, mode)}
 					/>
 					<SystemMode
 						system="Cameras"
@@ -219,7 +238,7 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["cameras"]["status"]
 						}
 						modes={["Stream", "Off"]}
-						onSelect={(mode) => requestChangeMode("cameras", mode)}
+						onSelect={(mode) => startService(2, mode)}
 					/>
 					<SystemMode
 						system="Drill"
@@ -229,7 +248,7 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["drill"]["status"]
 						}
 						modes={["On", "Off"]}
-						onSelect={(mode) => requestChangeMode("drill", mode)}
+						onSelect={(mode) => startService(3, mode)}
 					/>
 				</div>
 				<Timer end={Date.now() + 10000} size={Size.SMALL} />
