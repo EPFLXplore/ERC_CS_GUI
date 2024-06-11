@@ -23,6 +23,7 @@ function useService(roverState: any, nbr_service: number) {
 	])
 
 	useEffect(() => {
+		/*
 		setStateServices((old) => {
 			let newStates = [...old]
 
@@ -33,7 +34,7 @@ function useService(roverState: any, nbr_service: number) {
 			for (let i = 0; i < nbr_service; i++) {
 
 				// detect if its another client that changed something
-				//if(newStates[i].service.state !== roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]) {
+				if(newStates[i].service.state !== roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]) {
 
 					// yes it is, pop up something
 				//	console.log("pop up")
@@ -43,7 +44,8 @@ function useService(roverState: any, nbr_service: number) {
 
 			return newStates
 		})
-	}, [roverState == undefined, roverState["rover"]["status"]["systems"]]);
+			*/
+	}, [roverState]);
 
 	return [stateServices, setStateServices] as const
 

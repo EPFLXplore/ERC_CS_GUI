@@ -19,7 +19,8 @@ export default () => {
 			const check = setInterval(() => {
 				ros.getNodes(
 					(nodes) => {
-						if (nodes.includes("/Rover")) {
+
+						if (nodes.includes("/ROVER")) {
 							setConnected(true);
 							clearInterval(check);
 						} else {

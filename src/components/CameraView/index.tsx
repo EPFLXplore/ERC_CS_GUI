@@ -11,10 +11,8 @@ const CameraView = ({
 	setRotateCams?: (rotate: boolean[]) => void;
 }) => {
 	console.assert(images.length <= 4, "Only 4 images max are supported");
-	console.log(setRotateCams);
 
 	if (images.length === 0) {
-		console.log("No images");
 		return (
 			<div className={styles.Container}>
 				<img

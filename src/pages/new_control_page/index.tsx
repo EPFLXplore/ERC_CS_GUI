@@ -4,7 +4,6 @@ import styles from "./style.module.sass";
 import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
 import ExpandButton from "../../components/ExpandButton";
-import GamepadHint from "../../components/GamepadHint";
 import Gamepad from "../../components/Gamepad";
 import QuickAction from "../../components/QuickAction";
 
@@ -23,7 +22,6 @@ import useRoverState from "../../hooks/roverStateHooks";
 import CameraView from "../../components/CameraView";
 import cancelAllActions from "../../utils/cancelAllActions";
 import actionGoal from "../../utils/actionGoal";
-import Action from "../../utils/Action";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNewCamera from "../../hooks/newCameraHooks";
 import useService from "../../hooks/serviceHooks";
@@ -40,6 +38,7 @@ export default () => {
 	const [roverState] = useRoverState(ros);
 	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES)
 	const [stateActions, setStateActions] = useActions(roverState, NBR_ACTIONS, stateServices)
+	const [sentService, setSendService] = useState(false)
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
 
@@ -198,7 +197,7 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["navigation"]["status"]
 						}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => startService(0, mode)}
+						onSelect={(mode) => console.log("rgkjentgblituhj")}
 					/>
 					<SystemMode
 						system="Handling Device"
@@ -313,17 +312,17 @@ export default () => {
 					<div className={styles.actions}>
 						<QuickAction
 							onClick={() => displaySystemModal(0)}
-							selected={stateActions[0].action.status}
+							selected={stateActions[0].running}
 							icon={NavIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(1)}
-							selected={stateActions[1].action.status}
+							selected={stateActions[1].running}
 							icon={HDIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(2)}
-							selected={stateActions[2].action.status}
+							selected={stateActions[2].running}
 							icon={Drill}
 						/>
 						<QuickAction

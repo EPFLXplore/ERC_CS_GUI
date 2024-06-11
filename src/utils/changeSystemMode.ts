@@ -1,6 +1,7 @@
 import ROSLIB from 'roslib';
+import Service from './Service';
 
-const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string) => {
+const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string, ser: Service) => {
 
 	let request;
 
@@ -36,16 +37,18 @@ const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string)
 			serviceType : 'custom_msg/srv/ChangeModeSystem'
 		});
 
-		changeModeSystem.callService(request, successfullChange, failChange);
+		changeModeSystem.callService(request, (res) => successfullChange(res, ser), failChange);
 	}
 }
 
-const successfullChange = (result: any) => {
-	if(result['error_types'] == 0) {
+const successfullChange = (result: any, ser: Service) => {
+	if(result["error_types"] == 0) {
 		// no error has occured
 		console.log("pop up something for good change mode system")
+		//ser.status = result["systems_state"]
+		ser.state = "Auto"
 	} else {
-		console.log(result['error_message'])
+		console.log(result["error_message"])
 	}
 }
 
