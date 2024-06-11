@@ -1,19 +1,19 @@
 class Service {
     public name: string;
-    public state: boolean
-    public rules: [string, boolean][]
+    public state: string;
+    public rules: [string, boolean][];
 
-    constructor(name: string, state: boolean, rules: [string, boolean][]) {
+    constructor(name: string, state: string, rules: [string, boolean][]) {
         this.name = name;
         this.state = state;
-        this.rules = rules
+        this.rules = rules;
     }
 
     public check(action: string): boolean {
         if(this.rules.find(([subsystem, val]) => subsystem === action && val === false) !== undefined) {
-            return false
+            return false;
         }
-        return true
+        return true;
     }
 }
 

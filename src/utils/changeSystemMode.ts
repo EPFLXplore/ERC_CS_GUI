@@ -30,15 +30,14 @@ const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string)
 	}
 
 	if(ros) {
-		var changeModeSystem = new ROSLIB.Service({
+		const changeModeSystem = new ROSLIB.Service({
 			ros : ros,
 			name : '/Rover/ChangeModeSystem',
-			serviceType : ''
+			serviceType : 'custom_msg/srv/ChangeModeSystem'
 		});
 
 		changeModeSystem.callService(request, successfullChange, failChange);
 	}
-	
 }
 
 const successfullChange = (result: any) => {

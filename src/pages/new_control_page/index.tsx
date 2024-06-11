@@ -27,6 +27,7 @@ import Action from "../../utils/Action";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNewCamera from "../../hooks/newCameraHooks";
 import useService from "../../hooks/serviceHooks";
+import useActions from "../../hooks/actionDrillHooks";
 
 export default () => {
 	const MAX_CAMERAS = 2;
@@ -38,29 +39,9 @@ export default () => {
 	const [ros] = useRosBridge();
 	const [roverState] = useRoverState(ros);
 	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES)
+	const [stateActions, setStateActions] = useActions(roverState, NBR_ACTIONS, stateServices)
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
-
-	const [stateActions, setStateActions] = useState([
-		{
-			name: "navigation",
-			action: new Action("navigation", false, [
-				["drill", false],
-				["handling_device", true],
-			]),
-		},
-		{
-			name: "handling_device",
-			action: new Action("handling_device", false, []),
-		},
-		{
-			name: "drill",
-			action: new Action("drill", false, [
-				["navigation", false],
-				["handling_device", true],
-			]),
-		},
-	]);
 
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
 	// const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
@@ -127,12 +108,6 @@ export default () => {
 	}
 
 	const startService = async (index: number, mode: string) => {
-		if(stateServices[index].action.status) {
-			// print something since an action is running
-			console.log("service already running")
-			return;
-		}
-
 		for (let i = 0; i < NBR_SERVICES; i++) {
 			if(index !== i) {
 				if(!stateServices[i].service.check(stateServices[index].name)) {
