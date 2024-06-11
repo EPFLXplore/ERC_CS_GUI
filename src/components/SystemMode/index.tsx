@@ -11,19 +11,20 @@ function SystemMode({
 	modes: string[];
 	onSelect: (mode: string) => void;
 }) {
+
+	const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+        const selectedMode = event.target.value;
+        if (selectedMode !== currentMode) {
+            onSelect(selectedMode);
+        }
+    }
 	
 	return (
 		<div className={`${styles.system}`}>
 			<h2 className={`${styles.name}`}>{system}</h2>
-			<select name="mode" id="mode" value={currentMode} className={styles.select}>
+			<select name="mode" id="mode" onChange={handleChange} value={currentMode} className={styles.select}>
 				{modes.map((mode) => (
-					<option value={mode} onClick={(e) => {
-						console.log("rstéoijtrhorthorthjèpktrjhitfhjn")
-						// Click on the current mode does nothing
-						if(mode !== currentMode) {
-							onSelect(mode)
-						}
-					}}>
+					<option value={mode}>
 						{mode}
 					</option>
 				))}

@@ -6,11 +6,11 @@ function useService(roverState: any, nbr_service: number) {
 	const [stateServices, setStateServices] = useState([
 		{
 			name: "navigation",
-			service: new Service("navigation", "Off", [["drill", false], ["handling_device", true]])
+			service: new Service("navigation", "Off", [["drill", "Off"]])
 		},
 		{
 			name: "handling_device",
-			service: new Service("handling_device", "off", [])
+			service: new Service("handling_device", "Off", [])
 		},
 		{
 			name: "camera",
@@ -18,7 +18,7 @@ function useService(roverState: any, nbr_service: number) {
 		},
 		{
 			name: "drill",
-			service: new Service("drill", "Off", [["navigation", false], ["handling_device", true]])
+			service: new Service("drill", "Off", [["navigation", "Off"]])
 		}
 	])
 

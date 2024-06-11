@@ -109,7 +109,8 @@ export default () => {
 	const startService = async (index: number, mode: string) => {
 		for (let i = 0; i < NBR_SERVICES; i++) {
 			if(index !== i) {
-				if(!stateServices[i].service.check(stateServices[index].name)) {
+				if(!stateServices[index].service.canChange(stateServices[i], mode)) {
+					console.log(i)
 					// not good, compatibility check
 					// pop up something also
 					console.log("compatibility not good to activate this service")
@@ -197,7 +198,7 @@ export default () => {
 								: roverState["rover"]["status"]["systems"]["navigation"]["status"]
 						}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => console.log("rgkjentgblituhj")}
+						onSelect={(mode) => startService(0, mode)}
 					/>
 					<SystemMode
 						system="Handling Device"
