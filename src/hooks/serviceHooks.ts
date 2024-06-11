@@ -1,12 +1,37 @@
 import { useState, useEffect } from "react";
-import Service from "../utils/Service";
+import {Service, RuleRover} from "../utils/Service";
+
+const rulesNavigation: RuleRover[] = [{
+	"drill": {
+		new_mode: ["Auto", "Manual"],
+		state_sys: "Off"
+	},
+	"camera": {
+		new_mode: ["Auto", "Manual"],
+		state_sys: "On"
+	}
+}]
+
+const rulesCamera: RuleRover = {
+	"navigation": {
+		new_mode: ["Off"],
+		state_sys: "Off"
+	}
+}
+
+const rulesDrill: RuleRover = {
+	"navigation": {
+		new_mode: ["On"],
+		state_sys: "Off"
+	}
+}
 
 function useService(roverState: any, nbr_service: number) {
 
 	const [stateServices, setStateServices] = useState([
 		{
 			name: "navigation",
-			service: new Service("navigation", "Off", [["drill", "Off"]])
+			service: new Service("navigation", "Off", rulesNavigation)
 		},
 		{
 			name: "handling_device",
@@ -14,11 +39,11 @@ function useService(roverState: any, nbr_service: number) {
 		},
 		{
 			name: "camera",
-			service: new Service("camra", "Off", [])
+			service: new Service("camra", "Off", [rulesCamera])
 		},
 		{
 			name: "drill",
-			service: new Service("drill", "Off", [["navigation", "Off"]])
+			service: new Service("drill", "On", [rulesDrill])
 		}
 	])
 

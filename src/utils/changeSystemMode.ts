@@ -1,5 +1,5 @@
 import ROSLIB from 'roslib';
-import Service from './Service';
+import {Service} from './Service';
 
 const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string, ser: Service) => {
 

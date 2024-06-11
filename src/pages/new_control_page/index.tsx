@@ -109,8 +109,7 @@ export default () => {
 	const startService = async (index: number, mode: string) => {
 		for (let i = 0; i < NBR_SERVICES; i++) {
 			if(index !== i) {
-				if(!stateServices[index].service.canChange(stateServices[i], mode)) {
-					console.log(i)
+				if(!stateServices[index].service.canChange(stateServices[i].service, mode)) {
 					// not good, compatibility check
 					// pop up something also
 					console.log("compatibility not good to activate this service")
