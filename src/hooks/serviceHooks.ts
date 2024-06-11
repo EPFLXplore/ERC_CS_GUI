@@ -26,20 +26,24 @@ function useService(roverState: any, nbr_service: number) {
 		setStateServices((old) => {
 			let newStates = [...old]
 
+			if(roverState == undefined) {
+				return newStates
+			}
+
 			for (let i = 0; i < nbr_service; i++) {
 
 				// detect if its another client that changed something
-				if(newStates[i].service.state !== roverState['rover']['status']['systems'][stateServices[i].name]['status']) {
+				if(newStates[i].service.state !== roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]) {
 
 					// yes it is, pop up something
 					console.log("pop up")
 				}
-				newStates[i].service.state = roverState['rover']['status']['systems'][stateServices[i].name]['status']
+				newStates[i].service.state = roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]
 			}
 
 			return newStates
 		})
-	}, [roverState['rover']['status']['systems']]);
+	}, [roverState == undefined, roverState["rover"]["status"]["systems"]]);
 
 	return [stateServices, setStateServices] as const
 
