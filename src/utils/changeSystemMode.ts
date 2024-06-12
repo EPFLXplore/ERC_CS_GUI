@@ -1,31 +1,34 @@
 import ROSLIB from 'roslib';
 import {Service} from './Service';
+import SubSystems from './SubSystems';
+import States from './States';
 
-const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string, ser: Service) => {
+const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string, ser: Service,
+	sendingRequest: (b: boolean) => void, snackBar: (severity: string, message: string) => void) => {
 
 	let request;
 
-	if (system == "navigation") {
+	if (system == SubSystems.NAGIVATION) {
 		request = {
 			system: 0,
-			mode: (mode == "Off") ? "0" : ((mode == "Manual") ? "1" : "2")
+			mode: (mode == States.OFF) ? 0 : ((mode == States.MANUAL) ? 1 : 2)
 		};
 	
-	} else if (system == "handling_device") {
+	} else if (system == SubSystems.HANDLING_DEVICE) {
 		request = {
 			system: 1,
-			mode: (mode == "Off") ? "0" : ((mode == "Manual") ? "1" : "2")
+			mode: (mode == States.OFF) ? 0 : ((mode == States.MANUAL) ? 1 : 2)
 		};
 
-	} else if (system == "cameras") {
+	} else if (system == SubSystems.CAMERA) {
 		request = {
 			system: 2,
-			mode: (mode == "Off") ? "0" : "1"
+			mode: (mode == States.OFF) ? 0 : 1
 		};
-	} else if(system == "drill") {
+	} else if(system == SubSystems.DRILL) {
 		request = {
 			system: 3,
-			mode: (mode == "Off") ? "0" : "1"
+			mode: (mode == States.OFF) ? 0 : 1
 		};
 
 	}
@@ -37,23 +40,25 @@ const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string,
 			serviceType : 'custom_msg/srv/ChangeModeSystem'
 		});
 
-		changeModeSystem.callService(request, (res) => successfullChange(res, ser), failChange);
+		sendingRequest(true)
+		// TODO: put the color UI when sending a request!
+		changeModeSystem.callService(request, (res) => successfullChange(res, ser, snackBar), (err) => failChange(err, snackBar));
+		sendingRequest(false)
 	}
 }
 
-const successfullChange = (result: any, ser: Service) => {
-	if(result["error_types"] == 0) {
+const successfullChange = (result: any, ser: Service, snackBar: (severity: string, message: string) => void) => {
+	if(result["error_type"] == 0) {
 		// no error has occured
-		console.log("pop up something for good change mode system")
-		//ser.status = result["systems_state"]
-		ser.state = "Auto"
+		ser.state = JSON.parse(result["systems_state"])[ser.name]
+		snackBar("success", "Successfully changed service " + ser.name + " in " + ser.state)
 	} else {
-		console.log(result["error_message"])
+		snackBar("error", "Error from request to change service (not ROS): " + result["error_message"])
 	}
 }
 
-const failChange = (error: string) => {
-	console.log(error)
+const failChange = (error: string, snackBar: (severity: string, message: string) => void) => {
+	snackBar("error", "Error from ROS while request service: " + error)
 }
 
 export default requestChangeMode
