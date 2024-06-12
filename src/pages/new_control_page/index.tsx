@@ -40,16 +40,6 @@ export default () => {
 	const [display, setDisplay] = useState("camera");
 	const [ros] = useRosBridge();
 	const [roverState] = useRoverState(ros);
-	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES);
-	const [stateActions, setStateActions] = useActions(roverState, NBR_ACTIONS, stateServices);
-	const [sentService, setSendService] = useState(false);
-
-	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
-
-	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	const [images, rotateCams] = useNewCamera(ros);
-
-	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
 	const [snackbar, setSnackbar] = useState<State>({
 		open: false,
@@ -57,6 +47,13 @@ export default () => {
 		message: "This is a snackbar",
 	});
 	const { severity, message, open } = snackbar;
+
+	// Show a snackbar with a message and a severity
+	// Severity can be "error", "warning", "info" or "success"
+	const showSnackbar = (severity: string, message: string) => {
+		console.log("nique ta race")
+		setSnackbar({ severity, message, open: true });
+	};
 
 	const handleClose = (event?: SyntheticEvent | Event, reason?: string) => {
 		if (reason === "clickaway") {
@@ -66,11 +63,18 @@ export default () => {
 		setSnackbar({ ...snackbar, open: false });
 	};
 
-	// Show a snackbar with a message and a severity
-	// Severity can be "error", "warning", "info" or "success"
-	const showSnackbar = (severity: string, message: string) => {
-		setSnackbar({ severity, message, open: true });
-	};
+	const [sentService, setSendService] = useState(false);
+	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES, sentService, 
+		(sev, mess) => showSnackbar(sev, mess));
+
+	const [stateActions, setStateActions] = useActions(roverState, NBR_ACTIONS, stateServices);
+
+	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
+
+	const [modal, setModal] = useState<ReactElement | null>(<></>);
+	const [images, rotateCams] = useNewCamera(ros);
+
+	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
 	const cancelAction = async (index: number) => {
 		setStateActions((old) => {
@@ -148,16 +152,15 @@ export default () => {
 		for (let i = 0; i < NBR_SERVICES; i++) {
 			if (index !== i) {
 				if (!stateServices[index].service.canChange(stateServices[i].service, mode)) {
-					// not good, compatibility check
-					// pop up something also
-					console.log("compatibility not good to activate this service");
-					showSnackbar("error", "Compatibility not good to activate this service");
+					showSnackbar("error", "To put " + stateServices[index].name + " in mode " 
+						+ mode + ", you need to change the service " + stateServices[i].name);
 					return;
 				}
 			}
 		}
 
-		requestChangeMode(ros, stateServices[index].name, mode);
+		requestChangeMode(ros, stateServices[index].name, mode, stateServices[index].service, (b) => setSendService(b),
+		(sev, mes) => showSnackbar(sev, mes));
 	};
 
 	const displaySystemModal = (index: number) => {
@@ -294,43 +297,25 @@ export default () => {
 				<div className={styles.systems}>
 					<SystemMode
 						system="Navigation"
-						currentMode={
-							!roverState["rover"]
-								? "Off"
-								: roverState["rover"]["status"]["systems"]["navigation"]["status"]
-						}
+						currentMode={stateServices[0].service.state}
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => startService(0, mode)}
 					/>
 					<SystemMode
 						system="Handling Device"
-						currentMode={
-							!roverState["rover"]
-								? "Off"
-								: roverState["rover"]["status"]["systems"]["handling_device"][
-										"status"
-								  ]
-						}
+						currentMode={stateServices[1].service.state}
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => startService(1, mode)}
 					/>
 					<SystemMode
 						system="Cameras"
-						currentMode={
-							!roverState["rover"]
-								? "Off"
-								: roverState["rover"]["status"]["systems"]["cameras"]["status"]
-						}
+						currentMode={stateServices[2].service.state}
 						modes={["Stream", "Off"]}
 						onSelect={(mode) => startService(2, mode)}
 					/>
 					<SystemMode
 						system="Drill"
-						currentMode={
-							!roverState["rover"]
-								? "Off"
-								: roverState["rover"]["status"]["systems"]["drill"]["status"]
-						}
+						currentMode={stateServices[3].service.state}
 						modes={["On", "Off"]}
 						onSelect={(mode) => startService(3, mode)}
 					/>

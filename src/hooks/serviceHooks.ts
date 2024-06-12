@@ -1,75 +1,100 @@
 import { useState, useEffect } from "react";
 import {Service, RuleRover} from "../utils/Service";
+import SubSystems from "../utils/SubSystems";
+import States from "../utils/States";
 
-const rulesNavigation: RuleRover[] = [{
-	"drill": {
-		new_mode: ["Auto", "Manual"],
-		state_sys: "Off"
+const rulesNavigation: RuleRover[] = [
+	{
+		name: SubSystems.DRILL,
+		new_mode: [States.AUTO, States.MANUAL],
+		state_sys: States.OFF
 	},
-	"camera": {
-		new_mode: ["Auto", "Manual"],
-		state_sys: "On"
+	{
+		name: SubSystems.CAMERA,
+		new_mode: [States.AUTO],
+		state_sys: States.OFF
+
 	}
+]
+
+const rulesCamera: RuleRover[] = [{
+	name: SubSystems.NAGIVATION,
+	new_mode: [States.OFF],
+	state_sys: States.OFF
 }]
 
-const rulesCamera: RuleRover = {
-	"navigation": {
-		new_mode: ["Off"],
-		state_sys: "Off"
-	}
-}
+const rulesDrill: RuleRover[] = [{
+	name: SubSystems.NAGIVATION,
+	new_mode: [States.ON],
+	state_sys: States.OFF
+}]
 
-const rulesDrill: RuleRover = {
-	"navigation": {
-		new_mode: ["On"],
-		state_sys: "Off"
-	}
-}
+function useService(roverState: any, nbr_service: number, isServiceRequested: boolean, 
+	snackBar: (severity: string, message: string) => void) {
 
-function useService(roverState: any, nbr_service: number) {
+	const [init, setInit] = useState(true)
 
 	const [stateServices, setStateServices] = useState([
 		{
-			name: "navigation",
-			service: new Service("navigation", "Off", rulesNavigation)
+			name: SubSystems.NAGIVATION,
+			service: new Service(SubSystems.NAGIVATION, !roverState["rover"]
+				? "Off"
+				: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"], rulesNavigation)
 		},
 		{
-			name: "handling_device",
-			service: new Service("handling_device", "Off", [])
+			name: SubSystems.HANDLING_DEVICE,
+			service: new Service(SubSystems.HANDLING_DEVICE, !roverState["rover"]
+				? "Off"
+				: roverState["rover"]["status"]["systems"][SubSystems.HANDLING_DEVICE]["status"], [])
 		},
 		{
-			name: "camera",
-			service: new Service("camra", "Off", [rulesCamera])
+			name: SubSystems.CAMERA,
+			service: new Service(SubSystems.CAMERA, !roverState["rover"]
+				? "Off"
+				: roverState["rover"]["status"]["systems"][SubSystems.CAMERA]["status"], rulesCamera)
 		},
 		{
-			name: "drill",
-			service: new Service("drill", "On", [rulesDrill])
+			name: SubSystems.DRILL,
+			service: new Service(SubSystems.DRILL, !roverState["rover"]
+				? "Off"
+				: roverState["rover"]["status"]["systems"][SubSystems.DRILL]["status"], rulesDrill)
 		}
 	])
 
 	useEffect(() => {
-		/*
 		setStateServices((old) => {
 			let newStates = [...old]
+			let change: string[] = []
 
-			if(roverState == undefined) {
+			if(roverState["rover"] == undefined) {
 				return newStates
 			}
 
-			for (let i = 0; i < nbr_service; i++) {
+			if(init) {
+				setInit(false)
+				return newStates
+			}
 
-				// detect if its another client that changed something
-				if(newStates[i].service.state !== roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]) {
+			if(!isServiceRequested) {
+				for (let i = 0; i < nbr_service; i++) {
 
-					// yes it is, pop up something
-				//	console.log("pop up")
-				//}
-				newStates[i].service.state = roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]
+					// detect if its another client that changed something
+					if(newStates[i].service.state !== roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]) {
+	
+						// yes it is, pop up something
+						newStates[i].service.state = roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]
+						change.push(stateServices[i].name) 
+					}
+				}
+			}
+
+			if(change.length > 0) {
+				console.log("eroignerégijerkpgojrtkgéjlkrepgkln")
+				snackBar("error", "These systems have changed their states")
 			}
 
 			return newStates
 		})
-			*/
 	}, [roverState]);
 
 	return [stateServices, setStateServices] as const

@@ -1,8 +1,7 @@
 interface RuleRover {
-    [name: string]: {
-        new_mode: string[];
-        state_sys: string;
-    };
+    name: string,
+    new_mode: string[];
+    state_sys: string;
 }
 
 export type {RuleRover}
@@ -19,18 +18,16 @@ class Service {
     }
 
     public canChange(ser: Service, mode: string): boolean {
-        this.rules.forEach(obj => {
-            for (const key in obj) {
-                if(key === ser.name) {
-                    const element = obj[key];
-                    console.log(ser.state)
-                    console.log(element.state_sys)
-                    if(element.new_mode.find(sys => sys === mode) !== undefined && ser.state !== element.state_sys) {
+        for(let i = 0; i < this.rules.length; i++) {
+            const obj = this.rules[i]
+            if(obj.name === ser.name) {
+                if(obj.new_mode.find(sys => sys === mode) !== undefined) {
+                    if(ser.state !== obj.state_sys) {
                         return false
                     }
                 }
             }
-        });
+        }
         return true
     }
 }
