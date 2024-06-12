@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { Suspense, memo, useState } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Line, OrbitControls, Plane } from "@react-three/drei";
+import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../assets/images/mars_yard_2023_2.png";
 import { TextureLoader } from "three";
@@ -18,8 +18,7 @@ function Simulation({
 	wheelsSteeringAngle: number[];
 	pivotAngle: number;
 }) {
-	const textureLoader = new TextureLoader();
-	const texture = textureLoader.load(MarsYard);
+	const texture = useTexture(MarsYard)
 	const [point, setPoint] = useState({ x: -10, y: -10 });
 	const [path, setPath] = useState([
 		{
