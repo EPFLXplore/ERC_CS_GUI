@@ -5,11 +5,11 @@ import { Pose2D } from "../../utils/CustomMsgObjects";
 function NavigationGoalModal({
 	onSetGoal,
 	onClose,
-	//currentPos,
+	currentGoal = undefined,
 }: {
 	onSetGoal: (system: string, start: boolean, ...args: any[]) => void;
 	onClose: () => void;
-	//currentPos: { x: number; y: number; o: number };
+	currentGoal?: { x: number; y: number; o: number };
 }) {
 	const [xCord, setXCord] = React.useState(0);
 	const [yCord, setYCord] = React.useState(0);
@@ -24,11 +24,18 @@ function NavigationGoalModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-					<h2>Set Goal</h2>
+					<h1>Set Goal</h1>
 				</div>
 				<div className={styles.ModalContent}>
+					{currentGoal ? (
+						<p>
+							Current Goal is at {xCord}, {yCord}, {orientation}.
+						</p>
+					) : (
+						<p>No current goal set.</p>
+					)}
 					<div className={styles.InputGroup}>
-						<label htmlFor="x">X:</label>
+						<label htmlFor="x">X</label>
 						<input
 							type="number"
 							id="x"
@@ -37,7 +44,7 @@ function NavigationGoalModal({
 						/>
 					</div>
 					<div className={styles.InputGroup}>
-						<label htmlFor="y">Y:</label>
+						<label htmlFor="y">Y</label>
 						<input
 							type="number"
 							id="y"
@@ -46,7 +53,7 @@ function NavigationGoalModal({
 						/>
 					</div>
 					<div className={styles.InputGroup}>
-						<label htmlFor="o">Orientation:</label>
+						<label htmlFor="o">Orientation</label>
 						<input
 							type="number"
 							id="o"
@@ -58,14 +65,13 @@ function NavigationGoalModal({
 				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
-							onSetGoal("navigation", true, 0, new Pose2D(xCord, yCord, orientation))
+							onSetGoal("navigation", true, 0, new Pose2D(xCord, yCord, orientation));
 							onClose();
 						}}
+						className={styles.PrimaryColor}
 					>
 						Set Goal
 					</button>
-				</div>
-				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
 							onSetGoal("navigation", false);

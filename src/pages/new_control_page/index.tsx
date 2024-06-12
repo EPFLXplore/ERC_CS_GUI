@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useEffect, useState, SyntheticEvent } from "react";
 import styles from "./style.module.sass";
 import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
@@ -26,6 +26,10 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNewCamera from "../../hooks/newCameraHooks";
 import useService from "../../hooks/serviceHooks";
 import useActions from "../../hooks/actionDrillHooks";
+import NavigationGoalModal from "../../components/NavigationGoalModal";
+
+import Snackbar from "@mui/material/Snackbar";
+import Alert from "@mui/material/Alert";
 
 export default () => {
 	const MAX_CAMERAS = 2;
@@ -36,17 +40,37 @@ export default () => {
 	const [display, setDisplay] = useState("camera");
 	const [ros] = useRosBridge();
 	const [roverState] = useRoverState(ros);
-	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES)
-	const [stateActions, setStateActions] = useActions(roverState, NBR_ACTIONS, stateServices)
-	const [sentService, setSendService] = useState(false)
+	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES);
+	const [stateActions, setStateActions] = useActions(roverState, NBR_ACTIONS, stateServices);
+	const [sentService, setSendService] = useState(false);
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState([false, false, false, false]);
 
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	// const [videoSrc, videoId, setVideoId] = useConnectWebRTC();
 	const [images, rotateCams] = useNewCamera(ros);
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
+
+	const [snackbar, setSnackbar] = useState<State>({
+		open: false,
+		severity: "error",
+		message: "This is a snackbar",
+	});
+	const { severity, message, open } = snackbar;
+
+	const handleClose = (event?: SyntheticEvent | Event, reason?: string) => {
+		if (reason === "clickaway") {
+			return;
+		}
+
+		setSnackbar({ ...snackbar, open: false });
+	};
+
+	// Show a snackbar with a message and a severity
+	// Severity can be "error", "warning", "info" or "success"
+	const showSnackbar = (severity: string, message: string) => {
+		setSnackbar({ severity, message, open: true });
+	};
 
 	const cancelAction = async (index: number) => {
 		setStateActions((old) => {
@@ -65,6 +89,13 @@ export default () => {
 				})
 				.catch((err) => {
 					console.log(err);
+					showSnackbar(
+						"error",
+						"An error occurred while cancelling the action: " +
+							err.name +
+							"\n" +
+							err.message
+					);
 				});
 		});
 	};
@@ -100,26 +131,34 @@ export default () => {
 						})
 						.catch((err) => {
 							console.log(err);
+							showSnackbar(
+								"error",
+								"An error occurred while launching the action: " +
+									err.name +
+									"\n" +
+									err.message
+							);
 						});
 				}
 			}
-		})
-	}
+		});
+	};
 
 	const startService = async (index: number, mode: string) => {
 		for (let i = 0; i < NBR_SERVICES; i++) {
-			if(index !== i) {
-				if(!stateServices[index].service.canChange(stateServices[i].service, mode)) {
+			if (index !== i) {
+				if (!stateServices[index].service.canChange(stateServices[i].service, mode)) {
 					// not good, compatibility check
 					// pop up something also
-					console.log("compatibility not good to activate this service")
+					console.log("compatibility not good to activate this service");
+					showSnackbar("error", "Compatibility not good to activate this service");
 					return;
 				}
 			}
 		}
 
-		requestChangeMode(ros, stateServices[index].name, mode)
-	}
+		requestChangeMode(ros, stateServices[index].name, mode);
+	};
 
 	const displaySystemModal = (index: number) => {
 		setSystemsModalOpen((old) => {
@@ -139,14 +178,78 @@ export default () => {
 					})
 					.catch((err) => {
 						console.log(err);
+						showSnackbar(
+							"error",
+							"An error occurred while cancelling the actions: " +
+								err.name +
+								"\n" +
+								err.message
+						);
 					});
 
 				return newModalOpen;
 			} else {
-				newModalOpen[index] = !old[index];
+				newModalOpen[index] = true;
+				setModal(selectModal(index));
+
 				return newModalOpen;
 			}
 		});
+	};
+
+	const selectModal = (index: number) => {
+		switch (index) {
+			case 0:
+				return (
+					<NavigationGoalModal
+						onClose={() => {
+							setModal(<></>);
+							setSystemsModalOpen((old) => {
+								const newModalOpen = [...old];
+								newModalOpen[index] = false;
+								return newModalOpen;
+							});
+						}}
+						onSetGoal={(system, status, goal, pose) => {
+							actionGoal(system, status, goal, pose); // TODO: Change this
+						}}
+					/>
+				);
+			case 1:
+				return (
+					<NavigationGoalModal
+						onClose={() => {
+							setModal(<></>);
+							setSystemsModalOpen((old) => {
+								const newModalOpen = [...old];
+								newModalOpen[index] = false;
+								return newModalOpen;
+							});
+						}}
+						onSetGoal={(system, status, goal, pose) => {
+							actionGoal(system, status, goal, pose);
+						}}
+					/>
+				);
+			case 2:
+				return (
+					<NavigationGoalModal
+						onClose={() => {
+							setModal(<></>);
+							setSystemsModalOpen((old) => {
+								const newModalOpen = [...old];
+								newModalOpen[index] = false;
+								return newModalOpen;
+							});
+						}}
+						onSetGoal={(system, status, goal, pose) => {
+							actionGoal(system, status, goal, pose);
+						}}
+					/>
+				);
+			default:
+				return <></>;
+		}
 	};
 
 	const triggerDataFocus = (data: string) => {
@@ -312,17 +415,20 @@ export default () => {
 					<div className={styles.actions}>
 						<QuickAction
 							onClick={() => displaySystemModal(0)}
-							selected={stateActions[0].running}
+							selected={systemsModalOpen[0]}
+							running={stateActions[0].running}
 							icon={NavIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(1)}
-							selected={stateActions[1].running}
+							selected={systemsModalOpen[1]}
+							running={stateActions[1].running}
 							icon={HDIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(2)}
-							selected={stateActions[2].running}
+							selected={systemsModalOpen[2]}
+							running={stateActions[2].running}
 							icon={Drill}
 						/>
 						<QuickAction
@@ -331,6 +437,23 @@ export default () => {
 							icon={Stop}
 						/>
 					</div>
+					{modal}
+					<Snackbar
+						open={open}
+						autoHideDuration={6000}
+						onClose={handleClose}
+						anchorOrigin={{ vertical: "top", horizontal: "center" }}
+						sx={{ position: "absolute" }}
+					>
+						<Alert
+							onClose={handleClose}
+							severity={severity}
+							variant="filled"
+							sx={{ width: "100%", whiteSpace: "pre-line", borderRadius: 3 }}
+						>
+							{message}
+						</Alert>
+					</Snackbar>
 				</div>
 			</div>
 		</div>
