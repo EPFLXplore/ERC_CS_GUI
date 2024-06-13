@@ -1,3 +1,4 @@
+import States from "../../utils/States";
 import styles from "./style.module.sass";
 
 function QuickAction({
@@ -8,13 +9,13 @@ function QuickAction({
 }: {
 	onClick: () => void;
 	selected: boolean;
-	running: boolean;
+	running: string;
 	icon: string;
 }) {
 	return (
 		<div
 			className={`${styles.container} ${selected ? styles.selected : ""} ${
-				running ? styles.running : ""
+				running !== States.OFF ? styles.running : ""
 			}`}
 			onClick={onClick}
 		>

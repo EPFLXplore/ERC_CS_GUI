@@ -5,21 +5,15 @@ service deals with activating the compatibility
 
 class Action {
     public name: string;
-    public state: boolean
-    public rules: [string, boolean][]
+    public state: string;
+    public path_action: string;
+    public name_action_file: string;
 
-
-    constructor(name: string, state: boolean, rules: [string, boolean][]) {
+    constructor(name: string, state: string, path_action: string, name_action_file: string) {
         this.name = name;
         this.state = state;
-        this.rules = rules
-    }
-
-    public check(action: string): boolean {
-        if(this.rules.find(([subsystem, val]) => subsystem === action && val === false) !== undefined) {
-            return false
-        }
-        return true
+        this.path_action = path_action
+        this.name_action_file = name_action_file
     }
 }
 

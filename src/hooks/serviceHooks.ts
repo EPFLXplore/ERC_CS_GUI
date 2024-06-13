@@ -29,70 +29,71 @@ const rulesDrill: RuleRover[] = [{
 	state_sys: States.OFF
 }]
 
+interface ServiceElement {
+	service: Service
+}
+type ServiceType = { [key: string]: ServiceElement }
+
 function useService(roverState: any, nbr_service: number, isServiceRequested: boolean, 
 	snackBar: (severity: string, message: string) => void) {
 
 	const [init, setInit] = useState(true)
 
-	const [stateServices, setStateServices] = useState([
-		{
-			name: SubSystems.NAGIVATION,
+	const [stateServices, setStateServices] = useState<ServiceType>({
+		[SubSystems.NAGIVATION]: {
 			service: new Service(SubSystems.NAGIVATION, !roverState["rover"]
 				? "Off"
 				: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"], rulesNavigation)
 		},
-		{
-			name: SubSystems.HANDLING_DEVICE,
+		[SubSystems.HANDLING_DEVICE]: {
 			service: new Service(SubSystems.HANDLING_DEVICE, !roverState["rover"]
 				? "Off"
 				: roverState["rover"]["status"]["systems"][SubSystems.HANDLING_DEVICE]["status"], [])
 		},
-		{
-			name: SubSystems.CAMERA,
+		[SubSystems.CAMERA]: {
 			service: new Service(SubSystems.CAMERA, !roverState["rover"]
 				? "Off"
 				: roverState["rover"]["status"]["systems"][SubSystems.CAMERA]["status"], rulesCamera)
 		},
-		{
-			name: SubSystems.DRILL,
+		[SubSystems.DRILL]: {
 			service: new Service(SubSystems.DRILL, !roverState["rover"]
 				? "Off"
 				: roverState["rover"]["status"]["systems"][SubSystems.DRILL]["status"], rulesDrill)
 		}
-	])
+	})
 
 	useEffect(() => {
 		setStateServices((old) => {
-			let newStates = [...old]
+			let newStates = {...old}
 			let change: string[] = []
 
-			if(roverState["rover"] == undefined) {
-				return newStates
-			}
-
-			if(init) {
-				setInit(false)
+			if(roverState["rover"] == undefined || roverState == undefined) {
 				return newStates
 			}
 
 			if(!isServiceRequested) {
-				for (let i = 0; i < nbr_service; i++) {
-
-					// detect if its another client that changed something
-					if(newStates[i].service.state !== roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]) {
-	
-						// yes it is, pop up something
-						newStates[i].service.state = roverState["rover"]["status"]["systems"][stateServices[i].name]["status"]
-						change.push(stateServices[i].name) 
+				for (const key in newStates) {
+					if (newStates.hasOwnProperty(key)) {
+					  	let service = newStates[key];
+						// detect if its another client that changed something
+						if(service.service.state !== roverState["rover"]["status"]["systems"][stateServices[key].service.name]["status"]) {
+		
+							// yes it is, pop up something
+							service.service.state = roverState["rover"]["status"]["systems"][stateServices[key].service.name]["status"]
+							if(!init) {
+								change.push(stateServices[key].service.name) 
+							}
+						}
 					}
 				}
 			}
 
 			if(change.length > 0) {
 				console.log("eroignerégijerkpgojrtkgéjlkrepgkln")
-				snackBar("error", "These systems have changed their states")
+				snackBar("info", "These systems have changed their states " + change)
 			}
 
+			setInit(false)
 			return newStates
 		})
 	}, [roverState]);
