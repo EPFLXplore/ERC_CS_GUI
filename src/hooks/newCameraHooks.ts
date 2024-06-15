@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import ROSLIB from "roslib";
 
 function useNewCamera(ros: ROSLIB.Ros | null) {
+	const [cameras, setCameras] = useState<Array<string>>(["camera_1"]);
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
 
@@ -10,7 +11,7 @@ function useNewCamera(ros: ROSLIB.Ros | null) {
 		if(ros) {
 			var listener = new ROSLIB.Topic({
 				ros : ros,
-				name : 'camera_new',
+				name : cameras[0],
 				messageType : 'sensor_msgs/CompressedImage'
 			  });
 			
@@ -19,7 +20,7 @@ function useNewCamera(ros: ROSLIB.Ros | null) {
 				setImage(["data:image/jpeg;charset=utf-8;base64," + message.data])
 			  });
 		}
-	}, [ros]);
+	}, [ros, cameras]);
 
 	return [images, rotateCams] as const;
 }
