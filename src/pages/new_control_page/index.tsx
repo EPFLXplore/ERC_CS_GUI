@@ -6,6 +6,7 @@ import Timer from "../../components/Timer";
 import ExpandButton from "../../components/ExpandButton";
 import Gamepad from "../../components/Gamepad";
 import QuickAction from "../../components/QuickAction";
+import { Task } from "../../utils/tasks.type";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
@@ -32,8 +33,6 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import SubSystems from "../../utils/SubSystems";
 import States from "../../utils/States";
-import { SingleBed } from "@mui/icons-material";
-import { keyframes } from "@emotion/react";
 
 export default () => {
 	const MAX_CAMERAS = 2;
@@ -67,17 +66,25 @@ export default () => {
 	};
 
 	const [sentService, setSendService] = useState(false);
-	const [stateServices, setStateServices] = useService(roverState, NBR_SERVICES, sentService, 
-		(sev, mess) => showSnackbar(sev, mess));
+	const [stateServices, setStateServices] = useService(
+		roverState,
+		NBR_SERVICES,
+		sentService,
+		(sev, mess) => showSnackbar(sev, mess)
+	);
 
 	const [sentAction, setSendAction] = useState(false);
-	const [stateActions, setStateActions] = useActions(roverState, sentAction, (sev, mes) => showSnackbar(sev, mes));
+	const [stateActions, setStateActions] = useActions(roverState, sentAction, (sev, mes) =>
+		showSnackbar(sev, mes)
+	);
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState({
-		[SubSystems.NAGIVATION]: false, 
-		[SubSystems.HANDLING_DEVICE]: false, 
-		[SubSystems.DRILL]: false, 
-		["cancel"]: false});
+		[SubSystems.NAGIVATION]: false,
+		[SubSystems.HANDLING_DEVICE]: false,
+		[SubSystems.DRILL]: false,
+		["cancel"]: false,
+	});
+	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
 
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
 	const [images, rotateCams] = useNewCamera(ros);
@@ -86,81 +93,110 @@ export default () => {
 
 	const cancelAction = (system: string) => {
 		setStateActions((old) => {
-			let newStates = {...old};
+			let newStates = { ...old };
 
 			if (newStates[system].action.state === States.OFF) {
-				showSnackbar("error", "No action is running for the system " + system)
+				showSnackbar("error", "No action is running for the system " + system);
 				return newStates;
 			}
 
-			actionGoal(ros, system, false, newStates[system].action, (b) => setSendAction(b),
-			(actions: ActionType) => setStateActions(actions))
+			actionGoal(
+				ros,
+				system,
+				false,
+				newStates[system].action,
+				(b) => setSendAction(b),
+				(actions: ActionType) => setStateActions(actions)
+			);
 
-			return newStates
+			return newStates;
 		});
 	};
 
 	const launchAction = (system: string, ...args: any[]) => {
 		setStateActions((old) => {
-			let newStates = {...old};
+			let newStates = { ...old };
 
-			if(stateServices[system].service.state === States.OFF) {
+			if (stateServices[system].service.state === States.OFF) {
 				// the system is not ON
-				showSnackbar("error", "The system " + stateServices[system].service.name + " needs to be on to start an action")
+				showSnackbar(
+					"error",
+					"The system " +
+						stateServices[system].service.name +
+						" needs to be on to start an action"
+				);
 				return newStates;
 			}
 
 			if (newStates[system].action.state !== States.OFF) {
-				showSnackbar("error", "An action is already running for the system " + system)
+				showSnackbar("error", "An action is already running for the system " + system);
 				return newStates;
 			}
-			actionGoal(ros, system, true, newStates[system].action, (b) => setSendAction(b), 
-			(actions: ActionType) => setStateActions(actions), args)
-			return newStates
+			actionGoal(
+				ros,
+				system,
+				true,
+				newStates[system].action,
+				(b) => setSendAction(b),
+				(actions: ActionType) => setStateActions(actions),
+				args
+			);
+			return newStates;
 		});
 	};
 
 	const startService = async (system: string, mode: string) => {
 		for (const key in stateServices) {
 			if (stateServices.hasOwnProperty(key)) {
-				if(key !== system) {
+				if (key !== system) {
 					let service = stateServices[key];
 					if (!stateServices[system].service.canChange(service.service, mode)) {
-						showSnackbar("error", "To put " + stateServices[system].service.name + " in mode " 
-							+ mode + ", you need to change the service " + service.service.name);
+						showSnackbar(
+							"error",
+							"To put " +
+								stateServices[system].service.name +
+								" in mode " +
+								mode +
+								", you need to change the service " +
+								service.service.name
+						);
 						return;
-					}	
+					}
 				}
 			}
 		}
 
-		requestChangeMode(ros, stateServices[system].service.name, mode, stateServices[system].service, (b) => setSendService(b),
-		(sev, mes) => showSnackbar(sev, mes));
+		requestChangeMode(
+			ros,
+			stateServices[system].service.name,
+			mode,
+			stateServices[system].service,
+			(b) => setSendService(b),
+			(sev, mes) => showSnackbar(sev, mes)
+		);
 	};
 
 	const displaySystemModal = (system: string, cancel: boolean) => {
 		setSystemsModalOpen((old) => {
-			let newModalOpen = {...old};
+			let newModalOpen = { ...old };
 
 			if (cancel) {
 				for (const key in newModalOpen) {
 					if (newModalOpen.hasOwnProperty(key) && key !== "cancel") {
 						// closing all modals
 						setStateActions((old) => {
-							let newStates = {...old};
-							if(newStates[key].ros_goal !== null) {
-								newStates[key].ros_goal?.cancel()
-								newStates[key].action.state = States.OFF
+							let newStates = { ...old };
+							if (newStates[key].ros_goal !== null) {
+								newStates[key].ros_goal?.cancel();
+								newStates[key].action.state = States.OFF;
 							}
-							return newStates
-						})
-						newModalOpen[key] = false
+							return newStates;
+						});
+						newModalOpen[key] = false;
 					}
 
 					// TODO check here the rover state to be sure that actions are at OFF? and shw bar if not
-					showSnackbar(
-						"error",
-						"An error occurred while cancelling the actions");
+					showSnackbar("error", "An error occurred while cancelling the actions");
 				}
 
 				return newModalOpen;
@@ -181,7 +217,7 @@ export default () => {
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
-								const newModalOpen = {...old};
+								const newModalOpen = { ...old };
 								newModalOpen[SubSystems.NAGIVATION] = false;
 								return newModalOpen;
 							});
@@ -200,7 +236,7 @@ export default () => {
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
-								const newModalOpen = {...old};
+								const newModalOpen = { ...old };
 								newModalOpen[SubSystems.HANDLING_DEVICE] = false;
 								return newModalOpen;
 							});
@@ -219,7 +255,7 @@ export default () => {
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
-								const newModalOpen = {...old};
+								const newModalOpen = { ...old };
 								newModalOpen[SubSystems.DRILL] = false;
 								return newModalOpen;
 							});
@@ -235,6 +271,16 @@ export default () => {
 			default:
 				return <></>;
 		}
+	};
+
+	const changeMode = () => {
+		setManualMode((old) => {
+			if (old === Task.NAVIGATION) {
+				return Task.HANDLING_DEVICE;
+			} else {
+				return Task.NAVIGATION;
+			}
+		});
 	};
 
 	const triggerDataFocus = (data: string) => {
@@ -355,7 +401,16 @@ export default () => {
 						</div>
 					</div>
 					<div className={styles.previews}>
-						<Gamepad mode="NAV" selectorCallback={() => {}} visible />
+						<Gamepad
+							mode={manualMode}
+							selectorCallback={changeMode}
+							visible={
+								stateServices[SubSystems.NAGIVATION].service.state ===
+									States.MANUAL ||
+								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+									States.MANUAL
+							}
+						/>
 						<div
 							className={styles.simulation}
 							onDoubleClick={(e) => {

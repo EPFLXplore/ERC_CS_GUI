@@ -2,17 +2,20 @@ import { useEffect } from "react";
 import useGamepad, { GamepadCommandState } from "../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
+import { Task } from "../../utils/tasks.type";
 
 const Gamepad = ({
 	selectorCallback,
 	mode,
 	visible = true,
+	ros,
 }: {
 	selectorCallback?: () => void;
-	mode: "NAV" | "HD";
+	mode: Task;
 	visible?: boolean;
+	ros: ROSLIB.Ros;
 }) => {
-	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(mode, selectorCallback);
+	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(ros, mode, selectorCallback);
 
 	const calcDirectionVertical = (axe: number) => {
 		// Up
@@ -87,6 +90,9 @@ const Gamepad = ({
 					activeColor="#FF4345"
 					isControlling={gamepadCommandState === GamepadCommandState.CONTROL}
 				/>
+				<div className={styles.GamepadMode}>
+					<p>{mode === Task.NAVIGATION ? "NAV" : "HD"}</p>
+				</div>
 			</div>
 		);
 	} else {

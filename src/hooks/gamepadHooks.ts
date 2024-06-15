@@ -1,153 +1,98 @@
 import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../utils/tasks.type";
+import { Message, Topic } from "roslib";
 
 export enum GamepadCommandState {
 	UI,
 	CONTROL,
 }
 
-function getOS() {
-	const OS = navigator.platform;
-
-	if (OS.includes("Win") || OS.includes("Android")) {
-		return "Windows";
-	}
-
-	return "Linux";
-}
-
-function useGamepad(mode: string, selectorCallback?: () => void) {
-	const [socket, setSocket] = useState<WebSocket | null>(null);
+function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void) {
 	const [gamepad, setGamepad] = useState<GamepadController | null>(null);
 	const [gamepadState, setGamepadState] = useState<GamepadControllerState | null>(null);
 	const [gamepadCommandState, setGamepadCommandState] = useState<GamepadCommandState>(
 		GamepadCommandState.UI
 	);
-	const [OS, setOS] = useState(getOS());
-	const [gamepadFocus, setGamepadFocus] = useState(0);
-
-	const focusableElements = document.querySelectorAll(
-		'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-	);
-
-	let [controlUpdate, setControlUpdate] = useState<NodeJS.Timeout | undefined>(undefined);
-	let [sendUpdate, setSendUpdate] = useState<NodeJS.Timeout | undefined>(undefined);
-
-	const update = () => {
-		if (gamepad?.getGamepad() && gamepad.getIsConnected()) {
-			setGamepadState(gamepad.getState());
-		}
-		requestAnimationFrame(update);
-	};
+	const [publisher, setPublisher] = useState<Topic | null>(null);
+	const [interval, setIntervalCallback] = useState<NodeJS.Timeout | null>(null);
 
 	useEffect(() => {
-		const gamepad = new GamepadController();
+		const gamepad = new GamepadController((state) => {
+			setGamepadState(state);
+		});
+
 		setGamepad(gamepad);
 
-		let gamepadSocket = new WebSocket("ws://" + window.location.host + "/ws/csApp/gamepad/");
+		GamepadController.addGamepadListener("gamepadButtonPressed", 8, () => {
+			console.log("Gamepad Command: Menu");
+			setGamepadCommandState((prev) => {
+				if (prev === GamepadCommandState.UI) return GamepadCommandState.CONTROL;
+				else return GamepadCommandState.UI;
+			});
+		});
 
-		gamepadSocket.onerror = (e) => {
-			console.log("Gamepad Socket Error");
-		};
-
-		setSocket(gamepadSocket);
+		GamepadController.addGamepadListener("gamepadButtonPressed", 9, () => {
+			console.log("Gamepad Command: Start");
+			selectorCallback?.();
+		});
 	}, []);
 
 	useEffect(() => {
-		if (sendUpdate) clearInterval(sendUpdate);
+		if (ros) {
+			setPublisher(
+				new Topic({
+					ros: ros,
+					name:
+						mode === Task.NAVIGATION
+							? "/CS/GamepadCmdsNavigation"
+							: "/CS/GamepadCmdsHandlingDevice",
+					messageType: "std_msgs/String",
+				})
+			);
+		}
 
-		setSendUpdate(
-			setInterval(() => {
-				if (
-					gamepad?.getGamepad() &&
-					gamepad.getIsConnected() &&
-					socket?.readyState === WebSocket.OPEN &&
-					gamepadCommandState === GamepadCommandState.CONTROL
-				) {
-					console.log("Sending Gamepad State");
-					const stateSent = {
-						axes: gamepad.getState().axes,
-						buttons: gamepad.getState().buttons,
-						id: gamepad.getState().controller?.id ?? "",
-						mode: mode,
-					};
-					console.log(stateSent);
-					socket?.send(JSON.stringify(stateSent));
-				}
-			}, 200)
-		);
+		return () => {
+			if (publisher) {
+				publisher.unadvertise();
+			}
+		};
+	}, [ros, mode]);
 
-		if (controlUpdate) clearInterval(controlUpdate);
-
-		setControlUpdate(
-			setInterval(() => {
-				if (gamepad?.getGamepad() && gamepad.getIsConnected()) {
-					// Detect Gamepad Commands
-					if (gamepadCommandState === GamepadCommandState.UI) {
-						if (
-							(gamepad.getState().buttons[9] && OS === "Windows") ||
-							//(gamepad.getState().buttons[7] && OS === "Linux")
-							(gamepad.getState().axes[2] === 1 && gamepad.getState().axes[5] === 1  && OS === "Linux")
-						) {
-							console.log("Gamepad Command State: CONTROL");
-							setGamepadCommandState(GamepadCommandState.CONTROL);
-						}
-
-						if (
-							(gamepad.getState().buttons[8] && OS === "Windows") ||
-							(gamepad.getState().buttons[6] && OS === "Linux")
-						) {
-							console.log("Gamepad Command: Custom Selector");
-							selectorCallback?.();
-						}
-
-						if (
-							(gamepad.getState().buttons[15] && OS === "Windows") ||
-							(gamepad.getState().axes[6] > 0 && OS === "Linux")
-						) {
-							nextItem();
-							console.log(gamepadFocus);
-						}
-
-						if (gamepad.getState().buttons[0]) {
-							console.log("Gamepad Command: Enter");
-							(focusableElements[gamepadFocus] as HTMLElement).click();
-						}
-					} else if (gamepadCommandState === GamepadCommandState.CONTROL) {
-						if (
-							(gamepad.getState().buttons[9] && OS === "Windows") ||
-							(gamepad.getState().buttons[7] && OS === "Linux")
-						) {
-							console.log("Gamepad Command State: UI");
-							setGamepadCommandState(GamepadCommandState.UI);
-						}
-
-						if (
-							(gamepad.getState().buttons[8] && OS === "Windows") ||
-							(gamepad.getState().buttons[6] && OS === "Linux")
-						) {
-							console.log("Gamepad Command: Custom Selector");
-							selectorCallback?.();
-						}
-					}
-				}
-			}, 150)
-		);
-	}, [socket, gamepadCommandState, gamepadFocus, mode]);
+	const sendCommand = () => {
+		if (gamepad?.getGamepad() && gamepadState && publisher) {
+			const message = new Message({
+				data: gamepadState,
+			});
+			publisher.publish(message);
+		}
+	};
 
 	useEffect(() => {
-		requestAnimationFrame(update);
-	}, [gamepad]);
+		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
+			setIntervalCallback(setInterval(sendCommand, 150));
+		} else {
+			console.log("No publisher");
+			if (interval) {
+				clearInterval(interval);
+			}
+		}
+	}, [publisher, gamepadCommandState]);
 
-	function nextItem() {
-		console.log(focusableElements);
-		(focusableElements[(gamepadFocus + 1) % focusableElements.length] as HTMLElement).focus();
-		setGamepadFocus((gamepadFocus + 1) % focusableElements.length);
-	}
+	useEffect(() => {
+		if (gamepadState) console.log(computeNavigationCommand(gamepadState));
+	}, [gamepadState]);
 
 	return [gamepad, gamepadState, gamepadCommandState] as const;
 }
 
-export default useGamepad;
+const computeNavigationCommand = (gamepadState: GamepadControllerState) => {
+	const { axes, buttons, triggers } = gamepadState;
 
+	return {
+		axes: [axes[0], axes[1], triggers[6], 0, 0, triggers[7], 0, 0],
+		buttons: [0, 0, 0, buttons[14], buttons[15]],
+	};
+};
+
+export default useGamepad;

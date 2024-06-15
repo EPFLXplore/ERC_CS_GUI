@@ -2,6 +2,7 @@ import React from "react";
 import useGamepad, { GamepadCommandState } from "../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
+import ROSLIB from "roslib";
 
 const GamepadHint = ({
 	selectorCallback,
@@ -12,7 +13,11 @@ const GamepadHint = ({
 	mode: "NAV" | "IK" | "FK";
 	visible?: boolean;
 }) => {
-	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(mode, selectorCallback);
+	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(
+		new ROSLIB.Ros({}),
+		mode,
+		selectorCallback
+	);
 
 	const calcDirectionVertical = (axe: number) => {
 		// Up
