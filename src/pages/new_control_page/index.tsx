@@ -28,6 +28,8 @@ import useNewCamera from "../../hooks/newCameraHooks";
 import useService from "../../hooks/serviceHooks";
 import useActions, { ActionType } from "../../hooks/actionsHooks";
 import NavigationGoalModal from "../../components/NavigationGoalModal";
+import ArmGoalModal from "../../components/ArmGoalModal";
+import DrillGoalModal from "../../components/DrillGoalModal";
 
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -38,11 +40,6 @@ export default () => {
 	const MAX_CAMERAS = 2;
 	const NBR_ACTIONS = 3;
 	const NBR_SERVICES = 4;
-
-	const [dataOpen, setDataOpen] = useState(false);
-	const [display, setDisplay] = useState("camera");
-	const [ros] = useRosBridge();
-	const [roverState] = useRoverState(ros);
 
 	const [snackbar, setSnackbar] = useState<State>({
 		open: false,
@@ -64,6 +61,11 @@ export default () => {
 
 		setSnackbar({ ...snackbar, open: false });
 	};
+
+	const [dataOpen, setDataOpen] = useState(false);
+	const [display, setDisplay] = useState("camera");
+	const [ros] = useRosBridge(showSnackbar);
+	const [roverState] = useRoverState(ros);
 
 	const [sentService, setSendService] = useState(false);
 	const [stateServices, setStateServices] = useService(
@@ -232,7 +234,7 @@ export default () => {
 				);
 			case SubSystems.HANDLING_DEVICE:
 				return (
-					<NavigationGoalModal
+					<ArmGoalModal
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
@@ -247,11 +249,12 @@ export default () => {
 						onCancelGoal={(system) => {
 							cancelAction(system);
 						}}
+						snackBar={showSnackbar}
 					/>
 				);
 			case SubSystems.DRILL:
 				return (
-					<NavigationGoalModal
+					<DrillGoalModal
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
@@ -266,6 +269,7 @@ export default () => {
 						onCancelGoal={(system) => {
 							cancelAction(system);
 						}}
+						snackBar={showSnackbar}
 					/>
 				);
 			default:
@@ -456,6 +460,7 @@ export default () => {
 						<QuickAction
 							onClick={() => displaySystemModal(null, true)}
 							selected={false}
+							running={States.OFF}
 							icon={Stop}
 						/>
 					</div>
