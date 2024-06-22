@@ -3,7 +3,7 @@ import styles from "./style.module.sass";
 import { Pose2D } from "../../utils/CustomMsgObjects";
 import SubSystems from "../../utils/SubSystems";
 
-function NavigationGoalModal({
+function ArmGoalModal({
 	onSetGoal,
 	onClose,
 	onCancelGoal,
@@ -68,7 +68,11 @@ function NavigationGoalModal({
 				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
-							onSetGoal(SubSystems.NAGIVATION, 0, new Pose2D(xCord, yCord, orientation));
+							onSetGoal(
+								SubSystems.NAGIVATION,
+								0,
+								new Pose2D(xCord, yCord, orientation)
+							);
 							//onClose();
 						}}
 						className={styles.PrimaryColor}
@@ -77,7 +81,7 @@ function NavigationGoalModal({
 					</button>
 					<button
 						onClick={() => {
-							onCancelGoal(SubSystems.NAGIVATION)
+							onCancelGoal(SubSystems.NAGIVATION);
 							//onClose();
 						}}
 					>
@@ -89,4 +93,4 @@ function NavigationGoalModal({
 	);
 }
 
-export default NavigationGoalModal;
+export default ArmGoalModal;

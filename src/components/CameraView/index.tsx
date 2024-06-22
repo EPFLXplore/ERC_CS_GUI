@@ -5,16 +5,21 @@ const CameraView = ({
 	images,
 	rotate = [false],
 	setRotateCams,
+	changeCam,
+	currentCam,
 }: {
 	images: Array<string>;
 	rotate?: boolean[];
 	setRotateCams?: (rotate: boolean[]) => void;
+	changeCam?: (dir: number) => void;
+	currentCam?: Array<string>;
 }) => {
 	console.assert(images.length <= 4, "Only 4 images max are supported");
 
-	if (images.length === 0) {
+	if (currentCam?.length === 0) {
 		return (
 			<div className={styles.Container}>
+				<CameraSelector currentCam={"No Camera"} changeCam={changeCam} />
 				<img
 					src={DefaultImage}
 					alt="Camera"
@@ -27,19 +32,20 @@ const CameraView = ({
 				/>
 			</div>
 		);
-	} else if (images.length === 1) {
+	} else if (currentCam?.length === 1) {
 		return (
 			<div className={styles.Container}>
+				<CameraSelector currentCam={currentCam?.[0] ?? "No Camera"} changeCam={changeCam} />
 				<img
 					src={images[0] ?? DefaultImage}
 					alt="Camera"
 					className={rotate[0] ? styles.RotatedImage : styles.Image}
 					onContextMenu={(e) => {
 						e.preventDefault();
-						const a = document.createElement('a');
+						const a = document.createElement("a");
 
-						a.setAttribute('download', 'reactflow.png');
-						a.setAttribute('href', images[0] ?? DefaultImage);
+						a.setAttribute("download", "reactflow.png");
+						a.setAttribute("href", images[0] ?? DefaultImage);
 						a.click();
 						console.log("Saved!");
 					}}
@@ -52,19 +58,20 @@ const CameraView = ({
 				/>
 			</div>
 		);
-	} else if (images.length === 2) {
+	} else if (currentCam?.length === 2) {
 		return (
 			<div className={styles.Container}>
+				<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />
 				<img
 					src={images[0] ?? DefaultImage}
 					alt="Camera"
 					className={rotate[0] ? styles.RotatedHalf : styles.Half}
 					onContextMenu={(e) => {
 						e.preventDefault();
-						const a = document.createElement('a');
+						const a = document.createElement("a");
 
-						a.setAttribute('download', 'reactflow.png');
-						a.setAttribute('href', images[0] ?? DefaultImage);
+						a.setAttribute("download", "reactflow.png");
+						a.setAttribute("href", images[0] ?? DefaultImage);
 						a.click();
 						console.log("Saved!");
 					}}
@@ -80,10 +87,10 @@ const CameraView = ({
 					className={rotate[1] ? styles.RotatedHalf : styles.Half}
 					onContextMenu={(e) => {
 						e.preventDefault();
-						const a = document.createElement('a');
+						const a = document.createElement("a");
 
-						a.setAttribute('download', 'reactflow.png');
-						a.setAttribute('href', images[1] ?? DefaultImage);
+						a.setAttribute("download", "reactflow.png");
+						a.setAttribute("href", images[1] ?? DefaultImage);
 						a.click();
 						console.log("Saved!");
 					}}
@@ -95,19 +102,20 @@ const CameraView = ({
 				/>
 			</div>
 		);
-	} else if (images.length === 3) {
+	} else if (currentCam?.length === 3) {
 		return (
 			<div className={styles.Container}>
+				<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />
 				<img
 					src={images[0] ?? DefaultImage}
 					alt="Camera"
 					className={rotate[0] ? styles.RotatedQuarter : styles.Quarter}
 					onContextMenu={(e) => {
 						e.preventDefault();
-						const a = document.createElement('a');
+						const a = document.createElement("a");
 
-						a.setAttribute('download', 'reactflow.png');
-						a.setAttribute('href', images[0] ?? DefaultImage);
+						a.setAttribute("download", "reactflow.png");
+						a.setAttribute("href", images[0] ?? DefaultImage);
 						a.click();
 						console.log("Saved!");
 					}}
@@ -123,10 +131,10 @@ const CameraView = ({
 					className={rotate[1] ? styles.RotatedQuarter : styles.Quarter}
 					onContextMenu={(e) => {
 						e.preventDefault();
-						const a = document.createElement('a');
+						const a = document.createElement("a");
 
-						a.setAttribute('download', 'reactflow.png');
-						a.setAttribute('href', images[1] ?? DefaultImage);
+						a.setAttribute("download", "reactflow.png");
+						a.setAttribute("href", images[1] ?? DefaultImage);
 						a.click();
 						console.log("Saved!");
 					}}
@@ -142,10 +150,10 @@ const CameraView = ({
 					className={rotate[2] ? styles.RotatedQuarter : styles.Quarter}
 					onContextMenu={(e) => {
 						e.preventDefault();
-						const a = document.createElement('a');
+						const a = document.createElement("a");
 
-						a.setAttribute('download', 'reactflow.png');
-						a.setAttribute('href', images[2] ?? DefaultImage);
+						a.setAttribute("download", "reactflow.png");
+						a.setAttribute("href", images[2] ?? DefaultImage);
 						a.click();
 						console.log("Saved!");
 					}}
@@ -160,6 +168,7 @@ const CameraView = ({
 	} else if (images.length >= 4) {
 		return (
 			<div className={styles.Container}>
+				<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />
 				<img
 					src={images[0] ?? DefaultImage}
 					alt="Camera"
@@ -206,7 +215,38 @@ const CameraView = ({
 
 	return (
 		<div className={styles.Container}>
+			<CameraSelector currentCam={"No Camera"} changeCam={changeCam} />
 			<img src={DefaultImage} alt="Camera" className={styles.Image} />
+		</div>
+	);
+};
+
+const CameraSelector = ({
+	currentCam,
+	changeCam,
+}: {
+	currentCam: string;
+	changeCam?: (dir: number) => void;
+}) => {
+	return (
+		<div className={styles.CameraSelector}>
+			<button
+				className={styles.CameraSelectorButton}
+				onClick={() => {
+					if (changeCam) changeCam(-1);
+				}}
+			>
+				{"<"}
+			</button>
+			<p>{currentCam}</p>
+			<button
+				className={styles.CameraSelectorButton}
+				onClick={() => {
+					if (changeCam) changeCam(1);
+				}}
+			>
+				{">"}
+			</button>
 		</div>
 	);
 };

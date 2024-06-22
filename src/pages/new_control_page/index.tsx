@@ -28,6 +28,8 @@ import useNewCamera from "../../hooks/newCameraHooks";
 import useService from "../../hooks/serviceHooks";
 import useActions, { ActionType } from "../../hooks/actionsHooks";
 import NavigationGoalModal from "../../components/NavigationGoalModal";
+import ArmGoalModal from "../../components/ArmGoalModal";
+import DrillGoalModal from "../../components/DrillGoalModal";
 
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -35,14 +37,10 @@ import SubSystems from "../../utils/SubSystems";
 import States from "../../utils/States";
 
 export default () => {
-	const MAX_CAMERAS = 2;
+	const MAX_CAMERAS = 3;
+	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
 	const NBR_ACTIONS = 3;
 	const NBR_SERVICES = 4;
-
-	const [dataOpen, setDataOpen] = useState(false);
-	const [display, setDisplay] = useState("camera");
-	const [ros] = useRosBridge();
-	const [roverState] = useRoverState(ros);
 
 	const [snackbar, setSnackbar] = useState<State>({
 		open: false,
@@ -64,6 +62,12 @@ export default () => {
 
 		setSnackbar({ ...snackbar, open: false });
 	};
+
+	const [dataOpen, setDataOpen] = useState(false);
+	const [display, setDisplay] = useState("camera");
+	const [ros] = useRosBridge(showSnackbar);
+	const [roverState] = useRoverState(ros);
+	const [currentVideo, setCurrentVideo] = useState(0);
 
 	const [sentService, setSendService] = useState(false);
 	const [stateServices, setStateServices] = useService(
@@ -87,7 +91,7 @@ export default () => {
 	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
 
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	const [images, rotateCams] = useNewCamera(ros);
+	const [images, rotateCams] = useNewCamera(ros, CAMERA_CONFIGS[currentVideo]);
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
@@ -232,7 +236,7 @@ export default () => {
 				);
 			case SubSystems.HANDLING_DEVICE:
 				return (
-					<NavigationGoalModal
+					<ArmGoalModal
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
@@ -247,11 +251,12 @@ export default () => {
 						onCancelGoal={(system) => {
 							cancelAction(system);
 						}}
+						snackBar={showSnackbar}
 					/>
 				);
 			case SubSystems.DRILL:
 				return (
-					<NavigationGoalModal
+					<DrillGoalModal
 						onClose={() => {
 							setModal(<></>);
 							setSystemsModalOpen((old) => {
@@ -266,6 +271,7 @@ export default () => {
 						onCancelGoal={(system) => {
 							cancelAction(system);
 						}}
+						snackBar={showSnackbar}
 					/>
 				);
 			default:
@@ -379,7 +385,21 @@ export default () => {
 						/>
 					</div>
 					{display === "camera" ? (
-						<CameraView images={images} rotate={rotateCams} setRotateCams={() => {}} />
+						<CameraView
+							images={images}
+							rotate={rotateCams}
+							setRotateCams={() => {}}
+							currentCam={CAMERA_CONFIGS[currentVideo]}
+							changeCam={(dir) => {
+								setCurrentVideo((old) => {
+									if (dir === 1) {
+										return (old + 1) % MAX_CAMERAS;
+									} else {
+										return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
+									}
+								});
+							}}
+						/>
 					) : (
 						<Simulation
 							armJointAngles={getJointsPositions(roverState)}
@@ -424,6 +444,16 @@ export default () => {
 									images={images}
 									rotate={rotateCams}
 									setRotateCams={() => {}}
+									currentCam={CAMERA_CONFIGS[currentVideo]}
+									changeCam={(dir) => {
+										setCurrentVideo((old) => {
+											if (dir === 1) {
+												return (old + 1) % MAX_CAMERAS;
+											} else {
+												return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
+											}
+										});
+									}}
 								/>
 							) : (
 								<Simulation
@@ -457,6 +487,7 @@ export default () => {
 						<QuickAction
 							onClick={() => displaySystemModal(null, true)}
 							selected={false}
+							running={States.OFF}
 							icon={Stop}
 						/>
 					</div>
