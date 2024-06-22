@@ -433,6 +433,13 @@ export default () => {
 									}
 								});
 							}}
+							visible={
+								stateServices[SubSystems.NAGIVATION].service.state ===
+									States.MANUAL ||
+								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+									States.MANUAL
+							}
+							ros={ros}
 						/>
 						<div
 							className={styles.simulation}
