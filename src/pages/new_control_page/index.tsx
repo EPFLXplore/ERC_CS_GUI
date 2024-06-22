@@ -424,12 +424,15 @@ export default () => {
 						<Gamepad
 							mode={manualMode}
 							selectorCallback={changeMode}
-							visible={
-								stateServices[SubSystems.NAGIVATION].service.state ===
-									States.MANUAL ||
-								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									States.MANUAL
-							}
+							changeCam={(dir) => {
+								setCurrentVideo((old) => {
+									if (dir === 1) {
+										return (old + 1) % MAX_CAMERAS;
+									} else {
+										return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
+									}
+								});
+							}}
 						/>
 						<div
 							className={styles.simulation}
@@ -453,6 +456,7 @@ export default () => {
 											}
 										});
 									}}
+									small
 								/>
 							) : (
 								<Simulation

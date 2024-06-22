@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import useGamepad, { GamepadCommandState } from "../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
@@ -9,13 +8,20 @@ const Gamepad = ({
 	mode,
 	visible = true,
 	ros,
+	changeCam,
 }: {
 	selectorCallback?: () => void;
 	mode: Task;
 	visible?: boolean;
 	ros: ROSLIB.Ros;
+	changeCam?: (dir: number) => void;
 }) => {
-	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(ros, mode, selectorCallback);
+	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(
+		ros,
+		mode,
+		changeCam,
+		selectorCallback
+	);
 
 	const calcDirectionVertical = (axe: number) => {
 		// Up

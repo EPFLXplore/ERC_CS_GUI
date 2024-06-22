@@ -8,7 +8,12 @@ export enum GamepadCommandState {
 	CONTROL,
 }
 
-function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void) {
+function useGamepad(
+	ros: ROSLIB.Ros,
+	mode: string,
+	changeCam?: (dir: number) => void,
+	selectorCallback?: () => void
+) {
 	const [gamepad, setGamepad] = useState<GamepadController | null>(null);
 	const [gamepadState, setGamepadState] = useState<GamepadControllerState | null>(null);
 	const [gamepadCommandState, setGamepadCommandState] = useState<GamepadCommandState>(
@@ -27,7 +32,11 @@ function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void
 		GamepadController.addGamepadListener("gamepadButtonPressed", 8, () => {
 			console.log("Gamepad Command: Menu");
 			setGamepadCommandState((prev) => {
-				if (prev === GamepadCommandState.UI) return GamepadCommandState.CONTROL;
+				if (
+					prev === GamepadCommandState.UI &&
+					(mode === Task.NAVIGATION || mode === Task.HANDLING_DEVICE)
+				)
+					return GamepadCommandState.CONTROL;
 				else return GamepadCommandState.UI;
 			});
 		});
@@ -35,6 +44,16 @@ function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void
 		GamepadController.addGamepadListener("gamepadButtonPressed", 9, () => {
 			console.log("Gamepad Command: Start");
 			selectorCallback?.();
+		});
+
+		GamepadController.addGamepadListener("gamepadButtonPressed", 12, () => {
+			console.log("Gamepad Command: Change Camera");
+			if (changeCam) changeCam(-1);
+		});
+
+		GamepadController.addGamepadListener("gamepadButtonPressed", 13, () => {
+			console.log("Gamepad Command: Change Camera");
+			if (changeCam) changeCam(1);
 		});
 	}, []);
 
@@ -92,6 +111,15 @@ const computeNavigationCommand = (gamepadState: GamepadControllerState) => {
 	return {
 		axes: [axes[0], axes[1], triggers[6], 0, 0, triggers[7], 0, 0],
 		buttons: [0, 0, 0, buttons[14], buttons[15]],
+	};
+};
+
+const computeArmCommand = (gamepadState: GamepadControllerState) => {
+	const { axes, buttons, triggers } = gamepadState;
+
+	return {
+		axes: [axes[2], axes[3], triggers[7], triggers[6], axes[1], axes[0]],
+		buttons: [buttons[5], buttons[4], buttons[1], buttons[2], buttons[3], buttons[0]],
 	};
 };
 
