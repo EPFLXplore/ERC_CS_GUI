@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../utils/tasks.type";
 import { Message, Topic } from "roslib";
+import buttonSelect from "../utils/buttonSelect";
 
 export enum GamepadCommandState {
 	UI,
@@ -40,6 +41,7 @@ function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void
 
 	useEffect(() => {
 		if (ros) {
+			console.log("Create topic gamepad")
 			setPublisher(
 				new Topic({
 					ros: ros,
@@ -47,7 +49,7 @@ function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void
 						mode === Task.NAVIGATION
 							? "/CS/GamepadCmdsNavigation"
 							: "/CS/GamepadCmdsHandlingDevice",
-					messageType: "std_msgs/String",
+					messageType: "sensor_msgs/Joy",
 				})
 			);
 		}
@@ -60,10 +62,9 @@ function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void
 	}, [ros, mode]);
 
 	const sendCommand = () => {
+		const gamepadState = gamepad?.getState();
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
-			const message = new Message({
-				data: gamepadState,
-			});
+			const message = new Message(computeNavigationCommand(gamepadState));
 			publisher.publish(message);
 		}
 	};
@@ -79,10 +80,6 @@ function useGamepad(ros: ROSLIB.Ros, mode: string, selectorCallback?: () => void
 		}
 	}, [publisher, gamepadCommandState]);
 
-	useEffect(() => {
-		if (gamepadState) console.log(computeNavigationCommand(gamepadState));
-	}, [gamepadState]);
-
 	return [gamepad, gamepadState, gamepadCommandState] as const;
 }
 
@@ -91,7 +88,7 @@ const computeNavigationCommand = (gamepadState: GamepadControllerState) => {
 
 	return {
 		axes: [axes[0], axes[1], triggers[6], 0, 0, triggers[7], 0, 0],
-		buttons: [0, 0, 0, buttons[14], buttons[15]],
+		buttons: [0, 0, 0, buttons[14] ? 1 : 0, buttons[15] ? 1 : 0, 0, 0, 0, 0, 0, 0],
 	};
 };
 

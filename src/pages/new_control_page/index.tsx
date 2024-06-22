@@ -410,6 +410,7 @@ export default () => {
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 									States.MANUAL
 							}
+							ros={ros}
 						/>
 						<div
 							className={styles.simulation}

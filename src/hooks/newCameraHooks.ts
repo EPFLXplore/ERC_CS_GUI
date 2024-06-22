@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import ROSLIB from "roslib";
 
 function useNewCamera(ros: ROSLIB.Ros | null) {
-	const [cameras, setCameras] = useState<Array<string>>(["camera_1"]);
+	const [cameras, setCameras] = useState<Array<string>>(["camera_0"]);
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
 

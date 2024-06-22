@@ -106,7 +106,7 @@ class GamepadController {
 		if (navigator.getGamepads().length > 0 && navigator.getGamepads()[0]) {
 			this.gamepad = navigator.getGamepads()[0];
 			this.isConnected = true;
-			this.gamepadState = this.getState();
+			this.gamepadState = this.updateState();
 		} else {
 			this.isConnected = false;
 			this.gamepad = null;
@@ -120,7 +120,7 @@ class GamepadController {
 			if (!this.gamepad && connecting) {
 				this.gamepad = e.gamepad;
 				this.isConnected = connecting;
-				this.gamepadState = this.getState();
+				this.gamepadState = this.updateState();
 			} else if (this.gamepad && !connecting) {
 				const gamepads = navigator.getGamepads();
 				// Case 2: A gamepad is connected, and a gamepad is disconnecting
@@ -162,7 +162,11 @@ class GamepadController {
 		return this.isConnected;
 	}
 
-	public getState(): GamepadControllerState {
+	public getState(): GamepadControllerState | null {
+		return this.gamepadState;
+	}
+
+	private updateState(): GamepadControllerState {
 		this.gamepad = navigator.getGamepads()[0];
 
 		if (this.gamepadState) {
@@ -246,7 +250,7 @@ class GamepadController {
 		// Start updating the gamepad state every frame with requestAnimationFrame
 		const updateFn = () => {
 			if (this.getGamepad() && this.getIsConnected()) {
-				this.gamepadState = this.getState();
+				this.gamepadState = this.updateState();
 				stateCallback(this.gamepadState);
 			}
 			requestAnimationFrame(updateFn);
