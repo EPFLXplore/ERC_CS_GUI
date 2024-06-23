@@ -37,8 +37,8 @@ import SubSystems from "../../utils/SubSystems";
 import States from "../../utils/States";
 
 export default () => {
-	const MAX_CAMERAS = 3;
 	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
+	const MAX_CAMERAS = 3;
 	const NBR_ACTIONS = 3;
 	const NBR_SERVICES = 4;
 
@@ -67,7 +67,6 @@ export default () => {
 	const [display, setDisplay] = useState("camera");
 	const [ros] = useRosBridge(showSnackbar);
 	const [roverState] = useRoverState(ros);
-	const [currentVideo, setCurrentVideo] = useState(0);
 
 	const [sentService, setSendService] = useState(false);
 	const [stateServices, setStateServices] = useService(
@@ -91,7 +90,7 @@ export default () => {
 	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
 
 	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	const [images, rotateCams] = useNewCamera(ros, CAMERA_CONFIGS[currentVideo]);
+	const [images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros);
 
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
@@ -392,6 +391,7 @@ export default () => {
 							currentCam={CAMERA_CONFIGS[currentVideo]}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {
+									console.log('change 1')
 									if (dir === 1) {
 										return (old + 1) % MAX_CAMERAS;
 									} else {
@@ -426,6 +426,7 @@ export default () => {
 							selectorCallback={changeMode}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {
+									console.log('change 2')
 									if (dir === 1) {
 										return (old + 1) % MAX_CAMERAS;
 									} else {
@@ -456,6 +457,7 @@ export default () => {
 									currentCam={CAMERA_CONFIGS[currentVideo]}
 									changeCam={(dir) => {
 										setCurrentVideo((old) => {
+											console.log('change 3')
 											if (dir === 1) {
 												return (old + 1) % MAX_CAMERAS;
 											} else {
