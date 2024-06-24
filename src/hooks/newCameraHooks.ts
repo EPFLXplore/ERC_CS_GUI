@@ -6,15 +6,15 @@ function useNewCamera(ros: ROSLIB.Ros | null) {
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
 	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
 	const [currentVideo, setCurrentVideo] = useState(0);
+	const [listeners, setListeners] = useState<ROSLIB.Topic[]>([])
 
 	useEffect(() => {
-		const listeners: ROSLIB.Topic[] = [];
-
 		if (ros) {
 			const cameras = CAMERA_CONFIGS[currentVideo];
+			let _listeners: ROSLIB.Topic[] = []
 			setImage(Array(cameras.length).fill(""));
 			cameras.forEach((camera) => {
-				var listener = new ROSLIB.Topic({
+				const listener = new ROSLIB.Topic({
 					ros: ros,
 					name: camera,
 					messageType: "sensor_msgs/CompressedImage",
@@ -25,16 +25,25 @@ function useNewCamera(ros: ROSLIB.Ros | null) {
 						const index = cameras.indexOf(camera);
 						const newImages = [...prev];
 						//@ts-ignore
-						newImages[index] = "data:image/jpeg;charset=utf-8;base64," + message.data;
+						if(message.data) {
+							//@ts-ignore
+							newImages[index] = "data:image/jpeg;charset=utf-8;base64," + message.data;
+						}
 						return newImages;
 					});
 				});
-			});
-		}
 
-		return () => {
-			listeners.forEach((listener) => listener.unsubscribe());
-		};
+				_listeners = [..._listeners, listener]
+			});
+
+			setListeners(old => {
+				old.forEach((listener) => {
+					listener.unsubscribe()
+				});
+
+				return _listeners;
+			})
+		}
 	}, [ros, currentVideo]);
 
 	return [images, rotateCams, currentVideo, setCurrentVideo] as const;
