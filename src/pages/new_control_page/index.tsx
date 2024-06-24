@@ -35,6 +35,8 @@ import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 import SubSystems from "../../utils/SubSystems";
 import States from "../../utils/States";
+import JointCurrents from "../../components/JointCurrents";
+import InfoBox from "../../components/InfoBox";
 
 export default () => {
 	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
@@ -391,7 +393,7 @@ export default () => {
 							currentCam={CAMERA_CONFIGS[currentVideo]}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {
-									console.log('change 1')
+									console.log("change 1");
 									if (dir === 1) {
 										return (old + 1) % MAX_CAMERAS;
 									} else {
@@ -408,17 +410,37 @@ export default () => {
 							pivotAngle={getPivotAngle(roverState)}
 						/>
 					)}
-					<div className={styles.infos}>
-						<div>
-							<h3>Current position</h3>
-							<div className={styles.infoArrangement}>
-								<div style={{ marginRight: "20px" }}>
-									<p>X coordinate: 0</p>
-									<p>Y coordinate: 0</p>
-									<p>Orientation: 0</p>
-								</div>
-							</div>
-						</div>
+					<div className={styles.infosRight}>
+						<InfoBox
+							title="Current position"
+							infos={[
+								{ name: "X coordinate", value: 0 },
+								{ name: "Y coordinate", value: 0 },
+								{ name: "Z coordinate", value: 0 },
+							]}
+						/>
+						<InfoBox
+							title="Current orientation"
+							infos={[
+								{ name: "Roll", value: 0 },
+								{ name: "Pitch", value: 0 },
+								{ name: "Yaw", value: 0 },
+							]}
+						/>
+					</div>
+					<div className={styles.infosLeft}>
+						<InfoBox
+							title="Joints Currents"
+							infos={[
+								{ name: "Joint 1", value: 0 },
+								{ name: "Joint 2", value: 0 },
+								{ name: "Joint 3", value: 0 },
+								{ name: "Joint 4", value: 0 },
+								{ name: "Joint 5", value: 0 },
+								{ name: "Joint 6", value: 0 },
+							]}
+							unit="mA"
+						/>
 					</div>
 					<div className={styles.previews}>
 						<Gamepad
@@ -426,7 +448,7 @@ export default () => {
 							selectorCallback={changeMode}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {
-									console.log('change 2')
+									console.log("change 2");
 									if (dir === 1) {
 										return (old + 1) % MAX_CAMERAS;
 									} else {
@@ -457,7 +479,7 @@ export default () => {
 									currentCam={CAMERA_CONFIGS[currentVideo]}
 									changeCam={(dir) => {
 										setCurrentVideo((old) => {
-											console.log('change 3')
+											console.log("change 3");
 											if (dir === 1) {
 												return (old + 1) % MAX_CAMERAS;
 											} else {
