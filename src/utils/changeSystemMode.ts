@@ -1,4 +1,4 @@
-import ROSLIB from 'roslib';
+import * as ROSLIB from "roslib";
 import {Service} from './Service';
 import SubSystems from './SubSystems';
 import States from './States';

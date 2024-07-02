@@ -27,7 +27,7 @@
 		"react-redux": "^8.0.5",
 		"react-router-dom": "^6.8.2",
 		"react-scripts": "5.0.1",
-		"roslib": "^1.4.1",
+		"roslib": "github:RobotWebTools/roslibjs",
 		"sass": "^1.58.3",
 		"simplify-js": "^1.2.4",
 		"three": "^0.134.0",

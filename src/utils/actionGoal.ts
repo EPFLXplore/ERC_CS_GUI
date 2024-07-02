@@ -1,4 +1,4 @@
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 import { getCookie } from "./requests"
 import Action from "./Action";
 import { BooleanKeyframeTrack } from "three";
@@ -19,7 +19,7 @@ const actionGoal = (ros: ROSLIB.Ros | null, system: string, start: boolean, acti
 			let newStates = {...old};
 
 			if(newStates[system].ros_goal !== null) {
-				newStates[system].ros_goal?.cancel()
+				newStates[system].ros_goal = null
 				newStates[system].action.state = States.OFF
 
 				// TODO CHECK WITH ROVER STATE THAT THE ACTION HAS BEEN CANCELED?
@@ -35,22 +35,16 @@ const actionGoal = (ros: ROSLIB.Ros | null, system: string, start: boolean, acti
 		// start action
 		if(ros === null) return
 
-		const actionClient = new ROSLIB.ActionClient({
+		const actionClient = new ROSLIB.Action({
 			ros : ros,
-			serverName : "/Rover/" + action.path_action,
-			actionName : "custom_msg/action/" + action.name_action_file
-		});
-		
-		const goal = new ROSLIB.Goal({
-			actionClient : actionClient,
-			goalMessage : args // not sure ça marche
-		});
-		
-		goal.on('feedback', function(feedback) {
-			console.log(feedback)
+			name : "/Rover/" + action.path_action,
+			actionType : "custom_msg/action/" + action.name_action_file
 		});
 
-		goal.on('result', function(result) {
+		const goal = {action: "auto"};
+		console.log(args)
+
+		actionClient.sendGoal(goal, (result: any) => {
 			console.log(result)
 			sentAction(false)
 			updateActions((old: ActionType) => {
@@ -59,14 +53,15 @@ const actionGoal = (ros: ROSLIB.Ros | null, system: string, start: boolean, acti
 				newStates[system].ros_goal = null
 				return newStates
 			})
-		});
+		},  (feedback: any) => {
+			console.log(feedback)
+		})
 	
 		sentAction(true)
-		goal.send();  // add a timeout ? here as param
 		updateActions((old: ActionType) => {
 			const newStates = {...old};
 			newStates[system].action.state = States.ON // the action starts
-			newStates[system].ros_goal = goal
+			newStates[system].ros_goal = args
 			return newStates
 		})
 	}

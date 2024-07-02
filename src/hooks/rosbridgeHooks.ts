@@ -1,6 +1,6 @@
 import React from "react";
 import { useState, useEffect } from "react";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 
 function useRosBridge(snackBar: (sev: string, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);

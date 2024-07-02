@@ -2,6 +2,7 @@ import useGamepad, { GamepadCommandState } from "../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
 import { Task } from "../../utils/tasks.type";
+import * as ROSLIB from "roslib";
 
 const Gamepad = ({
 	selectorCallback,

@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 
 function useNewCamera(ros: ROSLIB.Ros | null) {
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
 	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
 	const [currentVideo, setCurrentVideo] = useState(0);
-	const [listeners, setListeners] = useState<ROSLIB.Topic[]>([])
+	const [listeners, setListeners] = useState<ROSLIB.Topic<any>[]>([])
 
 	useEffect(() => {
 		if (ros) {
 			const cameras = CAMERA_CONFIGS[currentVideo];
-			let _listeners: ROSLIB.Topic[] = []
+			let _listeners: ROSLIB.Topic<any>[] = []
 			setImage(Array(cameras.length).fill(""));
 			cameras.forEach((camera) => {
 				const listener = new ROSLIB.Topic({

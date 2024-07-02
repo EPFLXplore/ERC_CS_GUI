@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import SubSystems from "../utils/SubSystems";
 import Action from "../utils/Action";
 import States from "../utils/States";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 
 interface ActionElement {
 	action: Action,
-	ros_goal: ROSLIB.Goal | null
+	ros_goal: Object | null
 }
 export type ActionType = { [key: string]: ActionElement }
 

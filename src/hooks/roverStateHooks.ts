@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 
 function useRoverState(ros: ROSLIB.Ros | null) {
 	const [roverState, setRoverState] = useState<object>({});

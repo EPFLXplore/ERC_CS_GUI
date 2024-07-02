@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../utils/tasks.type";
-import { Message, Topic } from "roslib";
+import * as ROSLIB from "roslib";
 import buttonSelect from "../utils/buttonSelect";
 
 export enum GamepadCommandState {
@@ -20,7 +20,7 @@ function useGamepad(
 	const [gamepadCommandState, setGamepadCommandState] = useState<GamepadCommandState>(
 		GamepadCommandState.UI
 	);
-	const [publisher, setPublisher] = useState<Topic | null>(null);
+	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [interval, setIntervalCallback] = useState<NodeJS.Timeout | null>(null);
 
 	useEffect(() => {
@@ -62,7 +62,7 @@ function useGamepad(
 		if (ros) {
 			console.log("Create topic gamepad")
 			setPublisher(
-				new Topic({
+				new ROSLIB.Topic<any>({
 					ros: ros,
 					name:
 						mode === Task.NAVIGATION
@@ -83,7 +83,7 @@ function useGamepad(
 	const sendCommand = () => {
 		const gamepadState = gamepad?.getState();
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
-			const message = new Message(computeNavigationCommand(gamepadState));
+			const message = computeNavigationCommand(gamepadState);
 			publisher.publish(message);
 		}
 	};

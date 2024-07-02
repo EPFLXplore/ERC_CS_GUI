@@ -2,7 +2,7 @@ import React from "react";
 import useGamepad, { GamepadCommandState } from "../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 
 const GamepadHint = ({
 	selectorCallback,
