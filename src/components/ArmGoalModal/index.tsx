@@ -1,6 +1,5 @@
 import React from "react";
 import styles from "./style.module.sass";
-import { Pose2D } from "../../utils/CustomMsgObjects";
 import SubSystems from "../../utils/SubSystems";
 
 type ArmTask = {
@@ -16,14 +15,13 @@ function ArmGoalModal({
 	currentTask = undefined,
 	snackBar,
 }: {
-	onSetGoal: (system: string, ...args: any[]) => void;
+	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	currentTask?: ArmTask;
 	snackBar: (sev: string, mes: string) => void;
 }) {
 	const [task, setTask] = React.useState<ArmTask | null>(null);
-	const [orientation, setOrientation] = React.useState(0);
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -207,7 +205,7 @@ function ArmGoalModal({
 					<button
 						onClick={() => {
 							if (task) {
-								onSetGoal(SubSystems.HANDLING_DEVICE, task?.type, task?.id);
+								onSetGoal(SubSystems.HANDLING_DEVICE, {task_type: task.type, task_id: task.id});
 								onClose();
 							} else {
 								snackBar("error", "No task selected");

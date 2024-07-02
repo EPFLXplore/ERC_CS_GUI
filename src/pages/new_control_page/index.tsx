@@ -118,7 +118,8 @@ export default () => {
 		});
 	};
 
-	const launchAction = (system: string, ...args: any[]) => {
+	const launchAction = (system: string, actionArgs: Object) => {
+		console.log(actionArgs)
 		setStateActions((old) => {
 			let newStates = { ...old };
 
@@ -144,7 +145,8 @@ export default () => {
 				newStates[system].action,
 				(b) => setSendAction(b),
 				(actions: ActionType) => setStateActions(actions),
-				args
+				showSnackbar,
+				actionArgs
 			);
 			return newStates;
 		});
@@ -227,12 +229,8 @@ export default () => {
 								return newModalOpen;
 							});
 						}}
-						onSetGoal={(system, args) => {
-							launchAction(system, args);
-						}}
-						onCancelGoal={(system) => {
-							cancelAction(system);
-						}}
+						onSetGoal={launchAction}
+						onCancelGoal={cancelAction}
 					/>
 				);
 			case SubSystems.HANDLING_DEVICE:
@@ -246,12 +244,8 @@ export default () => {
 								return newModalOpen;
 							});
 						}}
-						onSetGoal={(system, args) => {
-							launchAction(system, args);
-						}}
-						onCancelGoal={(system) => {
-							cancelAction(system);
-						}}
+						onSetGoal={launchAction}
+						onCancelGoal={cancelAction}
 						snackBar={showSnackbar}
 					/>
 				);
@@ -266,12 +260,8 @@ export default () => {
 								return newModalOpen;
 							});
 						}}
-						onSetGoal={(system, args) => {
-							launchAction(system, args);
-						}}
-						onCancelGoal={(system) => {
-							cancelAction(system);
-						}}
+						onSetGoal={launchAction}
+						onCancelGoal={cancelAction}
 						snackBar={showSnackbar}
 					/>
 				);

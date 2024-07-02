@@ -9,7 +9,7 @@ const actionGoal = (ros: ROSLIB.Ros | null, system: string, start: boolean, acti
 	sentAction: (b: boolean) => void,
 	updateActions: (states: any) => void,
 	snackBar: (sev: string, mes: string) => void,
-	 ...args: any[]) => {
+	actionArgs: Object) => {
 	
 	if(!start) {
 		// cancel action
@@ -41,10 +41,8 @@ const actionGoal = (ros: ROSLIB.Ros | null, system: string, start: boolean, acti
 			actionType : "custom_msg/action/" + action.name_action_file
 		});
 
-		const goal = {action: "auto"};
-		console.log(args)
-
-		actionClient.sendGoal(goal, (result: any) => {
+		console.log(actionArgs)
+		actionClient.sendGoal(actionArgs, (result: any) => {
 			console.log(result)
 			sentAction(false)
 			updateActions((old: ActionType) => {
@@ -61,7 +59,7 @@ const actionGoal = (ros: ROSLIB.Ros | null, system: string, start: boolean, acti
 		updateActions((old: ActionType) => {
 			const newStates = {...old};
 			newStates[system].action.state = States.ON // the action starts
-			newStates[system].ros_goal = args
+			newStates[system].ros_goal = actionArgs
 			return newStates
 		})
 	}

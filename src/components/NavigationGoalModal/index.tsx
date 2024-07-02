@@ -9,7 +9,7 @@ function ArmGoalModal({
 	onCancelGoal,
 	currentGoal = undefined,
 }: {
-	onSetGoal: (system: string, ...args: any[]) => void;
+	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	currentGoal?: { x: number; y: number; o: number };
@@ -70,8 +70,10 @@ function ArmGoalModal({
 						onClick={() => {
 							onSetGoal(
 								SubSystems.NAGIVATION,
-								0,
-								new Pose2D(xCord, yCord, orientation)
+								{
+									mode: 0,
+									goal: new Pose2D(xCord, yCord, orientation)
+								}
 							);
 							//onClose();
 						}}

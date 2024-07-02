@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./style.module.sass";
-import { Pose2D } from "../../utils/CustomMsgObjects";
 import SubSystems from "../../utils/SubSystems";
+import * as ROSLIB from "roslib";
 
 enum DrillTask {
 	START = "Start",
@@ -19,14 +19,13 @@ function DrillGoalModal({
 	currentTask = undefined,
 	snackBar,
 }: {
-	onSetGoal: (system: string, ...args: any[]) => void;
+	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	currentTask?: DrillTask;
 	snackBar: (sev: string, mes: string) => void;
 }) {
 	const [task, setTask] = React.useState<DrillTask | null>(null);
-	const [orientation, setOrientation] = React.useState(0);
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -66,7 +65,8 @@ function DrillGoalModal({
 					<button
 						onClick={() => {
 							if (task) {
-								onSetGoal(SubSystems.DRILL, task);
+								console.log(task.toLowerCase())
+								onSetGoal(SubSystems.DRILL, {action: task.toLowerCase()});
 								onClose();
 							} else {
 								snackBar("error", "No task selected");
