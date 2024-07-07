@@ -68,7 +68,7 @@ function Simulation({
 				shadow-mapSize-height={1024}
 			/>
 			<ambientLight intensity={0.2} color={0xffffff} />
-			{/* <Suspense fallback={null}>
+			<Suspense fallback={null}>
 				<OrbitControls enableZoom={true} />
 				<Pin coordinates={point} />
 				<RobotVisual
@@ -77,7 +77,7 @@ function Simulation({
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					pivotAngle={pivotAngle}
 				/>
-			</Suspense> */}
+			</Suspense>
 			<Plane
 				args={[50, 50]}
 				rotation={[-Math.PI / 2, 0, Math.PI / 2]}
