@@ -33,6 +33,7 @@ const requestChangeMode = (ros: ROSLIB.Ros | null, system: string, mode: string,
 
 	}
 
+	
 	if(ros) {
 		const changeModeSystem = new ROSLIB.Service({
 			ros : ros,

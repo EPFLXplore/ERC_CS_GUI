@@ -4,6 +4,7 @@ import SubSystems from "../../utils/SubSystems";
 import * as ROSLIB from "roslib";
 
 enum DrillTask {
+	AUTO = "Auto",
 	START = "Start",
 	DOWN = "Down",
 	RELEASE = "Release",

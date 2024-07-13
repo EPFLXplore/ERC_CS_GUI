@@ -4,7 +4,7 @@ import * as ROSLIB from "roslib";
 function useNewCamera(ros: ROSLIB.Ros | null) {
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
-	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
+	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_2"], ["camera_3"], ["camera_0", "camera_1"]];
 	const [currentVideo, setCurrentVideo] = useState(0);
 	const [listeners, setListeners] = useState<ROSLIB.Topic<any>[]>([])
 

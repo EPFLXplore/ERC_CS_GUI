@@ -35,7 +35,7 @@ function useActions(roverState: any, sentAction: boolean,
 		},
 		[SubSystems.DRILL]: {
 			action: new Action(SubSystems.DRILL, 
-				!roverState[SubSystems.HANDLING_DEVICE] ? States.OFF : roverState[SubSystems.HANDLING_DEVICE][SubSystems.DRILL]["state"]["mode"],
+				!roverState[SubSystems.HANDLING_DEVICE] ? States.OFF : roverState[SubSystems.DRILL]["state"]["mode"],
 				"DrillTerrain",
 				"DrillTerrain"
 			),
@@ -61,8 +61,8 @@ function useActions(roverState: any, sentAction: boolean,
 					newStates[SubSystems.HANDLING_DEVICE].action.state = roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"]
 					if(!init) change.push(SubSystems.HANDLING_DEVICE)
 				}
-				if(newStates[SubSystems.DRILL].action.state !== roverState[SubSystems.HANDLING_DEVICE][SubSystems.DRILL]["state"]["mode"]) {
-					newStates[SubSystems.DRILL].action.state = roverState[SubSystems.HANDLING_DEVICE][SubSystems.DRILL]["state"]["mode"]
+				if(newStates[SubSystems.DRILL].action.state !== roverState[SubSystems.DRILL]["state"]["mode"]) {
+					newStates[SubSystems.DRILL].action.state = roverState[SubSystems.DRILL]["state"]["mode"]
 					if(!init) change.push(SubSystems.DRILL)
 				}
 			}

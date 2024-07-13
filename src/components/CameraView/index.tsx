@@ -58,7 +58,7 @@ const CameraView = ({
 					/>
 				)}
 				<img
-					src={images[0] ?? DefaultImage}
+					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 					alt="Camera"
 					className={rotate[0] ? styles.RotatedImage : styles.Image}
 					// onContextMenu={(e) => {
@@ -84,7 +84,7 @@ const CameraView = ({
 			<div className={styles.Container}>
 				{!small && <CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
 				<img
-					src={images[0] ?? DefaultImage}
+					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 					alt="Camera"
 					className={rotate[0] ? styles.RotatedHalf : styles.Half}
 					onContextMenu={(e) => {
@@ -103,7 +103,7 @@ const CameraView = ({
 					}}
 				/>
 				<img
-					src={images[1] ?? DefaultImage}
+					src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
 					alt="Camera"
 					className={rotate[1] ? styles.RotatedHalf : styles.Half}
 					onContextMenu={(e) => {

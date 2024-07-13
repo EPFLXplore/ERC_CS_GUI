@@ -39,8 +39,8 @@ import JointCurrents from "../../components/JointCurrents";
 import InfoBox from "../../components/InfoBox";
 
 export default () => {
-	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_0", "camera_1"]];
-	const MAX_CAMERAS = 3;
+	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_2"], ["camera_3"], ["camera_0", "camera_1"]];
+	const MAX_CAMERAS = 5;
 	const NBR_ACTIONS = 3;
 	const NBR_SERVICES = 4;
 
