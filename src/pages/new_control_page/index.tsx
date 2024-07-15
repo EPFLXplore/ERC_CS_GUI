@@ -39,7 +39,13 @@ import JointCurrents from "../../components/JointCurrents";
 import InfoBox from "../../components/InfoBox";
 
 export default () => {
-	const CAMERA_CONFIGS = [["camera_0"], ["camera_1"], ["camera_2"], ["camera_3"], ["camera_0", "camera_1"]];
+	const CAMERA_CONFIGS = [
+		["camera_0"],
+		["camera_1"],
+		["camera_2"],
+		["camera_3"],
+		["camera_0", "camera_1"],
+	];
 	const MAX_CAMERAS = 5;
 	const NBR_ACTIONS = 3;
 	const NBR_SERVICES = 4;
@@ -119,7 +125,7 @@ export default () => {
 	};
 
 	const launchAction = (system: string, actionArgs: Object) => {
-		console.log(actionArgs)
+		console.log(actionArgs);
 		setStateActions((old) => {
 			let newStates = { ...old };
 
@@ -401,36 +407,67 @@ export default () => {
 						/>
 					)}
 					<div className={styles.infosRight}>
-						<InfoBox
-							title="Current position"
-							infos={[
-								{ name: "X coordinate", value: 0 },
-								{ name: "Y coordinate", value: 0 },
-								{ name: "Z coordinate", value: 0 },
-							]}
-						/>
-						<InfoBox
-							title="Current orientation"
-							infos={[
-								{ name: "Roll", value: 0 },
-								{ name: "Pitch", value: 0 },
-								{ name: "Yaw", value: 0 },
-							]}
-						/>
+						{stateServices[SubSystems.NAGIVATION].service.state !== "Off" && (
+							<>
+								<InfoBox
+									title="Current position"
+									infos={[
+										{ name: "X coordinate", value: 0 },
+										{ name: "Y coordinate", value: 0 },
+										{ name: "Z coordinate", value: 0 },
+									]}
+								/>
+								<InfoBox
+									title="Current orientation"
+									infos={[
+										{ name: "Roll", value: 0 },
+										{ name: "Pitch", value: 0 },
+										{ name: "Yaw", value: 0 },
+									]}
+								/>
+							</>
+						)}
 					</div>
 					<div className={styles.infosLeft}>
-						<InfoBox
-							title="Joints Currents"
-							infos={[
-								{ name: "Joint 1", value: 0 },
-								{ name: "Joint 2", value: 0 },
-								{ name: "Joint 3", value: 0 },
-								{ name: "Joint 4", value: 0 },
-								{ name: "Joint 5", value: 0 },
-								{ name: "Joint 6", value: 0 },
-							]}
-							unit="mA"
-						/>
+						{stateServices[SubSystems.HANDLING_DEVICE].service.state !== "Off" && (
+							<InfoBox
+								title="Joints Currents"
+								infos={[
+									{ name: "Joint 1", value: 0 },
+									{ name: "Joint 2", value: 0 },
+									{ name: "Joint 3", value: 0 },
+									{ name: "Joint 4", value: 0 },
+									{ name: "Joint 5", value: 0 },
+									{ name: "Joint 6", value: 0 },
+								]}
+								unit="mA"
+							/>
+						)}
+						{stateServices[SubSystems.NAGIVATION].service.state !== "Off" && (
+							<InfoBox
+								title="Wheels Currents"
+								infos={[
+									{ name: "Wheels 1", value: 0 },
+									{ name: "Wheels 2", value: 0 },
+									{ name: "Wheels 3", value: 0 },
+									{ name: "Wheels 4", value: 0 },
+								]}
+								unit="mA"
+							/>
+						)}
+						{stateServices[SubSystems.DRILL].service.state !== "Off" && (
+							<InfoBox
+								title="Drill Module Position"
+								infos={[
+									{
+										name: "Encoder",
+										value: roverState["drill"]["motors"]["motor_module"][
+											"position"
+										],
+									},
+								]}
+							/>
+						)}
 					</div>
 					<div className={styles.previews}>
 						<Gamepad
