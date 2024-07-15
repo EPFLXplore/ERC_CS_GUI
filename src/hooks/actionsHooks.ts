@@ -37,7 +37,7 @@ function useActions(roverState: any, sentAction: boolean,
 			action: new Action(SubSystems.DRILL, 
 				!roverState[SubSystems.HANDLING_DEVICE] ? States.OFF : roverState[SubSystems.DRILL]["state"]["mode"],
 				"DrillTerrain",
-				"DrillTerrain"
+				"DrillCmd"
 			),
 			ros_goal: null
 		}
