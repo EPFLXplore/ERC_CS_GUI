@@ -179,14 +179,14 @@ class GamepadController {
 			buttons: this.gamepad
 				? this.remapButtons(
 						this.gamepad.buttons.map((button) => button.pressed),
-						xboxMacProfile
+						xboxProfile
 				  )
 				: [],
-			axes: this.gamepad ? this.remapAxes(this.gamepad.axes, xboxMacProfile) : [],
+			axes: this.gamepad ? this.remapAxes(this.gamepad.axes, xboxProfile) : [],
 			triggers: this.gamepad
 				? this.remapTriggers(
 						this.gamepad.buttons.map((button) => button.value),
-						xboxMacProfile
+						xboxProfile
 				  )
 				: [],
 		};
