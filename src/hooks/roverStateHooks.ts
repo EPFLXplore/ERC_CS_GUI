@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, startTransition } from "react";
 import * as ROSLIB from "roslib";
 
 function useRoverState(ros: ROSLIB.Ros | null) {
@@ -15,7 +15,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 			listener.subscribe((message) => {
 				//@ts-ignore
 				const data = JSON.parse(message.data);
-				setRoverState(data);
+				startTransition(() => setRoverState(data));
 			});
 		}
 	}, [ros]);
