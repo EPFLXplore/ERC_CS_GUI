@@ -335,7 +335,7 @@ export default () => {
 					<SystemMode
 						system="Handling Device"
 						currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
-						modes={["Auto", "Manual", "Off"]}
+						modes={["Auto", "Manual Direct", "Manual Inverse", "Off"]}
 						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode)}
 					/>
 					<SystemMode
