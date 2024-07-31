@@ -43,7 +43,7 @@ const RobotVisual = ({
 	wheelsSteeringAngle: number[];
 	pivotAngle: number;
 }) => {
-	var filepath = "/kerby_description/urdf/kerby_compiled.urdf";
+	var filepath = "/onyx_description/description/onyx.urdf"; // "/kerby_description/urdf/kerby_compiled.urdf"
 
 	// loading robot model from urdf
 	const ref = useRef();
@@ -66,9 +66,11 @@ const RobotVisual = ({
 	});
 
 	// Set joint angles
-	for (let i = 0; i < armJointAngles.length; i++) {
-		robot.joints[`joint${i + 1}`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
+	for (let i = 0; i < 6; i++) {
+		robot.joints[`hd_joint${i + 1}`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
 	}
+
+	// robot.joints[`finger1`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
 
 	// Set wheel steering angles
 	for (let i = 0; i < wheelsSteeringAngle.length; i++) {
@@ -78,8 +80,8 @@ const RobotVisual = ({
 	}
 
 	// Set pivot angle
-	robot.joints["pivot_droit"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
-	robot.joints["pivot_gauche"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
+	robot.joints["right_pivot"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
+	robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
 
 	return (
 		<group>

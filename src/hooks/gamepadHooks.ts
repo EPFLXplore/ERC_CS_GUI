@@ -126,14 +126,14 @@ const computeNavigationCommand = (gamepadState: GamepadControllerState) => {
 const computeArmCommand = (gamepadState: GamepadControllerState, submode: string) => {
 	const { axes, buttons, triggers } = gamepadState;
 
-	if(States.MANUAL_INVERSE) {
+	if(submode === States.MANUAL_INVERSE) {
 		return {
-			axes: [axes[2], axes[3], triggers[7] - triggers[6], axes[1], axes[0], triggers[5] - triggers[4], triggers[1] - triggers[2] + triggers[3] - triggers[0]],
+			axes: [2*axes[2], -2*axes[3], triggers[7] - triggers[6], -2*axes[1], 2*axes[0], triggers[5] - triggers[4], triggers[1] - triggers[2] + 0.1 * triggers[3] - 0.1 * triggers[0]],
 			buttons: [],
 		};
 	} else {
 		return {
-			axes: [axes[2], axes[3], buttons[5] ? - triggers[7] : triggers[7], buttons[4] ? - triggers[6] : triggers[6], axes[1], axes[0], triggers[1] - triggers[2] + triggers[3] - triggers[0]],
+			axes: [2*axes[2], -2*axes[3], buttons[5] ? - triggers[7] : triggers[7], buttons[4] ? - triggers[6] : triggers[6], -2*axes[1], 2*axes[0], triggers[1] - triggers[2] + 0.1 * triggers[3] - 0.1 * triggers[0]],
 			buttons: [],
 		};
 	}
