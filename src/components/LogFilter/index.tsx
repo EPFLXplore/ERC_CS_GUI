@@ -4,17 +4,17 @@ import styles from "./style.module.sass";
 
 export default ({
 	name,
+	active,
 	onActivate,
 	onDisactivate,
 	color,
 }: {
 	name: string;
+	active: boolean;
 	onActivate: () => void;
 	onDisactivate: () => void;
 	color: Omit<Themes, Themes.DARK | Themes.LIGHT>;
 }) => {
-	const [active, setActive] = useState(false);
-
 	const getColorType = (type: Omit<Themes, Themes.DARK | Themes.LIGHT>) => {
 		switch (type) {
 			case Themes.GREY:
@@ -34,7 +34,6 @@ export default ({
 		} else {
 			onActivate();
 		}
-		setActive(!active);
 	};
 
 	return (
