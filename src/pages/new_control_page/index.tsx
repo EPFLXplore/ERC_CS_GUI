@@ -487,7 +487,8 @@ export default () => {
 								stateServices[SubSystems.NAGIVATION].service.state ===
 									States.MANUAL ||
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									States.MANUAL
+									States.MANUAL_DIRECT || stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+									States.MANUAL_INVERSE
 							}
 							ros={ros}
 						/>
