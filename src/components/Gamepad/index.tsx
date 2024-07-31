@@ -3,16 +3,19 @@ import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
 import { Task } from "../../utils/tasks.type";
 import * as ROSLIB from "roslib";
+import States from "../../utils/States";
 
 const Gamepad = ({
 	selectorCallback,
 	mode,
+	submode,
 	visible = true,
 	ros,
 	changeCam,
 }: {
 	selectorCallback?: () => void;
 	mode: Task;
+	submode?: States.MANUAL | States.MANUAL_DIRECT | States.MANUAL_INVERSE;
 	visible?: boolean;
 	ros: ROSLIB.Ros;
 	changeCam?: (dir: number) => void;
@@ -20,6 +23,7 @@ const Gamepad = ({
 	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(
 		ros,
 		mode,
+		submode,
 		changeCam,
 		selectorCallback
 	);

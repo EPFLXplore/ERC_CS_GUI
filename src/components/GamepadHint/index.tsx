@@ -16,6 +16,7 @@ const GamepadHint = ({
 	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(
 		new ROSLIB.Ros({}),
 		mode,
+		undefined,
 		selectorCallback
 	);
 

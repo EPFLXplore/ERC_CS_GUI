@@ -472,6 +472,12 @@ export default () => {
 					<div className={styles.previews}>
 						<Gamepad
 							mode={manualMode}
+							submode={
+							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+								States.MANUAL_DIRECT ? States.MANUAL_DIRECT : 
+								stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_INVERSE ? 
+								States.MANUAL_INVERSE : States.MANUAL
+							}
 							selectorCallback={changeMode}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {

@@ -3,6 +3,7 @@ import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../utils/tasks.type";
 import * as ROSLIB from "roslib";
 import buttonSelect from "../utils/buttonSelect";
+import States from "../utils/States";
 
 export enum GamepadCommandState {
 	UI,
@@ -12,6 +13,7 @@ export enum GamepadCommandState {
 function useGamepad(
 	ros: ROSLIB.Ros,
 	mode: string,
+	submode?: string,
 	changeCam?: (dir: number) => void,
 	selectorCallback?: () => void
 ) {
@@ -83,8 +85,18 @@ function useGamepad(
 	const sendCommand = () => {
 		const gamepadState = gamepad?.getState();
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
-			const message = computeNavigationCommand(gamepadState);
-			publisher.publish(message);
+			if(mode === Task.NAVIGATION) {
+				const message = computeNavigationCommand(gamepadState);
+				publisher.publish(message);
+			} else {
+				if(submode) {
+					const message = computeArmCommand(gamepadState, submode);
+					publisher.publish(message);
+				} else {
+					const message = computeArmCommand(gamepadState, States.MANUAL_DIRECT);
+					publisher.publish(message);
+				}
+			}
 		}
 	};
 
@@ -111,13 +123,20 @@ const computeNavigationCommand = (gamepadState: GamepadControllerState) => {
 	};
 };
 
-const computeArmCommand = (gamepadState: GamepadControllerState) => {
+const computeArmCommand = (gamepadState: GamepadControllerState, submode: string) => {
 	const { axes, buttons, triggers } = gamepadState;
 
-	return {
-		axes: [axes[2], axes[3], triggers[7], triggers[6], axes[1], axes[0]],
-		buttons: [buttons[5], buttons[4], buttons[1], buttons[2], buttons[3], buttons[0]],
-	};
+	if(States.MANUAL_INVERSE) {
+		return {
+			axes: [axes[2], axes[3], triggers[7] - triggers[6], axes[1], axes[0], triggers[5] - triggers[4], triggers[1] - triggers[2] + triggers[3] - triggers[0]],
+			buttons: [],
+		};
+	} else {
+		return {
+			axes: [axes[2], axes[3], buttons[5] ? - triggers[7] : triggers[7], buttons[4] ? - triggers[6] : triggers[6], axes[1], axes[0], triggers[1] - triggers[2] + triggers[3] - triggers[0]],
+			buttons: [],
+		};
+	}
 };
 
 export default useGamepad;
