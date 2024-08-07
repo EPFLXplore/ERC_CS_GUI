@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../utils/tasks.type";
 import * as ROSLIB from "roslib";
-import buttonSelect from "../utils/buttonSelect";
 import States from "../utils/States";
 
 export enum GamepadCommandState {
@@ -62,7 +61,7 @@ function useGamepad(
 
 	useEffect(() => {
 		if (ros) {
-			console.log("Create topic gamepad")
+			console.log("Create topic gamepad");
 			setPublisher(
 				new ROSLIB.Topic<any>({
 					ros: ros,
@@ -85,11 +84,11 @@ function useGamepad(
 	const sendCommand = () => {
 		const gamepadState = gamepad?.getState();
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
-			if(mode === Task.NAVIGATION) {
+			if (mode === Task.NAVIGATION) {
 				const message = computeNavigationCommand(gamepadState);
 				publisher.publish(message);
 			} else {
-				if(submode) {
+				if (submode) {
 					const message = computeArmCommand(gamepadState, submode);
 					publisher.publish(message);
 				} else {
@@ -126,14 +125,30 @@ const computeNavigationCommand = (gamepadState: GamepadControllerState) => {
 const computeArmCommand = (gamepadState: GamepadControllerState, submode: string) => {
 	const { axes, buttons, triggers } = gamepadState;
 
-	if(submode === States.MANUAL_INVERSE) {
+	if (submode === States.MANUAL_INVERSE) {
 		return {
-			axes: [2*axes[2], -2*axes[3], triggers[7] - triggers[6], -2*axes[1], 2*axes[0], triggers[5] - triggers[4], triggers[1] - triggers[2] + 0.1 * triggers[3] - 0.1 * triggers[0]],
+			axes: [
+				2 * axes[2],
+				-2 * axes[3],
+				triggers[7] - triggers[6],
+				-2 * axes[1],
+				2 * axes[0],
+				triggers[5] - triggers[4],
+				triggers[1] - triggers[2] + 0.1 * triggers[3] - 0.1 * triggers[0],
+			],
 			buttons: [],
 		};
 	} else {
 		return {
-			axes: [2*axes[2], -2*axes[3], buttons[5] ? - triggers[7] : triggers[7], buttons[4] ? - triggers[6] : triggers[6], -2*axes[1], 2*axes[0], triggers[1] - triggers[2] + 0.1 * triggers[3] - 0.1 * triggers[0]],
+			axes: [
+				2 * axes[2],
+				-2 * axes[3],
+				buttons[5] ? -triggers[7] : triggers[7],
+				buttons[4] ? -triggers[6] : triggers[6],
+				-2 * axes[1],
+				2 * axes[0],
+				triggers[1] - triggers[2] + 0.1 * triggers[3] - 0.1 * triggers[0],
+			],
 			buttons: [],
 		};
 	}

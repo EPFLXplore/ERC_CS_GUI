@@ -109,6 +109,14 @@ const RoverCategory = ({
 								</div>
 							);
 						} else {
+							const value =
+								// @ts-ignore
+								typeof category[subdata] === "number"
+									? // @ts-ignore
+									  roundToTwoDecimals(category[subdata])
+									: // @ts-ignore
+									  category[subdata];
+
 							return (
 								<div className={styles.data} key={key + "|" + subdata}>
 									<p>
@@ -119,12 +127,7 @@ const RoverCategory = ({
 										/>
 										{subdata[0].toUpperCase() + subdata.substring(1) + ": "}
 									</p>
-									<p className={styles.value}>
-										{
-											// @ts-ignore
-											category[subdata]
-										}
-									</p>
+									<p className={styles.value}>{value}</p>
 								</div>
 							);
 						}

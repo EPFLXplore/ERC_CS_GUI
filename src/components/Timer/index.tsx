@@ -19,7 +19,6 @@ import {
 } from "@mui/icons-material";
 import { Size } from "../../utils/size.type";
 import useTimer from "../../hooks/timerHooks";
-import useSession from "../../hooks/sessionHooks";
 
 const Timer = ({
 	end,
@@ -37,7 +36,6 @@ const Timer = ({
 	size?: Omit<Size, Size.MEDIUM>;
 }) => {
 	const [minutes, seconds, active, changeTime, setActive] = useTimer(onFinished);
-	const [userCount, roverState, subsystemState, networkState] = useSession();
 	const [controls, setControls] = useState(false);
 
 	//SMALL SIZE TIMER
@@ -171,7 +169,7 @@ const Timer = ({
 				</div>
 			</div>
 			<div className={styles.connections}>
-				<p className={styles.connectionsText}>{userCount}</p>
+				<p className={styles.connectionsText}>{0}</p>
 				<div className={styles.connectionsIcon}>
 					{connection > 1 ? (
 						<PeopleAltRoundedIcon className={styles.icon} />
@@ -179,7 +177,7 @@ const Timer = ({
 						<PersonIcon className={styles.icon} />
 					)}
 				</div>
-				<p className={styles.connectionsText}>{networkState + " dBm"}</p>
+				<p className={styles.connectionsText}>{0 + " dBm"}</p>
 				<div className={styles.connectionsIcon}>
 					<CellWifiIcon className={styles.icon} />
 				</div>

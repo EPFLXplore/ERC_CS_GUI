@@ -1,39 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import styles from "./style.module.sass";
-import { Sensor } from "../../utils/sensor.type";
-
-interface TableProps {
-	values: number[];
-	sensorType: Sensor;
-}
 
 const NPKComponents = ["Phosphate", "Azote", "Potassium"];
 const ALLComponents = ["Temp", "Humidity", "Elec", "PH"];
 const MASSComponents = ["Drill", "Container"];
 
-export const Table = ({ values, sensorType }: TableProps) => {
+export const Table = ({}: {}) => {
 	let lines: { id: string; content: number }[];
-
-	if (sensorType === Sensor.NPK) {
-		lines = values.map((value, index) => ({
-			id: NPKComponents[index],
-			content: value,
-		}));
-	} else if (sensorType === Sensor.MASS) {
-		lines = values.map((value, index) => ({
-			id: MASSComponents[index],
-			content: value,
-		}));
-	} else {
-		lines = values.map((value, index) => ({
-			id: ALLComponents[index],
-			content: value,
-		}));
-	}
 
 	return (
 		<div>
-			<h2 className={styles.title}>{sensorType}</h2>
+			<h2 className={styles.title}>{"Title"}</h2>
 			<table className={styles.table}>
 				<thead>
 					<tr>
@@ -46,7 +23,7 @@ export const Table = ({ values, sensorType }: TableProps) => {
 					</tr>
 				</thead>
 				<tbody>
-					{lines.map((line) => (
+					{/* {lines.map((line) => (
 						<tr key={line.id}>
 							<td>
 								<text>{line.id}</text>
@@ -55,7 +32,7 @@ export const Table = ({ values, sensorType }: TableProps) => {
 								<text>{line.content}</text>
 							</td>
 						</tr>
-					))}
+					))} */}
 				</tbody>
 			</table>
 		</div>

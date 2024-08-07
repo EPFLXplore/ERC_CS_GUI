@@ -1,6 +1,8 @@
 import React from "react";
 import styles from "./style.module.sass";
-import { Goal } from "../../hooks/navigationHooks";
+import { Point } from "../../utils/maths";
+
+export type Goal = Point & { id: string };
 
 type DispatchType =
 	| React.Dispatch<React.SetStateAction<Goal[]>>
@@ -17,7 +19,7 @@ function GoalInputBox({
 	children: React.ReactNode[];
 	name?: string;
 }) {
-	if(!name) name = "";
+	if (!name) name = "";
 
 	return (
 		<div className={styles.container}>
@@ -146,9 +148,7 @@ function GoalInputBox({
 					</>
 				)}
 			</div>
-			<div className={styles.buttonGoalContainer}>
-				{children}
-				</div>
+			<div className={styles.buttonGoalContainer}>{children}</div>
 		</div>
 	);
 }

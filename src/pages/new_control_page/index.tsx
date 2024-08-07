@@ -3,7 +3,7 @@ import { ReactElement, useEffect, useState, SyntheticEvent } from "react";
 import styles from "./style.module.sass";
 import { Size } from "../../utils/size.type";
 import Timer from "../../components/Timer";
-import ExpandButton from "../../components/ExpandButton";
+import ExpandButton from "../../components/Controls/ExpandButton";
 import Gamepad from "../../components/Gamepad";
 import QuickAction from "../../components/QuickAction";
 import { Task } from "../../utils/tasks.type";
@@ -12,7 +12,7 @@ import NavIcon from "../../assets/images/icons/nav_logo.png";
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
 import Drill from "../../assets/images/icons/drill.png";
-import SystemMode from "../../components/SystemMode";
+import SystemMode from "../../components/Controls/SystemMode";
 import Simulation from "../../components/Simulation";
 import RoverData from "../../components/RoverData";
 
@@ -27,9 +27,9 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNewCamera from "../../hooks/newCameraHooks";
 import useService from "../../hooks/serviceHooks";
 import useActions, { ActionType } from "../../hooks/actionsHooks";
-import NavigationGoalModal from "../../components/NavigationGoalModal";
-import ArmGoalModal from "../../components/ArmGoalModal";
-import DrillGoalModal from "../../components/DrillGoalModal";
+import NavigationGoalModal from "../../components/ActionModals/NavigationGoalModal";
+import ArmGoalModal from "../../components/ActionModals/ArmGoalModal";
+import DrillGoalModal from "../../components/ActionModals/DrillGoalModal";
 
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
@@ -473,10 +473,13 @@ export default () => {
 						<Gamepad
 							mode={manualMode}
 							submode={
-							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_DIRECT ? States.MANUAL_DIRECT : 
-								stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_INVERSE ? 
-								States.MANUAL_INVERSE : States.MANUAL
+								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+								States.MANUAL_DIRECT
+									? States.MANUAL_DIRECT
+									: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+									  States.MANUAL_INVERSE
+									? States.MANUAL_INVERSE
+									: States.MANUAL
 							}
 							selectorCallback={changeMode}
 							changeCam={(dir) => {
@@ -493,7 +496,8 @@ export default () => {
 								stateServices[SubSystems.NAGIVATION].service.state ===
 									States.MANUAL ||
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									States.MANUAL_DIRECT || stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+									States.MANUAL_DIRECT ||
+								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 									States.MANUAL_INVERSE
 							}
 							ros={ros}
