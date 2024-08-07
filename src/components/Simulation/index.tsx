@@ -50,7 +50,7 @@ function Simulation({
 	]);
 
 	return (
-		<Suspense fallback={<></>}>
+		<Suspense fallback={null}>
 			<Canvas
 				colorManagement
 				shadowMap
@@ -75,42 +75,42 @@ function Simulation({
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					pivotAngle={pivotAngle}
 				/>
-				<Terrain />
+				<Terrain setPoint={setPoint} />
 				<Line points={path.map(mapPointToCoordinates)} color={0xff4345} lineWidth={2} />
 			</Canvas>
 		</Suspense>
 	);
 }
 
-const Terrain = ({
-	setPoint
-}: {
-	setPoint: ({
-		x: number,
-		y: number
-	}) => void
-}) => {
-	const texture = useTexture(MarsYard)
+const Terrain = ({ setPoint }: { setPoint: ({ x: number, y: number }) => void }) => {
+	const texture = useTexture(MarsYard);
 
-	return <Plane
-	args={[50, 50]}
-	rotation={[-Math.PI / 2, 0, Math.PI / 2]}
-	position={[-22, -0.47, -3.2]}
-	receiveShadow
-	traverseVisible={true}
-	onClick={(e) => {
-		if (e.delta < 2) startTransition(() => {setPoint({ x: e.point.x, y: e.point.z })});
-	}}
-	onPointerUp={(e) => {
-		// check right click
-		if (e.button === 2 && e.delta < 2) {
-			startTransition(() => {setPoint({ x: -10, y: -10 })});
-		}
-	}}
->
-	<meshStandardMaterial map={texture} opacity={0.9} side={2} />
-</Plane>
-}
+	return (
+		<Plane
+			args={[50, 50]}
+			rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+			position={[-22, -0.47, -3.2]}
+			receiveShadow
+			traverseVisible={true}
+			onClick={(e) => {
+				if (e.delta < 2)
+					startTransition(() => {
+						setPoint({ x: e.point.x, y: e.point.z });
+					});
+			}}
+			onPointerUp={(e) => {
+				// check right click
+				if (e.button === 2 && e.delta < 2) {
+					startTransition(() => {
+						setPoint({ x: -10, y: -10 });
+					});
+				}
+			}}
+		>
+			<meshStandardMaterial map={texture} opacity={0.9} side={2} />
+		</Plane>
+	);
+};
 
 const mapPointToCoordinates = (point: { x: number; y: number }) => {
 	return [point.x, -0.2, point.y];

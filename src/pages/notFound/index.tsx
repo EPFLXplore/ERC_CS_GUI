@@ -1,11 +1,10 @@
-import React from "react";
 import styles from "./styles.module.sass";
 import Background from "../../components/Background";
 import Logo from "../../components/Logo";
 import { useNavigate } from "react-router-dom";
 import { Size } from "../../utils/size.type";
 
-export default () => {
+const NotFound = () => {
 	const navigate = useNavigate();
 
 	return (
@@ -21,3 +20,5 @@ export default () => {
 		</div>
 	);
 };
+
+export default NotFound;

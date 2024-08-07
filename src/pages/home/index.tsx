@@ -9,7 +9,6 @@ import { Alert, Snackbar } from "@mui/material";
 
 export default () => {
 	const navigate = useNavigate();
-	const [connected, setConnected] = useState(false);
 
 	// @ts-ignore
 	const [snackbar, setSnackbar] = useState<State>({
@@ -33,38 +32,7 @@ export default () => {
 		setSnackbar({ ...snackbar, open: false });
 	};
 
-	const [ros] = useRosBridge(showSnackbar);
-
-	// Check if the rover is connected
-	React.useEffect(() => {
-		if (ros) {
-			let num_checks = 0;
-			const check = setInterval(() => {
-				ros.getNodes(
-					(nodes) => {
-						if (nodes.includes("/ROVER")) {
-							setConnected(true);
-							clearInterval(check);
-						} else {
-							num_checks++;
-
-							setConnected(false);
-
-							if (num_checks % 20 === 0) {
-								// Show a snackbar
-								setConnected(false);
-							}
-						}
-					},
-					(error) => {
-						// Show a snackbar
-						console.error(error);
-						clearInterval(check);
-					}
-				);
-			}, 1000);
-		}
-	}, [ros]);
+	const [ros, connected] = useRosBridge(showSnackbar);
 
 	return (
 		<div className="page">

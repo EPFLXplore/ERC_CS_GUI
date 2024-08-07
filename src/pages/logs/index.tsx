@@ -1,4 +1,4 @@
-import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import BackButton from "../../components/Controls/BackButton";
 import Background from "../../components/Background";
 import styles from "./style.module.sass";
@@ -8,7 +8,7 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useRoverLogs, { LogLevel } from "../../hooks/roverLogHooks";
 import { Tooltip, tooltipClasses } from "@mui/material";
 
-export default () => {
+const Logs = () => {
 	const bottomRef = useRef<HTMLDivElement | null>(null);
 
 	// Show a snackbar with a message and a severity
@@ -121,3 +121,5 @@ export default () => {
 		</div>
 	);
 };
+
+export default Logs;

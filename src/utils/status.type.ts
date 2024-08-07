@@ -1,7 +1,7 @@
 export enum Status {
-    NOT_STARTED,
-    IDLE,
-    RUNNING,
-    WARNING,
-    ERROR,
+	NOT_STARTED = "not_started",
+	IDLE = "idle",
+	RUNNING = "running",
+	WARNING = "warning",
+	ERROR = "error",
 }

@@ -1,25 +1,12 @@
 import { useState, useEffect } from "react";
 
 function useTimer(onFinished?: () => void) {
-	const [socket, setSocket] = useState<WebSocket | null>(null);
-	const [minutes, setMinutes] = useState(0); // minutes left
+	const [minutes, setMinutes] = useState(60); // minutes left
 	const [seconds, setSeconds] = useState(0); // seconds left
 	const [finished, setFinished] = useState(false);
-	const [active, _setActive] = useState(true);
+	const [active, _setActive] = useState(false);
+	const [inputFocused, setInputFocused] = useState(false);
 	let interval: NodeJS.Timer;
-
-	// Set up websocket
-	useEffect(() => {
-		let timerSocket = new WebSocket("ws://" + window.location.host + "/ws/csApp/timer/");
-		setSocket(timerSocket);
-
-		timerSocket.onmessage = (e) => {
-			const { active, minutes, seconds } = JSON.parse(e.data);
-			console.log(e)
-			_setActive(active);
-			_changeTime(minutes, seconds);
-		};
-	}, []);
 
 	// Set up timer time
 	const getTime = (changeMinutes?: number, changeSeconds?: number) => {
@@ -36,7 +23,7 @@ function useTimer(onFinished?: () => void) {
 
 		if (active) time -= 1000;
 
-		console.log("Computed time: " + Math.floor((time / 1000) % 60))
+		console.log("Computed time: " + Math.floor((time / 1000) % 60));
 
 		setMinutes(Math.floor((time / 1000 / 60) % 100));
 		setSeconds(Math.floor((time / 1000) % 60));
@@ -68,33 +55,13 @@ function useTimer(onFinished?: () => void) {
 
 	// Public function to change time through websocket if available
 	const changeTime = (minutes: number, seconds: number) => {
-		if (socket?.readyState === WebSocket.OPEN) {
-			socket?.send(
-				JSON.stringify({
-					minutes: minutes,
-					seconds: seconds,
-					active: active,
-				})
-			);
-		} else {
-			_changeTime(minutes, seconds);
-		}
+		_changeTime(minutes, seconds);
 	};
 
 	// Public function to change active through websocket if available
 	const setActive = (active: boolean) => {
-		console.log("Active: " + seconds)
-		if (socket?.readyState === WebSocket.OPEN) {
-			socket?.send(
-				JSON.stringify({
-					minutes: minutes,
-					seconds: seconds,
-					active: active,
-				})
-			);
-		} else {
-			_setActive(active);
-		}
+		console.log("Active: " + seconds);
+		_setActive(active);
 	};
 
 	// Call onFinished if timer is finished
@@ -104,7 +71,15 @@ function useTimer(onFinished?: () => void) {
 		}
 	}, [finished, onFinished]);
 
-	return [minutes, seconds, active, changeTime, setActive] as const;
+	return [
+		minutes,
+		seconds,
+		active,
+		inputFocused,
+		changeTime,
+		setActive,
+		setInputFocused,
+	] as const;
 }
 
 export default useTimer;

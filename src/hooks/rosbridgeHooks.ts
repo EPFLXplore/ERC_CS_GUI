@@ -4,6 +4,7 @@ import * as ROSLIB from "roslib";
 
 function useRosBridge(snackBar: (sev: string, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
+	const [connected, setConnected] = useState(false);
 
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
@@ -32,7 +33,38 @@ function useRosBridge(snackBar: (sev: string, mes: string) => void) {
 		};
 	}, []);
 
-	return [ros] as const;
+	// Check if the rover is connected
+	React.useEffect(() => {
+		if (ros) {
+			let num_checks = 0;
+			const check = setInterval(() => {
+				ros.getNodes(
+					(nodes) => {
+						if (nodes.includes("/ROVER")) {
+							setConnected(true);
+							clearInterval(check);
+						} else {
+							num_checks++;
+
+							setConnected(false);
+
+							if (num_checks % 20 === 0) {
+								// Show a snackbar
+								setConnected(false);
+							}
+						}
+					},
+					(error) => {
+						// Show a snackbar
+						console.error(error);
+						clearInterval(check);
+					}
+				);
+			}, 1000);
+		}
+	}, [ros]);
+
+	return [ros, connected] as const;
 }
 
 export default useRosBridge;

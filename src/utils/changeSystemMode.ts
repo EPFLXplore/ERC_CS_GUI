@@ -13,32 +13,32 @@ const requestChangeMode = (
 ) => {
 	let request;
 
-	if (system == SubSystems.NAGIVATION) {
+	if (system === SubSystems.NAGIVATION) {
 		request = {
 			system: 0,
-			mode: mode == States.OFF ? 0 : mode == States.MANUAL ? 1 : 2,
+			mode: mode === States.OFF ? 0 : mode === States.MANUAL ? 1 : 2,
 		};
-	} else if (system == SubSystems.HANDLING_DEVICE) {
+	} else if (system === SubSystems.HANDLING_DEVICE) {
 		request = {
 			system: 1,
 			mode:
-				mode == States.OFF
+				mode === States.OFF
 					? 0
-					: mode == States.MANUAL_DIRECT
+					: mode === States.MANUAL_DIRECT
 					? 1
 					: mode === States.MANUAL_INVERSE
 					? 2
 					: 3,
 		};
-	} else if (system == SubSystems.CAMERA) {
+	} else if (system === SubSystems.CAMERA) {
 		request = {
 			system: 2,
-			mode: mode == States.OFF ? 0 : 1,
+			mode: mode === States.OFF ? 0 : 1,
 		};
-	} else if (system == SubSystems.DRILL) {
+	} else if (system === SubSystems.DRILL) {
 		request = {
 			system: 3,
-			mode: mode == States.OFF ? 0 : 1,
+			mode: mode === States.OFF ? 0 : 1,
 		};
 	}
 
@@ -65,7 +65,7 @@ const successfullChange = (
 	ser: Service,
 	snackBar: (severity: string, message: string) => void
 ) => {
-	if (result["error_type"] == 0) {
+	if (result["error_type"] === 0) {
 		// no error has occured
 		ser.state = JSON.parse(result["systems_state"])[ser.name];
 		snackBar("success", "Successfully changed service " + ser.name + " in " + ser.state);

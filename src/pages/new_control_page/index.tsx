@@ -7,6 +7,7 @@ import ExpandButton from "../../components/Controls/ExpandButton";
 import Gamepad from "../../components/Gamepad";
 import QuickAction from "../../components/QuickAction";
 import { Task } from "../../utils/tasks.type";
+import { useNavigate } from "react-router-dom";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
@@ -37,6 +38,8 @@ import SubSystems from "../../utils/SubSystems";
 import States from "../../utils/States";
 import JointCurrents from "../../components/JointCurrents";
 import InfoBox from "../../components/InfoBox";
+import { Dvr, Settings } from "@mui/icons-material";
+import { Status } from "../../utils/status.type";
 
 export default () => {
 	const CAMERA_CONFIGS = [
@@ -73,8 +76,9 @@ export default () => {
 
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
-	const [ros] = useRosBridge(showSnackbar);
+	const [ros, active] = useRosBridge(showSnackbar);
 	const [roverState] = useRoverState(ros);
+	const navigate = useNavigate();
 
 	const [sentService, setSendService] = useState(false);
 	const [stateServices, setStateServices] = useService(
@@ -305,7 +309,7 @@ export default () => {
 		const handleNext = (event: { key: string }) => {
 			if (event.key === "ArrowRight") {
 				console.log("Next camera");
-				setVideoId((old) => {
+				setCurrentVideo((old) => {
 					if (old === MAX_CAMERAS - 1) {
 						return 0;
 					} else {
@@ -351,7 +355,24 @@ export default () => {
 						onSelect={(mode) => startService(SubSystems.DRILL, mode)}
 					/>
 				</div>
-				<Timer end={Date.now() + 10000} size={Size.SMALL} />
+				<Dvr
+					sx={{
+						color: "white",
+						fontSize: 30,
+						marginX: 3,
+						cursor: "pointer",
+					}}
+					onClick={() => navigate("/logs")}
+				/>
+				<Settings
+					sx={{
+						color: "white",
+						fontSize: 30,
+						marginX: 3,
+						cursor: "pointer",
+					}}
+				/>
+				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} />
 			</div>
 			<div className={styles.control}>
 				<div
