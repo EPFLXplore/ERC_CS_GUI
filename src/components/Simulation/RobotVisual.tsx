@@ -1,6 +1,6 @@
 // @ts-nocheck
 import * as THREE from "three";
-import { useRef, memo } from "react";
+import { useRef, memo, startTransition } from "react";
 import { useLoader } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -26,9 +26,9 @@ Z
    .-----X
 
 ROS URDf
-       Z
-       |   X
-       | ／
+	   Z
+	   |   X
+	   | ／
  Y-----.
 
 */
@@ -65,23 +65,25 @@ const RobotVisual = ({
 		};
 	});
 
-	// Set joint angles
-	for (let i = 0; i < 6; i++) {
-		robot.joints[`hd_joint${i + 1}`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
-	}
+	startTransition(() => {
+		// Set joint angles
+		for (let i = 0; i < 6; i++) {
+			robot.joints[`hd_joint${i + 1}`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
+		}
 
-	// robot.joints[`finger1`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
+		// robot.joints[`finger1`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
 
-	// Set wheel steering angles
-	for (let i = 0; i < wheelsSteeringAngle.length; i++) {
-		robot.joints[`steering${i + 1}`].setJointValue(
-			THREE.MathUtils.degToRad(wheelsSteeringAngle[i])
-		);
-	}
+		// Set wheel steering angles
+		for (let i = 0; i < wheelsSteeringAngle.length; i++) {
+			robot.joints[`steering${i + 1}`].setJointValue(
+				THREE.MathUtils.degToRad(wheelsSteeringAngle[i])
+			);
+		}
 
-	// Set pivot angle
-	robot.joints["right_pivot"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
-	robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
+		// Set pivot angle
+		robot.joints["right_pivot"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
+		robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
+	})
 
 	return (
 		<group>
