@@ -2,6 +2,7 @@ import * as ROSLIB from "roslib";
 import Action from "./Action";
 import States from "./States";
 import { ActionType } from "../hooks/actionsHooks";
+import { AlertColor } from "@mui/material";
 
 const actionGoal = (
 	ros: ROSLIB.Ros | null,
@@ -10,7 +11,7 @@ const actionGoal = (
 	action: Action,
 	sentAction: (b: boolean) => void,
 	updateActions: (states: any) => void,
-	snackBar: (sev: string, mes: string) => void,
+	snackBar: (sev: AlertColor, mes: string) => void,
 	actionArgs: Object
 ) => {
 	if (!start) {

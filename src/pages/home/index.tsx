@@ -1,37 +1,15 @@
-import React, { SyntheticEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Background from "../../components/Background";
-import Logo from "../../components/Logo";
+import Background from "../../components/ui/Background";
+import Logo from "../../components/ui/Logo";
 import { Size } from "../../utils/size.type";
 import styles from "./style.module.sass";
 import useRosBridge from "../../hooks/rosbridgeHooks";
-import { Alert, Snackbar } from "@mui/material";
+import useAlert from "../../hooks/alertHooks";
+import AlertSnackbar from "../../components/ui/Snackbar";
 
 export default () => {
 	const navigate = useNavigate();
-
-	// @ts-ignore
-	const [snackbar, setSnackbar] = useState<State>({
-		open: false,
-		severity: "error",
-		message: "This is a snackbar",
-	});
-	const { severity, message, open } = snackbar;
-
-	// Show a snackbar with a message and a severity
-	// Severity can be "error", "warning", "info" or "success"
-	const showSnackbar = (severity: string, message: string) => {
-		setSnackbar({ severity, message, open: true });
-	};
-
-	const handleClose = (event?: SyntheticEvent | Event, reason?: string) => {
-		if (reason === "clickaway") {
-			return;
-		}
-
-		setSnackbar({ ...snackbar, open: false });
-	};
-
+	const [snackbar, showSnackbar] = useAlert();
 	const [ros, connected] = useRosBridge(showSnackbar);
 
 	return (
@@ -83,22 +61,7 @@ export default () => {
 					<div className={styles.text}>Rover {connected ? "Connected" : "Off"}</div>
 				</div>
 			</div>
-			<Snackbar
-				open={open}
-				autoHideDuration={4000}
-				onClose={handleClose}
-				anchorOrigin={{ vertical: "top", horizontal: "center" }}
-				sx={{ position: "absolute" }}
-			>
-				<Alert
-					onClose={handleClose}
-					severity={severity}
-					variant="filled"
-					sx={{ width: "100%", whiteSpace: "pre-line", borderRadius: 3 }}
-				>
-					{message}
-				</Alert>
-			</Snackbar>
+			<AlertSnackbar alertMessage={snackbar} />
 		</div>
 	);
 };

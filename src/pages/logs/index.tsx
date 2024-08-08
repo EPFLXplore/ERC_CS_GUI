@@ -1,20 +1,18 @@
 import { useEffect, useRef } from "react";
-import BackButton from "../../components/Controls/BackButton";
-import Background from "../../components/Background";
+import BackButton from "../../components/controls/BackButton";
+import Background from "../../components/ui/Background";
 import styles from "./style.module.sass";
-import LogFilter from "../../components/Controls/LogFilter";
+import LogFilter from "../../components/controls/LogFilter";
 import { Themes } from "../../utils/themes";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useRoverLogs, { LogLevel } from "../../hooks/roverLogHooks";
 import { Tooltip, tooltipClasses } from "@mui/material";
+import useAlert from "../../hooks/alertHooks";
+import AlertSnackbar from "../../components/ui/Snackbar";
 
 const Logs = () => {
 	const bottomRef = useRef<HTMLDivElement | null>(null);
-
-	// Show a snackbar with a message and a severity
-	// Severity can be "error", "warning", "info" or "success"
-	const showSnackbar = (severity: string, message: string) => {};
-
+	const [snackbar, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
 	const [roverlogs, filters, changeFilter] = useRoverLogs(ros);
 
@@ -42,6 +40,7 @@ const Logs = () => {
 			<BackButton />
 			<div className={styles.TabContainer}>
 				<div className={styles.TabContent}>
+					<AlertSnackbar alertMessage={snackbar} />
 					<div className={styles.LogFilters}>
 						<LogFilter
 							name="Info"

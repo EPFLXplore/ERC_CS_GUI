@@ -1,199 +1,82 @@
-// @ts-nocheck
-import { ReactElement, useEffect, useState, SyntheticEvent } from "react";
 import styles from "./style.module.sass";
-import { Size } from "../../utils/size.type";
-import Timer from "../../components/Timer";
-import ExpandButton from "../../components/Controls/ExpandButton";
-import Gamepad from "../../components/Gamepad";
-import QuickAction from "../../components/QuickAction";
-import { Task } from "../../utils/tasks.type";
+import Timer from "../../components/ui/Timer";
+import ExpandButton from "../../components/controls/ExpandButton";
+import Gamepad from "../../components/controls/Gamepad";
+import QuickAction from "../../components/controls/QuickAction";
 import { useNavigate } from "react-router-dom";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
 import Drill from "../../assets/images/icons/drill.png";
-import SystemMode from "../../components/Controls/SystemMode";
-import Simulation from "../../components/Simulation";
-import RoverData from "../../components/RoverData";
-
-import requestChangeMode from "../../utils/changeSystemMode";
+import SystemMode from "../../components/controls/SystemMode";
+import Simulation from "../../components/data/Simulation";
+import RoverData from "../../components/data/RoverData";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
-import useRoverState from "../../hooks/roverStateHooks";
-import CameraView from "../../components/CameraView";
-import cancelAllActions from "../../utils/cancelAllActions";
-import actionGoal from "../../utils/actionGoal";
+import CameraView from "../../components/data/CameraView";
 import useRosBridge from "../../hooks/rosbridgeHooks";
-import useNewCamera from "../../hooks/newCameraHooks";
-import useService from "../../hooks/serviceHooks";
-import useActions, { ActionType } from "../../hooks/actionsHooks";
-import NavigationGoalModal from "../../components/ActionModals/NavigationGoalModal";
-import ArmGoalModal from "../../components/ActionModals/ArmGoalModal";
-import DrillGoalModal from "../../components/ActionModals/DrillGoalModal";
+import NavigationGoalModal from "../../components/modals/NavigationGoalModal";
+import ArmGoalModal from "../../components/modals/ArmGoalModal";
+import DrillGoalModal from "../../components/modals/DrillGoalModal";
 
-import Snackbar from "@mui/material/Snackbar";
-import Alert from "@mui/material/Alert";
 import SubSystems from "../../utils/SubSystems";
 import States from "../../utils/States";
-import JointCurrents from "../../components/JointCurrents";
-import InfoBox from "../../components/InfoBox";
+import InfoBox from "../../components/data/InfoBox";
 import { Dvr, Settings } from "@mui/icons-material";
 import { Status } from "../../utils/status.type";
+import {
+	getJointsPositions,
+	getPivotAngle,
+	getSteeringAngles,
+	getWheelsSpeed,
+} from "../../utils/roverStateParser";
+import AlertSnackbar from "../../components/ui/Snackbar";
+import useAlert from "../../hooks/alertHooks";
+import useRoverControls from "../../hooks/roverControlsHooks";
+import { AlertColor } from "@mui/material";
+import { ReactElement } from "react";
+
+const CAMERA_CONFIGS = [
+	["camera_0"],
+	["camera_1"],
+	["camera_2"],
+	["camera_3"],
+	["camera_0", "camera_1"],
+];
+const MAX_CAMERAS = 5;
 
 export default () => {
-	const CAMERA_CONFIGS = [
-		["camera_0"],
-		["camera_1"],
-		["camera_2"],
-		["camera_3"],
-		["camera_0", "camera_1"],
-	];
-	const MAX_CAMERAS = 5;
-	const NBR_ACTIONS = 3;
-	const NBR_SERVICES = 4;
-
-	const [snackbar, setSnackbar] = useState<State>({
-		open: false,
-		severity: "error",
-		message: "This is a snackbar",
-	});
-	const { severity, message, open } = snackbar;
-
-	// Show a snackbar with a message and a severity
-	// Severity can be "error", "warning", "info" or "success"
-	const showSnackbar = (severity: string, message: string) => {
-		setSnackbar({ severity, message, open: true });
-	};
-
-	const handleClose = (event?: SyntheticEvent | Event, reason?: string) => {
-		if (reason === "clickaway") {
-			return;
-		}
-
-		setSnackbar({ ...snackbar, open: false });
-	};
-
-	const [dataOpen, setDataOpen] = useState(false);
-	const [display, setDisplay] = useState("camera");
-	const [ros, active] = useRosBridge(showSnackbar);
-	const [roverState] = useRoverState(ros);
 	const navigate = useNavigate();
-
-	const [sentService, setSendService] = useState(false);
-	const [stateServices, setStateServices] = useService(
+	const [snackbar, showSnackbar] = useAlert();
+	const [ros, active] = useRosBridge(showSnackbar);
+	const [
 		roverState,
-		NBR_SERVICES,
-		sentService,
-		(sev, mess) => showSnackbar(sev, mess)
-	);
+		images,
+		rotateCams,
+		currentVideo,
+		setCurrentVideo,
+		dataOpen,
+		setDataOpen,
+		display,
+		setDisplay,
+		stateServices,
+		stateActions,
+		setStateActions,
+		systemsModalOpen,
+		setSystemsModalOpen,
+		manualMode,
+		modal,
+		setModal,
+		dataFocus,
+		cancelAction,
+		launchAction,
+		startService,
+		changeMode,
+		triggerDataFocus,
+	] = useRoverControls(ros, showSnackbar);
 
-	const [sentAction, setSendAction] = useState(false);
-	const [stateActions, setStateActions] = useActions(roverState, sentAction, (sev, mes) =>
-		showSnackbar(sev, mes)
-	);
-
-	const [systemsModalOpen, setSystemsModalOpen] = useState({
-		[SubSystems.NAGIVATION]: false,
-		[SubSystems.HANDLING_DEVICE]: false,
-		[SubSystems.DRILL]: false,
-		["cancel"]: false,
-	});
-	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
-
-	const [modal, setModal] = useState<ReactElement | null>(<></>);
-	const [images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros);
-
-	const [dataFocus, setDataFocus] = useState<string[]>([]);
-
-	const cancelAction = (system: string) => {
-		setStateActions((old) => {
-			let newStates = { ...old };
-
-			if (newStates[system].action.state === States.OFF) {
-				showSnackbar("error", "No action is running for the system " + system);
-				return newStates;
-			}
-
-			actionGoal(
-				ros,
-				system,
-				false,
-				newStates[system].action,
-				(b) => setSendAction(b),
-				(actions: ActionType) => setStateActions(actions)
-			);
-
-			return newStates;
-		});
-	};
-
-	const launchAction = (system: string, actionArgs: Object) => {
-		console.log(actionArgs);
-		setStateActions((old) => {
-			let newStates = { ...old };
-
-			if (stateServices[system].service.state === States.OFF) {
-				// the system is not ON
-				showSnackbar(
-					"error",
-					"The system " +
-						stateServices[system].service.name +
-						" needs to be on to start an action"
-				);
-				return newStates;
-			}
-
-			if (newStates[system].action.state !== States.OFF) {
-				showSnackbar("error", "An action is already running for the system " + system);
-				return newStates;
-			}
-			actionGoal(
-				ros,
-				system,
-				true,
-				newStates[system].action,
-				(b) => setSendAction(b),
-				(actions: ActionType) => setStateActions(actions),
-				showSnackbar,
-				actionArgs
-			);
-			return newStates;
-		});
-	};
-
-	const startService = async (system: string, mode: string) => {
-		for (const key in stateServices) {
-			if (stateServices.hasOwnProperty(key)) {
-				if (key !== system) {
-					let service = stateServices[key];
-					if (!stateServices[system].service.canChange(service.service, mode)) {
-						showSnackbar(
-							"error",
-							"To put " +
-								stateServices[system].service.name +
-								" in mode " +
-								mode +
-								", you need to change the service " +
-								service.service.name
-						);
-						return;
-					}
-				}
-			}
-		}
-
-		requestChangeMode(
-			ros,
-			stateServices[system].service.name,
-			mode,
-			stateServices[system].service,
-			(b) => setSendService(b),
-			(sev, mes) => showSnackbar(sev, mes)
-		);
-	};
-
-	const displaySystemModal = (system: string, cancel: boolean) => {
+	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
 		setSystemsModalOpen((old) => {
 			let newModalOpen = { ...old };
 
@@ -204,11 +87,13 @@ export default () => {
 						setStateActions((old) => {
 							let newStates = { ...old };
 							if (newStates[key].ros_goal !== null) {
+								// @ts-ignore
 								newStates[key].ros_goal?.cancel();
 								newStates[key].action.state = States.OFF;
 							}
 							return newStates;
 						});
+						// @ts-ignore
 						newModalOpen[key] = false;
 					}
 
@@ -218,112 +103,23 @@ export default () => {
 
 				return newModalOpen;
 			} else {
+				// @ts-ignore
 				newModalOpen[system] = true;
-				setModal(selectModal(system));
+				setModal(
+					selectModal(
+						system,
+						setModal,
+						setSystemsModalOpen,
+						launchAction,
+						cancelAction,
+						showSnackbar
+					)
+				);
 
 				return newModalOpen;
 			}
 		});
 	};
-
-	const selectModal = (system: string) => {
-		switch (system) {
-			case SubSystems.NAGIVATION:
-				return (
-					<NavigationGoalModal
-						onClose={() => {
-							setModal(<></>);
-							setSystemsModalOpen((old) => {
-								const newModalOpen = { ...old };
-								newModalOpen[SubSystems.NAGIVATION] = false;
-								return newModalOpen;
-							});
-						}}
-						onSetGoal={launchAction}
-						onCancelGoal={cancelAction}
-					/>
-				);
-			case SubSystems.HANDLING_DEVICE:
-				return (
-					<ArmGoalModal
-						onClose={() => {
-							setModal(<></>);
-							setSystemsModalOpen((old) => {
-								const newModalOpen = { ...old };
-								newModalOpen[SubSystems.HANDLING_DEVICE] = false;
-								return newModalOpen;
-							});
-						}}
-						onSetGoal={launchAction}
-						onCancelGoal={cancelAction}
-						snackBar={showSnackbar}
-					/>
-				);
-			case SubSystems.DRILL:
-				return (
-					<DrillGoalModal
-						onClose={() => {
-							setModal(<></>);
-							setSystemsModalOpen((old) => {
-								const newModalOpen = { ...old };
-								newModalOpen[SubSystems.DRILL] = false;
-								return newModalOpen;
-							});
-						}}
-						onSetGoal={launchAction}
-						onCancelGoal={cancelAction}
-						snackBar={showSnackbar}
-					/>
-				);
-			default:
-				return <></>;
-		}
-	};
-
-	const changeMode = () => {
-		setManualMode((old) => {
-			if (old === Task.NAVIGATION) {
-				return Task.HANDLING_DEVICE;
-			} else {
-				return Task.NAVIGATION;
-			}
-		});
-	};
-
-	const triggerDataFocus = (data: string) => {
-		setDataFocus((old) => {
-			const newFocus = [...old];
-			const index = old.indexOf(data);
-
-			if (index === -1) {
-				newFocus.push(data);
-			} else {
-				newFocus.splice(index, 1);
-			}
-
-			return newFocus;
-		});
-	};
-
-	useEffect(() => {
-		const handleNext = (event: { key: string }) => {
-			if (event.key === "ArrowRight") {
-				console.log("Next camera");
-				setCurrentVideo((old) => {
-					if (old === MAX_CAMERAS - 1) {
-						return 0;
-					} else {
-						return old + 1;
-					}
-				});
-			}
-		};
-		window.addEventListener("keydown", handleNext);
-
-		return () => {
-			window.removeEventListener("keydown", handleNext);
-		};
-	}, []);
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -367,9 +163,10 @@ export default () => {
 				<Settings
 					sx={{
 						color: "white",
+						opacity: 0.5,
 						fontSize: 30,
 						marginX: 3,
-						cursor: "pointer",
+						// cursor: "pointer",
 					}}
 				/>
 				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} />
@@ -402,7 +199,8 @@ export default () => {
 							expanded={dataOpen}
 						/>
 					</div>
-					{display === "camera" ? (
+					{display === "camera" &&
+					stateServices[SubSystems.CAMERA].service.state !== "Off" ? (
 						<CameraView
 							images={images}
 							rotate={rotateCams}
@@ -482,6 +280,7 @@ export default () => {
 								infos={[
 									{
 										name: "Encoder",
+										// @ts-ignore
 										value: roverState["drill"]["motors"]["motor_module"][
 											"position"
 										],
@@ -523,40 +322,45 @@ export default () => {
 							}
 							ros={ros}
 						/>
-						<div
-							className={styles.simulation}
-							onDoubleClick={(e) => {
-								e.stopPropagation();
-								setDisplay((old) => (old === "camera" ? "simulation" : "camera"));
-							}}
-						>
-							{display !== "camera" ? (
-								<CameraView
-									images={images}
-									rotate={rotateCams}
-									setRotateCams={() => {}}
-									currentCam={CAMERA_CONFIGS[currentVideo]}
-									changeCam={(dir) => {
-										setCurrentVideo((old) => {
-											console.log("change 3");
-											if (dir === 1) {
-												return (old + 1) % MAX_CAMERAS;
-											} else {
-												return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
-											}
-										});
-									}}
-									small
-								/>
-							) : (
-								<Simulation
-									armJointAngles={getJointsPositions(roverState)}
-									wheelsSpeed={getWheelsSpeed(roverState)}
-									wheelsSteeringAngle={getSteeringAngles(roverState)}
-									pivotAngle={getPivotAngle(roverState)}
-								/>
-							)}
-						</div>
+						{stateServices[SubSystems.CAMERA].service.state !== "Off" && (
+							<div
+								className={styles.simulation}
+								onDoubleClick={(e) => {
+									e.stopPropagation();
+									setDisplay((old) =>
+										old === "camera" ? "simulation" : "camera"
+									);
+								}}
+							>
+								{display !== "camera" &&
+								stateServices[SubSystems.CAMERA].service.state !== "Off" ? (
+									<CameraView
+										images={images}
+										rotate={rotateCams}
+										setRotateCams={() => {}}
+										currentCam={CAMERA_CONFIGS[currentVideo]}
+										changeCam={(dir) => {
+											setCurrentVideo((old) => {
+												console.log("change 3");
+												if (dir === 1) {
+													return (old + 1) % MAX_CAMERAS;
+												} else {
+													return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
+												}
+											});
+										}}
+										small
+									/>
+								) : (
+									<Simulation
+										armJointAngles={getJointsPositions(roverState)}
+										wheelsSpeed={getWheelsSpeed(roverState)}
+										wheelsSteeringAngle={getSteeringAngles(roverState)}
+										pivotAngle={getPivotAngle(roverState)}
+									/>
+								)}
+							</div>
+						)}
 					</div>
 					<div className={styles.actions}>
 						<QuickAction
@@ -578,86 +382,84 @@ export default () => {
 							icon={Drill}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal(null, true)}
+							onClick={() => displaySystemModal("", true)}
 							selected={false}
 							running={States.OFF}
 							icon={Stop}
 						/>
 					</div>
 					{modal}
-					<Snackbar
-						open={open}
-						autoHideDuration={4000}
-						onClose={handleClose}
-						anchorOrigin={{ vertical: "top", horizontal: "center" }}
-						sx={{ position: "absolute" }}
-					>
-						<Alert
-							onClose={handleClose}
-							severity={severity}
-							variant="filled"
-							sx={{ width: "100%", whiteSpace: "pre-line", borderRadius: 3 }}
-						>
-							{message}
-						</Alert>
-					</Snackbar>
+					<AlertSnackbar alertMessage={snackbar} />
 				</div>
 			</div>
 		</div>
 	);
 };
 
-const getJointsPositions = (data: any) => {
-	if (!data["handling_device"]) {
-		return [];
+const selectModal = (
+	system: SubSystems | "",
+	setModal: (modal: ReactElement | null) => void,
+	setSystemsModalOpen: React.Dispatch<
+		React.SetStateAction<{
+			[SubSystems.NAGIVATION]: boolean;
+			[SubSystems.HANDLING_DEVICE]: boolean;
+			[SubSystems.DRILL]: boolean;
+			["cancel"]: boolean;
+		}>
+	>,
+	launchAction: (system: string, goal: any) => void,
+	cancelAction: (system: string) => void,
+	showSnackbar: (severity: AlertColor, message: string) => void
+) => {
+	switch (system) {
+		case SubSystems.NAGIVATION:
+			return (
+				<NavigationGoalModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old) => {
+							const newModalOpen = { ...old };
+							newModalOpen[SubSystems.NAGIVATION] = false;
+							return newModalOpen;
+						});
+					}}
+					onSetGoal={launchAction}
+					onCancelGoal={cancelAction}
+				/>
+			);
+		case SubSystems.HANDLING_DEVICE:
+			return (
+				<ArmGoalModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old) => {
+							const newModalOpen = { ...old };
+							newModalOpen[SubSystems.HANDLING_DEVICE] = false;
+							return newModalOpen;
+						});
+					}}
+					onSetGoal={launchAction}
+					onCancelGoal={cancelAction}
+					snackBar={showSnackbar}
+				/>
+			);
+		case SubSystems.DRILL:
+			return (
+				<DrillGoalModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old) => {
+							const newModalOpen = { ...old };
+							newModalOpen[SubSystems.DRILL] = false;
+							return newModalOpen;
+						});
+					}}
+					onSetGoal={launchAction}
+					onCancelGoal={cancelAction}
+					snackBar={showSnackbar}
+				/>
+			);
+		default:
+			return <></>;
 	}
-
-	const joints = data["handling_device"]["joints"];
-	const positions = [];
-
-	for (const joint in joints) {
-		positions.push(joints[joint]["angle"]);
-	}
-
-	return positions;
-};
-
-const getWheelsSpeed = (data: any) => {
-	if (!data["navigation"]) {
-		return [];
-	}
-
-	const wheels = data["navigation"]["wheels"];
-	const speeds = [];
-
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		speeds.push(wheels[wheel]["speed"]);
-	}
-
-	return speeds;
-};
-
-const getSteeringAngles = (data: any) => {
-	if (!data["navigation"]) {
-		return [];
-	}
-
-	const wheels = data["navigation"]["wheels"];
-	const angles = [];
-
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		angles.push(wheels[wheel]["steering_angle"]);
-	}
-
-	return angles;
-};
-
-const getPivotAngle = (data: any) => {
-	if (!data["navigation"]) {
-		return 0;
-	}
-
-	return data["navigation"]["wheels"]["pivot"]["angle"];
 };

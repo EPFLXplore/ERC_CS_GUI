@@ -1,6 +1,6 @@
 import styles from "./styles.module.sass";
-import Background from "../../components/Background";
-import Logo from "../../components/Logo";
+import Background from "../../components/ui/Background";
+import Logo from "../../components/ui/Logo";
 import { useNavigate } from "react-router-dom";
 import { Size } from "../../utils/size.type";
 

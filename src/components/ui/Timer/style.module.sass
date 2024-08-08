@@ -1,0 +1,92 @@
+@import '../../../styles/variables.sass'
+
+.timerSmall
+    position: absolute
+    top: 0
+    left: 0
+    right: 0
+    margin: auto auto
+    display: flex
+    flex-direction: row
+    justify-content: center
+    align-items: center
+    padding: 0.5rem 0.7rem
+    gap: 1rem
+
+.time
+    display: flex
+    flex-direction: row
+    justify-content: center
+    align-items: center
+    margin-left: 30px
+
+.comma
+    color: $textLightColor
+    font-size: 1.5rem
+    font-weight: 500
+    margin: 0
+
+.input
+    width: 2.5rem
+    height: 2rem
+    background: transparent
+    border: none
+    border-radius: 0.25rem
+    text-align: center
+    font-size: 2rem
+    font-weight: 500
+    margin: 0 0.5rem
+    color: $textLightColor
+
+.status
+    width: 30px
+    height: 30px
+    border-radius: 100%
+    background-color: $idleColor
+    margin: 0 0.5rem
+
+    .not_started
+        background-color: $idleColor
+    
+    .running
+        background-color: $successColor
+
+    .warning
+        background-color: $warningColor
+
+    .error
+        background-color: $errorColor
+    
+.button
+    background: transparent
+    border: none
+    padding: 0
+    margin: 0
+    cursor: pointer
+
+.icon
+    width: 30px !important
+    height: 30px !important
+    color: $textLightColor
+
+.wifi
+    display: flex
+    flex-direction: row
+    height: 30px
+    align-items: flex-end
+    gap: 0.5rem
+
+    p
+        padding: 0
+        margin: 0
+
+.battery
+    display: flex
+    flex-direction: row
+    height: 30px
+    align-items: flex-end
+    gap: 0.3rem
+
+    p
+        padding: 0
+        margin: 0

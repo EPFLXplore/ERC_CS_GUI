@@ -71,6 +71,10 @@ function useTimer(onFinished?: () => void) {
 		}
 	}, [finished, onFinished]);
 
+	useEffect(() => {
+		setInputFocused(false);
+	}, []);
+
 	return [
 		minutes,
 		seconds,

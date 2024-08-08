@@ -2,6 +2,7 @@ import * as ROSLIB from "roslib";
 import { Service } from "./Service";
 import SubSystems from "./SubSystems";
 import States from "./States";
+import { AlertColor } from "@mui/material";
 
 const requestChangeMode = (
 	ros: ROSLIB.Ros | null,
@@ -9,7 +10,7 @@ const requestChangeMode = (
 	mode: string,
 	ser: Service,
 	sendingRequest: (b: boolean) => void,
-	snackBar: (severity: string, message: string) => void
+	snackBar: (severity: AlertColor, message: string) => void
 ) => {
 	let request;
 
@@ -63,7 +64,7 @@ const requestChangeMode = (
 const successfullChange = (
 	result: any,
 	ser: Service,
-	snackBar: (severity: string, message: string) => void
+	snackBar: (severity: AlertColor, message: string) => void
 ) => {
 	if (result["error_type"] === 0) {
 		// no error has occured
@@ -77,7 +78,7 @@ const successfullChange = (
 	}
 };
 
-const failChange = (error: string, snackBar: (severity: string, message: string) => void) => {
+const failChange = (error: string, snackBar: (severity: AlertColor, message: string) => void) => {
 	snackBar("error", "Error from ROS while request service: " + error);
 };
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Service, RuleRover } from "../utils/Service";
 import SubSystems from "../utils/SubSystems";
 import States from "../utils/States";
+import { AlertColor } from "@mui/material";
 
 const rulesNavigation: RuleRover[] = [
 	{
@@ -41,7 +42,7 @@ function useService(
 	roverState: any,
 	nbr_service: number,
 	isServiceRequested: boolean,
-	snackBar: (severity: string, message: string) => void
+	snackBar: (severity: AlertColor, message: string) => void
 ) {
 	const [init, setInit] = useState(true);
 

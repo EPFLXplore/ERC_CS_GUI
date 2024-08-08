@@ -10,7 +10,7 @@ export enum GamepadCommandState {
 }
 
 function useGamepad(
-	ros: ROSLIB.Ros,
+	ros: ROSLIB.Ros | null,
 	mode: string,
 	submode?: string,
 	changeCam?: (dir: number) => void,
