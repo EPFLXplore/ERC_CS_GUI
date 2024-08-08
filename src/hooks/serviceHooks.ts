@@ -92,7 +92,7 @@ function useService(
 			let newStates = { ...old };
 			let change: string[] = [];
 
-			if (roverState["rover"] == undefined || roverState == undefined) {
+			if (roverState["rover"] === undefined || roverState === undefined) {
 				return newStates;
 			}
 
@@ -130,7 +130,7 @@ function useService(
 			setInit(false);
 			return newStates;
 		});
-	}, [roverState]);
+	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return [stateServices, setStateServices] as const;
 }

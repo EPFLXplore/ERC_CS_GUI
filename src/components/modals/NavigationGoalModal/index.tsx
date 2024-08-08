@@ -2,20 +2,23 @@ import React from "react";
 import styles from "./style.module.sass";
 import { Pose2D } from "../../../utils/CustomMsgObjects";
 import SubSystems from "../../../utils/SubSystems";
+import { roundToTwoDecimals } from "../../../utils/maths";
 
 function ArmGoalModal({
 	onSetGoal,
 	onClose,
 	onCancelGoal,
 	currentGoal = undefined,
+	pointOnMap,
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	currentGoal?: { x: number; y: number; o: number };
+	pointOnMap: { x: number; y: number };
 }) {
-	const [xCord, setXCord] = React.useState(0);
-	const [yCord, setYCord] = React.useState(0);
+	const [xCord, setXCord] = React.useState(roundToTwoDecimals(pointOnMap.x, 2));
+	const [yCord, setYCord] = React.useState(roundToTwoDecimals(pointOnMap.y, 2));
 	const [orientation, setOrientation] = React.useState(0);
 
 	return (

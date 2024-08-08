@@ -6,8 +6,8 @@
 import Home from "./home";
 import Logs from "./logs";
 import NotFound from "./notFound";
-import New_control_page from "./new_control_page";
+import NewControlPage from "./new_control_page";
 
 export const DefaultPage = () => <Home />;
 
-export { Home, Logs, NotFound, New_control_page };
+export { Home, Logs, NotFound, NewControlPage };

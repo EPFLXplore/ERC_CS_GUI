@@ -48,6 +48,8 @@ const useRoverControls = (
 	const [modal, setModal] = useState<ReactElement | null>(null);
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
+	const [point, setPoint] = useState({ x: -10, y: -10 });
+
 	const cancelAction = (system: string) => {
 		setStateActions((old) => {
 			let newStates = { ...old };
@@ -206,6 +208,8 @@ const useRoverControls = (
 		startService,
 		changeMode,
 		triggerDataFocus,
+		point,
+		setPoint,
 	] as const;
 };
 

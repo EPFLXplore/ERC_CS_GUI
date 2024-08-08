@@ -11,7 +11,6 @@ export type Log = {
 	line: number;
 };
 
-
 export enum LogLevel {
 	DATA = "data",
 	INFO = "info",
@@ -20,24 +19,28 @@ export enum LogLevel {
 }
 
 const getType = (type: number): string => {
-	switch(type) {
+	switch (type) {
 		case 10:
-			return LogLevel.DATA
+			return LogLevel.DATA;
 		case 20:
-			return LogLevel.INFO
+			return LogLevel.INFO;
 		case 30:
-			return LogLevel.WARNING
+			return LogLevel.WARNING;
 		case 40:
 		case 50:
-			return LogLevel.ERROR
+			return LogLevel.ERROR;
 		default:
-			return LogLevel.INFO
+			return LogLevel.INFO;
 	}
-}
+};
 
 function useRoverLogs(ros: ROSLIB.Ros | null) {
 	const [roverlogs, setRoverLogs] = useState<Log[]>([]);
-	const [filters, setFilters] = React.useState<string[]>([LogLevel.INFO, LogLevel.WARNING, LogLevel.ERROR]);
+	const [filters, setFilters] = React.useState<string[]>([
+		LogLevel.INFO,
+		LogLevel.WARNING,
+		LogLevel.ERROR,
+	]);
 	const [filteredLogs, setFilteredLogs] = React.useState<Log[]>([]);
 
 	useEffect(() => {
@@ -50,13 +53,14 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 
 			listener.subscribe((message) => {
 				//@ts-ignore
-				console.log(message)
+				console.log(message);
 
-				setRoverLogs(prev => 
-					[...prev, {
+				setRoverLogs((prev) => [
+					...prev,
+					{
 						// @ts-ignore
 						timestamp: message.stamp.sec,
-						// @ts-ignore						
+						// @ts-ignore
 						node: message.name,
 						// @ts-ignore
 						type: getType(message.level),
@@ -65,9 +69,9 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 						// @ts-ignore
 						file: message.file,
 						// @ts-ignore
-						line: message.line
-					}]
-				)
+						line: message.line,
+					},
+				]);
 			});
 		}
 	}, [ros]);
@@ -87,7 +91,7 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 
 	useEffect(() => {
 		filterLogs(filters);
-	}, [filters, roverlogs]);
+	}, [filters, roverlogs]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return [filteredLogs, filters, changeFilter] as const;
 }

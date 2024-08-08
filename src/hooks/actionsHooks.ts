@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import SubSystems from "../utils/SubSystems";
 import Action from "../utils/Action";
 import States from "../utils/States";
-import * as ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
 
 interface ActionElement {
@@ -59,7 +58,7 @@ function useActions(
 			let newStates = { ...old };
 			let change: string[] = [];
 
-			if (roverState == undefined || roverState["rover"] == undefined) {
+			if (roverState === undefined || roverState["rover"] === undefined) {
 				return newStates;
 			}
 
@@ -97,7 +96,7 @@ function useActions(
 			setInit(false);
 			return newStates;
 		});
-	}, [roverState]);
+	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return [stateActions, setStateActions] as const;
 }

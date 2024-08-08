@@ -1,8 +1,7 @@
-import React, { useState } from "react";
 import { Themes } from "../../../utils/themes";
 import styles from "./style.module.sass";
 
-export default ({
+const LogFilter = ({
 	name,
 	active,
 	onActivate,
@@ -47,3 +46,5 @@ export default ({
 		</button>
 	);
 };
+
+export default LogFilter;

@@ -11,13 +11,18 @@ function Simulation({
 	wheelsSpeed,
 	wheelsSteeringAngle,
 	pivotAngle,
+	point,
+	setPoint,
+	currentTarget,
 }: {
 	armJointAngles: number[];
 	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
 	pivotAngle: number;
+	point: { x: number; y: number };
+	setPoint: ({ x: number, y: number }) => void;
+	currentTarget?: { x: number; y: number };
 }) {
-	const [point, setPoint] = useState({ x: -10, y: -10 });
 	const [path, setPath] = useState([
 		{
 			x: 0,
@@ -68,7 +73,8 @@ function Simulation({
 				/>
 				<ambientLight intensity={0.2} color={0xffffff} />
 				<OrbitControls enableZoom={true} />
-				<Pin coordinates={point} />
+				<Pin coordinates={point} color={0xf0ffff} />
+				{currentTarget && <Pin coordinates={currentTarget} color={0xf0ffff} />}
 				<RobotVisual
 					armJointAngles={armJointAngles}
 					wheelsSpeed={wheelsSpeed}

@@ -46,7 +46,7 @@ const CAMERA_CONFIGS = [
 ];
 const MAX_CAMERAS = 5;
 
-export default () => {
+const NewControlPage = () => {
 	const navigate = useNavigate();
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros, active] = useRosBridge(showSnackbar);
@@ -74,6 +74,8 @@ export default () => {
 		startService,
 		changeMode,
 		triggerDataFocus,
+		point,
+		setPoint,
 	] = useRoverControls(ros, showSnackbar);
 
 	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
@@ -108,6 +110,7 @@ export default () => {
 				setModal(
 					selectModal(
 						system,
+						point,
 						setModal,
 						setSystemsModalOpen,
 						launchAction,
@@ -223,6 +226,8 @@ export default () => {
 							wheelsSpeed={getWheelsSpeed(roverState)}
 							wheelsSteeringAngle={getSteeringAngles(roverState)}
 							pivotAngle={getPivotAngle(roverState)}
+							point={point}
+							setPoint={setPoint}
 						/>
 					)}
 					<div className={styles.infosRight}>
@@ -357,6 +362,8 @@ export default () => {
 										wheelsSpeed={getWheelsSpeed(roverState)}
 										wheelsSteeringAngle={getSteeringAngles(roverState)}
 										pivotAngle={getPivotAngle(roverState)}
+										point={point}
+										setPoint={setPoint}
 									/>
 								)}
 							</div>
@@ -398,6 +405,7 @@ export default () => {
 
 const selectModal = (
 	system: SubSystems | "",
+	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
 	setSystemsModalOpen: React.Dispatch<
 		React.SetStateAction<{
@@ -425,6 +433,7 @@ const selectModal = (
 					}}
 					onSetGoal={launchAction}
 					onCancelGoal={cancelAction}
+					pointOnMap={pointOnMap}
 				/>
 			);
 		case SubSystems.HANDLING_DEVICE:
@@ -463,3 +472,5 @@ const selectModal = (
 			return <></>;
 	}
 };
+
+export default NewControlPage;

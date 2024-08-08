@@ -7,10 +7,10 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useAlert from "../../hooks/alertHooks";
 import AlertSnackbar from "../../components/ui/Snackbar";
 
-export default () => {
+const Home = () => {
 	const navigate = useNavigate();
 	const [snackbar, showSnackbar] = useAlert();
-	const [ros, connected] = useRosBridge(showSnackbar);
+	const [, connected] = useRosBridge(showSnackbar);
 
 	return (
 		<div className="page">
@@ -65,3 +65,5 @@ export default () => {
 		</div>
 	);
 };
+
+export default Home;

@@ -2,8 +2,7 @@ import "./styles/_global.sass";
 import "./styles/_typography.sass";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { Home, Logs, NotFound, New_control_page } from "./pages";
-import { Mode } from "./utils/mode.type";
+import { Home, Logs, NotFound, NewControlPage } from "./pages";
 
 const router = createBrowserRouter([
 	{
@@ -16,7 +15,7 @@ const router = createBrowserRouter([
 	},
 	{
 		path: "/new_control_page",
-		element: <New_control_page />,
+		element: <NewControlPage />,
 	},
 	{
 		path: "*",
@@ -25,7 +24,5 @@ const router = createBrowserRouter([
 ]);
 
 export const App = () => {
-	//const [userCount] = useSession();
-
 	return <RouterProvider router={router} />;
 };
