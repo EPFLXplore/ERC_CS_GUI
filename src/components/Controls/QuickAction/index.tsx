@@ -1,4 +1,4 @@
-import States from "../../../utils/States";
+import States from "../../../data/states.type";
 import styles from "./style.module.sass";
 
 function QuickAction({

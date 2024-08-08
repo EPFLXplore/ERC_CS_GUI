@@ -1,5 +1,5 @@
 import styles from "./style.module.sass";
-import { Status } from "../../../utils/status.type";
+import { Status } from "../../../data/status.type";
 import PlayArrowIcon from "@mui/icons-material/PlayArrowRounded";
 import PauseIcon from "@mui/icons-material/PauseRounded";
 import Replay10Icon from "@mui/icons-material/Replay10Rounded";

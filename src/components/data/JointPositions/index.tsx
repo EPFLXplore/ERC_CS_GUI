@@ -1,5 +1,5 @@
 import Slider from "../Slider";
-import { Mode } from "../../../utils/mode.type";
+import { Mode } from "../../../data/mode.type";
 import styles from "./style.module.sass";
 
 export default ({ positions }: { positions: number[] }) => {

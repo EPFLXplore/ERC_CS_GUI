@@ -1,4 +1,4 @@
-import { Task } from "../../../utils/tasks.type";
+import { Task } from "../../../data/tasks.type";
 import styles from "./style.module.sass";
 import { useState } from "react";
 

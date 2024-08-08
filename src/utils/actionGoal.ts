@@ -1,6 +1,6 @@
 import * as ROSLIB from "roslib";
-import Action from "./Action";
-import States from "./States";
+import Action from "../data/action.type";
+import States from "../data/states.type";
 import { ActionType } from "../hooks/actionsHooks";
 import { AlertColor } from "@mui/material";
 

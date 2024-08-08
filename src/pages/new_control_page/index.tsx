@@ -20,11 +20,11 @@ import NavigationGoalModal from "../../components/modals/NavigationGoalModal";
 import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 
-import SubSystems from "../../utils/SubSystems";
-import States from "../../utils/States";
+import SubSystems from "../../data/subsystems.type";
+import States from "../../data/states.type";
 import InfoBox from "../../components/data/InfoBox";
 import { Dvr, Settings } from "@mui/icons-material";
-import { Status } from "../../utils/status.type";
+import { Status } from "../../data/status.type";
 import {
 	getJointsPositions,
 	getPivotAngle,

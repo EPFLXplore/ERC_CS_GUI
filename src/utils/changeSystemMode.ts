@@ -1,7 +1,7 @@
 import * as ROSLIB from "roslib";
-import { Service } from "./Service";
-import SubSystems from "./SubSystems";
-import States from "./States";
+import { Service } from "../data/service.type";
+import SubSystems from "../data/subsystems.type";
+import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
 
 const requestChangeMode = (

@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./style.module.sass";
 import logoLarge from "../../../assets/images/logos/logo_XPlore.png";
 import logoSmall from "../../../assets/images/logos/short_logo_XPlore.png";
-import { Size } from "../../../utils/size.type";
+import { Size } from "../../../data/size.type";
 
 const Logo = ({ size }: { size: Size }) => {
 	switch (size) {

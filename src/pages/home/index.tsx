@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Background from "../../components/ui/Background";
 import Logo from "../../components/ui/Logo";
-import { Size } from "../../utils/size.type";
+import { Size } from "../../data/size.type";
 import styles from "./style.module.sass";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useAlert from "../../hooks/alertHooks";

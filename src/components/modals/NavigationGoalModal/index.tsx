@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./style.module.sass";
-import { Pose2D } from "../../../utils/CustomMsgObjects";
-import SubSystems from "../../../utils/SubSystems";
+import { Pose2D } from "../../../data/pose2d.type";
+import SubSystems from "../../../data/subsystems.type";
 import { roundToTwoDecimals } from "../../../utils/maths";
 
 function ArmGoalModal({

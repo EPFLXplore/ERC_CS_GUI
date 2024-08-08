@@ -1,9 +1,9 @@
 import useGamepad, { GamepadCommandState } from "../../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
-import { Task } from "../../../utils/tasks.type";
+import { Task } from "../../../data/tasks.type";
 import * as ROSLIB from "roslib";
-import States from "../../../utils/States";
+import States from "../../../data/states.type";
 
 const Gamepad = ({
 	selectorCallback,

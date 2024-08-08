@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
-import { Task } from "../utils/tasks.type";
+import { Task } from "../data/tasks.type";
 import * as ROSLIB from "roslib";
-import States from "../utils/States";
+import States from "../data/states.type";
 
 export enum GamepadCommandState {
 	UI,

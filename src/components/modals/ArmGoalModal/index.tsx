@@ -1,6 +1,6 @@
 import React from "react";
 import styles from "./style.module.sass";
-import SubSystems from "../../../utils/SubSystems";
+import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
 
 type ArmTask = {

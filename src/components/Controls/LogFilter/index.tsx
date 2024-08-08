@@ -1,4 +1,4 @@
-import { Themes } from "../../../utils/themes";
+import { Themes } from "../../../data/themes.type";
 import styles from "./style.module.sass";
 
 const LogFilter = ({

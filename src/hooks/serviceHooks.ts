@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import { Service, RuleRover } from "../utils/Service";
-import SubSystems from "../utils/SubSystems";
-import States from "../utils/States";
+import { Service, RuleRover } from "../data/service.type";
+import SubSystems from "../data/subsystems.type";
+import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
 
 const rulesNavigation: RuleRover[] = [
@@ -123,7 +123,6 @@ function useService(
 			}
 
 			if (change.length > 0) {
-				console.log("eroignerégijerkpgojrtkgéjlkrepgkln");
 				snackBar("info", "These systems have changed their states " + change.join(", "));
 			}
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import SubSystems from "../utils/SubSystems";
-import Action from "../utils/Action";
-import States from "../utils/States";
+import SubSystems from "../data/subsystems.type";
+import Action from "../data/action.type";
+import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
 
 interface ActionElement {
