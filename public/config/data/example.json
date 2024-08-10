@@ -92,8 +92,7 @@
 			"orientation": {
 				"x": "0.0",
 				"y": "0.0",
-				"z": "0.0",
-				"w": "0.0"
+				"z": "0.0"
 			},
 			"gps_coordinates": {
 				"latitude": "0.0",
@@ -301,25 +300,25 @@
 			"current_step": "Idle",
 			"next_step": "Idle",
 			"current_task": "Button1"
-		},
-		"drill": {
-			"motors": {
-				"motor_module": {
-					"speed": "0.0",
-					"current": "0.0",
-					"state": true
-				},
-				"motor_drill": {
-					"speed": "0.0",
-					"current": "0.0",
-					"state": true
-				}
+		}
+	},
+	"drill": {
+		"motors": {
+			"motor_module": {
+				"position": "0.0",
+				"current": "0.0",
+				"state": true
 			},
-			"state": {
-				"mode": "Off",
-				"current_step": "Idle",
-				"next_step": "Idle"
+			"motor_drill": {
+				"speed": "0.0",
+				"current": "0.0",
+				"state": true
 			}
+		},
+		"state": {
+			"mode": "Off",
+			"current_step": "Idle",
+			"next_step": "Idle"
 		}
 	},
 	"electronics": {

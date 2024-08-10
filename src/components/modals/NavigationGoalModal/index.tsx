@@ -3,6 +3,7 @@ import styles from "./style.module.sass";
 import { Pose2D } from "../../../data/pose2d.type";
 import SubSystems from "../../../data/subsystems.type";
 import { roundToTwoDecimals } from "../../../utils/maths";
+import { map3DTo2D } from "../../../utils/mapUtils";
 
 function ArmGoalModal({
 	onSetGoal,
@@ -17,8 +18,9 @@ function ArmGoalModal({
 	currentGoal?: { x: number; y: number; o: number };
 	pointOnMap: { x: number; y: number };
 }) {
-	const [xCord, setXCord] = React.useState(roundToTwoDecimals(pointOnMap.x, 2));
-	const [yCord, setYCord] = React.useState(roundToTwoDecimals(pointOnMap.y, 2));
+	const pointOnTerrain = map3DTo2D({ x: pointOnMap.x, y: 0, z: pointOnMap.y });
+	const [xCord, setXCord] = React.useState(roundToTwoDecimals(pointOnTerrain.x, 2));
+	const [yCord, setYCord] = React.useState(roundToTwoDecimals(pointOnTerrain.y, 2));
 	const [orientation, setOrientation] = React.useState(0);
 
 	return (

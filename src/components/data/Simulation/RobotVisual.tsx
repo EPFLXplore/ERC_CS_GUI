@@ -68,7 +68,9 @@ const RobotVisual = ({
 	startTransition(() => {
 		// Set joint angles
 		for (let i = 0; i < 6; i++) {
-			robot.joints[`hd_joint${i + 1}`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
+			robot.joints[`hd_joint${i + 1}`].setJointValue(
+				THREE.MathUtils.degToRad(armJointAngles[i])
+			);
 		}
 
 		// robot.joints[`finger1`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
@@ -82,8 +84,8 @@ const RobotVisual = ({
 
 		// Set pivot angle
 		robot.joints["right_pivot"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
-		robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
-	})
+		// robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
+	});
 
 	return (
 		<group>

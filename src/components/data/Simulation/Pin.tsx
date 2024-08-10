@@ -1,14 +1,8 @@
 import { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
-import { ColorRepresentation, MeshStandardMaterial } from "three";
+import { Point2D } from "../../../data/point.type";
 
-const Pin = ({
-	coordinates,
-	color,
-}: {
-	coordinates: { x: number; y: number };
-	color?: ColorRepresentation;
-}) => {
+const Pin = ({ coordinates }: { coordinates: Point2D }) => {
 	const groupRef = useRef();
 	//@ts-ignore
 	const { nodes, materials } = useGLTF("/models/scene.gltf");
@@ -24,11 +18,7 @@ const Pin = ({
 					<mesh
 						castShadow
 						geometry={nodes["Map-Pin_Color_-_Red_Pin_0"].geometry}
-						material={
-							color
-								? new MeshStandardMaterial({ color: color })
-								: materials["Color_-_Red_Pin"]
-						}
+						material={materials["Color_-_Red_Pin"]}
 					/>
 					<mesh
 						castShadow

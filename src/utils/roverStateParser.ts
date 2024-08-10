@@ -79,6 +79,35 @@ const getPivotAngle = (data: any) => {
 	return data["navigation"]["wheels"]["pivot"]["angle"];
 };
 
+/**
+ * Get the current position of the rover.
+ * @param data The rover state data.
+ * @returns The position of the rover in meters.
+ */
+const getCurrentPosition = (data: any) => {
+	if (!data["navigation"]) {
+		return { x: 0, y: 0 };
+	}
+
+	return {
+		x: data["navigation"]["localization"]["position"]["x"],
+		y: data["navigation"]["localization"]["position"]["y"],
+	};
+};
+
+/**
+ * Get the current orientation of the rover.
+ * @param data The rover state data.
+ * @returns The orientation of the rover in degrees.
+ */
+const getCurrentOrientation = (data: any) => {
+	if (!data["navigation"]) {
+		return 0;
+	}
+
+	return data["navigation"]["localization"]["orientation"]["z"];
+};
+
 //#endregion
 
 //#region Handling Device
@@ -131,11 +160,46 @@ const getBatteryLevel = (data: any) => {
 
 //#endregion
 
+//#region Science
+//////////////////////// SCIENCE ////////////////////////
+
+/**
+ * Get the encoder value of the drill.
+ * @param data The rover state data.
+ * @returns The encoder value of the drill in degrees.
+ */
+const getDrillEncoderValue = (data: any) => {
+	if (!data["drill"]) {
+		return 0;
+	}
+
+	return data["drill"]["motors"]["motor_module"]["position"];
+};
+
+/**
+ * Get the rotation of the drill screw.
+ * @param data The rover state data.
+ * @returns The rotation of the drill screw in degrees.
+ */
+const getDrillScrewRotation = (data: any) => {
+	if (!data["drill"]) {
+		return 0;
+	}
+
+	return data["drill"]["motors"]["motor_drill"]["speed"];
+};
+
+//#endregion
+
 export {
 	getStateSystem,
 	getJointsPositions,
 	getWheelsSpeed,
 	getSteeringAngles,
 	getPivotAngle,
+	getCurrentPosition,
+	getCurrentOrientation,
+	getDrillEncoderValue,
+	getDrillScrewRotation,
 	getBatteryLevel,
 };

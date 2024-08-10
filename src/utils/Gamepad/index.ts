@@ -1,116 +1,34 @@
+import { getBrowserDetails, getOSDetails } from "../device";
+import { DeviceProfile } from "./bindings";
+import profiles from "./profiles";
+
 export interface GamepadControllerState {
 	controller: Gamepad | null;
 	isConnected: boolean;
 	buttons: readonly boolean[];
 	axes: readonly number[];
-	triggers: readonly number[];
-	//profile: DeviceProfile;
 }
-
-export interface DeviceProfile {
-	name: String;
-	OS: String;
-	webBrowser: String;
-	buttons: number;
-	axes: number;
-	minAxisRange: number[];
-	maxAxisRange: number[];
-	zeroAxisRange: number[];
-	remapingButtons: number[];
-	remapingAxes: number[];
-}
-
-const defaultProfile: DeviceProfile = {
-	name: "default",
-	OS: "default",
-	webBrowser: "default",
-	buttons: 17,
-	axes: 7,
-	minAxisRange: [-1, -1, -1, -1, -1, -1, -1],
-	maxAxisRange: [1, 1, 1, 1, 1, 1, 1],
-	zeroAxisRange: [0, 0, 0, 0, 0, 0, 0],
-	remapingButtons: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-	remapingAxes: [0, 1, 2, 3, 4, 5, 6],
-};
-
-const xboxProfile: DeviceProfile = {
-	name: "045e-0b12-Microsoft Xbox One X pad",
-	OS: "linux",
-	webBrowser: "firefox",
-	buttons: 11,
-	axes: 8,
-	minAxisRange: [-1, -1, -1, -1, -1, -1, -1, -1],
-	maxAxisRange: [1, 1, 1, 1, 1, 1, 1, 1],
-	zeroAxisRange: [0, 0, 0, 0, 0, -1, 0, 0],
-	remapingButtons: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-	remapingAxes: [0, 1, 2, 3, 4, 5, 6, 7],
-};
-
-const xboxMacProfile: DeviceProfile = {
-	name: "045e-0b12-Microsoft Xbox One X pad",
-	OS: "macos",
-	webBrowser: "chrome",
-	buttons: 17,
-	axes: 4,
-	minAxisRange: [-0.5, 0.5, -1, -1],
-	maxAxisRange: [0.5, -0.5, 1, 1],
-	zeroAxisRange: [0, 0, 0, 0, 0, -1, 0, 0],
-	remapingButtons: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16],
-	remapingAxes: [0, 1, 2, 3],
-};
-
-/*
-
-UI
-		move buttons 10 11 12 13 //Up right down left
-		select buttons 0
-		back buttons 4
-		change mode buttons 1
-
-NAV
-		Up/Down : axes 1
-		Left/Right : axes 0
-		change mode
-
-HD
-		change mode
-	Inverse
-		x: axes 1
-		y: axes 0
-		z: buttons 10 12
-		pitch: axes 5
-		roll: buttons 5 + axes 1
-		yaw: buttons 5 + axes 0
-		gripper : buttons 0 4
-		speed : Throttle axes 1
-
-	Forward
-		Motor 1: axes 5
-		Motor 2: axes 1
-		Motor 3: buttons 5 + axes 1
-		Motor 4: axes 0
-		Motor 5: buttons 10 12
-		Motor 6: buttons 5 + axes 0
-		Grinder: buttons 0 4
-		Speed: Throttle axes 1
-
-*/
 
 class GamepadController {
 	private isConnected: boolean;
 	private gamepad: Gamepad | null;
 	private gamepadState: GamepadControllerState | null;
 	private prevGamepadState: GamepadControllerState | null;
+	private deviceProfile: DeviceProfile | null = null;
 
 	constructor(stateCallback: (state: GamepadControllerState) => void) {
 		if (navigator.getGamepads().length > 0 && navigator.getGamepads()[0]) {
 			this.gamepad = navigator.getGamepads()[0];
 			this.isConnected = true;
 			this.gamepadState = this.updateState();
+
+			// search in device profiles for the current gamepad, os and browser
+			this.findGamepadProfile();
 		} else {
 			this.isConnected = false;
 			this.gamepad = null;
 			this.gamepadState = null;
+			this.deviceProfile = null;
 		}
 
 		this.prevGamepadState = null;
@@ -154,6 +72,26 @@ class GamepadController {
 		this.start(stateCallback);
 	}
 
+	private findGamepadProfile() {
+		const OS = getOSDetails();
+		const browser = getBrowserDetails();
+
+		for (const profile in profiles) {
+			if (
+				profiles[profile].name === this.gamepad?.id &&
+				profiles[profile].OS === OS &&
+				profiles[profile].webBrowser === browser
+			) {
+				this.deviceProfile = profiles[profile];
+				break;
+			}
+		}
+
+		if (!this.deviceProfile) {
+			this.deviceProfile = profiles.DEFAULT_PROFILE;
+		}
+	}
+
 	public getGamepad(): Gamepad | null {
 		return this.gamepad;
 	}
@@ -166,8 +104,32 @@ class GamepadController {
 		return this.gamepadState;
 	}
 
+	public handleNavigation(
+		buttons: readonly boolean[],
+		axes: readonly number[]
+	): { buttons: number[]; axes: number[] } {
+		return (this.deviceProfile || profiles.DEFAULT_PROFILE).navigationHandler(buttons, axes);
+	}
+
+	public handleDirectArm(
+		buttons: readonly boolean[],
+		axes: readonly number[]
+	): { buttons: number[]; axes: number[] } {
+		return (this.deviceProfile || profiles.DEFAULT_PROFILE).directArmHandler(buttons, axes);
+	}
+
+	public handleInverseArm(
+		buttons: readonly boolean[],
+		axes: readonly number[]
+	): { buttons: number[]; axes: number[] } {
+		return (this.deviceProfile || profiles.DEFAULT_PROFILE).inverseArmHandler(buttons, axes);
+	}
+
 	private updateState(): GamepadControllerState {
-		this.gamepad = navigator.getGamepads()[0];
+		if (this.gamepad?.id !== navigator.getGamepads()[0]?.id) {
+			this.gamepad = navigator.getGamepads()[0];
+			this.findGamepadProfile();
+		}
 
 		if (this.gamepadState) {
 			this.prevGamepadState = this.gamepadState;
@@ -177,17 +139,10 @@ class GamepadController {
 			controller: this.gamepad,
 			isConnected: this.isConnected,
 			buttons: this.gamepad
-				? this.remapButtons(
-						this.gamepad.buttons.map((button) => button.pressed),
-						xboxProfile
-				  )
+				? this.remapButtons(this.gamepad, this.deviceProfile || profiles.DEFAULT_PROFILE)
 				: [],
-			axes: this.gamepad ? this.remapAxes(this.gamepad.axes, xboxProfile) : [],
-			triggers: this.gamepad
-				? this.remapTriggers(
-						this.gamepad.buttons.map((button) => button.value),
-						xboxProfile
-				  )
+			axes: this.gamepad
+				? this.remapAxes(this.gamepad, this.deviceProfile || profiles.DEFAULT_PROFILE)
 				: [],
 		};
 
@@ -196,25 +151,51 @@ class GamepadController {
 		return state;
 	}
 
-	private remapButtons(buttons: readonly boolean[], profile: DeviceProfile): boolean[] {
-		return buttons.map((button, idx) => buttons[profile.remapingButtons[idx]]);
+	private remapButtons(gamepad: Gamepad, profile: DeviceProfile): boolean[] {
+		const buttons = gamepad.buttons.map((button) => button.pressed);
+		const triggers = gamepad.buttons.map((button) => button.value);
+
+		const remapedButtons = Object.keys(profile.buttons)
+			.sort()
+			.map((button) => {
+				const buttonProfile = profile.buttons[parseInt(button)];
+				if (buttonProfile.type === "button") {
+					return buttons[buttonProfile.index];
+				} else {
+					return triggers[buttonProfile.index] > buttonProfile.threshold;
+				}
+			});
+
+		return remapedButtons;
 	}
 
-	private remapAxes(axes: readonly number[], profile: DeviceProfile): number[] {
-		const new_axes = axes.map((axis, idx) => axes[profile.remapingAxes[idx]]);
+	private remapAxes(gamepad: Gamepad, profile: DeviceProfile): number[] {
+		const buttons = gamepad.buttons.map((button) => button.pressed);
+		const triggers = gamepad.buttons.map((button) => button.value);
+		const axes = gamepad.axes;
 
-		// remap the axes values to make the 0 value in the middle of the range
-		for (let i = 0; i < new_axes.length; i++) {
-			new_axes[i] =
-				(new_axes[i] - profile.zeroAxisRange[i]) /
-				(profile.maxAxisRange[i] - profile.minAxisRange[i]);
-		}
+		const remapedAxes = Object.keys(profile.axes)
+			.sort()
+			.map((axis) => {
+				const axisProfile = profile.axes[parseInt(axis)];
+				if (axisProfile.type === "axis") {
+					// Normalize the axis value to be between the min and max range to be between -1 and 1, and make sure the zerovalue becomes 0
+					const normalizedAxis =
+						axes[axisProfile.axis] > axisProfile.zeroAxisRange
+							? axes[axisProfile.axis] / axisProfile.maxAxisRange
+							: axes[axisProfile.axis] / -axisProfile.minAxisRange;
+					return normalizedAxis;
+				} else if (axisProfile.type === "button") {
+					return triggers[axisProfile.buttons[1]] - triggers[axisProfile.buttons[0]];
+				} else {
+					return (
+						(triggers[axisProfile.button] - axisProfile.zeroTriggerRange) /
+						axisProfile.maxTriggerRange
+					);
+				}
+			});
 
-		return new_axes;
-	}
-
-	private remapTriggers(triggers: readonly number[], profile: DeviceProfile): number[] {
-		return triggers.map((trigger, idx) => triggers[profile.remapingButtons[idx]]);
+		return remapedAxes;
 	}
 
 	private triggerEvents(

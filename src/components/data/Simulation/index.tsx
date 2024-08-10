@@ -5,6 +5,7 @@ import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../../assets/images/mars_yard_2023_2.png";
 import Pin from "./Pin";
+import { Point2D } from "../../../data/point.type";
 
 function Simulation({
 	armJointAngles,
@@ -20,7 +21,7 @@ function Simulation({
 	wheelsSteeringAngle: number[];
 	pivotAngle: number;
 	point: { x: number; y: number };
-	setPoint: ({ x: number, y: number }) => void;
+	setPoint: (point: Point2D) => void;
 	currentTarget?: { x: number; y: number };
 }) {
 	const [path, setPath] = useState([
@@ -73,29 +74,35 @@ function Simulation({
 				/>
 				<ambientLight intensity={0.2} color={0xffffff} />
 				<OrbitControls enableZoom={true} />
-				<Pin coordinates={point} color={0xf0ffff} />
-				{currentTarget && <Pin coordinates={currentTarget} color={0xf0ffff} />}
+				<Pin coordinates={point} />
 				<RobotVisual
 					armJointAngles={armJointAngles}
 					wheelsSpeed={wheelsSpeed}
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					pivotAngle={pivotAngle}
 				/>
-				<Terrain setPoint={setPoint} />
+				<Terrain setPoint={setPoint} currentTarget={currentTarget} />
 				<Line points={path.map(mapPointToCoordinates)} color={0xff4345} lineWidth={2} />
 			</Canvas>
 		</Suspense>
 	);
 }
 
-const Terrain = ({ setPoint }: { setPoint: ({ x: number, y: number }) => void }) => {
+const Terrain = ({
+	setPoint,
+	currentTarget,
+}: {
+	setPoint: (point: Point2D) => void;
+	currentTarget?: Point2D;
+}) => {
 	const texture = useTexture(MarsYard);
 
 	return (
 		<Plane
 			args={[50, 50]}
 			rotation={[-Math.PI / 2, 0, Math.PI / 2]}
-			position={[-22, -0.47, -3.2]}
+			// y, z, x of MarsYard
+			position={[-21.9, -0.47, -3.2]}
 			receiveShadow
 			traverseVisible={true}
 			onClick={(e) => {
@@ -106,9 +113,9 @@ const Terrain = ({ setPoint }: { setPoint: ({ x: number, y: number }) => void })
 			}}
 			onPointerUp={(e) => {
 				// check right click
-				if (e.button === 2 && e.delta < 2) {
+				if (e.button === 2 && e.delta < 2 && currentTarget) {
 					startTransition(() => {
-						setPoint({ x: -10, y: -10 });
+						setPoint(currentTarget);
 					});
 				}
 			}}
