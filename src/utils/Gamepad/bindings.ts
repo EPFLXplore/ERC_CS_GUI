@@ -60,7 +60,7 @@ interface Axes {
  * @param inverseArmHandler - The inverse arm handler of the device profile
  */
 interface DeviceProfile {
-	name: String;
+	name: string;
 	OS: "Windows" | "Linux" | "MacOS" | "Other";
 	webBrowser: "Safari" | "Chrome" | "Firefox" | "Edge" | "Opera" | "Other";
 	buttons: Buttons;

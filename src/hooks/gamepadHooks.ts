@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../data/tasks.type";
 import * as ROSLIB from "roslib";
+import { ClassicalGamepad } from "../utils/Gamepad/bindings";
 
 export enum GamepadCommandState {
 	UI,
@@ -30,8 +31,8 @@ function useGamepad(
 
 		setGamepad(gamepad);
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", 8, () => {
-			console.log("Gamepad Command: Menu");
+		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.START, () => {
+			console.log("Gamepad Command: Change Mode");
 			setGamepadCommandState((prev) => {
 				if (
 					prev === GamepadCommandState.UI &&
@@ -42,17 +43,17 @@ function useGamepad(
 			});
 		});
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", 9, () => {
-			console.log("Gamepad Command: Start");
+		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.BACK, () => {
+			console.log("Gamepad Command: Start Sending");
 			selectorCallback?.();
 		});
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", 12, () => {
+		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.LEFT, () => {
 			console.log("Gamepad Command: Change Camera");
 			if (changeCam) changeCam(-1);
 		});
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", 13, () => {
+		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.RIGHT, () => {
 			console.log("Gamepad Command: Change Camera");
 			if (changeCam) changeCam(1);
 		});

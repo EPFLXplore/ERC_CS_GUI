@@ -78,7 +78,7 @@ class GamepadController {
 
 		for (const profile in profiles) {
 			if (
-				profiles[profile].name === this.gamepad?.id &&
+				this.gamepad?.id.toLowerCase().includes(profiles[profile].name.toLowerCase()) &&
 				profiles[profile].OS === OS &&
 				profiles[profile].webBrowser === browser
 			) {

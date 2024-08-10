@@ -120,9 +120,124 @@ const computeInverseArmCommandClassicGamepad = (
 
 //#region Device Profiles
 const XBOX_FIREFOX_LINUX: DeviceProfile = {
-	name: "045e-0b12-Microsoft Xbox One X pad",
+	name: "045e-02fd-Xbox Wireless Controller",
 	OS: "Linux",
 	webBrowser: "Firefox",
+	buttons: {
+		[ClassicalGamepad.Button.A]: {
+			type: "button",
+			index: 0,
+		},
+		[ClassicalGamepad.Button.B]: {
+			type: "button",
+			index: 1,
+		},
+		[ClassicalGamepad.Button.X]: {
+			type: "button",
+			index: 3,
+		},
+		[ClassicalGamepad.Button.Y]: {
+			type: "button",
+			index: 2,
+		},
+		[ClassicalGamepad.Button.LB]: {
+			type: "button",
+			index: 4,
+		},
+		[ClassicalGamepad.Button.RB]: {
+			type: "button",
+			index: 5,
+		},
+		[ClassicalGamepad.Button.BACK]: {
+			type: "button",
+			index: 17,
+		},
+		[ClassicalGamepad.Button.START]: {
+			type: "button",
+			index: 9,
+		},
+		[ClassicalGamepad.Button.LEFT_STICK]: {
+			type: "button",
+			index: 10,
+		},
+		[ClassicalGamepad.Button.RIGHT_STICK]: {
+			type: "button",
+			index: 11,
+		},
+		[ClassicalGamepad.Button.UP]: {
+			type: "button",
+			index: 12,
+		},
+		[ClassicalGamepad.Button.DOWN]: {
+			type: "button",
+			index: 13,
+		},
+		[ClassicalGamepad.Button.LEFT]: {
+			type: "button",
+			index: 14,
+		},
+		[ClassicalGamepad.Button.RIGHT]: {
+			type: "button",
+			index: 15,
+		},
+		[ClassicalGamepad.Button.HOME]: {
+			type: "button",
+			index: 16,
+		},
+	},
+	axes: {
+		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
+			type: "axis",
+			axis: 0,
+			minAxisRange: 0,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
+			type: "axis",
+			axis: 1,
+			minAxisRange: 0,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
+			type: "axis",
+			axis: 4,
+			minAxisRange: 0,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
+			type: "axis",
+			axis: 5,
+			minAxisRange: 0,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LT]: {
+			type: "axis",
+			axis: 7,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: -1,
+		},
+		[ClassicalGamepad.Axis.RT]: {
+			type: "axis",
+			axis: 6,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: -1,
+		},
+	},
+	navigationHandler: computeNavigationCommandClassicGamepad,
+	directArmHandler: computeDirectArmCommandClassicGamepad,
+	inverseArmHandler: computeInverseArmCommandClassicGamepad,
+};
+
+const XBOX_CHROME_LINUX: DeviceProfile = {
+	name: "Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 02fd)",
+	OS: "Linux",
+	webBrowser: "Chrome",
 	buttons: {
 		[ClassicalGamepad.Button.A]: {
 			type: "button",
@@ -150,94 +265,83 @@ const XBOX_FIREFOX_LINUX: DeviceProfile = {
 		},
 		[ClassicalGamepad.Button.BACK]: {
 			type: "button",
-			index: 6,
+			index: 8,
 		},
 		[ClassicalGamepad.Button.START]: {
 			type: "button",
-			index: 7,
+			index: 9,
 		},
 		[ClassicalGamepad.Button.LEFT_STICK]: {
 			type: "button",
-			index: 8,
+			index: 10,
 		},
 		[ClassicalGamepad.Button.RIGHT_STICK]: {
 			type: "button",
-			index: 9,
+			index: 11,
 		},
 		[ClassicalGamepad.Button.UP]: {
 			type: "button",
-			index: 10,
+			index: 12,
 		},
 		[ClassicalGamepad.Button.DOWN]: {
 			type: "button",
-			index: 11,
+			index: 13,
 		},
 		[ClassicalGamepad.Button.LEFT]: {
 			type: "button",
-			index: 12,
+			index: 14,
 		},
 		[ClassicalGamepad.Button.RIGHT]: {
 			type: "button",
-			index: 13,
+			index: 15,
 		},
 		[ClassicalGamepad.Button.HOME]: {
 			type: "button",
-			index: 14,
+			index: 16,
 		},
 	},
 	axes: {
 		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
 			type: "axis",
 			axis: 0,
-			minAxisRange: 0,
+			minAxisRange: -1,
 			maxAxisRange: 1,
 			zeroAxisRange: 0,
 		},
 		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
 			type: "axis",
 			axis: 1,
-			minAxisRange: 0,
-			maxAxisRange: 1,
+			minAxisRange: 1,
+			maxAxisRange: -1,
 			zeroAxisRange: 0,
 		},
 		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
 			type: "axis",
 			axis: 2,
-			minAxisRange: 0,
+			minAxisRange: -1,
 			maxAxisRange: 1,
 			zeroAxisRange: 0,
 		},
 		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
 			type: "axis",
 			axis: 3,
-			minAxisRange: 0,
-			maxAxisRange: 1,
+			minAxisRange: 1,
+			maxAxisRange: -1,
 			zeroAxisRange: 0,
 		},
 		[ClassicalGamepad.Axis.LT]: {
 			type: "trigger",
-			button: 4,
+			button: 6,
 			maxTriggerRange: 1,
 			zeroTriggerRange: 0,
 		},
 		[ClassicalGamepad.Axis.RT]: {
 			type: "trigger",
-			button: 5,
+			button: 7,
 			maxTriggerRange: 1,
 			zeroTriggerRange: 0,
 		},
 	},
-	navigationHandler: computeNavigationCommandClassicGamepad,
-	directArmHandler: computeDirectArmCommandClassicGamepad,
-	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-};
-
-const XBOX_CHROME_LINUX: DeviceProfile = {
-	name: "045e-0b12-Microsoft Xbox One X pad",
-	OS: "Linux",
-	webBrowser: "Chrome",
-	buttons: {},
-	axes: {},
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
@@ -245,8 +349,347 @@ const XBOX_CHROME_LINUX: DeviceProfile = {
 
 const XBOX_CHROME_MAC: DeviceProfile = {
 	name: "Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 02fd)",
-	OS: "Linux",
+	OS: "MacOS",
 	webBrowser: "Chrome",
+	buttons: {
+		[ClassicalGamepad.Button.A]: {
+			type: "button",
+			index: 0,
+		},
+		[ClassicalGamepad.Button.B]: {
+			type: "button",
+			index: 1,
+		},
+		[ClassicalGamepad.Button.X]: {
+			type: "button",
+			index: 2,
+		},
+		[ClassicalGamepad.Button.Y]: {
+			type: "button",
+			index: 3,
+		},
+		[ClassicalGamepad.Button.LB]: {
+			type: "button",
+			index: 4,
+		},
+		[ClassicalGamepad.Button.RB]: {
+			type: "button",
+			index: 5,
+		},
+		[ClassicalGamepad.Button.BACK]: {
+			type: "button",
+			index: 8,
+		},
+		[ClassicalGamepad.Button.START]: {
+			type: "button",
+			index: 9,
+		},
+		[ClassicalGamepad.Button.LEFT_STICK]: {
+			type: "button",
+			index: 10,
+		},
+		[ClassicalGamepad.Button.RIGHT_STICK]: {
+			type: "button",
+			index: 11,
+		},
+		[ClassicalGamepad.Button.UP]: {
+			type: "button",
+			index: 12,
+		},
+		[ClassicalGamepad.Button.DOWN]: {
+			type: "button",
+			index: 13,
+		},
+		[ClassicalGamepad.Button.LEFT]: {
+			type: "button",
+			index: 14,
+		},
+		[ClassicalGamepad.Button.RIGHT]: {
+			type: "button",
+			index: 15,
+		},
+		[ClassicalGamepad.Button.HOME]: {
+			type: "button",
+			index: 16,
+		},
+	},
+	axes: {
+		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
+			type: "axis",
+			axis: 0,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
+			type: "axis",
+			axis: 1,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
+			type: "axis",
+			axis: 2,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
+			type: "axis",
+			axis: 3,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LT]: {
+			type: "trigger",
+			button: 6,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+		[ClassicalGamepad.Axis.RT]: {
+			type: "trigger",
+			button: 7,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+	},
+	navigationHandler: computeNavigationCommandClassicGamepad,
+	directArmHandler: computeDirectArmCommandClassicGamepad,
+	inverseArmHandler: computeInverseArmCommandClassicGamepad,
+};
+
+const XBOX_CHROME_WINDOWS: DeviceProfile = {
+	name: "Contrôleur de jeu IHM (STANDARD GAMEPAD Vendor: 045e Product: 02e0)",
+	OS: "Windows",
+	webBrowser: "Chrome",
+	buttons: {
+		[ClassicalGamepad.Button.A]: {
+			type: "button",
+			index: 0,
+		},
+		[ClassicalGamepad.Button.B]: {
+			type: "button",
+			index: 1,
+		},
+		[ClassicalGamepad.Button.X]: {
+			type: "button",
+			index: 2,
+		},
+		[ClassicalGamepad.Button.Y]: {
+			type: "button",
+			index: 3,
+		},
+		[ClassicalGamepad.Button.LB]: {
+			type: "button",
+			index: 4,
+		},
+		[ClassicalGamepad.Button.RB]: {
+			type: "button",
+			index: 5,
+		},
+		[ClassicalGamepad.Button.BACK]: {
+			type: "button",
+			index: 8,
+		},
+		[ClassicalGamepad.Button.START]: {
+			type: "button",
+			index: 9,
+		},
+		[ClassicalGamepad.Button.LEFT_STICK]: {
+			type: "button",
+			index: 10,
+		},
+		[ClassicalGamepad.Button.RIGHT_STICK]: {
+			type: "button",
+			index: 11,
+		},
+		[ClassicalGamepad.Button.UP]: {
+			type: "button",
+			index: 12,
+		},
+		[ClassicalGamepad.Button.DOWN]: {
+			type: "button",
+			index: 13,
+		},
+		[ClassicalGamepad.Button.LEFT]: {
+			type: "button",
+			index: 14,
+		},
+		[ClassicalGamepad.Button.RIGHT]: {
+			type: "button",
+			index: 15,
+		},
+		[ClassicalGamepad.Button.HOME]: {
+			type: "button",
+			index: 16,
+		},
+	},
+	axes: {
+		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
+			type: "axis",
+			axis: 0,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
+			type: "axis",
+			axis: 1,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
+			type: "axis",
+			axis: 2,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
+			type: "axis",
+			axis: 3,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LT]: {
+			type: "trigger",
+			button: 6,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+		[ClassicalGamepad.Axis.RT]: {
+			type: "trigger",
+			button: 7,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+	},
+	navigationHandler: computeNavigationCommandClassicGamepad,
+	directArmHandler: computeDirectArmCommandClassicGamepad,
+	inverseArmHandler: computeInverseArmCommandClassicGamepad,
+};
+
+const XBOX_EDGE_WINDOWS: DeviceProfile = {
+	name: "Contrôleur de jeu IHM (STANDARD GAMEPAD Vendor: 045e Product: 02e0)",
+	OS: "Windows",
+	webBrowser: "Edge",
+	buttons: {
+		[ClassicalGamepad.Button.A]: {
+			type: "button",
+			index: 0,
+		},
+		[ClassicalGamepad.Button.B]: {
+			type: "button",
+			index: 1,
+		},
+		[ClassicalGamepad.Button.X]: {
+			type: "button",
+			index: 2,
+		},
+		[ClassicalGamepad.Button.Y]: {
+			type: "button",
+			index: 3,
+		},
+		[ClassicalGamepad.Button.LB]: {
+			type: "button",
+			index: 4,
+		},
+		[ClassicalGamepad.Button.RB]: {
+			type: "button",
+			index: 5,
+		},
+		[ClassicalGamepad.Button.BACK]: {
+			type: "button",
+			index: 8,
+		},
+		[ClassicalGamepad.Button.START]: {
+			type: "button",
+			index: 9,
+		},
+		[ClassicalGamepad.Button.LEFT_STICK]: {
+			type: "button",
+			index: 10,
+		},
+		[ClassicalGamepad.Button.RIGHT_STICK]: {
+			type: "button",
+			index: 11,
+		},
+		[ClassicalGamepad.Button.UP]: {
+			type: "button",
+			index: 12,
+		},
+		[ClassicalGamepad.Button.DOWN]: {
+			type: "button",
+			index: 13,
+		},
+		[ClassicalGamepad.Button.LEFT]: {
+			type: "button",
+			index: 14,
+		},
+		[ClassicalGamepad.Button.RIGHT]: {
+			type: "button",
+			index: 15,
+		},
+		[ClassicalGamepad.Button.HOME]: {
+			type: "button",
+			index: 16,
+		},
+	},
+	axes: {
+		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
+			type: "axis",
+			axis: 0,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
+			type: "axis",
+			axis: 1,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
+			type: "axis",
+			axis: 2,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
+			type: "axis",
+			axis: 3,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LT]: {
+			type: "trigger",
+			button: 6,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+		[ClassicalGamepad.Axis.RT]: {
+			type: "trigger",
+			button: 7,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+	},
+	navigationHandler: computeNavigationCommandClassicGamepad,
+	directArmHandler: computeDirectArmCommandClassicGamepad,
+	inverseArmHandler: computeInverseArmCommandClassicGamepad,
+};
+
+const XBOX_FIREFOX_WINDOWS: DeviceProfile = {
+	name: "xinput",
+	OS: "Windows",
+	webBrowser: "Firefox",
 	buttons: {
 		[ClassicalGamepad.Button.A]: {
 			type: "button",
@@ -406,6 +849,8 @@ const profiles: {
 	XBOX_FIREFOX_LINUX,
 	XBOX_CHROME_LINUX,
 	XBOX_CHROME_MAC,
+	XBOX_CHROME_WINDOWS,
+	XBOX_EDGE_WINDOWS,
 	PS4_FIREFOX_LINUX,
 	PS4_CHROME_LINUX,
 	PS4_CHROME_MAC,
