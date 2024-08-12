@@ -1,11 +1,12 @@
 // @ts-nocheck
-import { Suspense, memo, useState, startTransition } from "react";
+import { Suspense, memo, useState, startTransition, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
+import { Line, OrbitControls, Plane, useFBX, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../../assets/images/MarsYard2024.png";
 import Pin from "./Pin";
 import { Point2D } from "../../../data/point.type";
+import Terrain3D from "./Terrain";
 
 function Simulation({
 	armJointAngles,
@@ -81,7 +82,7 @@ function Simulation({
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					pivotAngle={pivotAngle}
 				/>
-				<Terrain setPoint={setPoint} currentTarget={currentTarget} />
+				<Terrain3D setPoint={setPoint} currentTarget={currentTarget} />
 				<Line points={path.map(mapPointToCoordinates)} color={0xff4345} lineWidth={2} />
 			</Canvas>
 		</Suspense>
