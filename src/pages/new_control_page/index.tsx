@@ -1,15 +1,15 @@
 import styles from "./style.module.sass";
 import Timer from "../../components/ui/Timer";
-import ExpandButton from "../../components/controls/ExpandButton";
-import Gamepad from "../../components/controls/Gamepad";
-import QuickAction from "../../components/controls/QuickAction";
+import ExpandButton from "../../components/Controls/ExpandButton";
+import Gamepad from "../../components/Controls/Gamepad";
+import QuickAction from "../../components/Controls/QuickAction";
 import { useNavigate } from "react-router-dom";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
 import Drill from "../../assets/images/icons/drill.png";
-import SystemMode from "../../components/controls/SystemMode";
+import SystemMode from "../../components/Controls/SystemMode";
 import Simulation from "../../components/data/Simulation";
 import RoverData from "../../components/data/RoverData";
 

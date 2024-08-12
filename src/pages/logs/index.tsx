@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import BackButton from "../../components/controls/BackButton";
+import BackButton from "../../components/Controls/BackButton";
 import Background from "../../components/ui/Background";
 import styles from "./style.module.sass";
-import LogFilter from "../../components/controls/LogFilter";
+import LogFilter from "../../components/Controls/LogFilter";
 import { Themes } from "../../data/themes.type";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useRoverLogs, { LogLevel } from "../../hooks/roverLogHooks";
