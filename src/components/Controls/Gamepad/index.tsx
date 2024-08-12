@@ -4,6 +4,7 @@ import styles from "./style.module.sass";
 import { Task } from "../../../data/tasks.type";
 import * as ROSLIB from "roslib";
 import States from "../../../data/states.type";
+import { ClassicalGamepad } from "../../../utils/Gamepad/bindings";
 
 const Gamepad = ({
 	selectorCallback,
@@ -63,41 +64,49 @@ const Gamepad = ({
 				}`}
 			>
 				<GamepadDisplay
-					buttonDown={gamepadState.buttons[0]}
-					buttonRight={gamepadState.buttons[1]}
-					buttonLeft={gamepadState.buttons[2]}
-					buttonUp={gamepadState.buttons[3]}
-					directionUp={gamepadState.buttons[12]}
-					directionDown={gamepadState.buttons[13]}
-					directionLeft={gamepadState.buttons[14]}
-					directionRight={gamepadState.buttons[15]}
+					buttonDown={gamepadState.buttons[ClassicalGamepad.Button.A]}
+					buttonRight={gamepadState.buttons[ClassicalGamepad.Button.B]}
+					buttonLeft={gamepadState.buttons[ClassicalGamepad.Button.X]}
+					buttonUp={gamepadState.buttons[ClassicalGamepad.Button.Y]}
+					directionUp={gamepadState.buttons[ClassicalGamepad.Button.UP]}
+					directionDown={gamepadState.buttons[ClassicalGamepad.Button.DOWN]}
+					directionLeft={gamepadState.buttons[ClassicalGamepad.Button.LEFT]}
+					directionRight={gamepadState.buttons[ClassicalGamepad.Button.RIGHT]}
 					analogLeft={
-						gamepadState.axes[0] > 0.3 ||
-						gamepadState.axes[0] < -0.3 ||
-						gamepadState.axes[1] > 0.3 ||
-						gamepadState.axes[1] < -0.3
+						gamepadState.axes[ClassicalGamepad.Axis.LEFT_STICK_X] > 0.3 ||
+						gamepadState.axes[ClassicalGamepad.Axis.LEFT_STICK_X] < -0.3 ||
+						gamepadState.axes[ClassicalGamepad.Axis.LEFT_STICK_Y] > 0.3 ||
+						gamepadState.axes[ClassicalGamepad.Axis.LEFT_STICK_Y] < -0.3
 					}
 					analogRight={
-						gamepadState.axes[2] > 0.3 ||
-						gamepadState.axes[2] < -0.3 ||
-						gamepadState.axes[3] > 0.3 ||
-						gamepadState.axes[3] < -0.3
+						gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_X] > 0.3 ||
+						gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_X] < -0.3 ||
+						gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_Y] > 0.3 ||
+						gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_Y] < -0.3
 					}
 					analogLeftDirection={[
-						calcDirectionHorizontal(gamepadState.axes[0]),
-						calcDirectionVertical(gamepadState.axes[1]),
+						calcDirectionHorizontal(
+							gamepadState.axes[ClassicalGamepad.Axis.LEFT_STICK_X]
+						),
+						calcDirectionVertical(
+							gamepadState.axes[ClassicalGamepad.Axis.LEFT_STICK_Y]
+						),
 					]}
 					analogRightDirection={[
-						calcDirectionHorizontal(gamepadState.axes[2]),
-						calcDirectionVertical(gamepadState.axes[3]),
+						calcDirectionHorizontal(
+							gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_X]
+						),
+						calcDirectionVertical(
+							gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_Y]
+						),
 					]}
-					select={gamepadState.buttons[8]}
-					start={gamepadState.buttons[9]}
-					home={gamepadState.buttons[10]}
-					rearLeft={gamepadState.buttons[4]}
-					rearRight={gamepadState.buttons[5]}
-					triggerLeft={gamepadState.triggers[6]}
-					triggerRight={gamepadState.triggers[7]}
+					select={gamepadState.buttons[ClassicalGamepad.Button.START]}
+					start={gamepadState.buttons[ClassicalGamepad.Button.BACK]}
+					home={gamepadState.buttons[ClassicalGamepad.Button.HOME]}
+					rearLeft={gamepadState.buttons[ClassicalGamepad.Button.LB]}
+					rearRight={gamepadState.buttons[ClassicalGamepad.Button.RB]}
+					triggerLeft={gamepadState.axes[ClassicalGamepad.Axis.LT]}
+					triggerRight={gamepadState.axes[ClassicalGamepad.Axis.RT]}
 					activeColor="#FF4345"
 					isControlling={gamepadCommandState === GamepadCommandState.CONTROL}
 				/>
