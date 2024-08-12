@@ -3,7 +3,7 @@ import { Suspense, memo, useState, startTransition } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
-import MarsYard from "../../../assets/images/mars_yard_2023_2.png";
+import MarsYard from "../../../assets/images/MarsYard2024.png";
 import Pin from "./Pin";
 import { Point2D } from "../../../data/point.type";
 
@@ -99,8 +99,8 @@ const Terrain = ({
 
 	return (
 		<Plane
-			args={[50, 50]}
-			rotation={[-Math.PI / 2, 0, Math.PI / 2]}
+			args={[89, 50]}
+			rotation={[-Math.PI / 2, 0, 0]}
 			// y, z, x of MarsYard
 			position={[-21.9, -0.47, -3.2]}
 			receiveShadow
