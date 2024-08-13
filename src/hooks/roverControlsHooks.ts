@@ -123,7 +123,7 @@ const useRoverControls = (
 								", you need to change the service " +
 								service.service.name
 						);
-						return;
+						return
 					}
 				}
 			}

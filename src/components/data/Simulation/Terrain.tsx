@@ -43,6 +43,6 @@ const Terrain3D = ({
 	);
 };
 
-useFBX.preload("/models/MarsYard2024.glb");
+//useFBX.preload("/models/MarsYard2024.glb");
 
 export default Terrain3D;

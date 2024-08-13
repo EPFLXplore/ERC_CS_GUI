@@ -36,6 +36,7 @@ import useAlert from "../../hooks/alertHooks";
 import useRoverControls from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement } from "react";
+import { getdBm } from "../../components/ui/Timer";
 
 const CAMERA_CONFIGS = [
 	["camera_0"],
@@ -107,6 +108,7 @@ const NewControlPage = () => {
 			} else {
 				// @ts-ignore
 				newModalOpen[system] = true;
+				//getdBm()
 				setModal(
 					selectModal(
 						system,

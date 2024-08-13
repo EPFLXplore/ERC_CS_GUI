@@ -54,10 +54,15 @@ const requestChangeMode = (
 		// TODO: put the color UI when sending a request!
 		changeModeSystem.callService(
 			request,
-			(res) => successfullChange(res, ser, snackBar),
-			(err) => failChange(err, snackBar)
+			(res) => {
+				successfullChange(res, ser, snackBar)
+				sendingRequest(false)
+			},
+			(err) => {
+				failChange(err, snackBar)
+				sendingRequest(false);
+			}
 		);
-		sendingRequest(false);
 	}
 };
 
