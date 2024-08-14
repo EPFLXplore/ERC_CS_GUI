@@ -26,6 +26,7 @@ import InfoBox from "../../components/data/InfoBox";
 import { Dvr, Settings } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
 import {
+	getdBm,
 	getJointsPositions,
 	getPivotAngle,
 	getSteeringAngles,
@@ -33,10 +34,9 @@ import {
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
-import useRoverControls from "../../hooks/roverControlsHooks";
+import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement } from "react";
-import { getdBm } from "../../components/ui/Timer";
 
 const CAMERA_CONFIGS = [
 	["camera_0"],
@@ -89,9 +89,9 @@ const NewControlPage = () => {
 						// closing all modals
 						setStateActions((old) => {
 							let newStates = { ...old };
-							if (newStates[key].ros_goal !== null) {
+							if (newStates[key].goal_params !== null) {
 								// @ts-ignore
-								newStates[key].ros_goal?.cancel();
+								newStates[key].goal_params?.cancel();
 								newStates[key].action.state = States.OFF;
 							}
 							return newStates;
@@ -108,7 +108,6 @@ const NewControlPage = () => {
 			} else {
 				// @ts-ignore
 				newModalOpen[system] = true;
-				//getdBm()
 				setModal(
 					selectModal(
 						system,
@@ -174,7 +173,8 @@ const NewControlPage = () => {
 						// cursor: "pointer",
 					}}
 				/>
-				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} />
+				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore 
+				wifiLevel={getdBm()} />
 			</div>
 			<div className={styles.control}>
 				<div
@@ -409,14 +409,7 @@ const selectModal = (
 	system: SubSystems | "",
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
-	setSystemsModalOpen: React.Dispatch<
-		React.SetStateAction<{
-			[SubSystems.NAGIVATION]: boolean;
-			[SubSystems.HANDLING_DEVICE]: boolean;
-			[SubSystems.DRILL]: boolean;
-			["cancel"]: boolean;
-		}>
-	>,
+	setSystemsModalOpen: (modals: any) => void,
 	launchAction: (system: string, goal: any) => void,
 	cancelAction: (system: string) => void,
 	showSnackbar: (severity: AlertColor, message: string) => void
@@ -427,7 +420,7 @@ const selectModal = (
 				<NavigationGoalModal
 					onClose={() => {
 						setModal(<></>);
-						setSystemsModalOpen((old) => {
+						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen[SubSystems.NAGIVATION] = false;
 							return newModalOpen;
@@ -443,7 +436,7 @@ const selectModal = (
 				<ArmGoalModal
 					onClose={() => {
 						setModal(<></>);
-						setSystemsModalOpen((old) => {
+						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen[SubSystems.HANDLING_DEVICE] = false;
 							return newModalOpen;
@@ -459,7 +452,7 @@ const selectModal = (
 				<DrillGoalModal
 					onClose={() => {
 						setModal(<></>);
-						setSystemsModalOpen((old) => {
+						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen[SubSystems.DRILL] = false;
 							return newModalOpen;

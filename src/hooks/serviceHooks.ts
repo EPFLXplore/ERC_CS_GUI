@@ -3,6 +3,7 @@ import { Service, RuleRover } from "../data/service.type";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
+import { time } from "console";
 
 const rulesNavigation: RuleRover[] = [
 	{
@@ -92,7 +93,7 @@ function useService(
 			let newStates = { ...old };
 			let change: string[] = [];
 
-			if (roverState["rover"] === undefined || roverState === undefined) {
+			if (roverState === undefined || roverState["rover"] === undefined) {
 				return newStates;
 			}
 
@@ -112,6 +113,7 @@ function useService(
 								roverState["rover"]["status"]["systems"][
 									stateServices[key].service.name
 								]["status"];
+							console.log("service changed but its blue snack.....")
 							if (!init) {
 								change.push(
 									`${stateServices[key].service.name} -> ${service.service.state}`

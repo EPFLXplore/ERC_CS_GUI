@@ -74,6 +74,7 @@ const successfullChange = (
 	if (result["error_type"] === 0) {
 		// no error has occured
 		ser.state = JSON.parse(result["systems_state"])[ser.name];
+		console.log("service changed in change mode system")
 		snackBar("success", "Successfully changed service " + ser.name + " in " + ser.state);
 	} else {
 		snackBar(

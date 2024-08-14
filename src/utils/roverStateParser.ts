@@ -189,6 +189,14 @@ const getDrillScrewRotation = (data: any) => {
 	return data["drill"]["motors"]["motor_drill"]["speed"];
 };
 
+const getdBm = (data: any) => {
+	if (!data["rover"]) {
+		return 0.0;
+	} 
+		
+	return Number(data["rover"]["network"]["signal_strength"])
+}
+
 //#endregion
 
 export {
@@ -202,4 +210,5 @@ export {
 	getDrillEncoderValue,
 	getDrillScrewRotation,
 	getBatteryLevel,
+	getdBm
 };

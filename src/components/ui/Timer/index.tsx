@@ -15,7 +15,9 @@ import {
 	BatteryFullRounded,
 } from "@mui/icons-material";
 import useTimer from "../../../hooks/timerHooks";
-import axios from "axios"
+import axios from "axios";
+//import https from 'https';
+//import { exec } from 'child_process';
 
 const Timer = ({
 	onFinished,
@@ -127,30 +129,3 @@ const getBatteryState = (battery: number) => {
 		return <BatteryFullRounded className={styles.icon} />;
 	}
 };
-
-const getdBm = () => {
-
-	const instance = axios.create({
-		baseURL: 'http://169.254.55.1/rest/',
-		auth: {
-		  username: "admin",
-		  password: "XploreAntenna3"
-		},
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			get: {
-				"Access-Control-Allow-Origin": "*"
-			  }
-		  }
-	  });
-
-	instance.get('interface/wifi/registration-table')
-	  .then(response => {
-		// set the new value
-		console.log(response.data)
-	  })
-	  .catch(error => {
-		console.log(error);
-	  })
-};
-export {getdBm}

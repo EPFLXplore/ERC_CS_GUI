@@ -14,6 +14,12 @@ import requestChangeMode from "../utils/changeSystemMode";
 const MAX_CAMERAS = 5;
 const NBR_SERVICES = 4;
 
+type typeModal = {
+	[key: string]: boolean
+}
+
+export type { typeModal }
+
 const useRoverControls = (
 	ros: ROSLIB.Ros | null,
 	showSnackbar: (sev: AlertColor, mes: string) => void
@@ -37,7 +43,7 @@ const useRoverControls = (
 		showSnackbar(sev, mes)
 	);
 
-	const [systemsModalOpen, setSystemsModalOpen] = useState({
+	const [systemsModalOpen, setSystemsModalOpen] = useState<typeModal>({
 		[SubSystems.NAGIVATION]: false,
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
@@ -67,7 +73,7 @@ const useRoverControls = (
 				(b) => setSendAction(b),
 				(actions: ActionType) => setStateActions(actions),
 				showSnackbar,
-				{}
+				systemsModalOpen
 			);
 
 			return newStates;

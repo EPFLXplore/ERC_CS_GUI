@@ -3,6 +3,8 @@ import Action from "../data/action.type";
 import States from "../data/states.type";
 import { ActionType } from "../hooks/actionsHooks";
 import { AlertColor } from "@mui/material";
+import { typeModal } from "../hooks/roverControlsHooks";
+import { ReactElement } from "react";
 
 const actionGoal = (
 	ros: ROSLIB.Ros | null,
@@ -21,11 +23,17 @@ const actionGoal = (
 		updateActions((old: ActionType) => {
 			let newStates = { ...old };
 
-			if (newStates[system].ros_goal !== null) {
-				newStates[system].ros_goal = null;
-				newStates[system].action.state = States.OFF;
+			if (newStates[system].ros_object !== null && newStates[system].goal_object !== undefined) {
 
-				// TODO CHECK WITH ROVER STATE THAT THE ACTION HAS BEEN CANCELED?
+				newStates[system].ros_object.cancelGoal(newStates[system].goal_object)
+
+				// can't check if the cancelation is successful it's not a future
+
+				newStates[system].goal_params = null;
+				newStates[system].goal_object = undefined;
+				newStates[system].action.state = States.OFF;
+				newStates[system].ros_object = null;
+				snackBar("success", "Action for " + system + "has been canceled (correctly we need to check the status on the rover state of the subsystem)");
 			} else {
 				snackBar("info", "No action for " + system + "is running");
 			}
@@ -43,28 +51,41 @@ const actionGoal = (
 		});
 
 		console.log(actionArgs);
-		actionClient.sendGoal(
+		sentAction(true);
+		const goalHandle = actionClient.sendGoal(
 			actionArgs,
 			(result: any) => {
 				console.log(result);
 				sentAction(false);
 				updateActions((old: ActionType) => {
 					const newStates = { ...old };
+
+					// todo: il faut tester que l'action fait ait retourné ce que l'on voulait pour savoir
+					// si l'action a été correctement executée				
+
 					newStates[system].action.state = States.OFF; // the action is finished
-					newStates[system].ros_goal = null;
+					newStates[system].goal_params = null;
+					newStates[system].goal_object = undefined;
+					newStates[system].ros_object = null;
 					return newStates;
 				});
+
+				snackBar("success", "Action " + system + " successfully completed")
 			},
 			(feedback: any) => {
 				console.log(feedback);
+			},
+			(error: string) => {
+				console.log(error) // si pas d'erreur dans le cancel goal, renvoye None!
 			}
 		);
 
-		sentAction(true);
 		updateActions((old: ActionType) => {
 			const newStates = { ...old };
 			newStates[system].action.state = States.ON; // the action starts
-			newStates[system].ros_goal = actionArgs;
+			newStates[system].goal_params = actionArgs;
+			newStates[system].goal_object = goalHandle;
+			newStates[system].ros_object = actionClient;
 			return newStates;
 		});
 	}
