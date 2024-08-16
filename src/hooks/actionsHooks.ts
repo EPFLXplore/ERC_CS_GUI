@@ -70,6 +70,7 @@ function useActions(
 				return newStates;
 			}
 
+			/*
 			if (!sentAction) {
 				if (
 					newStates[SubSystems.NAGIVATION].action.state !==
@@ -102,6 +103,7 @@ function useActions(
 			}
 
 			setInit(false);
+			*/
 			return newStates;
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps

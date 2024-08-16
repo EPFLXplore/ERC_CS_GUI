@@ -190,7 +190,7 @@ const getDrillScrewRotation = (data: any) => {
 };
 
 const getdBm = (data: any) => {
-	if (!data["rover"]) {
+	if (!data || !data["rover"]) {
 		return 0.0;
 	} 
 		

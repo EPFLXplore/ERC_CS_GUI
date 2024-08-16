@@ -80,7 +80,7 @@ function DrillGoalModal({
 					<button
 						onClick={() => {
 							onCancelGoal(SubSystems.NAGIVATION);
-							onClose();
+							//onClose();
 						}}
 					>
 						Cancel Task

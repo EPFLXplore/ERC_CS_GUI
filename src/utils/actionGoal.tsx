@@ -3,8 +3,6 @@ import Action from "../data/action.type";
 import States from "../data/states.type";
 import { ActionType } from "../hooks/actionsHooks";
 import { AlertColor } from "@mui/material";
-import { typeModal } from "../hooks/roverControlsHooks";
-import { ReactElement } from "react";
 
 const actionGoal = (
 	ros: ROSLIB.Ros | null,
@@ -27,12 +25,11 @@ const actionGoal = (
 
 				newStates[system].ros_object.cancelGoal(newStates[system].goal_object)
 
-				// can't check if the cancelation is successful it's not a future
-
 				newStates[system].goal_params = null;
 				newStates[system].goal_object = undefined;
 				newStates[system].action.state = States.OFF;
 				newStates[system].ros_object = null;
+				//sentAction(false);
 				snackBar("success", "Action for " + system + "has been canceled (correctly we need to check the status on the rover state of the subsystem)");
 			} else {
 				snackBar("info", "No action for " + system + "is running");
@@ -51,12 +48,12 @@ const actionGoal = (
 		});
 
 		console.log(actionArgs);
-		sentAction(true);
+		//sentAction(true);
 		const goalHandle = actionClient.sendGoal(
 			actionArgs,
 			(result: any) => {
 				console.log(result);
-				sentAction(false);
+				//sentAction(false);
 				updateActions((old: ActionType) => {
 					const newStates = { ...old };
 

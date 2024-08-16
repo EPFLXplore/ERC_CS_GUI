@@ -71,12 +71,15 @@ const NewControlPage = () => {
 		setModal,
 		dataFocus,
 		cancelAction,
+		cancelAllActions,
 		launchAction,
 		startService,
 		changeMode,
 		triggerDataFocus,
 		point,
 		setPoint,
+		sentAction,
+		setSendAction
 	] = useRoverControls(ros, showSnackbar);
 
 	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
@@ -84,26 +87,7 @@ const NewControlPage = () => {
 			let newModalOpen = { ...old };
 
 			if (cancel) {
-				for (const key in newModalOpen) {
-					if (newModalOpen.hasOwnProperty(key) && key !== "cancel") {
-						// closing all modals
-						setStateActions((old) => {
-							let newStates = { ...old };
-							if (newStates[key].goal_params !== null) {
-								// @ts-ignore
-								newStates[key].goal_params?.cancel();
-								newStates[key].action.state = States.OFF;
-							}
-							return newStates;
-						});
-						// @ts-ignore
-						newModalOpen[key] = false;
-					}
-
-					// TODO check here the rover state to be sure that actions are at OFF? and shw bar if not
-					showSnackbar("error", "An error occurred while cancelling the actions");
-				}
-
+				cancelAllActions();
 				return newModalOpen;
 			} else {
 				// @ts-ignore
@@ -174,7 +158,7 @@ const NewControlPage = () => {
 					}}
 				/>
 				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore 
-				wifiLevel={getdBm()} />
+				wifiLevel={getdBm(roverState)} />
 			</div>
 			<div className={styles.control}>
 				<div

@@ -39,9 +39,7 @@ const useRoverControls = (
 	);
 
 	const [sentAction, setSendAction] = useState(false);
-	const [stateActions, setStateActions] = useActions(roverState, sentAction, (sev, mes) =>
-		showSnackbar(sev, mes)
-	);
+	const [stateActions, setStateActions] = useActions(roverState, sentAction, (sev, mes) => showSnackbar(sev, mes));
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState<typeModal>({
 		[SubSystems.NAGIVATION]: false,
@@ -80,8 +78,36 @@ const useRoverControls = (
 		});
 	};
 
+	const cancelAllActions = () => {
+
+		for (const key in stateActions) {
+			if (systemsModalOpen.hasOwnProperty(key)) {
+
+				setStateActions((old) => {
+					let newStates = { ...old };
+
+					if (newStates[key].ros_object !== null && newStates[key].goal_object !== undefined) {
+
+						newStates[key].ros_object.cancelGoal(newStates[key].goal_object)
+		
+						// can't check if the cancelation is successful it's not a future
+		
+						newStates[key].goal_params = null;
+						newStates[key].goal_object = undefined;
+						newStates[key].action.state = States.OFF;
+						newStates[key].ros_object = null;
+						showSnackbar("success", "All actions for have been canceled (correctly we need to check the status on the rover state of the subsystem)");
+					}
+					return newStates;
+				});
+				// @ts-ignore
+				systemsModalOpen[key] = false;
+			}
+		}
+
+	}
+
 	const launchAction = (system: string, actionArgs: Object) => {
-		console.log(actionArgs);
 		setStateActions((old) => {
 			let newStates = { ...old };
 
@@ -210,12 +236,15 @@ const useRoverControls = (
 		setModal,
 		dataFocus,
 		cancelAction,
+		cancelAllActions,
 		launchAction,
 		startService,
 		changeMode,
 		triggerDataFocus,
 		point,
 		setPoint,
+		sentAction,
+		setSendAction
 	] as const;
 };
 
