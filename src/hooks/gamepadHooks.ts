@@ -31,32 +31,48 @@ function useGamepad(
 
 		setGamepad(gamepad);
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.START, () => {
-			console.log("Gamepad Command: Change Mode");
-			setGamepadCommandState((prev) => {
-				if (
-					prev === GamepadCommandState.UI &&
-					(mode === Task.NAVIGATION || mode === Task.HANDLING_DEVICE)
-				)
-					return GamepadCommandState.CONTROL;
-				else return GamepadCommandState.UI;
-			});
-		});
+		GamepadController.addGamepadListener(
+			"gamepadButtonPressed",
+			ClassicalGamepad.Button.BACK,
+			() => {
+				console.log("Gamepad Command: Start Sending");
+				setGamepadCommandState((prev) => {
+					if (
+						prev === GamepadCommandState.UI &&
+						(mode === Task.NAVIGATION || mode === Task.HANDLING_DEVICE)
+					)
+						return GamepadCommandState.CONTROL;
+					else return GamepadCommandState.UI;
+				});
+			}
+		);
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.BACK, () => {
-			console.log("Gamepad Command: Start Sending");
-			selectorCallback?.();
-		});
+		GamepadController.addGamepadListener(
+			"gamepadButtonPressed",
+			ClassicalGamepad.Button.START,
+			() => {
+				console.log("Gamepad Command: Change Mode");
+				selectorCallback?.();
+			}
+		);
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.LEFT, () => {
-			console.log("Gamepad Command: Change Camera");
-			if (changeCam) changeCam(-1);
-		});
+		GamepadController.addGamepadListener(
+			"gamepadButtonPressed",
+			ClassicalGamepad.Button.LEFT,
+			() => {
+				console.log("Gamepad Command: Change Camera");
+				if (changeCam) changeCam(-1);
+			}
+		);
 
-		GamepadController.addGamepadListener("gamepadButtonPressed", ClassicalGamepad.Button.RIGHT, () => {
-			console.log("Gamepad Command: Change Camera");
-			if (changeCam) changeCam(1);
-		});
+		GamepadController.addGamepadListener(
+			"gamepadButtonPressed",
+			ClassicalGamepad.Button.RIGHT,
+			() => {
+				console.log("Gamepad Command: Change Camera");
+				if (changeCam) changeCam(1);
+			}
+		);
 	}, []);
 
 	useEffect(() => {

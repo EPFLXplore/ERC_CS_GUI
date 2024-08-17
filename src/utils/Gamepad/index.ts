@@ -21,7 +21,6 @@ class GamepadController {
 			this.gamepad = navigator.getGamepads()[0];
 			this.isConnected = true;
 			this.gamepadState = this.updateState();
-
 			// search in device profiles for the current gamepad, os and browser
 			this.findGamepadProfile();
 		} else {
@@ -39,12 +38,18 @@ class GamepadController {
 				this.gamepad = e.gamepad;
 				this.isConnected = connecting;
 				this.gamepadState = this.updateState();
+				// search in device profiles for the current gamepad, os and browser
+				this.findGamepadProfile();
 			} else if (this.gamepad && !connecting) {
 				const gamepads = navigator.getGamepads();
 				// Case 2: A gamepad is connected, and a gamepad is disconnecting
 				if (gamepads.length > 0) {
 					this.gamepad = gamepads[0];
 					this.isConnected = true;
+
+					// search in device profiles for the current gamepad, os and browser
+					this.findGamepadProfile();
+
 					// Case 3: No gamepad is connected, and a gamepad is disconnecting
 				} else {
 					this.gamepad = null;
@@ -126,8 +131,9 @@ class GamepadController {
 	}
 
 	private updateState(): GamepadControllerState {
+		this.gamepad = navigator.getGamepads()[0];
+
 		if (this.gamepad?.id !== navigator.getGamepads()[0]?.id) {
-			this.gamepad = navigator.getGamepads()[0];
 			this.findGamepadProfile();
 		}
 
@@ -139,10 +145,10 @@ class GamepadController {
 			controller: this.gamepad,
 			isConnected: this.isConnected,
 			buttons: this.gamepad
-				? this.remapButtons(this.gamepad, this.deviceProfile || profiles.DEFAULT_PROFILE)
+				? this.remapButtons(this.gamepad, this.deviceProfile ?? profiles.DEFAULT_PROFILE)
 				: [],
 			axes: this.gamepad
-				? this.remapAxes(this.gamepad, this.deviceProfile || profiles.DEFAULT_PROFILE)
+				? this.remapAxes(this.gamepad, this.deviceProfile ?? profiles.DEFAULT_PROFILE)
 				: [],
 		};
 
@@ -156,7 +162,7 @@ class GamepadController {
 		const triggers = gamepad.buttons.map((button) => button.value);
 
 		const remapedButtons = Object.keys(profile.buttons)
-			.sort()
+			.sort((key) => parseInt(key))
 			.map((button) => {
 				const buttonProfile = profile.buttons[parseInt(button)];
 				if (buttonProfile.type === "button") {
@@ -170,12 +176,11 @@ class GamepadController {
 	}
 
 	private remapAxes(gamepad: Gamepad, profile: DeviceProfile): number[] {
-		const buttons = gamepad.buttons.map((button) => button.pressed);
 		const triggers = gamepad.buttons.map((button) => button.value);
 		const axes = gamepad.axes;
 
 		const remapedAxes = Object.keys(profile.axes)
-			.sort()
+			.sort((key) => parseInt(key))
 			.map((axis) => {
 				const axisProfile = profile.axes[parseInt(axis)];
 				if (axisProfile.type === "axis") {
@@ -246,6 +251,7 @@ class GamepadController {
 		callback: (e: CustomEvent) => void
 	): void {
 		if (event === "gamepadButtonPressed") {
+			console.log("Adding gamepadButtonPressed event listener", button);
 			// @ts-ignore
 			window.addEventListener("gamepadButtonPressed", (e: CustomEvent) => {
 				if (button === e.detail.buttonIndex) {

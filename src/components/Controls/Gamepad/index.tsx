@@ -32,11 +32,11 @@ const Gamepad = ({
 	const calcDirectionVertical = (axe: number) => {
 		// Up
 		if (axe < -0.2) {
-			return "up";
+			return "down";
 		}
 		// Down
 		if (axe > 0.2) {
-			return "down";
+			return "up";
 		}
 
 		return "";
@@ -100,8 +100,8 @@ const Gamepad = ({
 							gamepadState.axes[ClassicalGamepad.Axis.RIGHT_STICK_Y]
 						),
 					]}
-					select={gamepadState.buttons[ClassicalGamepad.Button.START]}
-					start={gamepadState.buttons[ClassicalGamepad.Button.BACK]}
+					select={gamepadState.buttons[ClassicalGamepad.Button.BACK]}
+					start={gamepadState.buttons[ClassicalGamepad.Button.START]}
 					home={gamepadState.buttons[ClassicalGamepad.Button.HOME]}
 					rearLeft={gamepadState.buttons[ClassicalGamepad.Button.LB]}
 					rearRight={gamepadState.buttons[ClassicalGamepad.Button.RB]}
