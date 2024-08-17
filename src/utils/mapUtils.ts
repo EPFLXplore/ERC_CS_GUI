@@ -147,16 +147,34 @@ const createReverseMappingFunction = (
 };
 
 /////// MAPPING MARS YARD KIELCE
+const _p2d1 = { x: 0, y: 0 };
+const _p3d1 = { x: 0, y: 0, z: 0 };
+
+const _p2d2 = { x: -6.3, y: 0 };
+const _p3d2 = { x: -0.1, y: 0, z: -6.24 };
+
+const _p2d3 = { x: 0, y: 10 };
+const _p3d3 = { x: -15.52, y: 0, z: -0.16 };
+
+const map2DTo3DKielce = createMappingFunction(_p2d1, _p2d2, _p2d3, _p3d1, _p3d2, _p3d3);
+const map3DTo2DKielce = createReverseMappingFunction(_p2d1, _p2d2, _p2d3, _p3d1, _p3d2, _p3d3);
+
+///////// MAPPING MARS YARD KRAKOW
 const p2d1 = { x: 0, y: 0 };
 const p3d1 = { x: 0, y: 0, z: 0 };
 
-const p2d2 = { x: -6.3, y: 0 };
-const p3d2 = { x: -0.1, y: 0, z: -6.24 };
+const p2d2 = { x: 9.52191, y: 7.24469 };
+const p3d2 = { x: -7.260067630458998, y: 0, z: -9.57474906018416 };
 
-const p2d3 = { x: 0, y: 10 };
-const p3d3 = { x: -15.52, y: 0, z: -0.16 };
+const p2d3 = { x: 0, y: 20 };
+const p3d3 = { x: -20.038849328504902, y: 0, z: -0.1589123744334513 };
 
-const map2DTo3DKielce = createMappingFunction(p2d1, p2d2, p2d3, p3d1, p3d2, p3d3);
-const map3DTo2DKielce = createReverseMappingFunction(p2d1, p2d2, p2d3, p3d1, p3d2, p3d3);
+const map2DTo3DKrakow = createMappingFunction(p2d1, p2d2, p2d3, p3d1, p3d2, p3d3);
+const map3DTo2DKrakow = createReverseMappingFunction(p2d1, p2d2, p2d3, p3d1, p3d2, p3d3);
 
-export { map2DTo3DKielce as map2DTo3D, map3DTo2DKielce as map3DTo2D };
+export {
+	map2DTo3DKrakow as map2DTo3D,
+	map3DTo2DKrakow as map3DTo2D,
+	map2DTo3DKielce,
+	map3DTo2DKielce,
+};

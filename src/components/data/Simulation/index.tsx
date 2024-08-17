@@ -1,12 +1,14 @@
 // @ts-nocheck
 import { Suspense, memo, useState, startTransition, useEffect, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
-import { Line, OrbitControls, Plane, useFBX, useTexture } from "@react-three/drei";
+import { Canvas, useThree } from "@react-three/fiber";
+import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../../assets/images/MarsYard2024.png";
 import Pin from "./Pin";
 import { Point2D } from "../../../data/point.type";
 import Terrain3D from "./Terrain";
+import { Vector3 } from "three";
+import { map2DTo3D } from "../../../utils/mapUtils";
 
 const Simulation = ({
 	armJointAngles,
@@ -15,7 +17,9 @@ const Simulation = ({
 	pivotAngle,
 	point,
 	setPoint,
+	roverPosition,
 	currentTarget,
+	plannedPath,
 }: {
 	armJointAngles: number[];
 	wheelsSpeed: number[];
@@ -23,38 +27,11 @@ const Simulation = ({
 	pivotAngle: number;
 	point: { x: number; y: number };
 	setPoint: (point: Point2D) => void;
-	currentTarget?: { x: number; y: number };
+	roverPosition: Point2D;
+	currentTarget?: Point2D;
+	plannedPath: Point2D[];
 }) => {
-	const [path, setPath] = useState([
-		{
-			x: 0,
-			y: 0,
-		},
-		{
-			x: -2,
-			y: 0,
-		},
-		{
-			x: -2,
-			y: -2,
-		},
-		{
-			x: -4,
-			y: -5,
-		},
-		{
-			x: -6,
-			y: -5,
-		},
-		{
-			x: -8,
-			y: -7,
-		},
-		{
-			x: -10,
-			y: -10,
-		},
-	]);
+	const terrainRef = useRef();
 
 	useEffect(() => {
 		document.addEventListener("webglcontextlost", (e) => console.log("LOST"));
@@ -79,16 +56,26 @@ const Simulation = ({
 				/>
 				<ambientLight intensity={0.2} color={0xffffff} />
 				<OrbitControls enableZoom={true} />
-				<Pin coordinates={point} />
+				<Pin coordinates={point} terrainRef={terrainRef} />
 				<RobotVisual
 					armJointAngles={armJointAngles}
 					wheelsSpeed={wheelsSpeed}
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					pivotAngle={pivotAngle}
+					position={roverPosition}
+					terrainRef={terrainRef}
 				/>
-				{/* <Terrain3D setPoint={setPoint} currentTarget={currentTarget} /> */}
+				{/* <Terrain3D
+					setPoint={setPoint}
+					currentTarget={currentTarget}
+					terrainRef={terrainRef}
+				/> */}
 				<Terrain setPoint={setPoint} currentTarget={currentTarget} />
-				<Line points={path.map(mapPointToCoordinates)} color={0xff4345} lineWidth={2} />
+				<Line
+					points={plannedPath.map(map2DTo3D).map((point) => [point.x, 0.13, point.z])}
+					color={0xff4345}
+					lineWidth={2}
+				/>
 			</Canvas>
 		</Suspense>
 	);
@@ -116,6 +103,7 @@ const Terrain = ({
 				if (e.delta < 2)
 					startTransition(() => {
 						setPoint({ x: e.point.x, y: e.point.z });
+						console.log(e.point);
 					});
 			}}
 			onPointerUp={(e) => {
@@ -130,10 +118,6 @@ const Terrain = ({
 			<meshStandardMaterial map={texture} opacity={0.9} side={2} />
 		</Plane>
 	);
-};
-
-const mapPointToCoordinates = (point: { x: number; y: number }) => {
-	return [point.x, -0.2, point.y];
 };
 
 export default memo(Simulation);

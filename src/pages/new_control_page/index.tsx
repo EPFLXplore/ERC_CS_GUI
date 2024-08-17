@@ -36,7 +36,7 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
-import { ReactElement } from "react";
+import { ReactElement, useState } from "react";
 
 const CAMERA_CONFIGS = [
 	["camera_0"],
@@ -79,8 +79,39 @@ const NewControlPage = () => {
 		point,
 		setPoint,
 		sentAction,
-		setSendAction
+		setSendAction,
 	] = useRoverControls(ros, showSnackbar);
+
+	const [path, setPath] = useState([
+		{
+			x: 0,
+			y: 0,
+		},
+		{
+			x: 2,
+			y: 0,
+		},
+		{
+			x: 2,
+			y: 2,
+		},
+		{
+			x: 4,
+			y: 5,
+		},
+		{
+			x: 6,
+			y: 5,
+		},
+		{
+			x: 8,
+			y: 7,
+		},
+		{
+			x: 10,
+			y: 10,
+		},
+	]);
 
 	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
 		setSystemsModalOpen((old) => {
@@ -157,8 +188,10 @@ const NewControlPage = () => {
 						// cursor: "pointer",
 					}}
 				/>
-				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore 
-				wifiLevel={getdBm(roverState)} />
+				<Timer
+					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
+					wifiLevel={getdBm(roverState)}
+				/>
 			</div>
 			<div className={styles.control}>
 				<div
@@ -214,6 +247,8 @@ const NewControlPage = () => {
 							pivotAngle={getPivotAngle(roverState)}
 							point={point}
 							setPoint={setPoint}
+							roverPosition={{ x: 0, y: 0 }}
+							plannedPath={path}
 						/>
 					)}
 					<div className={styles.infosRight}>
@@ -350,6 +385,8 @@ const NewControlPage = () => {
 										pivotAngle={getPivotAngle(roverState)}
 										point={point}
 										setPoint={setPoint}
+										roverPosition={{ x: 0, y: 0 }}
+										plannedPath={path}
 									/>
 								)}
 							</div>
