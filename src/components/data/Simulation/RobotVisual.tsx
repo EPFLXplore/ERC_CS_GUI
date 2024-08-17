@@ -1,10 +1,13 @@
 // @ts-nocheck
 import * as THREE from "three";
-import { useRef, memo, startTransition } from "react";
-import { useLoader } from "@react-three/fiber";
+import { useEffect, useState, useRef, memo, startTransition } from "react";
+import { useLoader, useThree } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import URDFLoader from "urdf-loader";
+import { Point2D } from "../../../data/point.type";
+import { Vector3 } from "three";
+import { map2DTo3D } from "../../../utils/mapUtils";
 
 /*
 Reference coordinate frames for THREE.js and ROS.
@@ -37,16 +40,23 @@ const RobotVisual = ({
 	armJointAngles,
 	wheelsSteeringAngle,
 	pivotAngle,
+	position,
+	terrainRef,
 }: {
 	armJointAngles: number[];
 	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
 	pivotAngle: number;
+	position: Point2D;
+	terrainRef: React.MutableRefObject<THREE.Object3D | undefined>;
 }) => {
 	var filepath = "/onyx_description/description/onyx.urdf"; // "/kerby_description/urdf/kerby_compiled.urdf"
 
 	// loading robot model from urdf
 	const ref = useRef();
+	const [roverMapPosition, setRoverMapPosition] = useState({ x: 0, y: 0, z: 0 });
+	const { raycaster } = useThree();
+
 	const robot = useLoader(URDFLoader, filepath, (loader) => {
 		loader.loadMeshFunc = (path, manager, done) => {
 			new STLLoader(manager).load(
@@ -87,12 +97,33 @@ const RobotVisual = ({
 		// robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
 	});
 
+	useEffect(() => {
+		const mapCoord = map2DTo3D(position);
+
+		if (terrainRef.current) {
+			// Set raycaster from the rover's position downwards
+			raycaster.set(new Vector3(mapCoord.x, 10, mapCoord.z), new Vector3(0, -1, 0));
+
+			const intersects = raycaster.intersectObject(terrainRef.current);
+			if (intersects.length > 0) {
+				// Update rover's Y position based on intersection point
+				setRoverMapPosition({
+					x: mapCoord.x,
+					y: intersects[0].point.y + 0.5,
+					z: mapCoord.z,
+				});
+			}
+		} else {
+			setRoverMapPosition(mapCoord);
+		}
+	}, [terrainRef.current, position]);
+
 	return (
 		<group>
 			<mesh
 				castShadow
 				receiveShadow
-				position={[0, 0, 0]}
+				position={[roverMapPosition.x, roverMapPosition.y, roverMapPosition.z]}
 				rotation={[-0.5 * Math.PI, 0, 0]}
 				scale={1}
 			>
