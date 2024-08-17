@@ -57,10 +57,8 @@ const Simulation = ({
 	]);
 
 	useEffect(() => {
-			document.addEventListener("webglcontextlost", (e) => console.log("LOST")
-			);
-	}, []
-	)
+		document.addEventListener("webglcontextlost", (e) => console.log("LOST"));
+	}, []);
 
 	return (
 		<Suspense fallback={null}>
@@ -94,7 +92,7 @@ const Simulation = ({
 			</Canvas>
 		</Suspense>
 	);
-}
+};
 
 const Terrain = ({
 	setPoint,
@@ -110,7 +108,8 @@ const Terrain = ({
 			args={[89, 50]}
 			rotation={[-Math.PI / 2, 0, 0]}
 			// y, z, x of MarsYard
-			position={[-21.9, -0.47, -3.2]}
+			position={[-15.7, -0.47, -3.3]}
+			scale={0.55}
 			receiveShadow
 			traverseVisible={true}
 			onClick={(e) => {
