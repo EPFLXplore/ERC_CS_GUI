@@ -832,6 +832,119 @@ const PS4_CHROME_MAC: DeviceProfile = {
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
 };
 
+const PS4_CHROME_WINDOWS: DeviceProfile = {
+	name: "Contrôleur XBOX 360 pour Windows (STANDARD GAMEPAD)",
+	OS: "Windows",
+	webBrowser: "Chrome",
+	buttons: {
+		[ClassicalGamepad.Button.A]: {
+			type: "button",
+			index: 0,
+		},
+		[ClassicalGamepad.Button.B]: {
+			type: "button",
+			index: 1,
+		},
+		[ClassicalGamepad.Button.X]: {
+			type: "button",
+			index: 2,
+		},
+		[ClassicalGamepad.Button.Y]: {
+			type: "button",
+			index: 3,
+		},
+		[ClassicalGamepad.Button.LB]: {
+			type: "button",
+			index: 4,
+		},
+		[ClassicalGamepad.Button.RB]: {
+			type: "button",
+			index: 5,
+		},
+		[ClassicalGamepad.Button.BACK]: {
+			type: "button",
+			index: 8,
+		},
+		[ClassicalGamepad.Button.START]: {
+			type: "button",
+			index: 9,
+		},
+		[ClassicalGamepad.Button.LEFT_STICK]: {
+			type: "button",
+			index: 10,
+		},
+		[ClassicalGamepad.Button.RIGHT_STICK]: {
+			type: "button",
+			index: 11,
+		},
+		[ClassicalGamepad.Button.UP]: {
+			type: "button",
+			index: 12,
+		},
+		[ClassicalGamepad.Button.DOWN]: {
+			type: "button",
+			index: 13,
+		},
+		[ClassicalGamepad.Button.LEFT]: {
+			type: "button",
+			index: 14,
+		},
+		[ClassicalGamepad.Button.RIGHT]: {
+			type: "button",
+			index: 15,
+		},
+		[ClassicalGamepad.Button.HOME]: {
+			type: "button",
+			index: 16,
+		},
+	},
+	axes: {
+		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
+			type: "axis",
+			axis: 0,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
+			type: "axis",
+			axis: 1,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
+			type: "axis",
+			axis: 2,
+			minAxisRange: -1,
+			maxAxisRange: 1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
+			type: "axis",
+			axis: 3,
+			minAxisRange: 1,
+			maxAxisRange: -1,
+			zeroAxisRange: 0,
+		},
+		[ClassicalGamepad.Axis.LT]: {
+			type: "trigger",
+			button: 6,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+		[ClassicalGamepad.Axis.RT]: {
+			type: "trigger",
+			button: 7,
+			maxTriggerRange: 1,
+			zeroTriggerRange: 0,
+		},
+	},
+	navigationHandler: computeNavigationCommandClassicGamepad,
+	directArmHandler: computeDirectArmCommandClassicGamepad,
+	inverseArmHandler: computeInverseArmCommandClassicGamepad,
+};
+
 //#endregion
 
 ////////////////////////// BINDINGS FOR LOGITECH CONTROLLERS //////////////////////////
@@ -854,6 +967,7 @@ const profiles: {
 	PS4_FIREFOX_LINUX,
 	PS4_CHROME_LINUX,
 	PS4_CHROME_MAC,
+	PS4_CHROME_WINDOWS
 };
 
 export default profiles;
