@@ -6,7 +6,9 @@ import { AlertColor } from "@mui/material";
 
 interface ActionElement {
 	action: Action;
-	ros_goal: Object | null;
+	goal_params: Object | null;
+	goal_object: string | undefined;
+	ros_object: any
 }
 export type ActionType = { [key: string]: ActionElement };
 
@@ -27,7 +29,9 @@ function useActions(
 				"NavigationReachGoal",
 				"NAVReachGoal"
 			),
-			ros_goal: null,
+			goal_params: null,
+			goal_object: undefined,
+			ros_object: null
 		},
 		[SubSystems.HANDLING_DEVICE]: {
 			action: new Action(
@@ -38,7 +42,9 @@ function useActions(
 				"HandlingDeviceManipulation",
 				"HDManipulation"
 			),
-			ros_goal: null,
+			goal_params: null,
+			goal_object: undefined,
+			ros_object: null
 		},
 		[SubSystems.DRILL]: {
 			action: new Action(
@@ -49,7 +55,9 @@ function useActions(
 				"DrillTerrain",
 				"DrillCmd"
 			),
-			ros_goal: null,
+			goal_params: null,
+			goal_object: undefined,
+			ros_object: null
 		},
 	});
 
@@ -62,6 +70,7 @@ function useActions(
 				return newStates;
 			}
 
+			/*
 			if (!sentAction) {
 				if (
 					newStates[SubSystems.NAGIVATION].action.state !==
@@ -94,6 +103,7 @@ function useActions(
 			}
 
 			setInit(false);
+			*/
 			return newStates;
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps

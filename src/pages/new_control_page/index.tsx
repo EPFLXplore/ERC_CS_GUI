@@ -26,6 +26,7 @@ import InfoBox from "../../components/data/InfoBox";
 import { Dvr, Settings } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
 import {
+	getdBm,
 	getJointsPositions,
 	getPivotAngle,
 	getSteeringAngles,
@@ -33,7 +34,7 @@ import {
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
-import useRoverControls from "../../hooks/roverControlsHooks";
+import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement } from "react";
 
@@ -70,12 +71,15 @@ const NewControlPage = () => {
 		setModal,
 		dataFocus,
 		cancelAction,
+		cancelAllActions,
 		launchAction,
 		startService,
 		changeMode,
 		triggerDataFocus,
 		point,
 		setPoint,
+		sentAction,
+		setSendAction
 	] = useRoverControls(ros, showSnackbar);
 
 	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
@@ -83,26 +87,7 @@ const NewControlPage = () => {
 			let newModalOpen = { ...old };
 
 			if (cancel) {
-				for (const key in newModalOpen) {
-					if (newModalOpen.hasOwnProperty(key) && key !== "cancel") {
-						// closing all modals
-						setStateActions((old) => {
-							let newStates = { ...old };
-							if (newStates[key].ros_goal !== null) {
-								// @ts-ignore
-								newStates[key].ros_goal?.cancel();
-								newStates[key].action.state = States.OFF;
-							}
-							return newStates;
-						});
-						// @ts-ignore
-						newModalOpen[key] = false;
-					}
-
-					// TODO check here the rover state to be sure that actions are at OFF? and shw bar if not
-					showSnackbar("error", "An error occurred while cancelling the actions");
-				}
-
+				cancelAllActions();
 				return newModalOpen;
 			} else {
 				// @ts-ignore
@@ -172,7 +157,8 @@ const NewControlPage = () => {
 						// cursor: "pointer",
 					}}
 				/>
-				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} />
+				<Timer status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore 
+				wifiLevel={getdBm(roverState)} />
 			</div>
 			<div className={styles.control}>
 				<div
@@ -407,14 +393,7 @@ const selectModal = (
 	system: SubSystems | "",
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
-	setSystemsModalOpen: React.Dispatch<
-		React.SetStateAction<{
-			[SubSystems.NAGIVATION]: boolean;
-			[SubSystems.HANDLING_DEVICE]: boolean;
-			[SubSystems.DRILL]: boolean;
-			["cancel"]: boolean;
-		}>
-	>,
+	setSystemsModalOpen: (modals: any) => void,
 	launchAction: (system: string, goal: any) => void,
 	cancelAction: (system: string) => void,
 	showSnackbar: (severity: AlertColor, message: string) => void
@@ -425,7 +404,7 @@ const selectModal = (
 				<NavigationGoalModal
 					onClose={() => {
 						setModal(<></>);
-						setSystemsModalOpen((old) => {
+						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen[SubSystems.NAGIVATION] = false;
 							return newModalOpen;
@@ -441,7 +420,7 @@ const selectModal = (
 				<ArmGoalModal
 					onClose={() => {
 						setModal(<></>);
-						setSystemsModalOpen((old) => {
+						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen[SubSystems.HANDLING_DEVICE] = false;
 							return newModalOpen;
@@ -457,7 +436,7 @@ const selectModal = (
 				<DrillGoalModal
 					onClose={() => {
 						setModal(<></>);
-						setSystemsModalOpen((old) => {
+						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen[SubSystems.DRILL] = false;
 							return newModalOpen;

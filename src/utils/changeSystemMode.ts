@@ -54,10 +54,15 @@ const requestChangeMode = (
 		// TODO: put the color UI when sending a request!
 		changeModeSystem.callService(
 			request,
-			(res) => successfullChange(res, ser, snackBar),
-			(err) => failChange(err, snackBar)
+			(res) => {
+				successfullChange(res, ser, snackBar)
+				sendingRequest(false)
+			},
+			(err) => {
+				failChange(err, snackBar)
+				sendingRequest(false);
+			}
 		);
-		sendingRequest(false);
 	}
 };
 
@@ -69,6 +74,7 @@ const successfullChange = (
 	if (result["error_type"] === 0) {
 		// no error has occured
 		ser.state = JSON.parse(result["systems_state"])[ser.name];
+		console.log("service changed in change mode system")
 		snackBar("success", "Successfully changed service " + ser.name + " in " + ser.state);
 	} else {
 		snackBar(
