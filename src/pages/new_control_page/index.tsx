@@ -248,6 +248,7 @@ const NewControlPage = () => {
 							point={point}
 							setPoint={setPoint}
 							roverPosition={{ x: 0, y: 0 }}
+							roverRotation={{ x: 0, y: 0, z: 0 }}
 							plannedPath={path}
 						/>
 					)}
@@ -386,6 +387,7 @@ const NewControlPage = () => {
 										point={point}
 										setPoint={setPoint}
 										roverPosition={{ x: 0, y: 0 }}
+										roverRotation={{ x: 0, y: 0, z: 0 }}
 										plannedPath={path}
 									/>
 								)}

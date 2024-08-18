@@ -5,7 +5,7 @@ import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../../assets/images/MarsYard2024.png";
 import Pin from "./Pin";
-import { Point2D } from "../../../data/point.type";
+import { Point2D, Point3D } from "../../../data/point.type";
 import Terrain3D from "./Terrain";
 import { Vector3 } from "three";
 import { map2DTo3D } from "../../../utils/mapUtils";
@@ -18,6 +18,7 @@ const Simulation = ({
 	point,
 	setPoint,
 	roverPosition,
+	roverRotation,
 	currentTarget,
 	plannedPath,
 }: {
@@ -28,6 +29,7 @@ const Simulation = ({
 	point: { x: number; y: number };
 	setPoint: (point: Point2D) => void;
 	roverPosition: Point2D;
+	roverRotation: Point3D;
 	currentTarget?: Point2D;
 	plannedPath: Point2D[];
 }) => {
@@ -63,6 +65,7 @@ const Simulation = ({
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					pivotAngle={pivotAngle}
 					position={roverPosition}
+					rotation={roverRotation}
 					terrainRef={terrainRef}
 				/>
 				{/* <Terrain3D

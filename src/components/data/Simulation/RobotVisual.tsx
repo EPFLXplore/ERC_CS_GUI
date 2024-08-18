@@ -5,7 +5,7 @@ import { useLoader, useThree } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import URDFLoader from "urdf-loader";
-import { Point2D } from "../../../data/point.type";
+import { Point2D, Point3D } from "../../../data/point.type";
 import { Vector3 } from "three";
 import { map2DTo3D } from "../../../utils/mapUtils";
 
@@ -41,6 +41,7 @@ const RobotVisual = ({
 	wheelsSteeringAngle,
 	pivotAngle,
 	position,
+	rotation,
 	terrainRef,
 }: {
 	armJointAngles: number[];
@@ -48,9 +49,12 @@ const RobotVisual = ({
 	wheelsSteeringAngle: number[];
 	pivotAngle: number;
 	position: Point2D;
+	rotation: Point3D;
 	terrainRef: React.MutableRefObject<THREE.Object3D | undefined>;
 }) => {
-	var filepath = "/onyx_description/description/onyx.urdf"; // "/kerby_description/urdf/kerby_compiled.urdf"
+	// var filepath = "/kerby_description/urdf/kerby_compiled.urdf";
+	// var filepath = "/onyx_description/description/onyx.urdf";
+	var filepath = "/onyx_description_2/urdf/onyx.urdf";
 
 	// loading robot model from urdf
 	const ref = useRef();
@@ -59,6 +63,7 @@ const RobotVisual = ({
 
 	const robot = useLoader(URDFLoader, filepath, (loader) => {
 		loader.loadMeshFunc = (path, manager, done) => {
+			console.log("Loading mesh", path);
 			new STLLoader(manager).load(
 				path,
 				(result) => {
@@ -66,8 +71,13 @@ const RobotVisual = ({
 					const mesh = new THREE.Mesh(result, material);
 					done(mesh);
 				},
-				null,
-				(err) => done(null, err)
+				(progress) => {
+					console.log(progress);
+				},
+				(err) => {
+					console.error(err, "Failed to load mesh", path);
+					done(null, err);
+				}
 			);
 		};
 		loader.fetchOptions = {
@@ -78,23 +88,20 @@ const RobotVisual = ({
 	startTransition(() => {
 		// Set joint angles
 		for (let i = 0; i < 6; i++) {
-			robot.joints[`hd_joint${i + 1}`].setJointValue(
+			robot.joints[`hd_joint_${i + 1}`].setJointValue(
 				THREE.MathUtils.degToRad(armJointAngles[i])
 			);
 		}
-
 		// robot.joints[`finger1`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
-
 		// Set wheel steering angles
 		for (let i = 0; i < wheelsSteeringAngle.length; i++) {
-			robot.joints[`steering${i + 1}`].setJointValue(
-				THREE.MathUtils.degToRad(wheelsSteeringAngle[i])
+			robot.joints[`wheel_steering_${i + 1}`].setJointValue(
+				THREE.MathUtils.degToRad(wheelsSteeringAngle[i] + (i > 1 ? 90 : -90))
 			);
 		}
-
-		// Set pivot angle
-		robot.joints["right_pivot"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
-		// robot.joints["left_pivot"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
+		// // Set pivot angle
+		robot.joints["pivot_right"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
+		robot.joints["pivot_left"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
 	});
 
 	useEffect(() => {
@@ -124,13 +131,14 @@ const RobotVisual = ({
 				castShadow
 				receiveShadow
 				position={[roverMapPosition.x, roverMapPosition.y, roverMapPosition.z]}
-				rotation={[-0.5 * Math.PI, 0, 0]}
+				rotation={[rotation.x, rotation.y, rotation.z]}
 				scale={1}
 			>
 				<primitive
 					ref={ref}
 					object={robot}
-					position={[0, 0, 0]}
+					position={[-0.35, -0.12, 0.25]}
+					rotation={[-0.5 * Math.PI, 0, -Math.PI]}
 					dispose={null}
 					castShadow
 				/>
