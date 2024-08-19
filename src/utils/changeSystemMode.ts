@@ -51,41 +51,31 @@ const requestChangeMode = (
 		});
 
 		sendingRequest(true);
-		// TODO: put the color UI when sending a request!
 		changeModeSystem.callService(
 			request,
 			(res) => {
-				successfullChange(res, ser, snackBar)
-				sendingRequest(false)
+				manageResponse(res, ser, snackBar)
+				sendingRequest(false);
 			},
 			(err) => {
-				failChange(err, snackBar)
+				snackBar("error", "Error from ROS while request service: " + err);
 				sendingRequest(false);
 			}
 		);
+		
 	}
 };
 
-const successfullChange = (
+const manageResponse = (
 	result: any,
 	ser: Service,
 	snackBar: (severity: AlertColor, message: string) => void
 ) => {
-	if (result["error_type"] === 0) {
-		// no error has occured
-		ser.state = JSON.parse(result["systems_state"])[ser.name];
-		console.log("service changed in change mode system")
-		snackBar("success", "Successfully changed service " + ser.name + " in " + ser.state);
-	} else {
-		snackBar(
-			"error",
-			"Error from request to change service (not ROS): " + result["error_message"]
-		);
+	if (result["error_type"] != 0) {
+		// error has occured, or warning
+		//ser.state = JSON.parse(result["systems_state"])[ser.name];
+		snackBar("error","Error from request to change service (not ROS): " + result["error_message"]);
 	}
-};
-
-const failChange = (error: string, snackBar: (severity: AlertColor, message: string) => void) => {
-	snackBar("error", "Error from ROS while request service: " + error);
 };
 
 export default requestChangeMode;

@@ -97,35 +97,32 @@ function useService(
 				return newStates;
 			}
 
-			if (!isServiceRequested) {
-				for (const key in newStates) {
-					if (newStates.hasOwnProperty(key)) {
-						let service = newStates[key];
-						// detect if its another client that changed something
-						if (
-							service.service.state !==
+			for (const key in newStates) {
+				if (newStates.hasOwnProperty(key)) {
+					let service = newStates[key];
+					// detect if rover state is different than client
+					if (
+						service.service.state !==
+						roverState["rover"]["status"]["systems"][
+							stateServices[key].service.name
+						]["status"]
+					) {
+						// yes it is, pop up something
+						service.service.state =
 							roverState["rover"]["status"]["systems"][
 								stateServices[key].service.name
-							]["status"]
-						) {
-							// yes it is, pop up something
-							service.service.state =
-								roverState["rover"]["status"]["systems"][
-									stateServices[key].service.name
-								]["status"];
-							console.log("service changed but its blue snack.....")
-							if (!init) {
-								change.push(
-									`${stateServices[key].service.name} -> ${service.service.state}`
-								);
-							}
+							]["status"];
+						if (!init) {
+							change.push(
+								`${stateServices[key].service.name} -> ${service.service.state}`
+							);
 						}
 					}
 				}
 			}
 
 			if (change.length > 0) {
-				snackBar("info", "These systems have changed their states " + change.join(", "));
+				snackBar("success", "Systems changed: " + change.join(", "));
 			}
 
 			setInit(false);
