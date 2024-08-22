@@ -10,6 +10,21 @@ import Terrain3D from "./Terrain";
 import { Vector3 } from "three";
 import { map2DTo3D } from "../../../utils/mapUtils";
 
+/**
+ * Simulation component that renders the 3D visualization of the rover and the terrain
+ * @param armJointAngles Array of angles of the arm joints
+ * @param wheelsSpeed Array of speeds of the wheels
+ * @param wheelsSteeringAngle Array of angles of the wheels
+ * @param pivotAngle Angle of the pivot
+ * @param point Current point of the pin
+ * @param setPoint Function to set the point of the pin
+ * @param roverPosition Position of the rover
+ * @param roverRotation Rotation of the rover
+ * @param currentTarget Current target point
+ * @param plannedPath Array of points of the planned path
+ * @param volumetric Boolean to determine if the visualization is volumetric (3D terrain)
+ * @returns The 3D visualization of the rover and the terrain
+ */
 const Simulation = ({
 	armJointAngles,
 	wheelsSpeed,
@@ -21,6 +36,7 @@ const Simulation = ({
 	roverRotation,
 	currentTarget,
 	plannedPath,
+	volumetric = false,
 }: {
 	armJointAngles: number[];
 	wheelsSpeed: number[];
@@ -32,6 +48,7 @@ const Simulation = ({
 	roverRotation: Point3D;
 	currentTarget?: Point2D;
 	plannedPath: Point2D[];
+	volumetric?: boolean;
 }) => {
 	const terrainRef = useRef();
 
@@ -68,12 +85,15 @@ const Simulation = ({
 					rotation={roverRotation}
 					terrainRef={terrainRef}
 				/>
-				{/* <Terrain3D
-					setPoint={setPoint}
-					currentTarget={currentTarget}
-					terrainRef={terrainRef}
-				/> */}
-				<Terrain setPoint={setPoint} currentTarget={currentTarget} />
+				{volumetric ? (
+					<Terrain3D
+						setPoint={setPoint}
+						currentTarget={currentTarget}
+						terrainRef={terrainRef}
+					/>
+				) : (
+					<Terrain setPoint={setPoint} currentTarget={currentTarget} />
+				)}
 				<Line
 					points={plannedPath.map(map2DTo3D).map((point) => [point.x, 0.13, point.z])}
 					color={0xff4345}

@@ -37,6 +37,7 @@ import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useState } from "react";
+import SettingsModal from "../../components/modals/SettingsModal";
 
 const CAMERA_CONFIGS = [
 	["camera_0"],
@@ -68,6 +69,7 @@ const NewControlPage = () => {
 		setSystemsModalOpen,
 		manualMode,
 		modal,
+		volumetric,
 		setModal,
 		dataFocus,
 		cancelAction,
@@ -80,6 +82,7 @@ const NewControlPage = () => {
 		setPoint,
 		sentAction,
 		setSendAction,
+		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 
 	const [path, setPath] = useState([
@@ -187,6 +190,16 @@ const NewControlPage = () => {
 						marginX: 3,
 						// cursor: "pointer",
 					}}
+					onClick={() =>
+						setModal(
+							<SettingsModal
+								title="Settings"
+								volumetric={volumetric}
+								setVolumetric={setVolumetric}
+								onClose={() => setModal(<></>)}
+							/>
+						)
+					}
 				/>
 				<Timer
 					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
@@ -250,6 +263,7 @@ const NewControlPage = () => {
 							roverPosition={{ x: 0, y: 0 }}
 							roverRotation={{ x: 0, y: 0, z: 0 }}
 							plannedPath={path}
+							volumetric={volumetric}
 						/>
 					)}
 					<div className={styles.infosRight}>
