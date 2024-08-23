@@ -26,10 +26,13 @@ import InfoBox from "../../components/data/InfoBox";
 import { Dvr, Settings } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
 import {
+	getCurrentOrientation,
+	getCurrentPosition,
 	getdBm,
 	getJointsPositions,
 	getPivotAngle,
 	getSteeringAngles,
+	getTrajectory,
 	getWheelsSpeed,
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
@@ -260,9 +263,9 @@ const NewControlPage = () => {
 							pivotAngle={getPivotAngle(roverState)}
 							point={point}
 							setPoint={setPoint}
-							roverPosition={{ x: 0, y: 0 }}
-							roverRotation={{ x: 0, y: 0, z: 0 }}
-							plannedPath={path}
+							roverPosition={getCurrentPosition(roverState)}
+							roverRotation={getCurrentOrientation(roverState)}
+							plannedPath={getTrajectory(roverState)}
 							volumetric={volumetric}
 						/>
 					)}
@@ -400,9 +403,9 @@ const NewControlPage = () => {
 										pivotAngle={getPivotAngle(roverState)}
 										point={point}
 										setPoint={setPoint}
-										roverPosition={{ x: 0, y: 0 }}
-										roverRotation={{ x: 0, y: 0, z: 0 }}
-										plannedPath={path}
+										roverPosition={getCurrentPosition(roverState)}
+										roverRotation={getCurrentOrientation(roverState)}
+										plannedPath={getTrajectory(roverState)}
 									/>
 								)}
 							</div>

@@ -192,10 +192,34 @@ const getDrillScrewRotation = (data: any) => {
 const getdBm = (data: any) => {
 	if (!data || !data["rover"]) {
 		return 0.0;
-	} 
-		
-	return Number(data["rover"]["network"]["signal_strength"])
-}
+	}
+
+	return Number(data["rover"]["network"]["signal_strength"]);
+};
+
+const getCurrentGoal = (data: any) => {
+	if (!data || !data["navigation"]) {
+		return { x: 0, y: 0 };
+	}
+
+	return {
+		x: data["navigation"]["state"]["current_goal"]["position"]["x"],
+		y: data["navigation"]["state"]["current_goal"]["position"]["y"],
+	};
+};
+
+const getTrajectory = (data: any) => {
+	if (!data || !data["navigation"]) {
+		return [{ x: 0, y: 0 }];
+	}
+
+	return data["navigation"]["state"]["points"].map(
+		({ x, y, z }: { x: number; y: number; z: number }) => ({
+			x,
+			y,
+		})
+	);
+};
 
 //#endregion
 
@@ -210,5 +234,7 @@ export {
 	getDrillEncoderValue,
 	getDrillScrewRotation,
 	getBatteryLevel,
-	getdBm
+	getdBm,
+	getCurrentGoal,
+	getTrajectory,
 };
