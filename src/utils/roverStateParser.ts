@@ -12,7 +12,7 @@ import SubSystems from "../data/subsystems.type";
 //////////////////////// GENERAL ////////////////////////
 
 const getStateSystem = (data: any, system: SubSystems) => {
-	if (!data[system]) {
+	if (!data || !data[system]) {
 		return "OFF";
 	}
 
@@ -30,7 +30,7 @@ const getStateSystem = (data: any, system: SubSystems) => {
  * @returns The speeds of the wheels in m/s.
  */
 const getWheelsSpeed = (data: any) => {
-	if (!data["navigation"]) {
+	if (!data || !data["navigation"]) {
 		return [];
 	}
 
@@ -39,7 +39,7 @@ const getWheelsSpeed = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		speeds.push(wheels[wheel]["speed"]);
+		speeds.push(Number(wheels[wheel]["speed"]));
 	}
 
 	return speeds;
@@ -51,7 +51,7 @@ const getWheelsSpeed = (data: any) => {
  * @returns The steering angles of the wheels in degrees.
  */
 const getSteeringAngles = (data: any) => {
-	if (!data["navigation"]) {
+	if (!data || !data["navigation"]) {
 		return [];
 	}
 
@@ -60,7 +60,7 @@ const getSteeringAngles = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		angles.push(wheels[wheel]["steering_angle"]);
+		angles.push(Number(wheels[wheel]["steering_angle"]));
 	}
 
 	return angles;
@@ -72,11 +72,11 @@ const getSteeringAngles = (data: any) => {
  * @returns The angle of the pivot wheel in degrees.
  */
 const getPivotAngle = (data: any) => {
-	if (!data["navigation"]) {
+	if (!data || !data["navigation"]) {
 		return 0;
 	}
 
-	return data["navigation"]["wheels"]["pivot"]["angle"];
+	return Number(data["navigation"]["wheels"]["pivot"]["angle"]);
 };
 
 /**
@@ -85,13 +85,13 @@ const getPivotAngle = (data: any) => {
  * @returns The position of the rover in meters.
  */
 const getCurrentPosition = (data: any) => {
-	if (!data["navigation"]) {
+	if (!data || !data["navigation"]) {
 		return { x: 0, y: 0 };
 	}
 
 	return {
-		x: data["navigation"]["localization"]["position"]["x"],
-		y: data["navigation"]["localization"]["position"]["y"],
+		x: Number(data["navigation"]["localization"]["position"]["x"]),
+		y: Number(data["navigation"]["localization"]["position"]["y"]),
 	};
 };
 
@@ -101,11 +101,16 @@ const getCurrentPosition = (data: any) => {
  * @returns The orientation of the rover in degrees.
  */
 const getCurrentOrientation = (data: any) => {
-	if (!data["navigation"]) {
-		return 0;
+	if (!data || !data["navigation"]) {
+		return {x: 0, y: 0, z: 0}
 	}
 
-	return data["navigation"]["localization"]["orientation"]["z"];
+	return {
+		x: Number(data["navigation"]["localization"]["orientation"]["x"]),
+		y: Number(data["navigation"]["localization"]["orientation"]["y"]),
+		z: Number(data["navigation"]["localization"]["orientation"]["z"])
+	};
+
 };
 
 //#endregion
@@ -119,7 +124,7 @@ const getCurrentOrientation = (data: any) => {
  * @returns The positions of the joints in degrees.
  */
 const getJointsPositions = (data: any) => {
-	if (!data["handling_device"]) {
+	if (!data || !data["handling_device"]) {
 		return [];
 	}
 
@@ -127,7 +132,7 @@ const getJointsPositions = (data: any) => {
 	const positions = [];
 
 	for (const joint in joints) {
-		positions.push(joints[joint]["angle"]);
+		positions.push(Number(joints[joint]["angle"]));
 	}
 
 	return positions;
@@ -147,12 +152,12 @@ const BATTERY_MIN_VOLTAGE = 24;
  * @returns The battery level of the rover in percentage.
  */
 const getBatteryLevel = (data: any) => {
-	if (!data["electronics"]) {
+	if (!data || !data["electronics"]) {
 		return 0;
 	}
 
 	return (
-		(data["electronics"]["power"]["voltage"] -
+		(Number(data["electronics"]["power"]["voltage"]) -
 			BATTERY_MIN_VOLTAGE / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE)) *
 		100
 	);
@@ -169,11 +174,11 @@ const getBatteryLevel = (data: any) => {
  * @returns The encoder value of the drill in degrees.
  */
 const getDrillEncoderValue = (data: any) => {
-	if (!data["drill"]) {
+	if (!data || !data["drill"]) {
 		return 0;
 	}
 
-	return data["drill"]["motors"]["motor_module"]["position"];
+	return Number(data["drill"]["motors"]["motor_module"]["position"]);
 };
 
 /**
@@ -182,11 +187,11 @@ const getDrillEncoderValue = (data: any) => {
  * @returns The rotation of the drill screw in degrees.
  */
 const getDrillScrewRotation = (data: any) => {
-	if (!data["drill"]) {
+	if (!data || !data["drill"]) {
 		return 0;
 	}
 
-	return data["drill"]["motors"]["motor_drill"]["speed"];
+	return Number(data["drill"]["motors"]["motor_drill"]["speed"]);
 };
 
 const getdBm = (data: any) => {
@@ -203,13 +208,13 @@ const getCurrentGoal = (data: any) => {
 	}
 
 	return {
-		x: data["navigation"]["state"]["current_goal"]["position"]["x"],
-		y: data["navigation"]["state"]["current_goal"]["position"]["y"],
+		x: Number(data["navigation"]["state"]["current_goal"]["position"]["x"]),
+		y: Number(data["navigation"]["state"]["current_goal"]["position"]["y"]),
 	};
 };
 
 const getTrajectory = (data: any) => {
-	if (!data || !data["navigation"]) {
+	if (!data || !data["navigation"] || data["navigation"]["state"]["points"].length === 0) {
 		return [{ x: 0, y: 0 }];
 	}
 
