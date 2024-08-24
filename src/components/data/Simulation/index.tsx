@@ -26,9 +26,11 @@ import { map2DTo3D } from "../../../utils/mapUtils";
  * @returns The 3D visualization of the rover and the terrain
  */
 const Simulation = ({
+	drill_value,
 	armJointAngles,
 	wheelsSpeed,
 	wheelsSteeringAngle,
+	wheelsDrivingValue,
 	pivotAngle,
 	point,
 	setPoint,
@@ -38,9 +40,11 @@ const Simulation = ({
 	plannedPath,
 	volumetric = false,
 }: {
+	drill_value: number;
 	armJointAngles: number[];
 	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
+	wheelsDrivingValue: number[];
 	pivotAngle: number;
 	point: { x: number; y: number };
 	setPoint: (point: Point2D) => void;
@@ -77,9 +81,11 @@ const Simulation = ({
 				<OrbitControls enableZoom={true} />
 				<Pin coordinates={point} terrainRef={terrainRef} />
 				<RobotVisual
+					drill_value={drill_value}
 					armJointAngles={armJointAngles}
 					wheelsSpeed={wheelsSpeed}
 					wheelsSteeringAngle={wheelsSteeringAngle}
+					wheelsDrivingValue={wheelsDrivingValue}
 					pivotAngle={pivotAngle}
 					position={roverPosition}
 					rotation={roverRotation}

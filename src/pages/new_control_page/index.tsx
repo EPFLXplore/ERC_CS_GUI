@@ -34,6 +34,8 @@ import {
 	getSteeringAngles,
 	getTrajectory,
 	getWheelsSpeed,
+	getDrillModule,
+	getWheelsDrivingValue
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -257,9 +259,11 @@ const NewControlPage = () => {
 						/>
 					) : (
 						<Simulation
+							drill_value={getDrillModule(roverState)}
 							armJointAngles={getJointsPositions(roverState)}
 							wheelsSpeed={getWheelsSpeed(roverState)}
 							wheelsSteeringAngle={getSteeringAngles(roverState)}
+							wheelsDrivingValue={getWheelsDrivingValue(roverState)}
 							pivotAngle={getPivotAngle(roverState)}
 							point={point}
 							setPoint={setPoint}
@@ -397,9 +401,11 @@ const NewControlPage = () => {
 									/>
 								) : (
 									<Simulation
+										drill_value={getDrillModule(roverState)}
 										armJointAngles={getJointsPositions(roverState)}
 										wheelsSpeed={getWheelsSpeed(roverState)}
 										wheelsSteeringAngle={getSteeringAngles(roverState)}
+										wheelsDrivingValue={getWheelsDrivingValue(roverState)}
 										pivotAngle={getPivotAngle(roverState)}
 										point={point}
 										setPoint={setPoint}

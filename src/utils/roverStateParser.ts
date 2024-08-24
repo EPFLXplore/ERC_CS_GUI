@@ -226,6 +226,30 @@ const getTrajectory = (data: any) => {
 	);
 };
 
+const getDrillModule = (data: any) => {
+	if (!data || !data["drill"] ) {
+		return 0.0
+	}
+
+	return Number(data["drill"]["motors"]["motors_module"]["position"])
+}
+
+const getWheelsDrivingValue = (data: any) => {
+	if (!data || !data["navigation"]) {
+		return [];
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const values = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		values.push(Number(wheels[wheel]["driving_motor_state"]));
+	}
+
+	return values;
+}
+
 //#endregion
 
 export {
@@ -242,4 +266,6 @@ export {
 	getdBm,
 	getCurrentGoal,
 	getTrajectory,
+	getDrillModule,
+	getWheelsDrivingValue
 };

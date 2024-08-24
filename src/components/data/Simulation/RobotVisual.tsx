@@ -37,16 +37,20 @@ ROS URDf
 */
 
 const RobotVisual = ({
+	drill_value,
 	armJointAngles,
 	wheelsSteeringAngle,
+	wheelsDrivingValue,
 	pivotAngle,
 	position,
 	rotation,
 	terrainRef,
 }: {
+	drill_value: number;
 	armJointAngles: number[];
 	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
+	wheelsDrivingValue: number[];
 	pivotAngle: number;
 	position: Point2D;
 	rotation: Point3D;
@@ -85,6 +89,8 @@ const RobotVisual = ({
 		};
 	});
 
+	let test = 0.0
+
 	startTransition(() => {
 		// Set joint angles
 		for (let i = 0; i < 6; i++) {
@@ -92,14 +98,24 @@ const RobotVisual = ({
 				THREE.MathUtils.degToRad(armJointAngles[i])
 			);
 		}
-		// robot.joints[`finger1`].setJointValue(THREE.MathUtils.degToRad(armJointAngles[i]));
 		// Set wheel steering angles
 		for (let i = 0; i < wheelsSteeringAngle.length; i++) {
-			const test = THREE.MathUtils.degToRad(wheelsSteeringAngle[i] + (i > 1 ? 90 : -90))
 			robot.joints[`wheel_steering_${i + 1}`].setJointValue(
 				THREE.MathUtils.degToRad(wheelsSteeringAngle[i] + (i > 1 ? 90 : -90))
 			);
 		}
+
+		// Set wheel diving values TODO: TO BE FINISHED
+		for (let i = 0; i < wheelsDrivingValue.length; i++) {
+			robot.joints[`wheel_driving_${i + 1}`].setJointValue(
+				THREE.MathUtils.degToRad(wheelsDrivingValue[i])
+			);
+		}
+
+		robot.joints[`drill_module`].setJointValue(
+			mapRange(30000000.0, 0.0, 30000000.0, 0.0, -0.64)
+		)
+
 		// // Set pivot angle
 		robot.joints["pivot_right"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
 		robot.joints["pivot_left"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
@@ -156,5 +172,9 @@ const RobotVisual = ({
 		</group>
 	);
 };
+
+const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number): number => {
+    return outMin + (value - inMin) * ((outMax - outMin) / (inMax - inMin));
+}
 
 export default memo(RobotVisual);
