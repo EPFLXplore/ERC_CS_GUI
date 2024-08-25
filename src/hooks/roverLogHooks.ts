@@ -51,10 +51,8 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 				messageType: "rcl_interfaces/msg/Log",
 			});
 
+			
 			listener.subscribe((message) => {
-				//@ts-ignore
-				console.log(message);
-
 				setRoverLogs((prev) => [
 					...prev,
 					{
@@ -73,6 +71,7 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 					},
 				]);
 			});
+			
 		}
 	}, [ros]);
 

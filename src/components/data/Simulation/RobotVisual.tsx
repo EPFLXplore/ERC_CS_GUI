@@ -48,7 +48,6 @@ const RobotVisual = ({
 }: {
 	drill_value: number;
 	armJointAngles: number[];
-	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
 	wheelsDrivingValue: number[];
 	pivotAngle: number;
@@ -64,6 +63,29 @@ const RobotVisual = ({
 	const ref = useRef();
 	const [roverMapPosition, setRoverMapPosition] = useState({ x: 0, y: 0, z: 0 });
 	const { raycaster } = useThree();
+
+	const MIN_DRILL_ENCODER = 0.0
+	const MAX_DRILL_ENCODER = 30000000.0
+	const MIN_DRILL_STATE = 0.0
+	const MAX_DRILL_STATE = -0.64
+
+	const [currentAngle, setCurrentAngle] = useState([0.0, 0.0, 0.0, 0.0])
+
+	const mapRangeDrill = (value: number): number => {
+		return MIN_DRILL_STATE + (value - MIN_DRILL_ENCODER) * 
+		((MAX_DRILL_STATE - MIN_DRILL_STATE) / (MAX_DRILL_ENCODER - MIN_DRILL_ENCODER));
+	}
+
+	let interval = false
+
+	/**
+	 * Convert a speed of wheel to an angle of rotation, using the fact that the rover state is updated each 10ms
+	 * @param speed the speed
+	 * @returns the angle of rotation
+	 */
+	const wheelsDrivingMotion = (speed: number): number => {
+		return (0.01 / (0.27 * Math.PI)) * speed
+	}
 
 	const robot = useLoader(URDFLoader, filepath, (loader) => {
 		loader.loadMeshFunc = (path, manager, done) => {
@@ -89,9 +111,30 @@ const RobotVisual = ({
 		};
 	});
 
-	let test = 0.0
+	/*
+	useEffect(() => {
 
+		interval = setInterval(() => {
+			setCurrentAngle((old) => {
+				let newStates = {...old}
+				for(let i = 0; i < 4; i++) {
+					newStates[i] = (newStates[i] + wheelsDrivingMotion(wheelsDrivingValue[i])) % 360
+				}
+				return newStates
+			})
+			console.log("défkvndfvref")
+
+		}, 500)
+
+		if(interval) {
+			clearInterval(interval)
+			console.log("CANCELED")
+		}
+
+	}, [wheelsDrivingValue])
+	*/
 	startTransition(() => {
+
 		// Set joint angles
 		for (let i = 0; i < 6; i++) {
 			robot.joints[`hd_joint_${i + 1}`].setJointValue(
@@ -105,18 +148,18 @@ const RobotVisual = ({
 			);
 		}
 
-		// Set wheel diving values TODO: TO BE FINISHED
+		// Set wheel diving values
 		for (let i = 0; i < wheelsDrivingValue.length; i++) {
+			let angle = wheelsDrivingMotion(currentAngle[i])
 			robot.joints[`wheel_driving_${i + 1}`].setJointValue(
-				THREE.MathUtils.degToRad(wheelsDrivingValue[i])
+				THREE.MathUtils.degToRad(currentAngle[i])
 			);
 		}
 
-		robot.joints[`drill_module`].setJointValue(
-			mapRange(30000000.0, 0.0, 30000000.0, 0.0, -0.64)
-		)
+		// Set the drill depth value
+		robot.joints[`drill_module`].setJointValue(mapRangeDrill(drill_value))
 
-		// // Set pivot angle
+		// Set pivot angle
 		robot.joints["pivot_right"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
 		robot.joints["pivot_left"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
 	});
@@ -172,9 +215,5 @@ const RobotVisual = ({
 		</group>
 	);
 };
-
-const mapRange = (value: number, inMin: number, inMax: number, outMin: number, outMax: number): number => {
-    return outMin + (value - inMin) * ((outMax - outMin) / (inMax - inMin));
-}
 
 export default memo(RobotVisual);

@@ -83,7 +83,7 @@ const Logs = () => {
 								changeFilter(LogLevel.ERROR, true);
 							}}
 							onDisactivate={() => {
-								changeFilter(LogLevel.WARNING, false);
+								changeFilter(LogLevel.ERROR, false);
 							}}
 						/>
 					</div>

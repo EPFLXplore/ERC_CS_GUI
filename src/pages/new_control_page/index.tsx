@@ -33,7 +33,6 @@ import {
 	getPivotAngle,
 	getSteeringAngles,
 	getTrajectory,
-	getWheelsSpeed,
 	getDrillModule,
 	getWheelsDrivingValue
 } from "../../utils/roverStateParser";
@@ -90,6 +89,7 @@ const NewControlPage = () => {
 		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 
+	// TO BE REMOVED NEXT
 	const [path, setPath] = useState([
 		{
 			x: 0,
@@ -121,6 +121,11 @@ const NewControlPage = () => {
 		},
 	]);
 
+	/**
+	 * Function handling the windows of actions at the bottom of the page
+	 * @param system the subsystem or empty string for the button cancel all actions
+	 * @param cancel if we use the cancel button or not
+	 */
 	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
 		setSystemsModalOpen((old) => {
 			let newModalOpen = { ...old };
@@ -154,25 +159,25 @@ const NewControlPage = () => {
 				<img src={logo} className={styles.logo} alt="Logo Xplore" />
 				<div className={styles.systems}>
 					<SystemMode
-						system="Navigation"
+						system={"Navigation"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode)}
 					/>
 					<SystemMode
-						system="Handling Device"
+						system={"Handling Device"}
 						currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
 						modes={["Auto", "Manual Direct", "Manual Inverse", "Off"]}
 						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode)}
 					/>
 					<SystemMode
-						system="Cameras"
+						system={"Cameras"}
 						currentMode={stateServices[SubSystems.CAMERA].service.state}
 						modes={["Stream", "Off"]}
 						onSelect={(mode) => startService(SubSystems.CAMERA, mode)}
 					/>
 					<SystemMode
-						system="Drill"
+						system={"Drill"}
 						currentMode={stateServices[SubSystems.DRILL].service.state}
 						modes={["On", "Off"]}
 						onSelect={(mode) => startService(SubSystems.DRILL, mode)}
@@ -261,7 +266,6 @@ const NewControlPage = () => {
 						<Simulation
 							drill_value={getDrillModule(roverState)}
 							armJointAngles={getJointsPositions(roverState)}
-							wheelsSpeed={getWheelsSpeed(roverState)}
 							wheelsSteeringAngle={getSteeringAngles(roverState)}
 							wheelsDrivingValue={getWheelsDrivingValue(roverState)}
 							pivotAngle={getPivotAngle(roverState)}
@@ -403,7 +407,6 @@ const NewControlPage = () => {
 									<Simulation
 										drill_value={getDrillModule(roverState)}
 										armJointAngles={getJointsPositions(roverState)}
-										wheelsSpeed={getWheelsSpeed(roverState)}
 										wheelsSteeringAngle={getSteeringAngles(roverState)}
 										wheelsDrivingValue={getWheelsDrivingValue(roverState)}
 										pivotAngle={getPivotAngle(roverState)}

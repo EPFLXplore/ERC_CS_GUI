@@ -10,6 +10,8 @@ import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
+import useRoverLogs from "./roverLogHooks";
+import { getWarnings, getErrors } from "../utils/roverStateParser";
 
 const MAX_CAMERAS = 5;
 const NBR_SERVICES = 4;
@@ -83,6 +85,7 @@ const useRoverControls = (
 	};
 
 	const cancelAllActions = () => {
+		let canceled = false
 		for (const key in stateActions) {
 			if (systemsModalOpen.hasOwnProperty(key)) {
 				setStateActions((old) => {
@@ -100,6 +103,7 @@ const useRoverControls = (
 						newStates[key].goal_object = undefined;
 						newStates[key].action.state = States.OFF;
 						newStates[key].ros_object = null;
+						canceled = true
 						showSnackbar(
 							"success",
 							"All actions for have been canceled (correctly we need to check the status on the rover state of the subsystem)"
@@ -110,6 +114,13 @@ const useRoverControls = (
 				// @ts-ignore
 				systemsModalOpen[key] = false;
 			}
+		}
+
+		if(!canceled) {
+			showSnackbar(
+				"info",
+				"No actions are running"
+			);
 		}
 	};
 
@@ -174,7 +185,7 @@ const useRoverControls = (
 			stateServices[system].service,
 			(b) => setSendService(b),
 			(sev, mes) => showSnackbar(sev, mes)
-		);
+				);
 	};
 
 	const changeMode = () => {
@@ -221,6 +232,12 @@ const useRoverControls = (
 			window.removeEventListener("keydown", handleNext);
 		};
 	}, []);
+
+	useEffect(() => {
+
+		
+
+	}, [roverState])
 
 	return [
 		roverState,

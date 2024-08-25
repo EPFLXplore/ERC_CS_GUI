@@ -28,7 +28,6 @@ import { map2DTo3D } from "../../../utils/mapUtils";
 const Simulation = ({
 	drill_value,
 	armJointAngles,
-	wheelsSpeed,
 	wheelsSteeringAngle,
 	wheelsDrivingValue,
 	pivotAngle,
@@ -42,7 +41,6 @@ const Simulation = ({
 }: {
 	drill_value: number;
 	armJointAngles: number[];
-	wheelsSpeed: number[];
 	wheelsSteeringAngle: number[];
 	wheelsDrivingValue: number[];
 	pivotAngle: number;
@@ -83,7 +81,6 @@ const Simulation = ({
 				<RobotVisual
 					drill_value={drill_value}
 					armJointAngles={armJointAngles}
-					wheelsSpeed={wheelsSpeed}
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					wheelsDrivingValue={wheelsDrivingValue}
 					pivotAngle={pivotAngle}

@@ -2,13 +2,12 @@
  * This file contains functions that parse the rover state data and return the
  * values contained in the data.
  *
- * @author Ugo Balducci
+ * @author Ugo Balducci, Giovanni Ranieri
  * @version 1.0
  */
 
 import SubSystems from "../data/subsystems.type";
 
-//#region General
 //////////////////////// GENERAL ////////////////////////
 
 const getStateSystem = (data: any, system: SubSystems) => {
@@ -19,31 +18,47 @@ const getStateSystem = (data: any, system: SubSystems) => {
 	return data[system]["state"]["mode"];
 };
 
-//#endregion
-
-//#region Navigation
-//////////////////////// NAVIGATION ////////////////////////
-
 /**
- * Get the speeds of the wheels of the rover.
- * @param data The rover state data.
- * @returns The speeds of the wheels in m/s.
+ * Return all warnings
+ * @param data the rover state data
+ * @returns the warnings
  */
-const getWheelsSpeed = (data: any) => {
-	if (!data || !data["navigation"]) {
+const getWarnings = (data: any) => {
+	if(!data || !data['rover']) {
 		return [];
 	}
 
-	const wheels = data["navigation"]["wheels"];
-	const speeds = [];
+	return data['rover']['status']['warnings']
+}
 
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		speeds.push(Number(wheels[wheel]["speed"]));
+/**
+ * Return all errors
+ * @param data the rover state data
+ * @returns the errors
+ */
+const getErrors = (data: any) => {
+	if(!data || !data['rover']) {
+		return [];
 	}
 
-	return speeds;
+	return data['rover']['status']['errors']
+}
+
+/**
+ * Return the signal strength of the CS antenna
+ * @param data the rover state data
+ * @returns the signal strength in dBm
+ */
+const getdBm = (data: any) => {
+	if (!data || !data["rover"]) {
+		return 0.0;
+	}
+
+	return Number(data["rover"]["network"]["signal_strength"]);
 };
+
+
+//////////////////////// NAVIGATION ////////////////////////
 
 /**
  * Get the steering angles of the wheels of the rover.
@@ -67,6 +82,40 @@ const getSteeringAngles = (data: any) => {
 };
 
 /**
+ * Return the current position goal
+ * @param data the rover state data
+ * @returns the current position goal, only x and y coordinates
+ */
+const getCurrentGoal = (data: any) => {
+	if (!data || !data["navigation"]) {
+		return { x: 0, y: 0 };
+	}
+
+	return {
+		x: Number(data["navigation"]["state"]["current_goal"]["position"]["x"]),
+		y: Number(data["navigation"]["state"]["current_goal"]["position"]["y"]),
+	};
+};
+
+/**
+ * Return the set of points representing the trajectory of the rover
+ * @param data the rover state data
+ * @returns array of object representing points. Only x and y coordinates
+ */
+const getTrajectory = (data: any) => {
+	if (!data || !data["navigation"] || data["navigation"]["state"]["points"].length === 0) {
+		return [{ x: 0, y: 0 }];
+	}
+
+	return data["navigation"]["state"]["points"].map(
+		({ x, y, z }: { x: number; y: number; z: number }) => ({
+			x,
+			y,
+		})
+	);
+};
+
+/**
  * Get the angle of the pivot wheel of the rover.
  * @param data The rover state data.
  * @returns The angle of the pivot wheel in degrees.
@@ -77,6 +126,27 @@ const getPivotAngle = (data: any) => {
 	}
 
 	return Number(data["navigation"]["wheels"]["pivot"]["angle"]);
+};
+
+/**
+ * Get the speeds of the wheels of the rover.
+ * @param data The rover state data.
+ * @returns The speeds of the wheels in m/s.
+ */
+const getWheelsDrivingValue = (data: any) => {
+	if (!data || !data["navigation"]) {
+		return [];
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const values = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		values.push(Number(wheels[wheel]["speed"]));
+	}
+
+	return values;
 };
 
 /**
@@ -113,9 +183,7 @@ const getCurrentOrientation = (data: any) => {
 
 };
 
-//#endregion
 
-//#region Handling Device
 //////////////////////// HANDLING DEVICE ////////////////////////
 
 /**
@@ -138,9 +206,6 @@ const getJointsPositions = (data: any) => {
 	return positions;
 };
 
-//#endregion
-
-//#region Electronics
 //////////////////////// ELECTRONICS ////////////////////////
 
 const BATTERY_MAX_VOLTAGE = 29;
@@ -163,23 +228,20 @@ const getBatteryLevel = (data: any) => {
 	);
 };
 
-//#endregion
-
-//#region Science
-//////////////////////// SCIENCE ////////////////////////
+//////////////////////// DRILL ////////////////////////
 
 /**
- * Get the encoder value of the drill.
- * @param data The rover state data.
- * @returns The encoder value of the drill in degrees.
+ * Return the drill encoder value
+ * @param data the rover state data
+ * @returns the drill encoder value [0, 30'000'000]
  */
-const getDrillEncoderValue = (data: any) => {
-	if (!data || !data["drill"]) {
-		return 0;
+const getDrillModule = (data: any) => {
+	if (!data || !data["drill"] ) {
+		return 0.0
 	}
 
-	return Number(data["drill"]["motors"]["motor_module"]["position"]);
-};
+	return Number(data["drill"]["motors"]["motor_module"]["position"])
+}
 
 /**
  * Get the rotation of the drill screw.
@@ -194,78 +256,21 @@ const getDrillScrewRotation = (data: any) => {
 	return Number(data["drill"]["motors"]["motor_drill"]["speed"]);
 };
 
-const getdBm = (data: any) => {
-	if (!data || !data["rover"]) {
-		return 0.0;
-	}
-
-	return Number(data["rover"]["network"]["signal_strength"]);
-};
-
-const getCurrentGoal = (data: any) => {
-	if (!data || !data["navigation"]) {
-		return { x: 0, y: 0 };
-	}
-
-	return {
-		x: Number(data["navigation"]["state"]["current_goal"]["position"]["x"]),
-		y: Number(data["navigation"]["state"]["current_goal"]["position"]["y"]),
-	};
-};
-
-const getTrajectory = (data: any) => {
-	if (!data || !data["navigation"] || data["navigation"]["state"]["points"].length === 0) {
-		return [{ x: 0, y: 0 }];
-	}
-
-	return data["navigation"]["state"]["points"].map(
-		({ x, y, z }: { x: number; y: number; z: number }) => ({
-			x,
-			y,
-		})
-	);
-};
-
-const getDrillModule = (data: any) => {
-	if (!data || !data["drill"] ) {
-		return 0.0
-	}
-
-	return Number(data["drill"]["motors"]["motors_module"]["position"])
-}
-
-const getWheelsDrivingValue = (data: any) => {
-	if (!data || !data["navigation"]) {
-		return [];
-	}
-
-	const wheels = data["navigation"]["wheels"];
-	const values = [];
-
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		values.push(Number(wheels[wheel]["driving_motor_state"]));
-	}
-
-	return values;
-}
-
-//#endregion
 
 export {
 	getStateSystem,
 	getJointsPositions,
-	getWheelsSpeed,
 	getSteeringAngles,
 	getPivotAngle,
 	getCurrentPosition,
 	getCurrentOrientation,
-	getDrillEncoderValue,
 	getDrillScrewRotation,
 	getBatteryLevel,
 	getdBm,
 	getCurrentGoal,
 	getTrajectory,
 	getDrillModule,
-	getWheelsDrivingValue
+	getWheelsDrivingValue,
+	getWarnings,
+	getErrors
 };

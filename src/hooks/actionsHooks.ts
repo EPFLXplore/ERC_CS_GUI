@@ -61,53 +61,6 @@ function useActions(
 		},
 	});
 
-	useEffect(() => {
-		setStateActions((old) => {
-			let newStates = { ...old };
-			let change: string[] = [];
-
-			if (roverState === undefined || roverState["rover"] === undefined) {
-				return newStates;
-			}
-
-			/*
-			if (!sentAction) {
-				if (
-					newStates[SubSystems.NAGIVATION].action.state !==
-					roverState[SubSystems.NAGIVATION]["state"]["mode"]
-				) {
-					newStates[SubSystems.NAGIVATION].action.state =
-						roverState[SubSystems.NAGIVATION]["state"]["mode"];
-					if (!init) change.push(SubSystems.NAGIVATION);
-				}
-				if (
-					newStates[SubSystems.HANDLING_DEVICE].action.state !==
-					roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"]
-				) {
-					newStates[SubSystems.HANDLING_DEVICE].action.state =
-						roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"];
-					if (!init) change.push(SubSystems.HANDLING_DEVICE);
-				}
-				if (
-					newStates[SubSystems.DRILL].action.state !==
-					roverState[SubSystems.DRILL]["state"]["mode"]
-				) {
-					newStates[SubSystems.DRILL].action.state =
-						roverState[SubSystems.DRILL]["state"]["mode"];
-					if (!init) change.push(SubSystems.DRILL);
-				}
-			}
-
-			if (change.length > 0) {
-				snackBar("info", "These action states has been changed: " + change);
-			}
-
-			setInit(false);
-			*/
-			return newStates;
-		});
-	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
-
 	return [stateActions, setStateActions] as const;
 }
 
