@@ -67,7 +67,11 @@ const requestChangeMode = (
 					snackBar("error","Error from request to change service (not ROS): " + 
 						// @ts-ignore
 						res["error_message"]);
-				}
+					} else {
+						console.log("RECEIVE RESPONSE SERVICE DRILL " + 
+							// @ts-ignore
+							res["error_message"])
+					}
 				sendingRequest(false);
 			},
 			(err) => {

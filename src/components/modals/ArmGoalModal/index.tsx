@@ -221,7 +221,7 @@ function ArmGoalModal({
 					</button>
 					<button
 						onClick={() => {
-							onCancelGoal(SubSystems.NAGIVATION);
+							onCancelGoal(SubSystems.HANDLING_DEVICE);
 							//onClose();
 						}}
 					>

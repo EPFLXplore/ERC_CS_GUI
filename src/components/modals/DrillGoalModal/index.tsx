@@ -67,7 +67,7 @@ function DrillGoalModal({
 						onClick={() => {
 							if (task) {
 								console.log(task.toLowerCase());
-								onSetGoal(SubSystems.DRILL, { action: task.toLowerCase() });
+								onSetGoal(SubSystems.DRILL, { extend_to_percentage: 3 }); // task.toLowerCase()
 								onClose();
 							} else {
 								snackBar("error", "No task selected");
@@ -79,7 +79,7 @@ function DrillGoalModal({
 					</button>
 					<button
 						onClick={() => {
-							onCancelGoal(SubSystems.NAGIVATION);
+							onCancelGoal(SubSystems.DRILL);
 							//onClose();
 						}}
 					>

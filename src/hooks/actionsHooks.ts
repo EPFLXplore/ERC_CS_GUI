@@ -26,7 +26,7 @@ function useActions(
 				!roverState[SubSystems.NAGIVATION]
 					? States.OFF
 					: roverState[SubSystems.NAGIVATION]["state"]["mode"],
-				"NavigationReachGoal",
+				"Nav/NavigationReachGoal",
 				"NAVReachGoal"
 			),
 			goal_params: null,
@@ -39,7 +39,7 @@ function useActions(
 				!roverState[SubSystems.HANDLING_DEVICE]
 					? States.OFF
 					: roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"],
-				"HandlingDeviceManipulation",
+				"HD/HandlingDeviceManipulation",
 				"HDManipulation"
 			),
 			goal_params: null,
@@ -52,8 +52,8 @@ function useActions(
 				!roverState[SubSystems.HANDLING_DEVICE]
 					? States.OFF
 					: roverState[SubSystems.DRILL]["state"]["mode"],
-				"DrillTerrain",
-				"DrillCmd"
+				"Drill/DrillTerrain",
+				"DrillTerrain"
 			),
 			goal_params: null,
 			goal_object: undefined,
