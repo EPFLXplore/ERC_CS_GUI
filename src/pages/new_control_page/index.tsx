@@ -34,7 +34,8 @@ import {
 	getSteeringAngles,
 	getTrajectory,
 	getDrillModule,
-	getWheelsDrivingValue
+	getWheelsDrivingValue,
+	getDrillState
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -42,6 +43,7 @@ import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useState } from "react";
 import SettingsModal from "../../components/modals/SettingsModal";
+import ROSLIB from "roslib";
 
 const CAMERA_CONFIGS = [
 	["camera_0"],
@@ -138,6 +140,7 @@ const NewControlPage = () => {
 				newModalOpen[system] = true;
 				setModal(
 					selectModal(
+						roverState,
 						system,
 						point,
 						setModal,
@@ -455,6 +458,7 @@ const NewControlPage = () => {
 };
 
 const selectModal = (
+	roverState: object,
 	system: SubSystems | "",
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
@@ -510,6 +514,7 @@ const selectModal = (
 					onSetGoal={launchAction}
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
+					feedback={getDrillState(roverState)}
 				/>
 			);
 		default:

@@ -14,14 +14,19 @@ interface Buttons {
 				type: "trigger";
 				index: number;
 				threshold: number;
-		  };
+		  }
+		  | {
+			type: "axis";
+			axis: number;
+			minRange: number;
+			maxRange: number;
+	  };
 }
 
 /** Interface for axes
  * @param axis - The axis number
  * @param type - The type of the axis (axis: normal axis, button: axis controlled by buttons, trigger: axis controlled by a trigger)
  * @param buttons - The buttons that control the axis (negative, positive)
- * @param axis - The axis number
  * @param minAxisRange - The minimum range of the axis
  * @param maxAxisRange - The maximum range of the axis
  * @param zeroAxisRange - The zero range of the axis

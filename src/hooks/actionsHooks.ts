@@ -17,7 +17,6 @@ function useActions(
 	sentAction: boolean,
 	snackBar: (sev: AlertColor, mes: string) => void
 ) {
-	const [init, setInit] = useState(true);
 
 	const [stateActions, setStateActions] = useState<ActionType>({
 		[SubSystems.NAGIVATION]: {
@@ -49,11 +48,11 @@ function useActions(
 		[SubSystems.DRILL]: {
 			action: new Action(
 				SubSystems.DRILL,
-				!roverState[SubSystems.HANDLING_DEVICE]
+				!roverState[SubSystems.DRILL]
 					? States.OFF
 					: roverState[SubSystems.DRILL]["state"]["mode"],
 				"Drill/DrillTerrain",
-				"DrillTerrain"
+				"DrillCmd"
 			),
 			goal_params: null,
 			goal_object: undefined,

@@ -858,7 +858,32 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 		[ClassicalGamepad.Button.RIGHT_STICK]: {
 			type: "button",
 			index: 10,
-		}
+		},
+		[ClassicalGamepad.Button.UP]: {
+			type: "axis",
+			axis: 7,
+			minRange: 0,
+			maxRange: 1,
+		},
+		[ClassicalGamepad.Button.DOWN]: {
+			type: "axis",
+			axis: 7,
+			minRange: -1,
+			maxRange: 0,
+		},
+		[ClassicalGamepad.Button.RIGHT]: {
+			type: "axis",
+			axis: 6,
+			minRange: 0,
+			maxRange: 1,
+		},
+		[ClassicalGamepad.Button.LEFT]: {
+			type: "axis",
+			axis: 6,
+			minRange: -1,
+			maxRange: 0,
+		},
+
 	},
 	axes: {
 		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
@@ -892,45 +917,17 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 		[ClassicalGamepad.Axis.LT]: {
 			type: "axis",
 			axis: 2,
-			minAxisRange: -1,
+			minAxisRange: 0,
 			maxAxisRange: 1,
-			zeroAxisRange: 0 // ??
+			zeroAxisRange: 0
 		},
 		[ClassicalGamepad.Axis.RT]: {
 			type: "axis",
 			axis: 5,
-			minAxisRange: -1,
-			maxAxisRange: 1,
-			zeroAxisRange: 0 // ??
-		},
-		[ClassicalGamepad.Button.UP]: { // ??
-			type: "axis",
-			axis: 7,
 			minAxisRange: 0,
 			maxAxisRange: 1,
 			zeroAxisRange: 0
-		},
-		[ClassicalGamepad.Button.DOWN]: { // ??
-			type: "axis",
-			axis: 7,
-			minAxisRange: 0,
-			maxAxisRange: 1,
-			zeroAxisRange: 0
-		},
-		[ClassicalGamepad.Button.RIGHT]: { // ??
-			type: "axis",
-			axis: 7,
-			minAxisRange: 0,
-			maxAxisRange: 1,
-			zeroAxisRange: 0
-		},
-		[ClassicalGamepad.Button.LEFT]: { // ??
-			type: "axis",
-			axis: 7,
-			minAxisRange: 0,
-			maxAxisRange: 1,
-			zeroAxisRange: 0
-		},
+		}
 	},
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,

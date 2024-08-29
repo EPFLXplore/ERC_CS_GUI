@@ -160,6 +160,7 @@ class GamepadController {
 	private remapButtons(gamepad: Gamepad, profile: DeviceProfile): boolean[] {
 		const buttons = gamepad.buttons.map((button) => button.pressed);
 		const triggers = gamepad.buttons.map((button) => button.value);
+		const axes = gamepad.axes;
 
 		const remapedButtons = Object.keys(profile.buttons)
 			.sort((key) => parseInt(key))
@@ -167,8 +168,10 @@ class GamepadController {
 				const buttonProfile = profile.buttons[parseInt(button)];
 				if (buttonProfile.type === "button") {
 					return buttons[buttonProfile.index];
-				} else {
+				} else if (buttonProfile.type === "trigger") {
 					return triggers[buttonProfile.index] > buttonProfile.threshold;
+				} else {
+					return axes[buttonProfile.axis] > buttonProfile.minRange && axes[buttonProfile.maxRange] < buttonProfile.maxRange
 				}
 			});
 

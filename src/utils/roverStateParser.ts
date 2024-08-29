@@ -244,6 +244,19 @@ const getDrillModule = (data: any) => {
 }
 
 /**
+ * Return the drill state of action feedback
+ * @param data the rover state data
+ * @returns feedback of the drill action
+ */
+const getDrillState = (data: any) => {
+	if (!data || !data["drill"] ) {
+		return ""
+	}
+
+	return data["drill"]["state"]["current_step"]
+}
+
+/**
  * Get the rotation of the drill screw.
  * @param data The rover state data.
  * @returns The rotation of the drill screw in degrees.
@@ -272,5 +285,6 @@ export {
 	getDrillModule,
 	getWheelsDrivingValue,
 	getWarnings,
-	getErrors
+	getErrors,
+	getDrillState
 };
