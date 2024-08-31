@@ -75,6 +75,10 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 		}
 	}, [ros]);
 
+	const clearLogs = () => {
+		setRoverLogs([])
+	}
+
 	const filterLogs = (types: string[]) => {
 		if (types.length === 0) setFilteredLogs(roverlogs);
 		else setFilteredLogs(roverlogs.filter((log) => types.includes(log.type)));
