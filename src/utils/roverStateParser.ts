@@ -269,7 +269,6 @@ const getDrillScrewRotation = (data: any) => {
 	return Number(data["drill"]["motors"]["motor_drill"]["speed"]);
 };
 
-
 export {
 	getStateSystem,
 	getJointsPositions,
@@ -286,5 +285,4 @@ export {
 	getWheelsDrivingValue,
 	getWarnings,
 	getErrors,
-	getDrillState
-};
+	getDrillState};

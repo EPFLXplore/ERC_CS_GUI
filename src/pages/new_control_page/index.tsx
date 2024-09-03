@@ -35,7 +35,8 @@ import {
 	getTrajectory,
 	getDrillModule,
 	getWheelsDrivingValue,
-	getDrillState
+	getDrillState,
+	getDrillScrewRotation
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -336,10 +337,12 @@ const NewControlPage = () => {
 									{
 										name: "Encoder",
 										// @ts-ignore
-										value: roverState["drill"]["motors"]["motor_module"][
-											"position"
-										],
+										value: getDrillModule(roverState)
 									},
+									{
+										name: "Velocity",
+										value: getDrillScrewRotation(roverState)
+									}
 								]}
 							/>
 						)}

@@ -5,8 +5,7 @@ import { AlertColor } from "@mui/material";
 
 type ArmTask = {
 	name: string;
-	type: number;
-	id: number;
+	msg: string;
 };
 
 function ArmGoalModal({
@@ -50,7 +49,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 1" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 1", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 1", msg: "button_a0" })}
 						>
 							Button 1
 						</button>
@@ -58,7 +57,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 2" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 2", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 2", msg: "button_a1" })}
 						>
 							Button 2
 						</button>
@@ -66,7 +65,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 3" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 3", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 3", msg: "button_a2" })}
 						>
 							Button 3
 						</button>
@@ -74,7 +73,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 4" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 4", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 4", msg: "button_a3"})}
 						>
 							Button 4
 						</button>
@@ -82,7 +81,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 5" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 5", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 5", msg: "button_a4" })}
 						>
 							Button 5
 						</button>
@@ -90,7 +89,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 6" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 6", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 6",msg: "button_a5" })}
 						>
 							Button 6
 						</button>
@@ -98,7 +97,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 7" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 7", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 7", msg: "button_a6" })}
 						>
 							Button 7
 						</button>
@@ -106,7 +105,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 8" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 8", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 8", msg: "button_a7" })}
 						>
 							Button 8
 						</button>
@@ -114,7 +113,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 9" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 9", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 9", msg: "button_a8"})}
 						>
 							Button 9
 						</button>
@@ -122,7 +121,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Button 10" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 10", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Button 10", msg: "button_a9" })}
 						>
 							Button 10
 						</button>
@@ -130,7 +129,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Voltmeter" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Voltmeter", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Voltmeter", msg: "voltmeter" })}
 						>
 							Voltmeter
 						</button>
@@ -138,7 +137,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Metal Bar" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Metal Bar", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Metal Bar", msg: "" })}
 						>
 							Metal Bar
 						</button>
@@ -146,7 +145,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Ethernet Cable" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Ethernet Cable", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Ethernet Cable", msg: "" })}
 						>
 							Ethernet Cable
 						</button>
@@ -155,7 +154,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Home Position" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Home Position", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Home Position", msg: ""})}
 						>
 							Home Position
 						</button>
@@ -163,7 +162,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Panel A Position" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Panel A Position", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Panel A Position", msg: "" })}
 						>
 							Panel A Position
 						</button>
@@ -171,7 +170,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Panel B Position" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Panel B Position", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Panel B Position", msg:"" })}
 						>
 							Panel B Position
 						</button>
@@ -179,7 +178,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Panel C Position" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Panel C Position", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Panel C Position", msg: "" })}
 						>
 							Panel C Position
 						</button>
@@ -187,7 +186,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Pick Rock" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Pick Rock", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Pick Rock", msg: "" })}
 						>
 							Pick Rock
 						</button>
@@ -195,7 +194,7 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Pick Probe" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Pick Probe", type: 0, id: 0 })}
+							onClick={() => setTask({ name: "Pick Probe", msg: "" })}
 						>
 							Pick Probe
 						</button>
@@ -207,8 +206,7 @@ function ArmGoalModal({
 						onClick={() => {
 							if (task) {
 								onSetGoal(SubSystems.HANDLING_DEVICE, {
-									task_type: task.type,
-									task_id: task.id,
+									action: task.msg
 								});
 								onClose();
 							} else {
@@ -222,7 +220,6 @@ function ArmGoalModal({
 					<button
 						onClick={() => {
 							onCancelGoal(SubSystems.HANDLING_DEVICE);
-							//onClose();
 						}}
 					>
 						Cancel Task
