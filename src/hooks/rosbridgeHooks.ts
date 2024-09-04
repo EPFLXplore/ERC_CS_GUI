@@ -79,11 +79,15 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 		// Use the advertise() method to indicate that we want to provide this service
 		askUserConfirmation.advertiseAsync(async (request) => {
 			console.log("Received HD Confirmation request ");
-			return new Promise<boolean>((resolve, reject) => {
-				setHDConfirmation((confirm: boolean) => {
-					resolve(confirm);
+			const result = await new Promise<boolean>((resolve, reject) => {
+				setHDConfirmation(() => (confirm: boolean) => {
+					resolve(confirm)
+					setHDConfirmation(null);
 				});
 			});
+			return {
+				success: result,
+			};
 		});
 	}, [ros]);
 

@@ -281,7 +281,7 @@ const NewControlPage = () => {
 							volumetric={volumetric}
 						/>
 					)}
-					{hdConfirmation && (
+					{hdConfirmation !== null && (
 						<div className={styles.confirm}>
 							<p>Handling Device Confirmation</p>
 							<div className={styles.confirmation}>
