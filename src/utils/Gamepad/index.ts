@@ -160,6 +160,7 @@ class GamepadController {
 	private remapButtons(gamepad: Gamepad, profile: DeviceProfile): boolean[] {
 		const buttons = gamepad.buttons.map((button) => button.pressed);
 		const triggers = gamepad.buttons.map((button) => button.value);
+		const axes = gamepad.axes;
 
 		const remapedButtons = Object.keys(profile.buttons)
 			.sort((key) => parseInt(key))
@@ -167,8 +168,10 @@ class GamepadController {
 				const buttonProfile = profile.buttons[parseInt(button)];
 				if (buttonProfile.type === "button") {
 					return buttons[buttonProfile.index];
-				} else {
+				} else if (buttonProfile.type === "trigger") {
 					return triggers[buttonProfile.index] > buttonProfile.threshold;
+				} else {
+					return axes[buttonProfile.axis] > buttonProfile.minRange && axes[buttonProfile.maxRange] < buttonProfile.maxRange
 				}
 			});
 
@@ -186,9 +189,9 @@ class GamepadController {
 				if (axisProfile.type === "axis") {
 					// Normalize the axis value to be between the min and max range to be between -1 and 1, and make sure the zerovalue becomes 0
 					const normalizedAxis =
-						axes[axisProfile.axis] > axisProfile.zeroAxisRange
-							? axes[axisProfile.axis] / axisProfile.maxAxisRange
-							: axes[axisProfile.axis] / -axisProfile.minAxisRange;
+						axes[axisProfile.axis] >= axisProfile.zeroAxisRange
+							? axes[axisProfile.axis] - axisProfile.zeroAxisRange / axisProfile.maxAxisRange
+							: axes[axisProfile.axis]  - axisProfile.zeroAxisRange / -axisProfile.minAxisRange;
 					return normalizedAxis;
 				} else if (axisProfile.type === "button") {
 					return triggers[axisProfile.buttons[1]] - triggers[axisProfile.buttons[0]];
@@ -199,7 +202,6 @@ class GamepadController {
 					);
 				}
 			});
-
 		return remapedAxes;
 	}
 

@@ -3,6 +3,14 @@ import { Service } from "../data/service.type";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
+import { Log } from "../hooks/roverLogHooks";
+
+export enum LogLevel {
+	DATA = "data",
+	INFO = "info",
+	WARNING = "warning",
+	ERROR = "error",
+};
 
 const requestChangeMode = (
 	ros: ROSLIB.Ros | null,
@@ -10,7 +18,7 @@ const requestChangeMode = (
 	mode: string,
 	ser: Service,
 	sendingRequest: (b: boolean) => void,
-	snackBar: (severity: AlertColor, message: string) => void
+	snackBar: (severity: AlertColor, message: string) => void,
 ) => {
 	let request;
 
@@ -54,7 +62,16 @@ const requestChangeMode = (
 		changeModeSystem.callService(
 			request,
 			(res) => {
-				manageResponse(res, ser, snackBar)
+				// @ts-ignore
+				if (res["error_type"] != 0) {
+					snackBar("error","Error from request to change service (not ROS): " + 
+						// @ts-ignore
+						res["error_message"]);
+					} else {
+						console.log("RECEIVE RESPONSE SERVICE DRILL " + 
+							// @ts-ignore
+							res["error_message"])
+					}
 				sendingRequest(false);
 			},
 			(err) => {
@@ -63,18 +80,6 @@ const requestChangeMode = (
 			}
 		);
 		
-	}
-};
-
-const manageResponse = (
-	result: any,
-	ser: Service,
-	snackBar: (severity: AlertColor, message: string) => void
-) => {
-	if (result["error_type"] != 0) {
-		// error has occured, or warning
-		//ser.state = JSON.parse(result["systems_state"])[ser.name];
-		snackBar("error","Error from request to change service (not ROS): " + result["error_message"]);
 	}
 };
 

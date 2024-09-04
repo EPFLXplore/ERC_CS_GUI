@@ -109,6 +109,7 @@ function useGamepad(
 						gamepadState.buttons,
 						gamepadState.axes
 					);
+					// console.log(message)
 					publisher.publish(message);
 				} else {
 					const message = gamepad.handleInverseArm(

@@ -33,7 +33,10 @@ import {
 	getPivotAngle,
 	getSteeringAngles,
 	getTrajectory,
-	getWheelsSpeed,
+	getDrillModule,
+	getWheelsDrivingValue,
+	getDrillState,
+	getDrillScrewRotation
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -41,6 +44,7 @@ import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useState } from "react";
 import SettingsModal from "../../components/modals/SettingsModal";
+import ROSLIB from "roslib";
 
 const CAMERA_CONFIGS = [
 	["camera_0"],
@@ -88,6 +92,7 @@ const NewControlPage = () => {
 		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 
+	// TO BE REMOVED NEXT
 	const [path, setPath] = useState([
 		{
 			x: 0,
@@ -119,6 +124,11 @@ const NewControlPage = () => {
 		},
 	]);
 
+	/**
+	 * Function handling the windows of actions at the bottom of the page
+	 * @param system the subsystem or empty string for the button cancel all actions
+	 * @param cancel if we use the cancel button or not
+	 */
 	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
 		setSystemsModalOpen((old) => {
 			let newModalOpen = { ...old };
@@ -131,6 +141,7 @@ const NewControlPage = () => {
 				newModalOpen[system] = true;
 				setModal(
 					selectModal(
+						roverState,
 						system,
 						point,
 						setModal,
@@ -152,25 +163,25 @@ const NewControlPage = () => {
 				<img src={logo} className={styles.logo} alt="Logo Xplore" />
 				<div className={styles.systems}>
 					<SystemMode
-						system="Navigation"
+						system={"Navigation"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
 						modes={["Auto", "Manual", "Off"]}
 						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode)}
 					/>
 					<SystemMode
-						system="Handling Device"
+						system={"Handling Device"}
 						currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
 						modes={["Auto", "Manual Direct", "Manual Inverse", "Off"]}
 						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode)}
 					/>
 					<SystemMode
-						system="Cameras"
+						system={"Cameras"}
 						currentMode={stateServices[SubSystems.CAMERA].service.state}
 						modes={["Stream", "Off"]}
 						onSelect={(mode) => startService(SubSystems.CAMERA, mode)}
 					/>
 					<SystemMode
-						system="Drill"
+						system={"Drill"}
 						currentMode={stateServices[SubSystems.DRILL].service.state}
 						modes={["On", "Off"]}
 						onSelect={(mode) => startService(SubSystems.DRILL, mode)}
@@ -257,9 +268,10 @@ const NewControlPage = () => {
 						/>
 					) : (
 						<Simulation
+							drill_value={getDrillModule(roverState)}
 							armJointAngles={getJointsPositions(roverState)}
-							wheelsSpeed={getWheelsSpeed(roverState)}
 							wheelsSteeringAngle={getSteeringAngles(roverState)}
+							wheelsDrivingValue={getWheelsDrivingValue(roverState)}
 							pivotAngle={getPivotAngle(roverState)}
 							point={point}
 							setPoint={setPoint}
@@ -334,10 +346,12 @@ const NewControlPage = () => {
 									{
 										name: "Encoder",
 										// @ts-ignore
-										value: roverState["drill"]["motors"]["motor_module"][
-											"position"
-										],
+										value: getDrillModule(roverState)
 									},
+									{
+										name: "Velocity",
+										value: getDrillScrewRotation(roverState)
+									}
 								]}
 							/>
 						)}
@@ -406,9 +420,10 @@ const NewControlPage = () => {
 									/>
 								) : (
 									<Simulation
+										drill_value={getDrillModule(roverState)}
 										armJointAngles={getJointsPositions(roverState)}
-										wheelsSpeed={getWheelsSpeed(roverState)}
 										wheelsSteeringAngle={getSteeringAngles(roverState)}
+										wheelsDrivingValue={getWheelsDrivingValue(roverState)}
 										pivotAngle={getPivotAngle(roverState)}
 										point={point}
 										setPoint={setPoint}
@@ -455,6 +470,7 @@ const NewControlPage = () => {
 };
 
 const selectModal = (
+	roverState: object,
 	system: SubSystems | "",
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
@@ -510,6 +526,7 @@ const selectModal = (
 					onSetGoal={launchAction}
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
+					feedback={getDrillState(roverState)}
 				/>
 			);
 		default:

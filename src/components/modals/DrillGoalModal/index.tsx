@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
@@ -11,20 +11,22 @@ enum DrillTask {
 	UP = "Up",
 	ABORT = "Abort",
 	STOP = "Stop",
+	CLOSE = "Close",
+	OPEN = "Open"
 }
 
 function DrillGoalModal({
 	onSetGoal,
 	onClose,
 	onCancelGoal,
-	currentTask = undefined,
 	snackBar,
+	feedback
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
-	currentTask?: DrillTask;
 	snackBar: (sev: AlertColor, mes: string) => void;
+	feedback: string
 }) {
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 
@@ -40,9 +42,7 @@ function DrillGoalModal({
 					<h1>Set Drill Task</h1>
 				</div>
 				<div className={styles.ModalContent}>
-					{currentTask ? (
-						<p>Current Task is {currentTask}.</p>
-					) : task ? (
+					{task ? (
 						<p>Selected Task is {task}.</p>
 					) : (
 						<p>No current task set.</p>
@@ -66,7 +66,6 @@ function DrillGoalModal({
 					<button
 						onClick={() => {
 							if (task) {
-								console.log(task.toLowerCase());
 								onSetGoal(SubSystems.DRILL, { action: task.toLowerCase() });
 								onClose();
 							} else {
@@ -79,8 +78,7 @@ function DrillGoalModal({
 					</button>
 					<button
 						onClick={() => {
-							onCancelGoal(SubSystems.NAGIVATION);
-							//onClose();
+							onCancelGoal(SubSystems.DRILL);
 						}}
 					>
 						Cancel Task

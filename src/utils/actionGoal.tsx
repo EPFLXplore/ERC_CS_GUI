@@ -25,11 +25,13 @@ const actionGoal = (
 
 				newStates[system].ros_object.cancelGoal(newStates[system].goal_object)
 
+				// TODO: checker d'une certaine manière dans le rover state que y'a plus d'action car on a pas
+				// de callback sur le cancelGoal(). 
+
 				newStates[system].goal_params = null;
 				newStates[system].goal_object = undefined;
 				newStates[system].action.state = States.OFF;
 				newStates[system].ros_object = null;
-				//sentAction(false);
 				snackBar("success", "Action for " + system + "has been canceled (correctly we need to check the status on the rover state of the subsystem)");
 			} else {
 				snackBar("info", "No action for " + system + "is running");
@@ -53,14 +55,10 @@ const actionGoal = (
 			actionArgs,
 			(result: any) => {
 				console.log(result);
-				//sentAction(false);
 				updateActions((old: ActionType) => {
-					const newStates = { ...old };
+					const newStates = { ...old };			
 
-					// todo: il faut tester que l'action fait ait retourné ce que l'on voulait pour savoir
-					// si l'action a été correctement executée				
-
-					newStates[system].action.state = States.OFF; // the action is finished
+					newStates[system].action.state = States.OFF;
 					newStates[system].goal_params = null;
 					newStates[system].goal_object = undefined;
 					newStates[system].ros_object = null;
@@ -71,15 +69,15 @@ const actionGoal = (
 			},
 			(feedback: any) => {
 				console.log(feedback);
+				
 			},
 			(error: string) => {
-				console.log(error) // si pas d'erreur dans le cancel goal, renvoye None!
+				console.log(error)
 			}
 		);
-
 		updateActions((old: ActionType) => {
 			const newStates = { ...old };
-			newStates[system].action.state = States.ON; // the action starts
+			newStates[system].action.state = States.ON;
 			newStates[system].goal_params = actionArgs;
 			newStates[system].goal_object = goalHandle;
 			newStates[system].ros_object = actionClient;

@@ -17,7 +17,6 @@ function useActions(
 	sentAction: boolean,
 	snackBar: (sev: AlertColor, mes: string) => void
 ) {
-	const [init, setInit] = useState(true);
 
 	const [stateActions, setStateActions] = useState<ActionType>({
 		[SubSystems.NAGIVATION]: {
@@ -26,7 +25,7 @@ function useActions(
 				!roverState[SubSystems.NAGIVATION]
 					? States.OFF
 					: roverState[SubSystems.NAGIVATION]["state"]["mode"],
-				"NavigationReachGoal",
+				"Nav/NavigationReachGoal",
 				"NAVReachGoal"
 			),
 			goal_params: null,
@@ -39,7 +38,7 @@ function useActions(
 				!roverState[SubSystems.HANDLING_DEVICE]
 					? States.OFF
 					: roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"],
-				"HandlingDeviceManipulation",
+				"HD/HandlingDeviceManipulation",
 				"HDManipulation"
 			),
 			goal_params: null,
@@ -49,10 +48,10 @@ function useActions(
 		[SubSystems.DRILL]: {
 			action: new Action(
 				SubSystems.DRILL,
-				!roverState[SubSystems.HANDLING_DEVICE]
+				!roverState[SubSystems.DRILL]
 					? States.OFF
 					: roverState[SubSystems.DRILL]["state"]["mode"],
-				"DrillTerrain",
+				"Drill/DrillTerrain",
 				"DrillCmd"
 			),
 			goal_params: null,
@@ -61,53 +60,6 @@ function useActions(
 		},
 	});
 	const [askingUserConfirmation, setAskingUserConfirmation] = useState(false);
-
-	useEffect(() => {
-		setStateActions((old) => {
-			let newStates = { ...old };
-			let change: string[] = [];
-
-			if (roverState === undefined || roverState["rover"] === undefined) {
-				return newStates;
-			}
-
-			/*
-			if (!sentAction) {
-				if (
-					newStates[SubSystems.NAGIVATION].action.state !==
-					roverState[SubSystems.NAGIVATION]["state"]["mode"]
-				) {
-					newStates[SubSystems.NAGIVATION].action.state =
-						roverState[SubSystems.NAGIVATION]["state"]["mode"];
-					if (!init) change.push(SubSystems.NAGIVATION);
-				}
-				if (
-					newStates[SubSystems.HANDLING_DEVICE].action.state !==
-					roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"]
-				) {
-					newStates[SubSystems.HANDLING_DEVICE].action.state =
-						roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"];
-					if (!init) change.push(SubSystems.HANDLING_DEVICE);
-				}
-				if (
-					newStates[SubSystems.DRILL].action.state !==
-					roverState[SubSystems.DRILL]["state"]["mode"]
-				) {
-					newStates[SubSystems.DRILL].action.state =
-						roverState[SubSystems.DRILL]["state"]["mode"];
-					if (!init) change.push(SubSystems.DRILL);
-				}
-			}
-
-			if (change.length > 0) {
-				snackBar("info", "These action states has been changed: " + change);
-			}
-
-			setInit(false);
-			*/
-			return newStates;
-		});
-	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return [stateActions, setStateActions] as const;
 }
