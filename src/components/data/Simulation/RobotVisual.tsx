@@ -136,9 +136,10 @@ const RobotVisual = ({
 	startTransition(() => {
 
 		// Set joint angles
+		const offsets = [180, -90, -90, 0, 0, -90]
 		for (let i = 0; i < 6; i++) {
 			robot.joints[`hd_joint_${i + 1}`].setJointValue(
-				THREE.MathUtils.degToRad(armJointAngles[i])
+				THREE.MathUtils.degToRad(armJointAngles[i] + offsets[i])
 			);
 		}
 		// Set wheel steering angles

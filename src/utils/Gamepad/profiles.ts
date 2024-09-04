@@ -917,16 +917,16 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 		[ClassicalGamepad.Axis.LT]: {
 			type: "axis",
 			axis: 2,
-			minAxisRange: 0,
+			minAxisRange: -3,
 			maxAxisRange: 1,
-			zeroAxisRange: 0
+			zeroAxisRange: -1
 		},
 		[ClassicalGamepad.Axis.RT]: {
 			type: "axis",
 			axis: 5,
-			minAxisRange: 0,
+			minAxisRange: -3,
 			maxAxisRange: 1,
-			zeroAxisRange: 0
+			zeroAxisRange: -1
 		}
 	},
 	navigationHandler: computeNavigationCommandClassicGamepad,

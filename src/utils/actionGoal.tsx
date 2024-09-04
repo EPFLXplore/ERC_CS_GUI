@@ -49,8 +49,6 @@ const actionGoal = (
 			actionType: "custom_msg/action/" + action.name_action_file,
 		});
 
-		console.log("/Rover/" + action.path_action)
-
 		console.log(actionArgs);
 		//sentAction(true);
 		const goalHandle = actionClient.sendGoal(
@@ -77,7 +75,6 @@ const actionGoal = (
 				console.log(error)
 			}
 		);
-
 		updateActions((old: ActionType) => {
 			const newStates = { ...old };
 			newStates[system].action.state = States.ON;

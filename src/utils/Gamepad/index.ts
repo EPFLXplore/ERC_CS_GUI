@@ -189,9 +189,9 @@ class GamepadController {
 				if (axisProfile.type === "axis") {
 					// Normalize the axis value to be between the min and max range to be between -1 and 1, and make sure the zerovalue becomes 0
 					const normalizedAxis =
-						axes[axisProfile.axis] > axisProfile.zeroAxisRange
-							? axes[axisProfile.axis] / axisProfile.maxAxisRange
-							: axes[axisProfile.axis] / -axisProfile.minAxisRange;
+						axes[axisProfile.axis] >= axisProfile.zeroAxisRange
+							? axes[axisProfile.axis] - axisProfile.zeroAxisRange / axisProfile.maxAxisRange
+							: axes[axisProfile.axis]  - axisProfile.zeroAxisRange / -axisProfile.minAxisRange;
 					return normalizedAxis;
 				} else if (axisProfile.type === "button") {
 					return triggers[axisProfile.buttons[1]] - triggers[axisProfile.buttons[0]];
@@ -202,7 +202,6 @@ class GamepadController {
 					);
 				}
 			});
-
 		return remapedAxes;
 	}
 

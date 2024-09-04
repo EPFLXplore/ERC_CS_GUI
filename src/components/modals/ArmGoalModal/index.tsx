@@ -154,9 +154,25 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Home Position" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Home Position", msg: ""})}
+							onClick={() => setTask({ name: "Home Position", msg: "home"})}
 						>
 							Home Position
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Zero" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Zero", msg: "zero"})}
+						>
+							Zero
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Cobra" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Cobra", msg: "cobra"})}
+						>
+							Cobra
 						</button>
 						<button
 							className={`${styles.Choice} ${
