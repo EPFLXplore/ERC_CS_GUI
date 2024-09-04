@@ -54,7 +54,7 @@ const MAX_CAMERAS = 5;
 const NewControlPage = () => {
 	const navigate = useNavigate();
 	const [snackbar, showSnackbar] = useAlert();
-	const [ros, active] = useRosBridge(showSnackbar);
+	const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
 	const [
 		roverState,
 		images,
@@ -268,6 +268,15 @@ const NewControlPage = () => {
 							plannedPath={getTrajectory(roverState)}
 							volumetric={volumetric}
 						/>
+					)}
+					{hdConfirmation && (
+						<div className={styles.confirm}>
+							<p>Handling Device Confirmation</p>
+							<div className={styles.confirmation}>
+								<button onClick={() => hdConfirmation(true)}>Confirm</button>
+								<button onClick={() => hdConfirmation(false)}>Cancel</button>
+							</div>
+						</div>
 					)}
 					<div className={styles.infosRight}>
 						{stateServices[SubSystems.NAGIVATION].service.state !== "Off" && (

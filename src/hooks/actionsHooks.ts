@@ -8,7 +8,7 @@ interface ActionElement {
 	action: Action;
 	goal_params: Object | null;
 	goal_object: string | undefined;
-	ros_object: any
+	ros_object: any;
 }
 export type ActionType = { [key: string]: ActionElement };
 
@@ -31,7 +31,7 @@ function useActions(
 			),
 			goal_params: null,
 			goal_object: undefined,
-			ros_object: null
+			ros_object: null,
 		},
 		[SubSystems.HANDLING_DEVICE]: {
 			action: new Action(
@@ -44,7 +44,7 @@ function useActions(
 			),
 			goal_params: null,
 			goal_object: undefined,
-			ros_object: null
+			ros_object: null,
 		},
 		[SubSystems.DRILL]: {
 			action: new Action(
@@ -57,9 +57,10 @@ function useActions(
 			),
 			goal_params: null,
 			goal_object: undefined,
-			ros_object: null
+			ros_object: null,
 		},
 	});
+	const [askingUserConfirmation, setAskingUserConfirmation] = useState(false);
 
 	useEffect(() => {
 		setStateActions((old) => {

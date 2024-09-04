@@ -6,6 +6,7 @@ import * as ROSLIB from "roslib";
 function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
 	const [connected, setConnected] = useState(false);
+	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
@@ -65,7 +66,28 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 		}
 	}, [ros]);
 
-	return [ros, connected] as const;
+	useEffect(() => {
+		if (!ros) return;
+
+		// The Service object does double duty for both calling and advertising services
+		var askUserConfirmation = new ROSLIB.Service({
+			ros: ros,
+			name: "/Rover/HD/human_verification",
+			serviceType: "std_srvs/Trigger",
+		});
+
+		// Use the advertise() method to indicate that we want to provide this service
+		askUserConfirmation.advertiseAsync(async (request) => {
+			console.log("Received HD Confirmation request ");
+			return new Promise<boolean>((resolve, reject) => {
+				setHDConfirmation((confirm: boolean) => {
+					resolve(confirm);
+				});
+			});
+		});
+	}, [ros]);
+
+	return [ros, connected, hdConfirmation] as const;
 }
 
 export default useRosBridge;
