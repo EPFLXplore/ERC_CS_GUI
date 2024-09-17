@@ -1066,7 +1066,7 @@ const PS4_CHROME_WINDOWS: DeviceProfile = {
 
 /////////////////////////////////// BINDINGS EXPORT ///////////////////////////////////
 
-const DEFAULT_PROFILE: DeviceProfile = PS4_FIREFOX_LINUX;
+const DEFAULT_PROFILE: DeviceProfile = XBOX_CHROME_LINUX;
 
 const profiles: {
 	[key: string]: DeviceProfile;
