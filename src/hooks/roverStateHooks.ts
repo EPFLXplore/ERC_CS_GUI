@@ -15,7 +15,6 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 			listener.subscribe((message) => {
 				//@ts-ignore
 				const data = JSON.parse(message.data);
-				// console.log(data)
 				startTransition(() => setRoverState(data));
 			});
 		}
