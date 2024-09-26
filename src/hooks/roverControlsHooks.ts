@@ -10,8 +10,6 @@ import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
-import useRoverLogs from "./roverLogHooks";
-import { getWarnings, getErrors } from "../utils/roverStateParser";
 
 const MAX_CAMERAS = 5;
 const NBR_SERVICES = 4;
@@ -33,7 +31,7 @@ const useRoverControls = (
 	const [display, setDisplay] = useState("camera");
 
 	const [sentService, setSendService] = useState(false);
-	const [stateServices, setStateServices] = useService(
+	const [stateServices, ] = useService(
 		roverState,
 		NBR_SERVICES,
 		sentService,

@@ -92,38 +92,6 @@ const NewControlPage = () => {
 		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 
-	// TO BE REMOVED NEXT
-	const [path, setPath] = useState([
-		{
-			x: 0,
-			y: 0,
-		},
-		{
-			x: 2,
-			y: 0,
-		},
-		{
-			x: 2,
-			y: 2,
-		},
-		{
-			x: 4,
-			y: 5,
-		},
-		{
-			x: 6,
-			y: 5,
-		},
-		{
-			x: 8,
-			y: 7,
-		},
-		{
-			x: 10,
-			y: 10,
-		},
-	]);
-
 	/**
 	 * Function handling the windows of actions at the bottom of the page
 	 * @param system the subsystem or empty string for the button cancel all actions

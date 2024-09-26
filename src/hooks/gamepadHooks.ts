@@ -3,7 +3,6 @@ import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../data/tasks.type";
 import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../utils/Gamepad/bindings";
-import * as controller from "gamecontroller.js";
 export enum GamepadCommandState {
 	UI,
 	CONTROL,
@@ -74,11 +73,6 @@ function useGamepad(
 				if (changeCam) changeCam(1);
 			}
 		);
-
-		
-		controller.gameControl?.on('connect', (gamepad: any) => {
-			console.log('A new gamepad was connected!');
-		});
 		
 	}, []);
 
@@ -105,11 +99,7 @@ function useGamepad(
 	}, [ros, mode]);
 
 	const sendCommand = () => {
-		//const gamepad = navigator.getGamepads()[0]; // get the first gamepad
 
-		// Assuming you use gamecontroller.js or standard-gamepad.js to normalize input
-		//const standardizedGamepad = GameController.default.standardizeGamepad(gamepad);
-		/*
 		const gamepadState = gamepad?.getState();
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
 			if (mode === Task.NAVIGATION) {
@@ -131,7 +121,6 @@ function useGamepad(
 				}
 			}
 		}
-			*/
 	};
 
 	useEffect(() => {

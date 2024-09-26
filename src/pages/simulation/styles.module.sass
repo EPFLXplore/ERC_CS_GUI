@@ -1,0 +1,128 @@
+@import '../../styles/variables.sass'
+
+.mainPage
+    display: flex
+    flex-direction: column
+    height: 100vh
+    max-height: 100vh
+    width: 100vw
+    overflow: hidden
+
+.header
+    display: flex
+    flex-direction: row
+    padding: 0 20px
+    width: 100%
+    padding: 20px 20px 0px 20px
+    align-items: flex-end
+
+.logo
+    object-fit: contain
+    height: 60px
+
+.systems
+    flex: 1
+    display: flex
+    flex-direction: row
+    gap: 70px
+    justify-content: center
+    width: 100%
+    align-items: flex-end
+    margin-left: auto
+
+.control
+    flex: 1
+    height: auto
+    display: flex
+    flex-direction: row
+    transition: all 0.5s ease-out
+    overflow: hidden
+
+.expand
+    position: absolute
+    left: -3px
+    top: 60%
+    z-index: 40
+
+.data
+    display: flex
+    flex-direction: column
+    gap: 20px
+    margin-top: 20px
+    transition: width 0.2s ease-out
+
+.visualization
+    flex: 1
+    background-color: white
+    border-radius: 25px
+    margin: 20px
+    position: relative
+    overflow: hidden
+
+.previews
+    position: absolute
+    bottom: 20px
+    right: 20px
+    display: flex
+    flex-direction: column
+    gap: 10px
+    justify-content: flex-end
+
+.simulation
+    width: 300px
+    height: 200px
+    padding: 10px
+    background-color: grey
+    border-radius: 15px
+    z-index: 20
+    overflow: hidden
+    cursor: pointer
+
+.infosRight
+    position: absolute
+    top: 20px
+    right: 20px
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 10px
+
+.infosLeft
+    position: absolute
+    top: 20px
+    left: 20px
+    display: flex
+    flex-direction: column
+    justify-content: center
+    gap: 10px
+
+.actions
+    position: absolute
+    bottom: 40px
+    right: 0
+    left: 0
+    display: flex
+    flex-direction: row
+    justify-content: center
+    gap: 20px
+
+.confirm
+    position: absolute
+    top: 0
+    bottom: 0
+    right: 0
+    left: 0
+    right: 0
+    width: fit-content
+    height: fit-content
+    display: flex
+    flex-direction: column
+    gap: 20px
+    margin: auto
+    background: grey
+    padding: 5px
+
+.confirmation
+    display: flex
+    flex-direction: row
+    justify-content: space-around

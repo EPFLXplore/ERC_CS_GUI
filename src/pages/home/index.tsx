@@ -22,10 +22,34 @@ const Home = () => {
 				<a
 					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
-						if (connected) navigate("/new_control_page");
+						if (connected) navigate("/control");
 					}}
 				>
 					Start
+				</a>
+				<a
+					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					onClick={() => {
+						if (connected) navigate("/simulation");
+					}}
+				>
+					Simulation
+				</a>
+				<a
+					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					onClick={() => {
+						if (connected) navigate("/network");
+					}}
+				>
+					Network
+				</a>
+				<a
+					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					onClick={() => {
+						if (connected) navigate("/cameras");
+					}}
+				>
+					Cameras
 				</a>
 			</div>
 			<div className={styles.footer}>
