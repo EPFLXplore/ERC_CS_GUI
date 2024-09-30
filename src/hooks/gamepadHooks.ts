@@ -55,24 +55,6 @@ function useGamepad(
 				selectorCallback?.();
 			}
 		);
-
-		GamepadController.addGamepadListener(
-			"gamepadButtonPressed",
-			ClassicalGamepad.Button.LEFT,
-			() => {
-				console.log("Gamepad Command: Change Camera");
-				if (changeCam) changeCam(-1);
-			}
-		);
-
-		GamepadController.addGamepadListener(
-			"gamepadButtonPressed",
-			ClassicalGamepad.Button.RIGHT,
-			() => {
-				console.log("Gamepad Command: Change Camera");
-				if (changeCam) changeCam(1);
-			}
-		);
 		
 	}, []);
 

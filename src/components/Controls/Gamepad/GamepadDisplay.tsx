@@ -66,7 +66,7 @@ export default ({
 	};
 
 	// Method to interpolate between two colors
-	const colorInterpolator = (value: number, colorFrom: string, colorTo: string) => {
+	const colorInterpolator2 = (value: number, colorFrom: string, colorTo: string) => {
 		const from = parseInt(colorFrom.slice(1), 16);
 		const to = parseInt(colorTo.slice(1), 16);
 		const r = Math.round(((to >> 16) - (from >> 16)) * value + (from >> 16));
@@ -76,6 +76,30 @@ export default ({
 		const b = Math.round(((to & 0xff) - (from & 0xff)) * value + (from & 0xff));
 		return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 	};
+
+	const colorInterpolator = (value: number, colorFrom: string, colorTo: string) => {
+		// Convert hex color strings to integers
+		const from = parseInt(colorFrom.slice(1), 16);
+		const to = parseInt(colorTo.slice(1), 16);
+		
+		// Adjust the value from [-1, 1] to the range [0, 1]
+		const adjustedValue = (value + 1) / 2;  // Converts -1 to 0 and 1 to 1
+	
+		// Interpolate the red component
+		const r = Math.round(((to >> 16) - (from >> 16)) * adjustedValue + (from >> 16));
+	
+		// Interpolate the green component
+		const g = Math.round(
+			(((to >> 8) & 0xff) - ((from >> 8) & 0xff)) * adjustedValue + ((from >> 8) & 0xff)
+		);
+	
+		// Interpolate the blue component
+		const b = Math.round(((to & 0xff) - (from & 0xff)) * adjustedValue + (from & 0xff));
+	
+		// Combine the components back into a hex color and return
+		return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
+	};
+	
 
 	return (
 		<svg

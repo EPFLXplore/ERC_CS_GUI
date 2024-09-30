@@ -15,6 +15,7 @@ class GamepadController {
 	private gamepadState: GamepadControllerState | null;
 	private prevGamepadState: GamepadControllerState | null;
 	private deviceProfile: DeviceProfile | null = null;
+	private firstMap: boolean = true
 
 	constructor(stateCallback: (state: GamepadControllerState) => void) {
 		if (navigator.getGamepads().length > 0 && navigator.getGamepads()[0]) {
@@ -171,7 +172,7 @@ class GamepadController {
 				} else if (buttonProfile.type === "trigger") {
 					return triggers[buttonProfile.index] > buttonProfile.threshold;
 				} else {
-					return axes[buttonProfile.axis] > buttonProfile.minRange && axes[buttonProfile.maxRange] < buttonProfile.maxRange
+					return axes[buttonProfile.axis] == buttonProfile.value
 				}
 			});
 
@@ -180,20 +181,26 @@ class GamepadController {
 
 	private remapAxes(gamepad: Gamepad, profile: DeviceProfile): number[] {
 		const triggers = gamepad.buttons.map((button) => button.value);
-		const axes = gamepad.axes;
+		let axes = gamepad.axes;
+		//console.log(axes[4])
 
 		const remapedAxes = Object.keys(profile.axes)
 			.sort((key) => parseInt(key))
 			.map((axis) => {
 				const axisProfile = profile.axes[parseInt(axis)];
 				if (axisProfile.type === "axis") {
-					// Normalize the axis value to be between the min and max range to be between -1 and 1, and make sure the zerovalue becomes 0
+					let normalizedAxis = (2 * (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
+							axisProfile.minAxisRange)) - 1
+					
+					/*
 					let normalizedAxis =
 						axes[axisProfile.axis] >= axisProfile.zeroAxisRange
 							? axes[axisProfile.axis] - axisProfile.zeroAxisRange / axisProfile.maxAxisRange
 							: axes[axisProfile.axis]  - axisProfile.zeroAxisRange / -axisProfile.minAxisRange;
-						
+					*/
 					normalizedAxis = Math.abs(normalizedAxis) < 0.1 ? 0.0 : normalizedAxis 	
+					
+					//if (axisProfile.axis == 3) console.log(normalizedAxis)
 					return normalizedAxis;
 				} else if (axisProfile.type === "button") {
 					return triggers[axisProfile.buttons[1]] - triggers[axisProfile.buttons[0]];

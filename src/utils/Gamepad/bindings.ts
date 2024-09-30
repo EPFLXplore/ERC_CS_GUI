@@ -18,8 +18,7 @@ interface Buttons {
 		  | {
 			type: "axis";
 			axis: number;
-			minRange: number;
-			maxRange: number;
+			value: number;
 	  };
 }
 

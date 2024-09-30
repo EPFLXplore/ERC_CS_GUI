@@ -815,75 +815,70 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 	OS: "Linux",
 	webBrowser: "Chrome",
 	buttons: {
-		[ClassicalGamepad.Button.A]: {
+		[ClassicalGamepad.Button.A]: { // ok
 			type: "button",
 			index: 0,
 		},
-		[ClassicalGamepad.Button.B]: {
+		[ClassicalGamepad.Button.B]: { // ok
 			type: "button",
 			index: 1,
 		},
-		[ClassicalGamepad.Button.X]: {
+		[ClassicalGamepad.Button.X]: { // ok
 			type: "button",
 			index: 2,
 		},
-		[ClassicalGamepad.Button.Y]: {
+		[ClassicalGamepad.Button.Y]: { // ok
 			type: "button",
 			index: 3,
 		},
-		[ClassicalGamepad.Button.LB]: {
+		[ClassicalGamepad.Button.LB]: { // ok
 			type: "button",
 			index: 4,
 		},
-		[ClassicalGamepad.Button.RB]: {
+		[ClassicalGamepad.Button.RB]: { // ok
 			type: "button",
 			index: 5,
 		},
-		[ClassicalGamepad.Button.BACK]: {
+		[ClassicalGamepad.Button.BACK]: { // ok
 			type: "button",
 			index: 6,
 		},
-		[ClassicalGamepad.Button.START]: {
+		[ClassicalGamepad.Button.START]: { // ok
 			type: "button",
 			index: 7,
 		},
-		[ClassicalGamepad.Button.HOME]: {
+		[ClassicalGamepad.Button.HOME]: { // ok
 			type: "button",
 			index: 8,
 		},
-		[ClassicalGamepad.Button.LEFT_STICK]: {
+		[ClassicalGamepad.Button.LEFT_STICK]: { // ok
 			type: "button",
 			index: 9,
 		},
-		[ClassicalGamepad.Button.RIGHT_STICK]: {
+		[ClassicalGamepad.Button.RIGHT_STICK]: { // ok
 			type: "button",
 			index: 10,
 		},
-		[ClassicalGamepad.Button.UP]: {
+		[ClassicalGamepad.Button.UP]: { // ok
 			type: "axis",
 			axis: 7,
-			minRange: 0,
-			maxRange: 1,
+			value: -1
 		},
-		[ClassicalGamepad.Button.DOWN]: {
+		[ClassicalGamepad.Button.DOWN]: { // ok
 			type: "axis",
 			axis: 7,
-			minRange: -1,
-			maxRange: 0,
+			value: 1
 		},
-		[ClassicalGamepad.Button.RIGHT]: {
+		[ClassicalGamepad.Button.RIGHT]: { // ok
 			type: "axis",
 			axis: 6,
-			minRange: 0,
-			maxRange: 1,
+			value: 1
 		},
-		[ClassicalGamepad.Button.LEFT]: {
+		[ClassicalGamepad.Button.LEFT]: { // ok
 			type: "axis",
 			axis: 6,
-			minRange: -1,
-			maxRange: 0,
-		},
-
+			value: -1
+		}
 	},
 	axes: {
 		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
@@ -917,16 +912,16 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 		[ClassicalGamepad.Axis.LT]: {
 			type: "axis",
 			axis: 2,
-			minAxisRange: -3,
+			minAxisRange: -1,
 			maxAxisRange: 1,
-			zeroAxisRange: -1
+			zeroAxisRange: 0
 		},
 		[ClassicalGamepad.Axis.RT]: {
 			type: "axis",
 			axis: 5,
-			minAxisRange: -3,
+			minAxisRange: -1,
 			maxAxisRange: 1,
-			zeroAxisRange: -1
+			zeroAxisRange: 0
 		}
 	},
 	navigationHandler: computeNavigationCommandClassicGamepad,
@@ -949,110 +944,8 @@ const PS4_CHROME_WINDOWS: DeviceProfile = {
 	name: "Contrôleur XBOX 360 pour Windows (STANDARD GAMEPAD)",
 	OS: "Windows",
 	webBrowser: "Chrome",
-	buttons: {
-		[ClassicalGamepad.Button.A]: {
-			type: "button",
-			index: 0,
-		},
-		[ClassicalGamepad.Button.B]: {
-			type: "button",
-			index: 1,
-		},
-		[ClassicalGamepad.Button.X]: {
-			type: "button",
-			index: 2,
-		},
-		[ClassicalGamepad.Button.Y]: {
-			type: "button",
-			index: 3,
-		},
-		[ClassicalGamepad.Button.LB]: {
-			type: "button",
-			index: 4,
-		},
-		[ClassicalGamepad.Button.RB]: {
-			type: "button",
-			index: 5,
-		},
-		[ClassicalGamepad.Button.BACK]: {
-			type: "button",
-			index: 8,
-		},
-		[ClassicalGamepad.Button.START]: {
-			type: "button",
-			index: 9,
-		},
-		[ClassicalGamepad.Button.LEFT_STICK]: {
-			type: "button",
-			index: 10,
-		},
-		[ClassicalGamepad.Button.RIGHT_STICK]: {
-			type: "button",
-			index: 11,
-		},
-		[ClassicalGamepad.Button.UP]: {
-			type: "button",
-			index: 12,
-		},
-		[ClassicalGamepad.Button.DOWN]: {
-			type: "button",
-			index: 13,
-		},
-		[ClassicalGamepad.Button.LEFT]: {
-			type: "button",
-			index: 14,
-		},
-		[ClassicalGamepad.Button.RIGHT]: {
-			type: "button",
-			index: 15,
-		},
-		[ClassicalGamepad.Button.HOME]: {
-			type: "button",
-			index: 16,
-		},
-	},
-	axes: {
-		[ClassicalGamepad.Axis.LEFT_STICK_X]: {
-			type: "axis",
-			axis: 0,
-			minAxisRange: -1,
-			maxAxisRange: 1,
-			zeroAxisRange: 0,
-		},
-		[ClassicalGamepad.Axis.LEFT_STICK_Y]: {
-			type: "axis",
-			axis: 1,
-			minAxisRange: 1,
-			maxAxisRange: -1,
-			zeroAxisRange: 0,
-		},
-		[ClassicalGamepad.Axis.RIGHT_STICK_X]: {
-			type: "axis",
-			axis: 2,
-			minAxisRange: -1,
-			maxAxisRange: 1,
-			zeroAxisRange: 0,
-		},
-		[ClassicalGamepad.Axis.RIGHT_STICK_Y]: {
-			type: "axis",
-			axis: 3,
-			minAxisRange: 1,
-			maxAxisRange: -1,
-			zeroAxisRange: 0,
-		},
-		[ClassicalGamepad.Axis.LT]: {
-			type: "trigger",
-			button: 6,
-			maxTriggerRange: 1,
-			zeroTriggerRange: 0,
-		},
-		[ClassicalGamepad.Axis.RT]: {
-			type: "trigger",
-			button: 7,
-			maxTriggerRange: 1,
-			zeroTriggerRange: 0,
-		},
-	},
+	buttons: {},
+	axes: {},
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
@@ -1079,8 +972,7 @@ const profiles: {
 	XBOX_EDGE_WINDOWS,
 	PS4_FIREFOX_LINUX,
 	PS4_CHROME_LINUX,
-	PS4_CHROME_MAC,
-	PS4_CHROME_WINDOWS
+	PS4_CHROME_MAC
 };
 
 export default profiles;
