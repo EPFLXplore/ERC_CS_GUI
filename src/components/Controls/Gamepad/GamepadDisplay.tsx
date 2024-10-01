@@ -66,7 +66,7 @@ export default ({
 	};
 
 	// Method to interpolate between two colors
-	const colorInterpolator2 = (value: number, colorFrom: string, colorTo: string) => {
+	const colorInterpolator = (value: number, colorFrom: string, colorTo: string) => {
 		const from = parseInt(colorFrom.slice(1), 16);
 		const to = parseInt(colorTo.slice(1), 16);
 		const r = Math.round(((to >> 16) - (from >> 16)) * value + (from >> 16));
@@ -77,7 +77,7 @@ export default ({
 		return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 	};
 
-	const colorInterpolator = (value: number, colorFrom: string, colorTo: string) => {
+	const colorInterpolator2 = (value: number, colorFrom: string, colorTo: string) => {
 		// Convert hex color strings to integers
 		const from = parseInt(colorFrom.slice(1), 16);
 		const to = parseInt(colorTo.slice(1), 16);
