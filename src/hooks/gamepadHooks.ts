@@ -87,6 +87,7 @@ function useGamepad(
 			if (mode === Task.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
 				publisher.publish(message);
+				console.log(message.axes[5])
 			} else {
 				if (submode) {
 					const message = gamepad.handleDirectArm(
