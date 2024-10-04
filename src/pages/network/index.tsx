@@ -5,6 +5,7 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import useRoverNetwork from "../../hooks/networkHooks";
+import { getNetworkData } from "../../utils/roverStateParser";
 
 
 const NetworkPage = () => {

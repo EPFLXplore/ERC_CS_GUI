@@ -55,9 +55,8 @@ const RobotVisual = ({
 	rotation: Point3D;
 	terrainRef: React.MutableRefObject<THREE.Object3D | undefined>;
 }) => {
-	// var filepath = "/kerby_description/urdf/kerby_compiled.urdf";
-	// var filepath = "/onyx_description/description/onyx.urdf";
-	var filepath = "/onyx_description_2/urdf/onyx.urdf";
+	//var filepath = "/onyx_description_2/urdf/onyx.urdf";
+	var filepath = "/onyx_final_description/urdf/onyx_3.urdf";
 
 	// loading robot model from urdf
 	const ref = useRef();

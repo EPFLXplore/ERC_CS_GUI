@@ -20,13 +20,11 @@ function DrillGoalModal({
 	onClose,
 	onCancelGoal,
 	snackBar,
-	feedback
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	snackBar: (sev: AlertColor, mes: string) => void;
-	feedback: string
 }) {
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 

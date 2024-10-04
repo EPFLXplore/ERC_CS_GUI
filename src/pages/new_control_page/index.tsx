@@ -35,7 +35,6 @@ import {
 	getTrajectory,
 	getDrillModule,
 	getWheelsDrivingValue,
-	getDrillState,
 	getDrillScrewRotation
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
@@ -494,7 +493,6 @@ const selectModal = (
 					onSetGoal={launchAction}
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
-					feedback={getDrillState(roverState)}
 				/>
 			);
 		default:

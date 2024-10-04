@@ -54,7 +54,7 @@ const requestChangeMode = (
 	if (ros) {
 		const changeModeSystem = new ROSLIB.Service({
 			ros: ros,
-			name: "/Rover/ChangeModeSystem",
+			name: "/CS/ChangeModeSystem",
 			serviceType: "custom_msg/srv/ChangeModeSystem",
 		});
 

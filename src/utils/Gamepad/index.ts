@@ -182,16 +182,24 @@ class GamepadController {
 	private remapAxes(gamepad: Gamepad, profile: DeviceProfile): number[] {
 		const triggers = gamepad.buttons.map((button) => button.value);
 		let axes = gamepad.axes;
-		//console.log(axes[4])
 
 		const remapedAxes = Object.keys(profile.axes)
 			.sort((key) => parseInt(key))
 			.map((axis) => {
 				const axisProfile = profile.axes[parseInt(axis)];
 				if (axisProfile.type === "axis") {
-					let normalizedAxis = (2 * (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
+					let normalizedAxis = 0
+					if(axisProfile.axis == 2 || axisProfile.axis == 5) {
+						normalizedAxis = (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
+							axisProfile.minAxisRange)
+					} else {
+						normalizedAxis = (2 * (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
 							axisProfile.minAxisRange)) - 1
-					
+					}
+
+					//normalizedAxis = (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
+					//			axisProfile.minAxisRange)
+				
 					/*
 					let normalizedAxis =
 						axes[axisProfile.axis] >= axisProfile.zeroAxisRange

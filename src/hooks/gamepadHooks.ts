@@ -87,7 +87,7 @@ function useGamepad(
 			if (mode === Task.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
 				publisher.publish(message);
-				console.log(message.axes[5])
+				//console.log(message.axes)
 			} else {
 				if (submode) {
 					const message = gamepad.handleDirectArm(
@@ -108,7 +108,7 @@ function useGamepad(
 
 	useEffect(() => {
 		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
-			setIntervalCallback(setInterval(sendCommand, 50));
+			setIntervalCallback(setInterval(sendCommand, 150));
 		} else {
 			console.log("No publisher");
 			if (interval) {

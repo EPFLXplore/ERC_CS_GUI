@@ -45,7 +45,7 @@ const actionGoal = (
 
 		const actionClient = new ROSLIB.Action({
 			ros: ros,
-			name: "/Rover/" + action.path_action,
+			name: action.path_action,
 			actionType: "custom_msg/action/" + action.name_action_file,
 		});
 
