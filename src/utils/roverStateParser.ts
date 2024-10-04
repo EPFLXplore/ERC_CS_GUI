@@ -133,6 +133,70 @@ const getAngularVelocity = (data: any) => {
 		y: Number(data['navigation']['localization']['angular_velocity']['y']),
 		z: Number(data['navigation']['localization']['angular_velocity']['z']),
 	}
+};
+
+const getCurrentDriving = (data: any) => {
+	if(!data || !data['rover']) {
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const current = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		current.push(Number(wheels[wheel]["current_driving"]));
+	}
+
+	return current;
+}
+
+const getCurrentDrivingAveraged = (data: any) => {
+	if(!data || !data['rover']) {
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const current = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		current.push(Number(wheels[wheel]["average_current_driving"]));
+	}
+
+	return current;
+}
+
+const getCurrentSteering = (data: any) => {
+	if(!data || !data['rover']) {
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const current = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		current.push(Number(wheels[wheel]["current_steering"]));
+	}
+
+	return current;
+}
+
+const getCurrentSteeringAveraged = (data: any) => {
+	if(!data || !data['rover']) {
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const current = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		current.push(Number(wheels[wheel]["average_current_steering"]));
+	}
+
+	return current;
 }
 
 const getSteeringState = (data: any) => {
@@ -188,6 +252,29 @@ const getSteeringAngles = (data: any) => {
 	}
 
 	return angles;
+};
+
+/**
+ * Get the speeds of the wheels of the rover.
+ * @param data The rover state data.
+ * @returns The speeds of the wheels in m/s.
+ * 
+ * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
+ */
+const getWheelsDrivingValue = (data: any) => {
+	if (!data || !data["navigation"]) {
+		return [0, 0, 0, 0];
+	}
+
+	const wheels = data["navigation"]["wheels"];
+	const values = [];
+
+	for (const wheel in wheels) {
+		if (wheel === "pivot") continue;
+		values.push(Number(wheels[wheel]["speed"]));
+	}
+
+	return values;
 };
 
 const getDistanceToGoal = (data: any) => {
@@ -247,29 +334,6 @@ const getPivotAngle = (data: any) => {
 	}
 
 	return Number(data["navigation"]["wheels"]["pivot"]["angle"]);
-};
-
-/**
- * Get the speeds of the wheels of the rover.
- * @param data The rover state data.
- * @returns The speeds of the wheels in m/s.
- * 
- * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
- */
-const getWheelsDrivingValue = (data: any) => {
-	if (!data || !data["navigation"]) {
-		return [0, 0, 0, 0];
-	}
-
-	const wheels = data["navigation"]["wheels"];
-	const values = [];
-
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		values.push(Number(wheels[wheel]["speed"]));
-	}
-
-	return values;
 };
 
 /**
@@ -508,4 +572,14 @@ export {
 	getWheelsDrivingValue,
 	getWarnings,
 	getErrors,
-	getNetworkData};
+	getNetworkData,
+	getCurrentDriving,
+	getCurrentDrivingAveraged,
+	getCurrentSteering,
+	getCurrentSteeringAveraged,
+getMotorDrill,
+getModuleMotor,
+getCurrentOutput,
+getDrivingState,
+getSteeringState,
+getMainProcesses};

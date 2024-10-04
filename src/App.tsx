@@ -17,7 +17,7 @@ const router = createBrowserRouter([
 		element: <Logs />,
 	},
 	{
-		path: "/new_control_page",
+		path: "/control",
 		element: <NewControlPage />,
 	},
 	{

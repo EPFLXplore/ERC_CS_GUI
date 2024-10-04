@@ -163,91 +163,13 @@ const NewControlPage = () => {
 					}}
 					onClick={() => navigate("/logs")}
 				/>
-				<Settings
-					sx={{
-						color: "white",
-						opacity: 0.5,
-						fontSize: 30,
-						marginX: 3,
-						// cursor: "pointer",
-					}}
-					onClick={() =>
-						setModal(
-							<SettingsModal
-								title="Settings"
-								volumetric={volumetric}
-								setVolumetric={setVolumetric}
-								onClose={() => setModal(<></>)}
-							/>
-						)
-					}
-				/>
 				<Timer
 					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
 					wifiLevel={getdBm(roverState)}
 				/>
 			</div>
 			<div className={styles.control}>
-				<div
-					className={styles.data}
-					style={{ width: dataOpen ? "18%" : 0, marginLeft: dataOpen ? 20 : 0 }}
-				>
-					{dataOpen && <h1>Rover Data</h1>}
-					{
-						// @ts-ignore
-						dataOpen && !roverState["rover"] && <p>No data yet</p>
-					}
-					{
-						// @ts-ignore
-						dataOpen && roverState["rover"] && (
-							<RoverData
-								json={roverState}
-								triggerDataFocus={triggerDataFocus}
-								focusedData={dataFocus}
-							/>
-						)
-					}
-				</div>
 				<div className={styles.visualization}>
-					<div className={styles.expand}>
-						<ExpandButton
-							onClick={() => setDataOpen((old) => !old)}
-							expanded={dataOpen}
-						/>
-					</div>
-					{display === "camera" &&
-					stateServices[SubSystems.CAMERA].service.state !== "Off" ? (
-						<CameraView
-							images={images}
-							rotate={rotateCams}
-							setRotateCams={() => {}}
-							currentCam={CAMERA_CONFIGS[currentVideo]}
-							changeCam={(dir) => {
-								setCurrentVideo((old) => {
-									console.log("change 1");
-									if (dir === 1) {
-										return (old + 1) % MAX_CAMERAS;
-									} else {
-										return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
-									}
-								});
-							}}
-						/>
-					) : (
-						<Simulation
-							drill_value={getDrillModule(roverState)}
-							armJointAngles={getJointsPositions(roverState)}
-							wheelsSteeringAngle={getSteeringAngles(roverState)}
-							wheelsDrivingValue={getWheelsDrivingValue(roverState)}
-							pivotAngle={getPivotAngle(roverState)}
-							point={point}
-							setPoint={setPoint}
-							roverPosition={getCurrentPosition(roverState)}
-							roverRotation={getCurrentOrientation(roverState)}
-							plannedPath={getTrajectory(roverState)}
-							volumetric={volumetric}
-						/>
-					)}
 					{hdConfirmation !== null && (
 						<div className={styles.confirm}>
 							<p>Handling Device Confirmation</p>
@@ -321,85 +243,6 @@ const NewControlPage = () => {
 									}
 								]}
 							/>
-						)}
-					</div>
-					<div className={styles.previews}>
-						<Gamepad
-							mode={manualMode}
-							submode={
-								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_DIRECT
-									? States.MANUAL_DIRECT
-									: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									  States.MANUAL_INVERSE
-									? States.MANUAL_INVERSE
-									: States.MANUAL
-							}
-							selectorCallback={changeMode}
-							changeCam={(dir) => {
-								setCurrentVideo((old) => {
-									console.log("change 2");
-									if (dir === 1) {
-										return (old + 1) % MAX_CAMERAS;
-									} else {
-										return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
-									}
-								});
-							}}
-							visible={
-								stateServices[SubSystems.NAGIVATION].service.state ===
-									States.MANUAL ||
-								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									States.MANUAL_DIRECT ||
-								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									States.MANUAL_INVERSE
-							}
-							ros={ros}
-						/>
-						{stateServices[SubSystems.CAMERA].service.state !== "Off" && (
-							<div
-								className={styles.simulation}
-								onDoubleClick={(e) => {
-									e.stopPropagation();
-									setDisplay((old) =>
-										old === "camera" ? "simulation" : "camera"
-									);
-								}}
-							>
-								{display !== "camera" &&
-								stateServices[SubSystems.CAMERA].service.state !== "Off" ? (
-									<CameraView
-										images={images}
-										rotate={rotateCams}
-										setRotateCams={() => {}}
-										currentCam={CAMERA_CONFIGS[currentVideo]}
-										changeCam={(dir) => {
-											setCurrentVideo((old) => {
-												console.log("change 3");
-												if (dir === 1) {
-													return (old + 1) % MAX_CAMERAS;
-												} else {
-													return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
-												}
-											});
-										}}
-										small
-									/>
-								) : (
-									<Simulation
-										drill_value={getDrillModule(roverState)}
-										armJointAngles={getJointsPositions(roverState)}
-										wheelsSteeringAngle={getSteeringAngles(roverState)}
-										wheelsDrivingValue={getWheelsDrivingValue(roverState)}
-										pivotAngle={getPivotAngle(roverState)}
-										point={point}
-										setPoint={setPoint}
-										roverPosition={getCurrentPosition(roverState)}
-										roverRotation={getCurrentOrientation(roverState)}
-										plannedPath={getTrajectory(roverState)}
-									/>
-								)}
-							</div>
 						)}
 					</div>
 					<div className={styles.actions}>
