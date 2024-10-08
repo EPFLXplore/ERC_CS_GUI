@@ -16,12 +16,11 @@ import { Status } from "../../data/status.type";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
-	getdBm,
 	getJointsPositions,
+	getMotorModule,
 	getPivotAngle,
 	getSteeringAngles,
 	getTrajectory,
-	getDrillModule,
 	getWheelsDrivingValue
 } from "../../utils/roverStateParser";
 import useAlert from "../../hooks/alertHooks";
@@ -99,10 +98,6 @@ const SimulationPage = () => {
 						)
 					}
 				/>
-				<Timer
-					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
-					wifiLevel={getdBm(roverState)}
-				/>
 			</div>
 			<div className={styles.control}>
 				<div
@@ -127,7 +122,7 @@ const SimulationPage = () => {
 				</div>
 				<div className={styles.visualization}>
 					<Simulation
-						drill_value={getDrillModule(roverState)}
+						drill_value={getMotorModule(roverState)['position']}
 						armJointAngles={getJointsPositions(roverState)}
 						wheelsSteeringAngle={getSteeringAngles(roverState)}
 						wheelsDrivingValue={getWheelsDrivingValue(roverState)}

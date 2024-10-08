@@ -12,10 +12,18 @@ import SubSystems from "../data/subsystems.type";
 
 const getMainProcesses = (data: any) => {
 	if (!data || !data['rover']) {
-		return [];
+		return "NO DATA"
 	}
 
 	return data['rover']["software"]["main_processes"];
+}
+
+const getNodes = (data: any) => {
+	if (!data || !data['rover']) {
+		return "NO DATA"
+	}
+
+	return data['rover']["software"]["nodes"];
 }
 
 const getNetworkData = (data: any) => {
@@ -70,21 +78,6 @@ const getErrors = (data: any) => {
 	return data['rover']['status']['errors']
 }
 
-/**
- * Return the signal strength of the CS antenna
- * @param data the rover state data
- * @returns the signal strength in dBm
- */
-// TO BE DELETED
-const getdBm = (data: any) => {
-	if (!data || !data["rover"]) {
-		return 0.0;
-	}
-
-	return Number(data["rover"]["network"]["signal_strength"]);
-};
-
-
 //////////////////////// NAVIGATION ////////////////////////
 
 const getGpsCoordinates = (data: any) => {
@@ -137,7 +130,7 @@ const getAngularVelocity = (data: any) => {
 
 const getCurrentDriving = (data: any) => {
 	if(!data || !data['rover']) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+		return [0, 0, 0, 0]
 	}
 
 	const wheels = data["navigation"]["wheels"];
@@ -153,7 +146,7 @@ const getCurrentDriving = (data: any) => {
 
 const getCurrentDrivingAveraged = (data: any) => {
 	if(!data || !data['rover']) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+		return [0, 0, 0, 0]
 	}
 
 	const wheels = data["navigation"]["wheels"];
@@ -169,7 +162,7 @@ const getCurrentDrivingAveraged = (data: any) => {
 
 const getCurrentSteering = (data: any) => {
 	if(!data || !data['rover']) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+		return [0, 0, 0, 0]
 	}
 
 	const wheels = data["navigation"]["wheels"];
@@ -185,7 +178,7 @@ const getCurrentSteering = (data: any) => {
 
 const getCurrentSteeringAveraged = (data: any) => {
 	if(!data || !data['rover']) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+		return [0, 0, 0, 0]
 	}
 
 	const wheels = data["navigation"]["wheels"];
@@ -330,7 +323,7 @@ const getTrajectory = (data: any) => {
  */
 const getPivotAngle = (data: any) => {
 	if (!data || !data["navigation"]) {
-		return 0.0;
+		return 0;
 	}
 
 	return Number(data["navigation"]["wheels"]["pivot"]["angle"]);
@@ -401,7 +394,7 @@ const getJointsPositions = (data: any) => {
 
 const getJointsCurrent = (data: any) => {
 	if (!data || !data["handling_device"]) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
+		return [0, 0, 0, 0, 0, 0];
 	}
 
 	const joints = data["handling_device"]["joints"];
@@ -459,13 +452,10 @@ const getTorqueGripper = (data: any) => {
 	return Number(data['handling_device']['gripper']['torque'])
 }
 
-// TODO VISION
-
-
 //////////////////////// ELECTRONICS ////////////////////////
 
-const BATTERY_MAX_VOLTAGE = 29;
-const BATTERY_MIN_VOLTAGE = 24;
+const BATTERY_MAX_VOLTAGE = 28;
+const BATTERY_MIN_VOLTAGE = 23;
 
 /**
  * Get the battery level of the rover.
@@ -486,7 +476,7 @@ const getBatteryLevel = (data: any) => {
 
 const getCurrentOutput = (data: any) => {
 	if (!data || !data["electronics"]) {
-		return "NO DATA";
+		return 0;
 	}
 
 	return Number(data["electronics"]["power"]["current"])
@@ -494,27 +484,11 @@ const getCurrentOutput = (data: any) => {
 
 //////////////////////// DRILL ////////////////////////
 
-/**
- * Return the drill encoder value
- * @param data the rover state data
- * @returns the drill encoder value [0, 30'000'000]
- * 
- * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
- */
-// TO BE DELETED
-const getDrillModule = (data: any) => {
-	if (!data || !data["drill"] ) {
-		return 0.0
-	}
-
-	return Number(data["drill"]["motors"]["motor_module"]["position"])
-}
-
-const getModuleMotor = (data: any) => {
+const getMotorModule = (data: any) => {
 	if(!data || !data['rover']) {
 		return {
-			position: 0.0,
-			current: "NO DATA",
+			position: 0,
+			current: 0,
 			state: "NO DATA"
 		}
 	}
@@ -529,8 +503,8 @@ const getModuleMotor = (data: any) => {
 const getMotorDrill = (data: any) => {
 	if(!data || !data['rover']) {
 		return {
-			speed: "NO DATA",
-			current: "NO DATA",
+			speed: 0,
+			current: 0,
 			state: "NO DATA"
 		}
 	}
@@ -542,20 +516,6 @@ const getMotorDrill = (data: any) => {
 	}
 }
 
-/**
- * Get the rotation of the drill screw.
- * @param data The rover state data.
- * @returns The rotation of the drill screw in degrees.
- */
-// TO BE DELETED
-const getDrillScrewRotation = (data: any) => {
-	if (!data || !data["drill"]) {
-		return "NO DATA"
-	}
-
-	return Number(data["drill"]["motors"]["motor_drill"]["speed"]);
-};
-
 export {
 	getStateSystem,
 	getJointsPositions,
@@ -563,12 +523,9 @@ export {
 	getPivotAngle,
 	getCurrentPosition,
 	getCurrentOrientation,
-	getDrillScrewRotation,
 	getBatteryLevel,
-	getdBm,
 	getCurrentGoal,
 	getTrajectory,
-	getDrillModule,
 	getWheelsDrivingValue,
 	getWarnings,
 	getErrors,
@@ -578,8 +535,14 @@ export {
 	getCurrentSteering,
 	getCurrentSteeringAveraged,
 getMotorDrill,
-getModuleMotor,
 getCurrentOutput,
 getDrivingState,
 getSteeringState,
-getMainProcesses};
+getJointsStates,
+getJointsCurrent,
+getMotorModule,
+getNodes,
+getMainProcesses,
+getLinearVelocity,
+getAngularVelocity,
+getDistanceToGoal};

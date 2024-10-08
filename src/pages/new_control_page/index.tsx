@@ -1,7 +1,5 @@
 import styles from "./style.module.sass";
 import Timer from "../../components/ui/Timer";
-import ExpandButton from "../../components/Controls/ExpandButton";
-import Gamepad from "../../components/Controls/Gamepad";
 import QuickAction from "../../components/Controls/QuickAction";
 import { useNavigate } from "react-router-dom";
 
@@ -10,11 +8,8 @@ import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
 import Drill from "../../assets/images/icons/drill.png";
 import SystemMode from "../../components/Controls/SystemMode";
-import Simulation from "../../components/data/Simulation";
-import RoverData from "../../components/data/RoverData";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
-import CameraView from "../../components/data/CameraView";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import NavigationGoalModal from "../../components/modals/NavigationGoalModal";
 import ArmGoalModal from "../../components/modals/ArmGoalModal";
@@ -22,20 +17,32 @@ import DrillGoalModal from "../../components/modals/DrillGoalModal";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
-import InfoBox from "../../components/data/InfoBox";
-import { Dvr, Settings } from "@mui/icons-material";
+import {InfoBox, ControllerInfoBox} from "../../components/data/InfoBox";
+import { Dvr, Settings, StoreMallDirectorySharp } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
-	getdBm,
+	getNetworkData,
 	getJointsPositions,
 	getPivotAngle,
 	getSteeringAngles,
 	getTrajectory,
-	getDrillModule,
+	getMotorDrill,
+	getMotorModule,
 	getWheelsDrivingValue,
-	getDrillScrewRotation
+	getBatteryLevel,
+	getDrivingState,
+	getJointsStates,
+	getJointsCurrent,
+	getCurrentDriving,
+	getCurrentSteering,
+	getCurrentOutput,
+	getMainProcesses,
+	getNodes,
+	getLinearVelocity,
+	getAngularVelocity,
+	getDistanceToGoal
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -165,7 +172,8 @@ const NewControlPage = () => {
 				/>
 				<Timer
 					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
-					wifiLevel={getdBm(roverState)}
+					wifiLevel={getNetworkData(roverState)[2]}
+					battery={getBatteryLevel(roverState)}
 				/>
 			</div>
 			<div className={styles.control}>
@@ -179,71 +187,189 @@ const NewControlPage = () => {
 							</div>
 						</div>
 					)}
-					<div className={styles.infosRight}>
-						{stateServices[SubSystems.NAGIVATION].service.state !== "Off" && (
-							<>
-								<InfoBox
-									title="Current position"
-									infos={[
-										{ name: "X coordinate", value: 0 },
-										{ name: "Y coordinate", value: 0 },
-										{ name: "Z coordinate", value: 0 },
-									]}
-								/>
-								<InfoBox
-									title="Current orientation"
-									infos={[
-										{ name: "Roll", value: 0 },
-										{ name: "Pitch", value: 0 },
-										{ name: "Yaw", value: 0 },
-									]}
-								/>
-							</>
-						)}
-					</div>
 					<div className={styles.infosLeft}>
-						{stateServices[SubSystems.HANDLING_DEVICE].service.state !== "Off" && (
-							<InfoBox
-								title="Joints Currents"
-								infos={[
-									{ name: "Joint 1", value: 0 },
-									{ name: "Joint 2", value: 0 },
-									{ name: "Joint 3", value: 0 },
-									{ name: "Joint 4", value: 0 },
-									{ name: "Joint 5", value: 0 },
-									{ name: "Joint 6", value: 0 },
-								]}
-								unit="mA"
-							/>
-						)}
-						{stateServices[SubSystems.NAGIVATION].service.state !== "Off" && (
-							<InfoBox
-								title="Wheels Currents"
-								infos={[
-									{ name: "Wheels 1", value: 0 },
-									{ name: "Wheels 2", value: 0 },
-									{ name: "Wheels 3", value: 0 },
-									{ name: "Wheels 4", value: 0 },
-								]}
-								unit="mA"
-							/>
-						)}
-						{stateServices[SubSystems.DRILL].service.state !== "Off" && (
-							<InfoBox
-								title="Drill Module Position"
-								infos={[
-									{
-										name: "Encoder",
-										// @ts-ignore
-										value: getDrillModule(roverState)
-									},
-									{
-										name: "Velocity",
-										value: getDrillScrewRotation(roverState)
-									}
-								]}
-							/>
-						)}
+						<ControllerInfoBox
+							title="Driving Currents"
+							infos={[
+								{ info: {name: "Front Left", value: getCurrentDriving(roverState)[0]}, connected: getDrivingState(roverState)[0] },
+								{ info: {name: "Front Right", value: getCurrentDriving(roverState)[1]}, connected: getDrivingState(roverState)[1] },
+								{ info: {name: "Back Right", value: getCurrentDriving(roverState)[2]}, connected: getDrivingState(roverState)[2] },
+								{ info: {name: "Back Left", value: getCurrentDriving(roverState)[3]}, connected: getDrivingState(roverState)[3] },
+							]}
+							unit="mA"
+						/>
+					
+						<ControllerInfoBox
+							title="Steering Currents"
+							infos={[
+								{ info: {name: "Front Left", value: getCurrentSteering(roverState)[0]}, connected: getDrivingState(roverState)[0] },
+								{ info: {name: "Front Right", value: getCurrentSteering(roverState)[1]}, connected: getDrivingState(roverState)[1] },
+								{ info: {name: "Back Right", value: getCurrentSteering(roverState)[2]}, connected: getDrivingState(roverState)[2] },
+								{ info: {name: "Back Left", value: getCurrentSteering(roverState)[3]}, connected: getDrivingState(roverState)[3] },
+							]}
+							unit="mA"
+						/>
+					
+						<ControllerInfoBox
+							title="Joints Currents"
+							infos={[
+								{ info: { name: "Joint 1", value: getJointsCurrent(roverState)[0]}, connected: getJointsStates(roverState)[0] },
+								{ info: { name: "Joint 2", value: getJointsCurrent(roverState)[1]}, connected: getJointsStates(roverState)[1] },
+								{ info: { name: "Joint 3", value: getJointsCurrent(roverState)[2]}, connected: getJointsStates(roverState)[2] },
+								{ info: { name: "Joint 4", value: getJointsCurrent(roverState)[3]}, connected: getJointsStates(roverState)[3] },
+								{ info: { name: "Joint 5", value: getJointsCurrent(roverState)[4]}, connected: getJointsStates(roverState)[4] },
+								{ info: { name: "Joint 6", value: getJointsCurrent(roverState)[5]}, connected: getJointsStates(roverState)[5] },
+							]}
+							unit="mA"
+						/>
+						<ControllerInfoBox
+							title="Drill Currents"
+							infos={[
+								{ info: { name: "Motor", value: getMotorModule(roverState)['current']}, connected: getMotorModule(roverState)['state'] },
+								{ info: { name: "Drill", value: getMotorDrill(roverState)['current']}, connected: getMotorDrill(roverState)['state'] },
+							]}
+							unit="mA"
+						/>
+					</div>
+					<div className={styles.infosMidLeft}>
+						<InfoBox
+							title="Wheels Speed"
+							infos={[
+								{ name: "Front Left", value: getWheelsDrivingValue(roverState)[0]},
+								{ name: "Front Right", value: getWheelsDrivingValue(roverState)[1]},
+								{ name: "Back Right", value: getWheelsDrivingValue(roverState)[2]},
+								{ name: "Bsck Left", value: getWheelsDrivingValue(roverState)[3]},
+							]}
+							unit="m/s"
+						/>
+						<InfoBox
+							title="Steering Angles"
+							infos={[
+								{ name: "Front Left", value: getSteeringAngles(roverState)[0]},
+								{ name: "Front Right", value: getSteeringAngles(roverState)[1]},
+								{ name: "Back Right", value: getSteeringAngles(roverState)[2]},
+								{ name: "Bsck Left", value: getSteeringAngles(roverState)[3]},
+							]}
+							unit="°"
+						/>
+						<InfoBox
+							title="Joints Angles"
+							infos={[
+								{ name: "Joint 1", value: getJointsPositions(roverState)[0]},
+								{ name: "Joint 2", value: getJointsPositions(roverState)[1]},
+								{ name: "Joint 3", value: getJointsPositions(roverState)[2]},
+								{ name: "Joint 4", value: getJointsPositions(roverState)[3]},
+								{ name: "Joint 5", value: getJointsPositions(roverState)[4]},
+								{ name: "Joint 6", value: getJointsPositions(roverState)[5]},
+							]}
+							unit="°"
+						/>
+						<InfoBox
+							title="Drill Data"
+							infos={[
+								{
+									name: "Encoder",
+									value: getMotorModule(roverState)['position'],
+								},
+								{
+									name: "Velocity",
+									value: getMotorDrill(roverState)['speed'],
+									unit: "rpm"
+								}
+							]}
+						/>
+					</div>
+					<div className={styles.infosMidLeft2}>
+						<InfoBox
+							title="Power Consumption"
+							infos={[
+								{ name: "Current", value: getCurrentOutput(roverState), unit: "A"},
+								{ name: "Battery Level", value: getWheelsDrivingValue(roverState)[1], unit: "V"},
+							]}
+						/>
+						<InfoBox
+							title="Science Sensors"
+							infos={[
+								{ name: "Sensor 1", value: "NO DATA"},
+								{ name: "Sensor 2", value: "NO DATA"},
+							]}
+						/>
+						<InfoBox
+							title="Pivot Angle"
+							infos={[
+								{ name: "Left", value: getPivotAngle(roverState)},
+								{ name: "Right", value: getPivotAngle(roverState)},
+							]}
+							unit="°"
+						/>
+					</div>
+					<div className={styles.infosMidRight}>
+						{typeof getMainProcesses(roverState) !== "string" ? <ControllerInfoBox
+							title="Main Processes"
+							infos={[
+								{ info: { name: getMainProcesses(roverState)[0]['name'], 
+									value: getMainProcesses(roverState)[0]['cpu_usage']}, connected: getMainProcesses(roverState)[0]['status'] },
+							]}
+						/> : 
+						<InfoBox
+							title="Main Processes"
+							infos={[
+								{ name: "No Processes", value: ""},
+							]}
+						/>
+						}
+						{typeof getNodes(roverState) !== "string" ? <InfoBox
+							title="ROS Nodes"
+							infos={[
+								{ name: getNodes(roverState)[0]['name'], 
+									value: getNodes(roverState)[0]['status']}
+							]}
+						/> : 
+						<InfoBox
+							title="ROS Nodes"
+							infos={[
+								{ name: "No Nodes", value: ""},
+							]}
+						/>
+						}
+					</div>
+					<div className={styles.infosRight}>
+						<InfoBox
+							title="Current Position"
+							infos={[
+								{ name: "X", value: getCurrentPosition(roverState).x },
+								{ name: "Y", value: getCurrentPosition(roverState).y },
+							]}
+						/>
+						<InfoBox
+							title="Linear Velocity"
+							infos={[
+								{ name: "X", value: getLinearVelocity(roverState).x },
+								{ name: "Y", value: getLinearVelocity(roverState).y },
+							]}
+						/>
+						<InfoBox
+							title="Current Orientation"
+							infos={[
+								{ name: "Roll", value: getCurrentOrientation(roverState).x },
+								{ name: "Pitch", value: getCurrentOrientation(roverState).y },
+								{ name: "Yaw", value: getCurrentOrientation(roverState).z },
+							]}
+						/>
+						<InfoBox
+							title="Angular Velocity"
+							infos={[
+								{ name: "Roll", value: getAngularVelocity(roverState).x },
+								{ name: "Pitch", value: getAngularVelocity(roverState).y },
+								{ name: "Yaw", value: getAngularVelocity(roverState).y },
+							]}
+						/>
+						<InfoBox
+							title="Distance to Goal"
+							infos={[
+								{ name: "Distance", value: getDistanceToGoal(roverState), unit: "m" },
+							]}
+						/>
 					</div>
 					<div className={styles.actions}>
 						<QuickAction

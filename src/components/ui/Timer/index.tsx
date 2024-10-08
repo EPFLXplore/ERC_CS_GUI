@@ -19,13 +19,13 @@ import useTimer from "../../../hooks/timerHooks";
 const Timer = ({
 	onFinished,
 	status = Status.IDLE,
-	battery = -1,
-	wifiLevel = 0,
+	battery,
+	wifiLevel,
 }: {
 	onFinished?: () => void;
 	status?: Status;
-	battery?: number;
-	wifiLevel?: number;
+	battery: number | string;
+	wifiLevel: number | string;
 }) => {
 	const [minutes, seconds, active, inputFocused, changeTime, setActive, setInputFocused] =
 		useTimer(onFinished);
@@ -40,13 +40,54 @@ const Timer = ({
 			<p className={`${styles.status} ${status}`} />
 			<div className={styles.battery}>
 				{getBatteryState(battery)}
-				<p>{battery === -1 ? "?" : battery}%</p>
+				<p>{battery} {battery === "NO DATA" ? "" : "?"}</p>
 			</div>
 			<div className={styles.wifi}>
 				<CellWifiIcon className={styles.icon} />
-				<p>{wifiLevel === 0 ? "?" : wifiLevel} dBm</p>
+				<p>{wifiLevel} {wifiLevel === "NO DATA" ? "" : "dBm"}</p>
 			</div>
-			<div className={styles.time}>
+		</div>
+	);
+};
+
+export default Timer;
+
+////////////////////////////METHODS///////////////////////////
+
+const timeRepresentation = (time: number, active = true) => {
+	if (time < 10 && active) {
+		return `0${time}`;
+	} else {
+		return time.toString();
+	}
+};
+
+const getBatteryState = (battery: number | string) => {
+	if (typeof battery == "number") {
+		if (battery < 12.5) {
+			return <Battery0Bar className={styles.icon} />;
+		} else if (battery < 25) {
+			return <Battery1Bar className={styles.icon} />;
+		} else if (battery < 37.5) {
+			return <Battery2Bar className={styles.icon} />;
+		} else if (battery < 50) {
+			return <Battery3Bar className={styles.icon} />;
+		} else if (battery < 62.5) {
+			return <Battery4Bar className={styles.icon} />;
+		} else if (battery < 75) {
+			return <Battery5Bar className={styles.icon} />;
+		} else if (battery < 87.5) {
+			return <Battery6Bar className={styles.icon} />;
+		} else {
+			return <BatteryFullRounded className={styles.icon} />;
+		}
+	} else {
+		return <Battery0Bar className={styles.icon} />;
+	}
+};
+
+/*
+<div className={styles.time}>
 				<input
 					type="text"
 					maxLength={2}
@@ -63,6 +104,7 @@ const Timer = ({
 					}}
 					className={styles.input}
 				/>
+				
 				<p className={styles.comma}>:</p>
 				<input
 					type="text"
@@ -91,38 +133,4 @@ const Timer = ({
 					<Replay10Icon className={styles.icon} />
 				</button>
 			</div>
-		</div>
-	);
-};
-
-export default Timer;
-
-////////////////////////////METHODS///////////////////////////
-
-const timeRepresentation = (time: number, active = true) => {
-	if (time < 10 && active) {
-		return `0${time}`;
-	} else {
-		return time.toString();
-	}
-};
-
-const getBatteryState = (battery: number) => {
-	if (battery < 12.5) {
-		return <Battery0Bar className={styles.icon} />;
-	} else if (battery < 25) {
-		return <Battery1Bar className={styles.icon} />;
-	} else if (battery < 37.5) {
-		return <Battery2Bar className={styles.icon} />;
-	} else if (battery < 50) {
-		return <Battery3Bar className={styles.icon} />;
-	} else if (battery < 62.5) {
-		return <Battery4Bar className={styles.icon} />;
-	} else if (battery < 75) {
-		return <Battery5Bar className={styles.icon} />;
-	} else if (battery < 87.5) {
-		return <Battery6Bar className={styles.icon} />;
-	} else {
-		return <BatteryFullRounded className={styles.icon} />;
-	}
-};
+*/
