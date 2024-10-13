@@ -20,6 +20,7 @@ import States from "../../data/states.type";
 import {InfoBox, ControllerInfoBox} from "../../components/data/InfoBox";
 import { Dvr, Settings, StoreMallDirectorySharp } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
+import { CameraType } from "../../data/cameras.type";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -48,18 +49,10 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
-import { ReactElement, useState } from "react";
-import SettingsModal from "../../components/modals/SettingsModal";
+import { ReactElement } from "react";
 import ROSLIB from "roslib";
-
-const CAMERA_CONFIGS = [
-	["camera_0"],
-	["camera_1"],
-	["camera_2"],
-	["camera_3"],
-	["camera_0", "camera_1"],
-];
-const MAX_CAMERAS = 5;
+import CameraModal from "../../components/modals/CameraModal";
+import { start } from "repl";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -67,6 +60,7 @@ const NewControlPage = () => {
 	const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
 	const [
 		roverState,
+		cameraStates,
 		images,
 		rotateCams,
 		currentVideo,
@@ -122,7 +116,9 @@ const NewControlPage = () => {
 						setSystemsModalOpen,
 						launchAction,
 						cancelAction,
-						showSnackbar
+						showSnackbar,
+						startService,
+						cameraStates
 					)
 				);
 
@@ -140,25 +136,19 @@ const NewControlPage = () => {
 						system={"Navigation"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
 						modes={["Auto", "Manual", "Off"]}
-						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode)}
+						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode, false)}
 					/>
 					<SystemMode
 						system={"Handling Device"}
 						currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
 						modes={["Auto", "Manual Direct", "Manual Inverse", "Off"]}
-						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode)}
-					/>
-					<SystemMode
-						system={"Cameras"}
-						currentMode={stateServices[SubSystems.CAMERA].service.state}
-						modes={["Stream", "Off"]}
-						onSelect={(mode) => startService(SubSystems.CAMERA, mode)}
+						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode, false)}
 					/>
 					<SystemMode
 						system={"Drill"}
 						currentMode={stateServices[SubSystems.DRILL].service.state}
 						modes={["On", "Off"]}
-						onSelect={(mode) => startService(SubSystems.DRILL, mode)}
+						onSelect={(mode) => startService(SubSystems.DRILL, mode, false)}
 					/>
 				</div>
 				<Dvr
@@ -373,6 +363,12 @@ const NewControlPage = () => {
 					</div>
 					<div className={styles.actions}>
 						<QuickAction
+							onClick={() => displaySystemModal(SubSystems.CAMERA, false)}
+							selected={systemsModalOpen[SubSystems.CAMERA]}
+							running={"false"}
+							icon={NavIcon}
+						/>
+						<QuickAction
 							onClick={() => displaySystemModal(SubSystems.NAGIVATION, false)}
 							selected={systemsModalOpen[SubSystems.NAGIVATION]}
 							running={stateActions[SubSystems.NAGIVATION].action.state}
@@ -413,9 +409,27 @@ const selectModal = (
 	setSystemsModalOpen: (modals: any) => void,
 	launchAction: (system: string, goal: any) => void,
 	cancelAction: (system: string) => void,
-	showSnackbar: (severity: AlertColor, message: string) => void
+	showSnackbar: (severity: AlertColor, message: string) => void,
+	startService: (system: string, mode: string, isCamera: boolean) => void,
+	cameraState: CameraType
 ) => {
 	switch (system) {
+		case SubSystems.CAMERA:
+			return (
+				<CameraModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen[SubSystems.CAMERA] = false;
+							return newModalOpen;
+						});
+					}}
+					onClick={(mode, activated) => startService(SubSystems.NAGIVATION, mode, true)}
+					cameraStates={cameraState}
+				/>
+			);
+
 		case SubSystems.NAGIVATION:
 			return (
 				<NavigationGoalModal

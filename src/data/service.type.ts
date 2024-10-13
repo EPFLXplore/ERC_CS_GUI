@@ -10,11 +10,15 @@ class Service {
     public name: string;
     public state: string;
     public rules: RuleRover[];
+    public isMultipleStates: boolean;
+    public multipleStates: string[];
 
-    constructor(name: string, state: string, rules: RuleRover[]) {
+    constructor(name: string, state: string, rules: RuleRover[], isMultipleStates: boolean) {
         this.name = name;
         this.state = state;
         this.rules = rules;
+        this.isMultipleStates = isMultipleStates;
+        this.multipleStates = [];
     }
 
     public canChange(ser: Service, mode: string): boolean {

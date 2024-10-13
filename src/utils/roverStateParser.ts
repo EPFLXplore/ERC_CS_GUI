@@ -516,6 +516,26 @@ const getMotorDrill = (data: any) => {
 	}
 }
 
+//////////////////////// CAMERAS ////////////////////////
+
+const getCameraStatesCS = (data: any) => {
+	if (!data || !data["cameras"]) {
+		return "NO DATA"
+	}
+
+	const cameras = data["cameras"]["control_station"];
+	const result = [];
+
+	for (const cams in cameras) {
+		result.push({
+			name: cameras[cams]["name"],
+			status: cameras[cams]['status'] ? "Connected" : "Not Connected"
+		});
+	}
+
+	return result;
+};
+
 export {
 	getStateSystem,
 	getJointsPositions,
@@ -545,4 +565,5 @@ getNodes,
 getMainProcesses,
 getLinearVelocity,
 getAngularVelocity,
-getDistanceToGoal};
+getDistanceToGoal,
+getCameraStatesCS};

@@ -14,6 +14,7 @@ const NetworkPage = () => {
 	const [logs, setLogs] = useRoverNetwork(ros);
 	const [
 		roverState,
+		cameraStates,
 		images,
 		rotateCams,
 		currentVideo,

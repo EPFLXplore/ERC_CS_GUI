@@ -21,6 +21,7 @@ const CamerasPage = () => {
 	const [ros,] = useRosBridge(showSnackbar);
 	const [
 		roverState,
+		cameraStates,
 		images,
 		rotateCams,
 		currentVideo,
@@ -60,7 +61,7 @@ const CamerasPage = () => {
 			<div className={styles.control}>
 				<div className={styles.visualization}>
 					{display === "camera" &&
-					stateServices[SubSystems.CAMERA].service.state !== "Off" ? (
+					Object.values(cameraStates[SubSystems.CS].states).length != 0 ? (
 						<CameraView
 							images={images}
 							rotate={rotateCams}

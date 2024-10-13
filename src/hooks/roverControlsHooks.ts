@@ -25,7 +25,7 @@ const useRoverControls = (
 	showSnackbar: (sev: AlertColor, mes: string) => void
 ) => {
 	const [roverState] = useRoverState(ros);
-	const [images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros);
+	const [cameraStates, images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState);
 
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
@@ -44,6 +44,7 @@ const useRoverControls = (
 	);
 
 	const [systemsModalOpen, setSystemsModalOpen] = useState<typeModal>({
+		[SubSystems.CAMERA]: false,
 		[SubSystems.NAGIVATION]: false,
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
@@ -155,7 +156,7 @@ const useRoverControls = (
 		});
 	};
 
-	const startService = async (system: string, mode: string) => {
+	const startService = async (system: string, mode: string, isCamera: boolean, activatedCamera: boolean = false) => {
 		for (const key in stateServices) {
 			if (stateServices.hasOwnProperty(key)) {
 				if (key !== system) {
@@ -176,14 +177,35 @@ const useRoverControls = (
 			}
 		}
 
-		requestChangeMode(
-			ros,
-			stateServices[system].service.name,
-			mode,
-			stateServices[system].service,
-			(b) => setSendService(b),
-			(sev, mes) => showSnackbar(sev, mes)
-				);
+		let request_object;
+		if(isCamera) {
+			request_object = {
+				subsystem: system,
+				index: mode,
+				activate: activatedCamera
+			}
+
+			requestChangeMode(
+				ros,
+				true,
+				request_object,
+				(b) => setSendService(b),
+				(sev, mes) => showSnackbar(sev, mes)
+			);
+		} else {
+			request_object = {
+				system: system,
+				mode: mode
+			}
+
+			requestChangeMode(
+				ros,
+				false,
+				request_object,
+				(b) => setSendService(b),
+				(sev, mes) => showSnackbar(sev, mes)
+			);
+		}
 	};
 
 	const changeMode = () => {
@@ -231,14 +253,9 @@ const useRoverControls = (
 		};
 	}, []);
 
-	useEffect(() => {
-
-		
-
-	}, [roverState])
-
 	return [
 		roverState,
+		cameraStates,
 		images,
 		rotateCams,
 		currentVideo,

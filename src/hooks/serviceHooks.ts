@@ -54,7 +54,8 @@ function useService(
 				!roverState["rover"]
 					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"],
-				rulesNavigation
+				rulesNavigation,
+				false
 			),
 		},
 		[SubSystems.HANDLING_DEVICE]: {
@@ -65,16 +66,8 @@ function useService(
 					: roverState["rover"]["status"]["systems"][SubSystems.HANDLING_DEVICE][
 							"status"
 					  ],
-				[]
-			),
-		},
-		[SubSystems.CAMERA]: {
-			service: new Service(
-				SubSystems.CAMERA,
-				!roverState["rover"]
-					? "Off"
-					: roverState["rover"]["status"]["systems"][SubSystems.CAMERA]["status"],
-				rulesCamera
+				[],
+				false
 			),
 		},
 		[SubSystems.DRILL]: {
@@ -83,7 +76,8 @@ function useService(
 				!roverState["rover"]
 					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.DRILL]["status"],
-				rulesDrill
+				rulesDrill,
+				false
 			),
 		},
 	});

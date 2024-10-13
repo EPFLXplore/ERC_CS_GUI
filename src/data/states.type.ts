@@ -5,7 +5,11 @@ enum States {
 	MANUAL_INVERSE = "Manual Inverse",
 	MANUAL_DIRECT = "Manual Direct",
 	AUTO = "Auto",
-	STREAM = "Stream",
+	ALL = "All",
+	FRONT = "Front",
+	RIGHT = "Right",
+	LEFT = "Left",
+	BEHIND = "Behind"
 }
 
 export default States;
