@@ -2,6 +2,7 @@ import * as ROSLIB from "roslib";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
+import { CameraCS, CameraHD, CameraNAV, CameraSC } from "../data/cameras.type";
 
 export enum LogLevel {
 	DATA = "data",
@@ -54,9 +55,29 @@ const requestChangeMode = (
 
 		if(subsystem == SubSystems.CS) {
 			request = {
-				subsystem: subsystem,
-				mode: mode === States.OFF ? 0 : mode === States.BEHIND ? 1 : 
-					mode === States.LEFT ? 2 : mode === States.RIGHT ? 3 : mode === States.FRONT ? 4 : 5,
+				subsystem: 2,
+				mode: mode === CameraCS.BEHIND ? 0 : 
+					mode === CameraCS.LEFT ? 1 : mode === CameraCS.RIGHT ? 2 : 3,
+				activate: request_mode.activate
+			};
+
+		} else if(subsystem == SubSystems.HANDLING_DEVICE) {
+			request = {
+				subsystem: 1,
+				mode: mode === CameraHD.GRIPPER ? 0 : 1,
+				activate: request_mode.activate
+			};
+		} else if(subsystem == SubSystems.NAGIVATION) {
+			request = {
+				subsystem: 0,
+				mode: mode === CameraNAV.UP1 ? 0 : mode === CameraNAV.UP2 ? 1 : 
+					mode === CameraNAV.FRONT ? 2 : 3,  
+				activate: request_mode.activate
+			};
+		} else if(subsystem == SubSystems.SCIENCE) {
+			request = {
+				subsystem: 3,
+				mode: 0,
 				activate: request_mode.activate
 			};
 		}

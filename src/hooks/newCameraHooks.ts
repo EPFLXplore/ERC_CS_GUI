@@ -12,12 +12,10 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 	const [init, setInit] = useState(true)
 
 	const [cameraStates, setCameraStates] = useState<CameraType>({
-		[SubSystems.CS]: {
-			name: SubSystems.CS,
-			states: !roverState["rover"]
-			? {}
-			: roverState["cameras"][SubSystems.CS],
-		}
+		[SubSystems.CS]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.CS],
+		[SubSystems.HANDLING_DEVICE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.HANDLING_DEVICE],
+		[SubSystems.NAGIVATION]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.NAGIVATION],
+		[SubSystems.SCIENCE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.SCIENCE],
 	})
 
 	useEffect(() => {
@@ -70,7 +68,6 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 					newStates[key] = roverState["cameras"][key]
 				}
 			}
-			//console.log(newStates['control_station'])
 			return newStates;
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps

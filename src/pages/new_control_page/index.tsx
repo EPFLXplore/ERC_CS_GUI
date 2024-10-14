@@ -410,7 +410,7 @@ const selectModal = (
 	launchAction: (system: string, goal: any) => void,
 	cancelAction: (system: string) => void,
 	showSnackbar: (severity: AlertColor, message: string) => void,
-	startService: (system: string, mode: string, isCamera: boolean) => void,
+	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
 	cameraState: CameraType
 ) => {
 	switch (system) {
@@ -425,7 +425,7 @@ const selectModal = (
 							return newModalOpen;
 						});
 					}}
-					onClick={(mode, activated) => startService(SubSystems.NAGIVATION, mode, true)}
+					onClick={(subsystem, mode, activated) => startService(subsystem, mode, true, activated)}
 					cameraStates={cameraState}
 				/>
 			);

@@ -61,7 +61,7 @@ const CamerasPage = () => {
 			<div className={styles.control}>
 				<div className={styles.visualization}>
 					{display === "camera" &&
-					Object.values(cameraStates[SubSystems.CS].states).length != 0 ? (
+					cameraStates[SubSystems.CS] != null ? (
 						<CameraView
 							images={images}
 							rotate={rotateCams}

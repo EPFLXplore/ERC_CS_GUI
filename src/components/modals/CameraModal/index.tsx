@@ -2,13 +2,7 @@ import React, { useEffect } from "react";
 import styles from "./style.module.sass";
 import {CameraType} from "../../../data/cameras.type";
 import SubSystems from "../../../data/subsystems.type";
-
-enum CameraActions {
-    FRONT = "Front",
-    RIGHT = "Right",
-    LEFT = "Left",
-    BEHIND = "Behind"
-}
+import { CameraCS, CameraHD, CameraNAV, CameraSC } from "../../../data/cameras.type";
 
 function CameraModal({
     onClose,
@@ -16,11 +10,9 @@ function CameraModal({
     cameraStates
 }: {
     onClose: () => void;
-    onClick: (mode: string, activated: boolean) => void;
-    cameraStates: CameraType 
+    onClick: (subsystem: string, mode: string, activated: boolean) => void;
+    cameraStates: CameraType
 }) {
-	//const [selected, setSelected] = React.useState<CameraActions[]>([]);
-
 	return (
 		<div className={styles.Background} onClick={onClose}>
 			<div
@@ -30,14 +22,14 @@ function CameraModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-					<h1>Cameras</h1>
+					<h1>Cameras CS</h1>
 				</div>
 				<div className={styles.ModalContent}>
 
 					<div className={styles.ChoiceGroup}>
-						{Object.keys(cameraStates[SubSystems.CS]).length !== 0 ?
+						{cameraStates[SubSystems.CS] != null ?
                         
-                        Object.values(CameraActions).map((camera: string) => (
+                        Object.values(CameraCS).map((camera: string) => (
 							<button
 								className={`${styles.Choice} ${
                                     //@ts-ignore
@@ -46,9 +38,96 @@ function CameraModal({
 								onClick={() => {
                                     //@ts-ignore
                                     if(!cameraStates[SubSystems.CS][camera]['status']) {
-                                        onClick(camera, true)
+                                        onClick(SubSystems.CS, camera, true)
                                     } else {
-                                        onClick(camera, false)
+                                        onClick(SubSystems.CS, camera, false)
+                                    }
+                                }}
+							>
+								{camera}
+							</button>
+						)) : <p>NO DATA</p>}
+					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+					<h1>Cameras HD</h1>
+				</div>
+				<div className={styles.ModalContent}>
+
+					<div className={styles.ChoiceGroup}>
+						{cameraStates[SubSystems.HANDLING_DEVICE] != null ?
+                        
+                        Object.values(CameraHD).map((camera: string) => (
+							<button
+								className={`${styles.Choice} ${
+                                    //@ts-ignore
+									cameraStates[SubSystems.HANDLING_DEVICE][camera]['status'] ? styles.Selected : ""
+								}`}
+								onClick={() => {
+                                    //@ts-ignore
+                                    if(!cameraStates[SubSystems.HANDLING_DEVICE][camera]['status']) {
+                                        onClick(SubSystems.HANDLING_DEVICE, camera, true)
+                                    } else {
+                                        onClick(SubSystems.HANDLING_DEVICE, camera, false)
+                                    }
+                                }}
+							>
+								{camera}
+							</button>
+						)) : <p>NO DATA</p>}
+					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+					<h1>Cameras NAV</h1>
+				</div>
+				<div className={styles.ModalContent}>
+
+					<div className={styles.ChoiceGroup}>
+						{cameraStates[SubSystems.NAGIVATION] != null ?
+                        
+                        Object.values(CameraNAV).map((camera: string) => (
+							<button
+								className={`${styles.Choice} ${
+                                    //@ts-ignore
+									cameraStates[SubSystems.NAGIVATION][camera]['status'] ? styles.Selected : ""
+								}`}
+								onClick={() => {
+                                    //@ts-ignore
+                                    if(!cameraStates[SubSystems.NAGIVATION][camera]['status']) {
+                                        onClick(SubSystems.NAGIVATION, camera, true)
+                                    } else {
+                                        onClick(SubSystems.NAGIVATION, camera, false)
+                                    }
+                                }}
+							>
+								{camera}
+							</button>
+						)) : <p>NO DATA</p>}
+					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+					<h1>Cameras SC</h1>
+				</div>
+				<div className={styles.ModalContent}>
+
+					<div className={styles.ChoiceGroup}>
+						{cameraStates[SubSystems.SCIENCE] != null ?
+                        
+                        Object.values(CameraSC).map((camera: string) => (
+							<button
+								className={`${styles.Choice} ${
+                                    //@ts-ignore
+									cameraStates[SubSystems.SCIENCE][camera]['status'] ? styles.Selected : ""
+								}`}
+								onClick={() => {
+                                    //@ts-ignore
+                                    if(!cameraStates[SubSystems.SCIENCE][camera]['status']) {
+                                        onClick(SubSystems.SCIENCE, camera, true)
+                                    } else {
+                                        onClick(SubSystems.SCIENCE, camera, false)
                                     }
                                 }}
 							>

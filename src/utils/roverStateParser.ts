@@ -144,6 +144,7 @@ const getCurrentDriving = (data: any) => {
 	return current;
 }
 
+// NOT USED RN
 const getCurrentDrivingAveraged = (data: any) => {
 	if(!data || !data['rover']) {
 		return [0, 0, 0, 0]
@@ -176,6 +177,7 @@ const getCurrentSteering = (data: any) => {
 	return current;
 }
 
+// not use RN
 const getCurrentSteeringAveraged = (data: any) => {
 	if(!data || !data['rover']) {
 		return [0, 0, 0, 0]
