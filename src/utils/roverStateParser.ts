@@ -44,6 +44,12 @@ const getNetworkData = (data: any) => {
 	}
 }
 
+const getLogsNetwork = (data: any) => {
+	if (!data || !data['rover']) {
+		return "OFF";
+	}
+};
+
 const getStateSystem = (data: any, system: SubSystems) => {
 	if (!data || !data[system]) {
 		return "OFF";
