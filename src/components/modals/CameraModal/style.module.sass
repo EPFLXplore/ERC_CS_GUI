@@ -15,8 +15,8 @@
     align-items: center
 
 .Modal
-    min-width: 40%
-    max-width: 50%
+    min-width: 30%
+    max-width: 70%
     background-color: $backgroundColor
     border-radius: 20px
     padding: 50px 20px
@@ -47,14 +47,34 @@
     flex-direction: column
     justify-content: center
     align-items: center
-    margin: 0 0 20px 0
+    margin: 0 0 60px 0
+
+.ChoiceContainer
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    text-align: center
+    gap: 5px         // Adds some space between the button and the data rate
+
+.dataRate
+    font-size: 14px        // Smaller font size for data rate
+    color: #aaa            // Lighter color for a subtle look
+    margin-top: 3px        // Small margin between button and data rate
+    padding: 2px 6px       // Adds a little padding around the data rate
+    background-color: #1a1a1a
+    border-radius: 5px     // Rounds the data rate box edges
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2) // A subtle shadow for depth
+    max-width: 80px        // Limit the width of the data rate box
+    text-align: center
 
 .ChoiceGroup
     display: flex
-    overflow: auto
-    scroll-behavior: smooth
+    
     flex-direction: row
-    flex-wrap: wrap
+    flex-wrap: nowrap   // Prevents the buttons from wrapping to a new line
+    justify-content: center
+    gap: 10px
 
 .Choice
     flex: 1 0 21%

@@ -118,7 +118,7 @@ const NewControlPage = () => {
 						cancelAction,
 						showSnackbar,
 						startService,
-						cameraStates
+						ros
 					)
 				);
 
@@ -411,7 +411,7 @@ const selectModal = (
 	cancelAction: (system: string) => void,
 	showSnackbar: (severity: AlertColor, message: string) => void,
 	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
-	cameraState: CameraType
+	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
 		case SubSystems.CAMERA:
@@ -425,9 +425,9 @@ const selectModal = (
 							return newModalOpen;
 						});
 					}}
+					ros={ros}
 					onClick={(subsystem, mode, activated) => startService(subsystem, mode, true, activated)}
-					cameraStates={cameraState}
-				/>
+			/>
 			);
 
 		case SubSystems.NAGIVATION:

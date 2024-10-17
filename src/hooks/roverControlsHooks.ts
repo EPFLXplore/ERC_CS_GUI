@@ -157,21 +157,25 @@ const useRoverControls = (
 	};
 
 	const startService = async (system: string, mode: string, isCamera: boolean, activatedCamera: boolean = false) => {
-		for (const key in stateServices) {
-			if (stateServices.hasOwnProperty(key)) {
-				if (key !== system) {
-					let service = stateServices[key];
-					if (!stateServices[system].service.canChange(service.service, mode)) {
-						showSnackbar(
-							"error",
-							"To put " +
-								stateServices[system].service.name +
-								" in mode " +
-								mode +
-								", you need to change the service " +
-								service.service.name
-						);
-						return;
+		
+		if(!isCamera) {
+
+			for (const key in stateServices) {
+				if (stateServices.hasOwnProperty(key)) {
+					if (key !== system) {
+						let service = stateServices[key];
+						if (!stateServices[system].service.canChange(service.service, mode)) {
+							showSnackbar(
+								"error",
+								"To put " +
+									stateServices[system].service.name +
+									" in mode " +
+									mode +
+									", you need to change the service " +
+									service.service.name
+							);
+							return;
+						}
 					}
 				}
 			}

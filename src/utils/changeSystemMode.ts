@@ -55,29 +55,27 @@ const requestChangeMode = (
 
 		if(subsystem == SubSystems.CS) {
 			request = {
-				subsystem: 2,
-				mode: mode === CameraCS.BEHIND ? 0 : 
-					mode === CameraCS.LEFT ? 1 : mode === CameraCS.RIGHT ? 2 : 3,
+				subsystem: subsystem,
+				camera_name: mode,
 				activate: request_mode.activate
 			};
 
 		} else if(subsystem == SubSystems.HANDLING_DEVICE) {
 			request = {
-				subsystem: 1,
-				mode: mode === CameraHD.GRIPPER ? 0 : 1,
+				subsystem: subsystem,
+				camera_name: mode,
 				activate: request_mode.activate
 			};
 		} else if(subsystem == SubSystems.NAGIVATION) {
 			request = {
-				subsystem: 0,
-				mode: mode === CameraNAV.UP1 ? 0 : mode === CameraNAV.UP2 ? 1 : 
-					mode === CameraNAV.FRONT ? 2 : 3,  
+				subsystem: subsystem,
+				camera_name: mode, 
 				activate: request_mode.activate
 			};
 		} else if(subsystem == SubSystems.SCIENCE) {
 			request = {
-				subsystem: 3,
-				mode: 0,
+				subsystem: subsystem,
+				camera_name: mode,
 				activate: request_mode.activate
 			};
 		}
