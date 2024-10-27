@@ -230,7 +230,7 @@ const getDrivingState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push(wheels[wheel]["driving_motor_state"] ? "Connected" : "Not Connected");
+		states.push(wheels[wheel]["driving_wheel_state"] ? "Connected" : "Not Connected");
 	}
 
 	return states;
@@ -253,7 +253,7 @@ const getSteeringAngles = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		angles.push(Number(wheels[wheel]["steering_angle"]));
+		angles.push(Number(wheels[wheel]["steering_angle"].toFixed(2)));
 	}
 
 	return angles;
@@ -276,7 +276,7 @@ const getWheelsDrivingValue = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		values.push(Number(wheels[wheel]["speed"]));
+		values.push(Number(wheels[wheel]["speed"].toFixed(2)));
 	}
 
 	return values;

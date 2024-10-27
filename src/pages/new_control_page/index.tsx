@@ -21,6 +21,7 @@ import States from "../../data/states.type";
 import {InfoBox, ControllerInfoBox} from "../../components/data/InfoBox";
 import { Dvr } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
+import axios from 'axios';
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -379,6 +380,20 @@ const NewControlPage = () => {
 							running={States.OFF}
 							icon={Stop}
 						/>
+						<button onClick={async () => {
+							try {
+								const response = await axios.post('http://localhost:5000/ssh', {
+								  host: '169.254.55.240',
+								  username: 'xplore',
+								  password: 'xplore',
+								  command: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', 
+									'./run_rover.sh'],
+								});
+								console.log(response.data.output);
+							  } catch (error) {
+								console.log(error);
+							  }
+						}}>SSH</button>
 					</div>
 					{modal}
 					<AlertSnackbar alertMessage={snackbar} />

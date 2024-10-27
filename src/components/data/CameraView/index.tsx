@@ -61,15 +61,7 @@ const CameraView = ({
 					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 					alt="Camera"
 					className={rotate[0] ? styles.RotatedImage : styles.Image}
-					// onContextMenu={(e) => {
-					// 	e.preventDefault();
-					// 	const a = document.createElement("a");
-
-					// 	a.setAttribute("download", "reactflow.png");
-					// 	a.setAttribute("href", images[0] ?? DefaultImage);
-					// 	a.click();
-					// 	console.log("Saved!");
-					// }}
+					
 					onDoubleClick={() => {
 						console.log("Clicked");
 						if (setRotateCams) {
