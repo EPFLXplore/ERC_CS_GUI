@@ -4,6 +4,7 @@ import QuickAction from "../../components/Controls/QuickAction";
 import { useNavigate } from "react-router-dom";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
+import CameraIcon from "../../assets/images/icons/353401_camera_icon.png"
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
 import Drill from "../../assets/images/icons/drill.png";
@@ -18,9 +19,8 @@ import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import {InfoBox, ControllerInfoBox} from "../../components/data/InfoBox";
-import { Dvr, Settings, StoreMallDirectorySharp } from "@mui/icons-material";
+import { Dvr } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
-import { CameraType } from "../../data/cameras.type";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -52,7 +52,6 @@ import { AlertColor } from "@mui/material";
 import { ReactElement } from "react";
 import ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
-import { start } from "repl";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -259,11 +258,11 @@ const NewControlPage = () => {
 							infos={[
 								{
 									name: "Encoder",
-									value: getMotorModule(roverState)['position'],
+									value: getMotorModule(roverState).position,
 								},
 								{
 									name: "Velocity",
-									value: getMotorDrill(roverState)['speed'],
+									value: getMotorDrill(roverState).speed,
 									unit: "rpm"
 								}
 							]}
@@ -294,26 +293,13 @@ const NewControlPage = () => {
 						/>
 					</div>
 					<div className={styles.infosMidRight}>
-						{typeof getMainProcesses(roverState) !== "string" ? <ControllerInfoBox
-							title="Main Processes"
-							infos={[
-								{ info: { name: getMainProcesses(roverState)[0]['name'], 
-									value: getMainProcesses(roverState)[0]['cpu_usage']}, connected: getMainProcesses(roverState)[0]['status'] },
-							]}
-						/> : 
-						<InfoBox
-							title="Main Processes"
-							infos={[
-								{ name: "No Processes", value: ""},
-							]}
-						/>
-						}
 						{typeof getNodes(roverState) !== "string" ? <InfoBox
 							title="ROS Nodes"
-							infos={[
-								{ name: getNodes(roverState)[0]['name'], 
-									value: getNodes(roverState)[0]['status']}
-							]}
+							infos={Object.values(getNodes(roverState)).map((node: any, index: number) => ({
+								name: node.name,
+								value: node.status,
+							}))}
+							color={true}
 						/> : 
 						<InfoBox
 							title="ROS Nodes"
@@ -361,12 +347,13 @@ const NewControlPage = () => {
 							]}
 						/>
 					</div>
+					
 					<div className={styles.actions}>
 						<QuickAction
 							onClick={() => displaySystemModal(SubSystems.CAMERA, false)}
 							selected={systemsModalOpen[SubSystems.CAMERA]}
-							running={"false"}
-							icon={NavIcon}
+							running={"Off"}
+							icon={CameraIcon}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal(SubSystems.NAGIVATION, false)}
@@ -484,3 +471,10 @@ const selectModal = (
 };
 
 export default NewControlPage;
+
+/*
+
+					
+
+
+*/

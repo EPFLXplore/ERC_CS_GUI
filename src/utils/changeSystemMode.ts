@@ -44,7 +44,7 @@ const requestChangeMode = (
 			};
 		} else if (system === SubSystems.DRILL) {
 			request = {
-				system: 3,
+				system: 2,
 				mode: mode === States.OFF ? 0 : 1,
 			};
 		}

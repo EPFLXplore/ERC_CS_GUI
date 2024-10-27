@@ -23,7 +23,17 @@ const getNodes = (data: any) => {
 		return "NO DATA"
 	}
 
-	return data['rover']["software"]["nodes"];
+	const nodes = data['rover']["software"]["nodes"];
+	const result = [];
+
+	for (const node in nodes) {
+		result.push({
+			name: nodes[node]["name"],
+			status: nodes[node]['status'] ? "Connected" : "Not Connected"
+		});
+	}
+
+	return result
 }
 
 const getNetworkData = (data: any) => {
@@ -204,7 +214,7 @@ const getSteeringState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push("Connected" ? wheels[wheel]["steering_motor_state"] : "Not Connected");
+		states.push(wheels[wheel]["steering_motor_state"] ? "Connected": "Not Connected");
 	}
 
 	return states;
@@ -220,7 +230,7 @@ const getDrivingState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push("Connected" ? wheels[wheel]["driving_motor_state"] : "Not Connected");
+		states.push(wheels[wheel]["driving_motor_state"] ? "Connected" : "Not Connected");
 	}
 
 	return states;
@@ -418,7 +428,7 @@ const getJointsStates = (data: any) => {
 	const states = [];
 
 	for (const joint in joints) {
-		states.push("Connected" ? joints[joint]["states"] : "Not connected");
+		states.push(joints[joint]["states"] ? "Connected" : "Not connected");
 	}
 
 	return states;
@@ -498,7 +508,7 @@ const getMotorModule = (data: any) => {
 	return {
 		position: Number(data['drill']['motors']['motor_module']['postition']),
 		current: Number(data['drill']['motors']['motor_module']['current']),
-		state: "Connected" ? data['drill']['motors']['motor_module']['state'] : "Not Connected"
+		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Not Connected"
 	}
 }
 
@@ -514,7 +524,7 @@ const getMotorDrill = (data: any) => {
 	return {
 		speed: Number(data['drill']['motors']['motor_module']['speed']),
 		current: Number(data['drill']['motors']['motor_module']['current']),
-		state: "Connected" ? data['drill']['motors']['motor_module']['state'] : "Not Connected"
+		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Not Connected"
 	}
 }
 

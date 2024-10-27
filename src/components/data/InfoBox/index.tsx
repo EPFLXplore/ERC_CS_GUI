@@ -12,7 +12,7 @@ export interface WheelsInfo {
 	connected: string
 }
 
-const InfoBox = ({ title, infos, unit }: { title: string; infos: Info[]; unit?: string }) => {
+const InfoBox = ({ title, infos, unit, color = false }: { title: string; infos: Info[]; unit?: string, color?: boolean }) => {
 	return (
 		<div className={styles.infos}>
 			<div>
@@ -28,7 +28,9 @@ const InfoBox = ({ title, infos, unit }: { title: string; infos: Info[]; unit?: 
 								<p className={styles.infoName}>{info.name}</p>
 								{info.value === "NO DATA" ? 
 								<p className={styles.infoValue}>{`${info.value}`}</p> :
-								<p className={styles.infoValue}>{`${info.value} ${unit ?? (info.unit ?? "")}`}</p>}
+								<p className={styles.infoValue} 
+								style={{color: !color ? "" : (info.value == "Connected" ? "#00d009" : "red")}}>
+									{`${info.value} ${unit ?? (info.unit ?? "")}`}</p>}
 							</div>
 						);
 					})}
