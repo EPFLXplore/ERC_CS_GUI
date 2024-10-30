@@ -383,7 +383,7 @@ const NewControlPage = () => {
 						<button onClick={async () => {
 							try {
 								const response = await axios.post('http://localhost:5000/ssh', {
-								  host: '169.254.55.240',
+								  host: '169.254.55.240', 
 								  username: 'xplore',
 								  password: 'xplore',
 								  command: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', 

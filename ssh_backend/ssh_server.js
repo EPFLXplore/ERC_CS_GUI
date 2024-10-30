@@ -9,11 +9,9 @@ app.use(cors());
 
 app.post('/ssh', (req, res) => {
     const { host, username, password, commands } = req.body;
-    console.log(commands)
     const conn = new Client();
     conn.on('ready', () => {
       const commandString = commands.join(' && ');  // Join commands with "&&"
-      console.log(commandString)
       conn.exec(commandString, (err, stream) => {
         if (err) {
             console.error('Execution error:', err);
