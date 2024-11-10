@@ -7,6 +7,7 @@ import NavIcon from "../../assets/images/icons/nav_logo.png";
 import CameraIcon from "../../assets/images/icons/353401_camera_icon.png"
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
+import CommandsIcon from "../../assets/images/icons/settings_button.png";
 import Drill from "../../assets/images/icons/drill.png";
 import SystemMode from "../../components/Controls/SystemMode";
 
@@ -15,13 +16,13 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import NavigationGoalModal from "../../components/modals/NavigationGoalModal";
 import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
+import ControlModal from "../../components/modals/ControlModal";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import {InfoBox, ControllerInfoBox} from "../../components/data/InfoBox";
 import { Dvr } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
-import axios from 'axios';
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -90,6 +91,10 @@ const NewControlPage = () => {
 		sentAction,
 		setSendAction,
 		setVolumetric,
+		rosModalOpen,
+		setRosModalOpen,
+		modalRosNodes,
+		setModalRosNodes
 	] = useRoverControls(ros, showSnackbar);
 
 	/**
@@ -97,7 +102,7 @@ const NewControlPage = () => {
 	 * @param system the subsystem or empty string for the button cancel all actions
 	 * @param cancel if we use the cancel button or not
 	 */
-	const displaySystemModal = (system: SubSystems | "", cancel: boolean) => {
+	const displaySystemModal = (system: SubSystems | string, cancel: boolean) => {
 		setSystemsModalOpen((old) => {
 			let newModalOpen = { ...old };
 
@@ -109,7 +114,6 @@ const NewControlPage = () => {
 				newModalOpen[system] = true;
 				setModal(
 					selectModal(
-						roverState,
 						system,
 						point,
 						setModal,
@@ -124,6 +128,26 @@ const NewControlPage = () => {
 
 				return newModalOpen;
 			}
+		});
+	};
+
+	const displayRosModal = (system: SubSystems) => {
+		setRosModalOpen((old) => {
+			let newModalOpen = { ...old };
+
+			// @ts-ignore
+			newModalOpen[system] = true;
+			setModalRosNodes(
+				selectModalRos(
+					roverState,
+					system,
+					setModalRosNodes,
+					setRosModalOpen,
+					ros
+				)
+			);
+
+			return newModalOpen;
 		});
 	};
 
@@ -375,25 +399,17 @@ const NewControlPage = () => {
 							icon={Drill}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal("", true)}
+							onClick={() => displaySystemModal("", false)}
 							selected={false}
 							running={States.OFF}
 							icon={Stop}
 						/>
-						<button onClick={async () => {
-							try {
-								const response = await axios.post('http://localhost:5000/ssh', {
-								  host: '169.254.55.240', 
-								  username: 'xplore',
-								  password: 'xplore',
-								  command: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', 
-									'./run_rover.sh'],
-								});
-								console.log(response.data.output);
-							  } catch (error) {
-								console.log(error);
-							  }
-						}}>SSH</button>
+						<QuickAction
+							onClick={() => displaySystemModal("commands", false)}
+							selected={false}
+							running={States.OFF}
+							icon={CommandsIcon}
+						/>
 					</div>
 					{modal}
 					<AlertSnackbar alertMessage={snackbar} />
@@ -404,8 +420,7 @@ const NewControlPage = () => {
 };
 
 const selectModal = (
-	roverState: object,
-	system: SubSystems | "",
+	system: SubSystems | string,
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
 	setSystemsModalOpen: (modals: any) => void,
@@ -416,6 +431,21 @@ const selectModal = (
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
+		case "commands":
+			return (
+				<ControlModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen["commands"] = false;
+							return newModalOpen;
+						})
+					}}
+					snackBar={showSnackbar}
+				/>
+			)
+
 		case SubSystems.CAMERA:
 			return (
 				<CameraModal
@@ -485,11 +515,22 @@ const selectModal = (
 	}
 };
 
+const selectModalRos = (
+	roverState: object,
+	system: SubSystems,
+	setModal: (modal: ReactElement | null) => void,
+	setRosModalOpen: (modals: any) => void,
+	ros: ROSLIB.Ros | null
+) => {
+	switch (system) {
+		case SubSystems.ROVER:
+			return (
+				<></>
+			);
+
+		default:
+			return <></>;
+	}
+};
+
 export default NewControlPage;
-
-/*
-
-					
-
-
-*/

@@ -26,36 +26,59 @@
     margin: 0
 
 .infoArrangement
-    display: flex
-    flex-direction: column
+    #display: flex
+    display: grid
+    grid-template-columns: repeat(2, 1fr)  // 2 equal columns
+    #flex-direction: column
+    gap: 10px
+    margin-top: 10px
+
+.infoArrangementController
+    #display: flex
+    display: grid
+    grid-template-columns: repeat(3, 1fr)  // Three equal columns
+    #flex-direction: column
     gap: 10px
     margin-top: 10px
 
 .info
-    display: flex
-    flex-direction: row
-    justify-content: space-between
-    align-items: center
-    margin: 0
+    display: contents
+    #display: flex
+    #flex-direction: row
+    #justify-content: space-between
+    #align-items: center
+    #margin: 0
 
 .infoName
+    grid-column: 1
     font-size: 1em
     font-weight: 500
     margin: 0
 
 .infoNameColoredGreen
+    grid-column: 2
     font-size: 1em
     font-weight: 500
     margin: 0
     color: green
 
 .infoNameColoredRed
+    grid-column: 2
     font-size: 1em
     font-weight: 500
     margin: 0
     color: red
 
 .infoValue
+    grid-column: 2
+    font-size: 1em
+    font-weight: normal
+    color: white
+    text-align: right
+    margin: 0
+
+.infoValueController
+    grid-column: 3
     font-size: 1em
     font-weight: normal
     color: white

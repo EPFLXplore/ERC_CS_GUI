@@ -44,7 +44,7 @@ function CameraModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-					<h1>Cameras CS</h1>
+					<h1>Commands</h1>
 				</div>
 				<div className={styles.ModalContent}>
 

@@ -4,7 +4,9 @@ enum SubSystems {
     CAMERA = "cameras",
     DRILL = "drill",
     CS = "control_station",
-    SCIENCE = "science"
+    SCIENCE = "science",
+    EL = "electronic",
+    ROVER = "rover"
 }
 
 export default SubSystems

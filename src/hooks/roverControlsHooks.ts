@@ -51,8 +51,17 @@ const useRoverControls = (
 		["cancel"]: false,
 	});
 
+	const [rosModalOpen, setRosModalOpen] = useState<typeModal>({
+		[SubSystems.ROVER]: false,
+		[SubSystems.NAGIVATION]: false,
+		[SubSystems.HANDLING_DEVICE]: false,
+		[SubSystems.DRILL]: false,
+		[SubSystems.EL]: false,
+	});
+
 	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
 	const [modal, setModal] = useState<ReactElement | null>(null);
+	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 
 	const [point, setPoint] = useState({ x: -10, y: -10 });
@@ -289,6 +298,10 @@ const useRoverControls = (
 		sentAction,
 		setSendAction,
 		setVolumetric,
+		rosModalOpen,
+		setRosModalOpen,
+		modalRosNodes,
+		setModalRosNodes
 	] as const;
 };
 

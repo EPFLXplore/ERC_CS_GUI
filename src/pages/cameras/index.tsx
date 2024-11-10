@@ -8,13 +8,12 @@ import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 
 const CAMERA_CONFIGS = [
-	["camera_0"],
-	["camera_1"],
-	["camera_2"],
-	["camera_3"],
-	["camera_0", "camera_1"],
+	["Camera 0"],
+	["Camera 1"],
+	["Camera 2"],
 ];
-const MAX_CAMERAS = 5;
+
+const MAX_CAMERAS = 3;
 
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
@@ -63,13 +62,12 @@ const CamerasPage = () => {
 					{display === "camera" &&
 					cameraStates[SubSystems.CS] != null ? (
 						<CameraView
+							currentVideo={currentVideo}
 							images={images}
 							rotate={rotateCams}
-							setRotateCams={() => {}}
 							currentCam={CAMERA_CONFIGS[currentVideo]}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {
-									console.log("change 1");
 									if (dir === 1) {
 										return (old + 1) % MAX_CAMERAS;
 									} else {

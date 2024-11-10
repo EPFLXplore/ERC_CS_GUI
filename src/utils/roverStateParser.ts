@@ -29,7 +29,7 @@ const getNodes = (data: any) => {
 	for (const node in nodes) {
 		result.push({
 			name: nodes[node]["name"],
-			status: nodes[node]['status'] ? "Connected" : "Not Connected"
+			status: nodes[node]['status'] ? "Connected" : "Disconnected"
 		});
 	}
 
@@ -214,7 +214,7 @@ const getSteeringState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push(wheels[wheel]["steering_motor_state"] ? "Connected": "Not Connected");
+		states.push(wheels[wheel]["steering_motor_state"] ? "Connected": "Disconnected");
 	}
 
 	return states;
@@ -230,7 +230,7 @@ const getDrivingState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push(wheels[wheel]["driving_wheel_state"] ? "Connected" : "Not Connected");
+		states.push(wheels[wheel]["driving_wheel_state"] ? "Connected" : "Disconnected");
 	}
 
 	return states;
@@ -253,7 +253,7 @@ const getSteeringAngles = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		angles.push(Number(wheels[wheel]["steering_angle"].toFixed(2)));
+		angles.push(Number(Number(wheels[wheel]["steering_angle"]).toFixed(2)));
 	}
 
 	return angles;
@@ -276,7 +276,7 @@ const getWheelsDrivingValue = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		values.push(Number(wheels[wheel]["speed"].toFixed(2)));
+		values.push(Number(Number(wheels[wheel]["speed"]).toFixed(2)));
 	}
 
 	return values;
@@ -428,7 +428,7 @@ const getJointsStates = (data: any) => {
 	const states = [];
 
 	for (const joint in joints) {
-		states.push(joints[joint]["states"] ? "Connected" : "Not connected");
+		states.push(joints[joint]["states"] ? "Connected" : "Disconnected");
 	}
 
 	return states;
@@ -508,7 +508,7 @@ const getMotorModule = (data: any) => {
 	return {
 		position: Number(data['drill']['motors']['motor_module']['postition']),
 		current: Number(data['drill']['motors']['motor_module']['current']),
-		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Not Connected"
+		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
 	}
 }
 
@@ -524,7 +524,7 @@ const getMotorDrill = (data: any) => {
 	return {
 		speed: Number(data['drill']['motors']['motor_module']['speed']),
 		current: Number(data['drill']['motors']['motor_module']['current']),
-		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Not Connected"
+		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
 	}
 }
 
@@ -541,7 +541,7 @@ const getCameraStatesCS = (data: any) => {
 	for (const cams in cameras) {
 		result.push({
 			name: cameras[cams]["name"],
-			status: cameras[cams]['status'] ? "Connected" : "Not Connected"
+			status: cameras[cams]['status'] ? "Connected" : "Disconnected"
 		});
 	}
 

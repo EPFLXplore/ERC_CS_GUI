@@ -6,10 +6,16 @@ import {CameraType } from "../data/cameras.type";
 function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
-	const CAMERA_CONFIGS = ["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_3"];
+
+	const CAMERA_CONFIGS = [
+		"/ROVER/feed_camera_cs_0", 
+		"/ROVER/feed_camera_cs_1", 
+		"/ROVER/feed_camera_cs_2",
+		// "/ROVER/feed_camera_hd_0"
+		]; 
+	
 	const [currentVideo, setCurrentVideo] = useState(0);
 	const [listeners, setListeners] = useState<ROSLIB.Topic<any>[]>([])
-	const [init, setInit] = useState(true)
 
 	const [cameraStates, setCameraStates] = useState<CameraType>({
 		[SubSystems.CS]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.CS],

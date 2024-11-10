@@ -45,7 +45,7 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 		<div className={styles.infos_big}>
 			<div>
 				<h3 className={styles.infosTitle}>{title}</h3>
-				<div className={styles.infoArrangement}>
+				<div className={styles.infoArrangementController}>
 					{infos.map((info, index) => {
 						const value =
 							typeof info.info.value === "number"
@@ -57,7 +57,7 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 								{(info.connected === "NO DATA" || info.connected !== "Connected") ?
 									<p className={styles.infoNameColoredRed}>{info.connected}</p>
 								: <p className={styles.infoNameColoredGreen}>{info.connected}</p>}
-								<p className={styles.infoValue}>{`${info.info.value} 
+								<p className={styles.infoValueController}>{`${info.info.value} 
 								${unit ?? (info.info.unit ?? "")}`}</p>
 							</div>
 						);
