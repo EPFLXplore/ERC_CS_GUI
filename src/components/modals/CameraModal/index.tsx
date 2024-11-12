@@ -10,7 +10,7 @@ import useRoverState from "../../../hooks/roverStateHooks";
 
 function dataRateDiv(cameraStates: any, camera: string) {
 
-	let rate = Number(cameraStates[camera]['data_rate'])
+	let rate = Math.round(Number(cameraStates[camera]['data_rate']))
 	let unit = "Mbps"
 
 	return (
@@ -134,38 +134,6 @@ function CameraModal({
 									{camera}
 								</button>
 								{dataRateDiv(cameraStates[SubSystems.NAGIVATION], camera)}
-							</div>
-						)) : <p>NO DATA</p>}
-					</div>
-				</div>
-
-				<div className={styles.ModalHeader}>
-					<h1>Cameras SC</h1>
-				</div>
-				<div className={styles.ModalContent}>
-
-					<div className={styles.ChoiceGroup}>
-						{cameraStates[SubSystems.SCIENCE] != null ?
-                        
-                        Object.values(CameraSC).map((camera: string) => (
-							<div className={styles.ChoiceContainer}>
-								<button
-									className={`${styles.Choice} ${
-										//@ts-ignore
-										cameraStates[SubSystems.SCIENCE][camera]['status'] ? styles.Selected : ""
-									}`}
-									onClick={() => {
-										//@ts-ignore
-										if(!cameraStates[SubSystems.SCIENCE][camera]['status']) {
-											onClick(SubSystems.SCIENCE, camera, true)
-										} else {
-											onClick(SubSystems.SCIENCE, camera, false)
-										}
-									}}
-								>
-									{camera}
-								</button>
-								{dataRateDiv(cameraStates[SubSystems.SCIENCE], camera)}
 							</div>
 						)) : <p>NO DATA</p>}
 					</div>

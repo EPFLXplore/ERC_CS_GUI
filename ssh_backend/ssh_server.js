@@ -51,9 +51,6 @@ function createSSHConnection(req, res) {
 app.post('/ssh', (req, res) => {
   const id = createSSHConnection(req, res);
 
-  // check that the creation of docker container went well. If not (or already running)
-  console.log(res)
-
   res.json({ connectionID: id });
 });
 
@@ -70,9 +67,9 @@ app.get('/close-connection/:id', (req, res) => {
 });
 
 // to debug
-// setInterval(() => {
-//   console.log(`Active SSH Connections: ${activeConnection}`);
-// }, 1000);
+setInterval(() => {
+  console.log(`Active SSH Connections: ${activeConnection}`);
+}, 1000);
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

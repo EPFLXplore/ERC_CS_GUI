@@ -506,7 +506,7 @@ const getMotorModule = (data: any) => {
 	}
 
 	return {
-		position: Number(data['drill']['motors']['motor_module']['postition']),
+		position: Number(Number(data['drill']['motors']['motor_module']['position']).toFixed(2)),
 		current: Number(data['drill']['motors']['motor_module']['current']),
 		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
 	}
@@ -522,10 +522,18 @@ const getMotorDrill = (data: any) => {
 	}
 
 	return {
-		speed: Number(data['drill']['motors']['motor_module']['speed']),
+		speed: Number(data['drill']['motors']['motor_drill']['speed']),
 		current: Number(data['drill']['motors']['motor_module']['current']),
 		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
 	}
+}
+
+const getStateFSM = (data: any) => {
+	if(!data || !data['rover']) {
+		return "NO DATA"
+	}
+
+	return data['drill']['state']['state_fsm']
 }
 
 //////////////////////// CAMERAS ////////////////////////
@@ -578,4 +586,5 @@ getMainProcesses,
 getLinearVelocity,
 getAngularVelocity,
 getDistanceToGoal,
-getCameraStatesCS};
+getCameraStatesCS,
+getStateFSM};

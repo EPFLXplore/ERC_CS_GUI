@@ -11,9 +11,10 @@ const CAMERA_CONFIGS = [
 	["Camera 0"],
 	["Camera 1"],
 	["Camera 2"],
+	["Camera 3"]
 ];
 
-const MAX_CAMERAS = 3;
+const MAX_CAMERAS = 4;
 
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
@@ -59,8 +60,7 @@ const CamerasPage = () => {
 			</div>
 			<div className={styles.control}>
 				<div className={styles.visualization}>
-					{display === "camera" &&
-					cameraStates[SubSystems.CS] != null ? (
+					{display === "camera" ? (
 						<CameraView
 							currentVideo={currentVideo}
 							images={images}

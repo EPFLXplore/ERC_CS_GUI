@@ -2,14 +2,6 @@ import * as ROSLIB from "roslib";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
-import { CameraCS, CameraHD, CameraNAV, CameraSC } from "../data/cameras.type";
-
-export enum LogLevel {
-	DATA = "data",
-	INFO = "info",
-	WARNING = "warning",
-	ERROR = "error",
-};
 
 const requestChangeMode = (
 	ros: ROSLIB.Ros | null,

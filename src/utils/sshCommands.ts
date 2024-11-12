@@ -93,7 +93,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
         let connectionID = data.data.connectionID
         snackBar('success', "SSH command to " + command.device.name + ": " + connectionID)
         //@ts-ignore
-        closeSSH(connectionID)
+        //closeSSH(connectionID)
     })
     .catch(error => {
         snackBar('error', error)

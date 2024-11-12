@@ -17,10 +17,11 @@ import NavigationGoalModal from "../../components/modals/NavigationGoalModal";
 import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
+import NodeModal from "../../components/modals/NodeModal";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
-import {InfoBox, ControllerInfoBox} from "../../components/data/InfoBox";
+import {InfoBox, ControllerInfoBox, InfoBoxButton} from "../../components/data/InfoBox";
 import { Dvr } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
 import {
@@ -45,7 +46,8 @@ import {
 	getNodes,
 	getLinearVelocity,
 	getAngularVelocity,
-	getDistanceToGoal
+	getDistanceToGoal,
+	getStateFSM
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -139,7 +141,6 @@ const NewControlPage = () => {
 			newModalOpen[system] = true;
 			setModalRosNodes(
 				selectModalRos(
-					roverState,
 					system,
 					setModalRosNodes,
 					setRosModalOpen,
@@ -282,13 +283,17 @@ const NewControlPage = () => {
 							title="Drill Data"
 							infos={[
 								{
-									name: "Encoder",
+									name: "Position",
 									value: getMotorModule(roverState).position,
 								},
 								{
 									name: "Velocity",
 									value: getMotorDrill(roverState).speed,
 									unit: "rpm"
+								},
+								{
+									name: "FSM State",
+									value: getStateFSM(roverState),
 								}
 							]}
 						/>
@@ -318,13 +323,37 @@ const NewControlPage = () => {
 						/>
 					</div>
 					<div className={styles.infosMidRight}>
-						{typeof getNodes(roverState) !== "string" ? <InfoBox
+						{typeof getNodes(roverState) !== "string" ? 
+						
+						<InfoBoxButton 
 							title="ROS Nodes"
-							infos={Object.values(getNodes(roverState)).map((node: any, index: number) => ({
-								name: node.name,
-								value: node.status,
-							}))}
-							color={true}
+							infos={[
+								{
+									name: "Navigation",
+									onClick: () => displayRosModal(SubSystems.NAGIVATION),
+									icon: CommandsIcon
+								},
+								{
+									name: "Rover",
+									onClick: () => displayRosModal(SubSystems.ROVER),
+									icon: CommandsIcon
+								},
+								{
+									name: "HD",
+									onClick: () => displayRosModal(SubSystems.HANDLING_DEVICE),
+									icon: CommandsIcon
+								},
+								{
+									name: "Drill",
+									onClick: () => displayRosModal(SubSystems.DRILL),
+									icon: CommandsIcon
+								},
+								{
+									name: "Elec",
+									onClick: () => displayRosModal(SubSystems.EL),
+									icon: CommandsIcon
+								}
+							]}
 						/> : 
 						<InfoBox
 							title="ROS Nodes"
@@ -333,6 +362,7 @@ const NewControlPage = () => {
 							]}
 						/>
 						}
+						
 					</div>
 					<div className={styles.infosRight}>
 						<InfoBox
@@ -412,6 +442,7 @@ const NewControlPage = () => {
 						/>
 					</div>
 					{modal}
+					{modalRosNodes}
 					<AlertSnackbar alertMessage={snackbar} />
 				</div>
 			</div>
@@ -516,21 +547,25 @@ const selectModal = (
 };
 
 const selectModalRos = (
-	roverState: object,
 	system: SubSystems,
 	setModal: (modal: ReactElement | null) => void,
 	setRosModalOpen: (modals: any) => void,
 	ros: ROSLIB.Ros | null
 ) => {
-	switch (system) {
-		case SubSystems.ROVER:
-			return (
-				<></>
-			);
-
-		default:
-			return <></>;
-	}
+	return (
+		<NodeModal 
+			ros={ros}
+			name={system}
+			onClose={() => {
+				setModal(<></>);
+				setRosModalOpen((old: typeModal) => {
+					const newModalOpen = { ...old };
+					newModalOpen[system] = false;
+					return newModalOpen;
+				});
+			}}
+		/>
+	)
 };
 
 export default NewControlPage;

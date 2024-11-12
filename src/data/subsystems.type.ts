@@ -5,7 +5,7 @@ enum SubSystems {
     DRILL = "drill",
     CS = "control_station",
     SCIENCE = "science",
-    EL = "electronic",
+    EL = "electronics",
     ROVER = "rover"
 }
 

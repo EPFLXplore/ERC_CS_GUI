@@ -11,7 +11,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 		"/ROVER/feed_camera_cs_0", 
 		"/ROVER/feed_camera_cs_1", 
 		"/ROVER/feed_camera_cs_2",
-		// "/ROVER/feed_camera_hd_0"
+		"/ROVER/feed_camera_hd_0"
 		]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
@@ -21,7 +21,6 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 		[SubSystems.CS]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.CS],
 		[SubSystems.HANDLING_DEVICE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.HANDLING_DEVICE],
 		[SubSystems.NAGIVATION]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.NAGIVATION],
-		[SubSystems.SCIENCE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.SCIENCE],
 	})
 
 	useEffect(() => {
@@ -51,7 +50,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				_listeners = [..._listeners, listener]
 			});
-
+			
 			setListeners(old => {
 				old.forEach((listener) => {
 					listener.unsubscribe()
@@ -59,6 +58,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				return _listeners;
 			})
+			
 		}
 	}, [ros, currentVideo]);
 
