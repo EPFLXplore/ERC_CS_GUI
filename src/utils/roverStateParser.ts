@@ -44,12 +44,6 @@ const getNetworkData = (data: any) => {
 	}
 }
 
-const getLogsNetwork = (data: any) => {
-	if (!data || !data['rover']) {
-		return "OFF";
-	}
-};
-
 const getStateSystem = (data: any, system: SubSystems) => {
 	if (!data || !data[system]) {
 		return "OFF";
@@ -82,6 +76,14 @@ const getErrors = (data: any) => {
 	}
 
 	return data['rover']['status']['errors']
+}
+
+const getLogs = (data: any) => {
+	if(!data || !data['rover']) {
+		return [];
+	}
+
+	return data['rover']['network']['logs']
 }
 
 //////////////////////// NAVIGATION ////////////////////////
@@ -557,21 +559,22 @@ export {
 	getWheelsDrivingValue,
 	getWarnings,
 	getErrors,
+	getLogs,
 	getNetworkData,
 	getCurrentDriving,
 	getCurrentDrivingAveraged,
 	getCurrentSteering,
 	getCurrentSteeringAveraged,
-getMotorDrill,
-getCurrentOutput,
-getDrivingState,
-getSteeringState,
-getJointsStates,
-getJointsCurrent,
-getMotorModule,
-getNodes,
-getMainProcesses,
-getLinearVelocity,
-getAngularVelocity,
-getDistanceToGoal,
-getCameraStatesCS};
+	getMotorDrill,
+	getCurrentOutput,
+	getDrivingState,
+	getSteeringState,
+	getJointsStates,
+	getJointsCurrent,
+	getMotorModule,
+	getNodes,
+	getMainProcesses,
+	getLinearVelocity,
+	getAngularVelocity,
+	getDistanceToGoal,
+	getCameraStatesCS};
