@@ -110,7 +110,7 @@ const CommandsSSH = {
 let IDConnections: Connection = {}
 
 const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: AlertColor, message: string) => void, 
-            name: string, addStatus: (newStatus: string) => void) => {
+            name: string) => {
     
     await axios.post('http://localhost:5000/ssh', {
         host: command.device.ip, 
@@ -126,7 +126,6 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
         IDConnections[name] = connectionID
         await sleep(10000)
         closeSSH(name, connectionID)
-        //addStatus(connectionID)
         
     })
     .catch(error => {
