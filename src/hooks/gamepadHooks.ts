@@ -108,7 +108,7 @@ function useGamepad(
 
 	useEffect(() => {
 		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
-			setIntervalCallback(setInterval(sendCommand, 150));
+			setIntervalCallback(setInterval(sendCommand, 300));
 		} else {
 			console.log("No publisher");
 			if (interval) {

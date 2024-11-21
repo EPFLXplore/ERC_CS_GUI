@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
 import styles from "./style.module.sass";
 import ROSLIB from "roslib";
-import useRoverState from "../../../hooks/roverStateHooks";
-import { executeSSHCommand, CommandsSSH } from "../../../utils/sshCommands";
+import { executeSSHCommand, CommandsSSH, IDConnections, closeSSH } from "../../../utils/sshCommands";
 import { AlertColor } from "@mui/material";
+import { useUser } from '../../../hooks/context'
 
 function ControlModal({
     onClose,
@@ -13,6 +13,8 @@ function ControlModal({
 	snackBar: (severity: AlertColor, message: string) => void
 }) {
 
+	const { status, addStatus, removeStatus } = useUser();
+
 	return (
 		<div className={styles.Background} onClick={onClose}>
 			<div
@@ -21,16 +23,19 @@ function ControlModal({
 					e.stopPropagation();
 				}}
 			>
-            <div className={styles.ModalHeader}>
-					<h1>RPI Cams</h1>
-			</div>
+				<div className={styles.ModalHeader}>
+						<h1>RPI Cams</h1>
+				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
 						{CommandsSSH.rpi_cameras_cs.map((task) => (
 							<button
 								className={styles.Choice}
 								//@ts-ignore
-								onClick={() => executeSSHCommand(task.action, snackBar)}
+								onClick={() => {
+									executeSSHCommand(task.action, snackBar, task.name, addStatus)
+									
+								}}
 								>
 									{task.name}
 							</button>
@@ -38,16 +43,33 @@ function ControlModal({
 					</div>
 				</div>
 
-			<div className={styles.ModalHeader}>
-					<h1>RPI Rover/Drill</h1>
-			</div>
+				<div className={styles.ModalHeader}>
+						<h1>RPI Rover/Drill</h1>
+				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
 						{CommandsSSH.rpi_rover_drill.map((task) => (
 							<button
 								className={styles.Choice}
 								//@ts-ignore
-								onClick={() => executeSSHCommand(task.action, snackBar)}
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name, addStatus)}
+								>
+									{task.name}
+							</button>
+						))}
+					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+						<h1>Jetson</h1>
+				</div>
+				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						{CommandsSSH.jetson_xavier.map((task) => (
+							<button
+								className={styles.Choice}
+								//@ts-ignore
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name, addStatus)}
 								>
 									{task.name}
 							</button>
@@ -60,3 +82,34 @@ function ControlModal({
 }
 
 export default ControlModal;
+
+/*
+{Object.keys(IDConnections).length != 0 ? 
+				<div className={styles.ChoiceGroup}>
+					{Object.entries(IDConnections).map(([conn_name, conn_id]) => (
+						<button
+							className={styles.Choice}
+							//@ts-ignore
+							onClick={() => closeSSH(conn_name, conn_id, removeStatus)}
+							>
+								{"close: " + conn_name}
+						</button>
+					))}
+				</div> : <></>
+			}
+
+
+			{status.length != 0 ? 
+				<div className={styles.ChoiceGroup}>
+					{status.map(([conn_name, conn_id]) => (
+						<button
+							className={styles.Choice}
+							//@ts-ignore
+							onClick={() => closeSSH(conn_name, conn_id, removeStatus)}
+							>
+								{"close: " + conn_name}
+						</button>
+					))}
+				</div> : <></>
+			}
+*/

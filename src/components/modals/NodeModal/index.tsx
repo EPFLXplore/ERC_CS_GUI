@@ -1,19 +1,18 @@
 import styles from "./style.module.sass";
 import ROSLIB from "roslib";
-import useRoverState from "../../../hooks/roverStateHooks";
 
 
 function NodeModal({
-	ros,
+	roverState,
     name,
     onClose,
 }: {
-	ros: ROSLIB.Ros | null,
+	roverState: any,
     name: string,
     onClose: () => void;
 }) {
 
-	const [roverState] = useRoverState(ros)
+	
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -34,14 +33,14 @@ function NodeModal({
 					//@ts-ignore
 					Object.values(roverState['rover']['software']['nodes'][name]).map((el: any) => (
 						<div className={styles.ChoiceGroup}>
-							<button
+							<div
 								className={`${styles.Choice} ${
 									//@ts-ignore
 									el['status'] ? styles.Selected : ""
 								}`}
 							>
 								{el['name']}
-							</button>
+							</div>
 						</div>
 					)) : <p>NO DATA</p>}
 				</div>

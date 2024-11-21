@@ -10,6 +10,7 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
+		//ros_server.connect("ws://192.168.52.178:9090");
 		//ros_server.connect("ws://169.254.55.193:9090");
 		ros_server.connect("ws://localhost:9090");
 

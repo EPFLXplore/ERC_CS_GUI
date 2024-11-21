@@ -7,7 +7,9 @@ interface EndSystem {
 
 interface SSHCommands {
     device: EndSystem,
-    commands: string[]
+    commands: string[],
 }
 
-export type {EndSystem, SSHCommands}
+type Connection = { [key: string]: string }
+
+export type {EndSystem, SSHCommands, Connection}

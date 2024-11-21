@@ -15,12 +15,18 @@ enum DrillTask {
 	OPEN = "Open"
 }
 
+/*
+TODO: REPLACE THE TRUE OF NODE ACTIVE WITH THE VALUE OF THE ROVER STATE
+*/
+
 function DrillGoalModal({
+	roverState,
 	onSetGoal,
 	onClose,
 	onCancelGoal,
 	snackBar,
 }: {
+	roverState: any,
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
@@ -58,6 +64,21 @@ function DrillGoalModal({
 							</button>
 						))}
 					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+					<h2>Drill Feedback</h2>
+				</div>
+				<div
+					className={styles.ModalFeedback}
+				>
+					<span style={{display: 'block'}} color={`${
+						Number(roverState['drill']['state']['warning_type']) != 0 ? 'red' : 'white' 
+					}`}>
+						{`${!roverState['rover'] ? "" : 
+							roverState['drill']['state']['current_status']
+						}`}
+					</span>
 				</div>
 
 				<div className={styles.ModalFooter}>

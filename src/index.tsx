@@ -5,6 +5,7 @@ import "./styles/_global.sass";
 import "./styles/_typography.sass";
 
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import { UserProvider } from './hooks/context'
 import reportWebVitals from "./reportWebVitals";
 
 import { App } from "./App";
@@ -12,7 +13,9 @@ import { App } from "./App";
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
 	// <React.StrictMode>
-	<App />
+	//<UserProvider>
+		<App />
+	//</UserProvider>
 	// </React.StrictMode>
 );
 

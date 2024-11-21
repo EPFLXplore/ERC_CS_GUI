@@ -116,6 +116,7 @@ const NewControlPage = () => {
 				newModalOpen[system] = true;
 				setModal(
 					selectModal(
+						roverState,
 						system,
 						point,
 						setModal,
@@ -141,6 +142,7 @@ const NewControlPage = () => {
 			newModalOpen[system] = true;
 			setModalRosNodes(
 				selectModalRos(
+					roverState,
 					system,
 					setModalRosNodes,
 					setRosModalOpen,
@@ -283,8 +285,9 @@ const NewControlPage = () => {
 							title="Drill Data"
 							infos={[
 								{
-									name: "Position",
+									name: "Height",
 									value: getMotorModule(roverState).position,
+									unit: "%"
 								},
 								{
 									name: "Velocity",
@@ -451,6 +454,7 @@ const NewControlPage = () => {
 };
 
 const selectModal = (
+	roverState: any,
 	system: SubSystems | string,
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
@@ -528,6 +532,7 @@ const selectModal = (
 		case SubSystems.DRILL:
 			return (
 				<DrillGoalModal
+					roverState={roverState}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {
@@ -547,6 +552,7 @@ const selectModal = (
 };
 
 const selectModalRos = (
+	roverState: any,
 	system: SubSystems,
 	setModal: (modal: ReactElement | null) => void,
 	setRosModalOpen: (modals: any) => void,
@@ -554,7 +560,7 @@ const selectModalRos = (
 ) => {
 	return (
 		<NodeModal 
-			ros={ros}
+			roverState={roverState}
 			name={system}
 			onClose={() => {
 				setModal(<></>);

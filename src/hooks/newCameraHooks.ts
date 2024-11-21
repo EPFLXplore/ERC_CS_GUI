@@ -50,7 +50,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				_listeners = [..._listeners, listener]
 			});
-			
+			/*
 			setListeners(old => {
 				old.forEach((listener) => {
 					listener.unsubscribe()
@@ -58,6 +58,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				return _listeners;
 			})
+			*/
 			
 		}
 	}, [ros, currentVideo]);

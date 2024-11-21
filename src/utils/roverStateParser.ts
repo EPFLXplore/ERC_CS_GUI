@@ -475,7 +475,7 @@ const BATTERY_MIN_VOLTAGE = 23;
  * @returns The battery level of the rover in percentage.
  */
 const getBatteryLevel = (data: any) => {
-	if (!data || !data["electronics"]) {
+	if (!data || !data["electronics"] || Number(data["electronics"]["power"]["voltage"]) == 0) {
 		return "NO DATA";
 	}
 

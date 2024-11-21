@@ -211,6 +211,11 @@ const useRoverControls = (
 				mode: mode
 			}
 
+			if(stateActions[system].goal_object != null) {
+				showSnackbar('error', 'An action is running, you cant switch the mode')
+				return
+			}
+
 			requestChangeMode(
 				ros,
 				false,
