@@ -21,7 +21,7 @@ import NodeModal from "../../components/modals/NodeModal";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
-import {InfoBox, ControllerInfoBox, InfoBoxButton} from "../../components/data/InfoBox";
+import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data/InfoBox";
 import { Dvr } from "@mui/icons-material";
 import { Status } from "../../data/status.type";
 import {
@@ -56,6 +56,7 @@ import { AlertColor } from "@mui/material";
 import { ReactElement } from "react";
 import ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
+import { startCamModeService } from "../../utils/changeCameraMode";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -208,42 +209,42 @@ const NewControlPage = () => {
 						<ControllerInfoBox
 							title="Driving Currents"
 							infos={[
-								{ info: {name: "Front Left", value: getCurrentDriving(roverState)[0]}, connected: getDrivingState(roverState)[0] },
-								{ info: {name: "Front Right", value: getCurrentDriving(roverState)[1]}, connected: getDrivingState(roverState)[1] },
-								{ info: {name: "Back Right", value: getCurrentDriving(roverState)[2]}, connected: getDrivingState(roverState)[2] },
-								{ info: {name: "Back Left", value: getCurrentDriving(roverState)[3]}, connected: getDrivingState(roverState)[3] },
+								{ info: { name: "Front Left", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
+								{ info: { name: "Front Right", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
+								{ info: { name: "Back Right", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
+								{ info: { name: "Back Left", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
 							]}
 							unit="mA"
 						/>
-					
+
 						<ControllerInfoBox
 							title="Steering Currents"
 							infos={[
-								{ info: {name: "Front Left", value: getCurrentSteering(roverState)[0]}, connected: getDrivingState(roverState)[0] },
-								{ info: {name: "Front Right", value: getCurrentSteering(roverState)[1]}, connected: getDrivingState(roverState)[1] },
-								{ info: {name: "Back Right", value: getCurrentSteering(roverState)[2]}, connected: getDrivingState(roverState)[2] },
-								{ info: {name: "Back Left", value: getCurrentSteering(roverState)[3]}, connected: getDrivingState(roverState)[3] },
+								{ info: { name: "Front Left", value: getCurrentSteering(roverState)[0] }, connected: getDrivingState(roverState)[0] },
+								{ info: { name: "Front Right", value: getCurrentSteering(roverState)[1] }, connected: getDrivingState(roverState)[1] },
+								{ info: { name: "Back Right", value: getCurrentSteering(roverState)[2] }, connected: getDrivingState(roverState)[2] },
+								{ info: { name: "Back Left", value: getCurrentSteering(roverState)[3] }, connected: getDrivingState(roverState)[3] },
 							]}
 							unit="mA"
 						/>
-					
+
 						<ControllerInfoBox
 							title="Joints Currents"
 							infos={[
-								{ info: { name: "Joint 1", value: getJointsCurrent(roverState)[0]}, connected: getJointsStates(roverState)[0] },
-								{ info: { name: "Joint 2", value: getJointsCurrent(roverState)[1]}, connected: getJointsStates(roverState)[1] },
-								{ info: { name: "Joint 3", value: getJointsCurrent(roverState)[2]}, connected: getJointsStates(roverState)[2] },
-								{ info: { name: "Joint 4", value: getJointsCurrent(roverState)[3]}, connected: getJointsStates(roverState)[3] },
-								{ info: { name: "Joint 5", value: getJointsCurrent(roverState)[4]}, connected: getJointsStates(roverState)[4] },
-								{ info: { name: "Joint 6", value: getJointsCurrent(roverState)[5]}, connected: getJointsStates(roverState)[5] },
+								{ info: { name: "Joint 1", value: getJointsCurrent(roverState)[0] }, connected: getJointsStates(roverState)[0] },
+								{ info: { name: "Joint 2", value: getJointsCurrent(roverState)[1] }, connected: getJointsStates(roverState)[1] },
+								{ info: { name: "Joint 3", value: getJointsCurrent(roverState)[2] }, connected: getJointsStates(roverState)[2] },
+								{ info: { name: "Joint 4", value: getJointsCurrent(roverState)[3] }, connected: getJointsStates(roverState)[3] },
+								{ info: { name: "Joint 5", value: getJointsCurrent(roverState)[4] }, connected: getJointsStates(roverState)[4] },
+								{ info: { name: "Joint 6", value: getJointsCurrent(roverState)[5] }, connected: getJointsStates(roverState)[5] },
 							]}
 							unit="mA"
 						/>
 						<ControllerInfoBox
 							title="Drill Currents"
 							infos={[
-								{ info: { name: "Motor", value: getMotorModule(roverState)['current']}, connected: getMotorModule(roverState)['state'] },
-								{ info: { name: "Drill", value: getMotorDrill(roverState)['current']}, connected: getMotorDrill(roverState)['state'] },
+								{ info: { name: "Motor", value: getMotorModule(roverState)['current'] }, connected: getMotorModule(roverState)['state'] },
+								{ info: { name: "Drill", value: getMotorDrill(roverState)['current'] }, connected: getMotorDrill(roverState)['state'] },
 							]}
 							unit="mA"
 						/>
@@ -272,12 +273,12 @@ const NewControlPage = () => {
 						<InfoBox
 							title="Joints Angles"
 							infos={[
-								{ name: "Joint 1", value: getJointsPositions(roverState)[0]},
-								{ name: "Joint 2", value: getJointsPositions(roverState)[1]},
-								{ name: "Joint 3", value: getJointsPositions(roverState)[2]},
-								{ name: "Joint 4", value: getJointsPositions(roverState)[3]},
-								{ name: "Joint 5", value: getJointsPositions(roverState)[4]},
-								{ name: "Joint 6", value: getJointsPositions(roverState)[5]},
+								{ name: "Joint 1", value: getJointsPositions(roverState)[0] },
+								{ name: "Joint 2", value: getJointsPositions(roverState)[1] },
+								{ name: "Joint 3", value: getJointsPositions(roverState)[2] },
+								{ name: "Joint 4", value: getJointsPositions(roverState)[3] },
+								{ name: "Joint 5", value: getJointsPositions(roverState)[4] },
+								{ name: "Joint 6", value: getJointsPositions(roverState)[5] },
 							]}
 							unit="°"
 						/>
@@ -312,60 +313,60 @@ const NewControlPage = () => {
 						<InfoBox
 							title="Science Sensors"
 							infos={[
-								{ name: "Sensor 1", value: "NO DATA"},
-								{ name: "Sensor 2", value: "NO DATA"},
+								{ name: "Sensor 1", value: "NO DATA" },
+								{ name: "Sensor 2", value: "NO DATA" },
 							]}
 						/>
 						<InfoBox
 							title="Pivot Angle"
 							infos={[
-								{ name: "Left", value: getPivotAngle(roverState)},
-								{ name: "Right", value: getPivotAngle(roverState)},
+								{ name: "Left", value: getPivotAngle(roverState) },
+								{ name: "Right", value: getPivotAngle(roverState) },
 							]}
 							unit="°"
 						/>
 					</div>
 					<div className={styles.infosMidRight}>
-						{typeof getNodes(roverState) !== "string" ? 
-						
-						<InfoBoxButton 
-							title="ROS Nodes"
-							infos={[
-								{
-									name: "Navigation",
-									onClick: () => displayRosModal(SubSystems.NAGIVATION),
-									icon: CommandsIcon
-								},
-								{
-									name: "Rover",
-									onClick: () => displayRosModal(SubSystems.ROVER),
-									icon: CommandsIcon
-								},
-								{
-									name: "HD",
-									onClick: () => displayRosModal(SubSystems.HANDLING_DEVICE),
-									icon: CommandsIcon
-								},
-								{
-									name: "Drill",
-									onClick: () => displayRosModal(SubSystems.DRILL),
-									icon: CommandsIcon
-								},
-								{
-									name: "Elec",
-									onClick: () => displayRosModal(SubSystems.EL),
-									icon: CommandsIcon
-								}
-							]}
-						/> : 
-						<InfoBox
-							title="ROS Nodes"
-							infos={[
-								{ name: "No Nodes", value: ""},
-							]}
-						/>
+						{typeof getNodes(roverState) !== "string" ?
+
+							<InfoBoxButton
+								title="ROS Nodes"
+								infos={[
+									{
+										name: "Navigation",
+										onClick: () => displayRosModal(SubSystems.NAGIVATION),
+										icon: CommandsIcon
+									},
+									{
+										name: "Rover",
+										onClick: () => displayRosModal(SubSystems.ROVER),
+										icon: CommandsIcon
+									},
+									{
+										name: "HD",
+										onClick: () => displayRosModal(SubSystems.HANDLING_DEVICE),
+										icon: CommandsIcon
+									},
+									{
+										name: "Drill",
+										onClick: () => displayRosModal(SubSystems.DRILL),
+										icon: CommandsIcon
+									},
+									{
+										name: "Elec",
+										onClick: () => displayRosModal(SubSystems.EL),
+										icon: CommandsIcon
+									}
+								]}
+							/> :
+							<InfoBox
+								title="ROS Nodes"
+								infos={[
+									{ name: "No Nodes", value: "" },
+								]}
+							/>
 						}
-						
+
 					</div>
 					<div className={styles.infosRight}>
 						<InfoBox
@@ -405,7 +406,7 @@ const NewControlPage = () => {
 							]}
 						/>
 					</div>
-					
+
 					<div className={styles.actions}>
 						<QuickAction
 							onClick={() => displaySystemModal(SubSystems.CAMERA, false)}
@@ -494,7 +495,8 @@ const selectModal = (
 					}}
 					ros={ros}
 					onClick={(subsystem, mode, activated) => startService(subsystem, mode, true, activated)}
-			/>
+					rgbOnClick={(subsystem, activate) => startCamModeService(subsystem, activate, ros, showSnackbar)}
+				/>
 			);
 
 		case SubSystems.NAGIVATION:
@@ -559,7 +561,7 @@ const selectModalRos = (
 	ros: ROSLIB.Ros | null
 ) => {
 	return (
-		<NodeModal 
+		<NodeModal
 			roverState={roverState}
 			name={system}
 			onClose={() => {

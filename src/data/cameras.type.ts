@@ -25,7 +25,11 @@ enum CameraSC {
     MAIN = "Main",
 }
 
+enum CameraHD_RGB
+{
+    RGB = "RGB/RGBD",
+}
 
 
 export type {CameraElement, CameraType}
-export {CameraCS, CameraHD, CameraNAV, CameraSC}
+export {CameraCS, CameraHD, CameraNAV, CameraSC, CameraHD_RGB}
