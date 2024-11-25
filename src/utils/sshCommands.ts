@@ -54,7 +54,7 @@ const StopRoverNode: SSHCommands = {
 
 const StopCameraNode: SSHCommands = {
     device: RPI_CAMS,
-    commands: ['docker stop rover_humble_jetson']
+    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_cameras.sh']
 };
 
 const ActivateWheelsControl: SSHCommands = {
@@ -110,7 +110,7 @@ const CommandsSSH = {
 let IDConnections: Connection = {}
 
 const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: AlertColor, message: string) => void, 
-            name: string, addStatus: (newStatus: string) => void) => {
+            name: string) => {
     
     await axios.post('http://localhost:5000/ssh', {
         host: command.device.ip, 
@@ -126,7 +126,6 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
         IDConnections[name] = connectionID
         await sleep(10000)
         closeSSH(name, connectionID)
-        //addStatus(connectionID)
         
     })
     .catch(error => {
@@ -135,11 +134,10 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
     
 }
 
-const closeSSH = async (name: string, id: string) => { // statusToRemove: (remove: string) => void
+const closeSSH = async (name: string, id: string) => {
     await axios.get(`http://localhost:5000/close-connection/${id}`)
     .then(data => {
         if(data.data.status) {
-            //statusToRemove(IDConnections[name])
             delete IDConnections[name]
         }
     })

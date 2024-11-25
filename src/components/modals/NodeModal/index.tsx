@@ -23,7 +23,7 @@ function NodeModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-					<h1>{name}</h1>
+					<h1>{name.toUpperCase()}</h1>
 				</div>
 				<div className={styles.ModalContent}>
 

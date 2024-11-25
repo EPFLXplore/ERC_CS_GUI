@@ -189,7 +189,7 @@ const NewControlPage = () => {
 				/>
 				<Timer
 					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
-					wifiLevel={getNetworkData(roverState)[2]}
+					wifiLevel={getNetworkData(roverState).signal_strength}
 					battery={getBatteryLevel(roverState)}
 				/>
 			</div>
@@ -255,7 +255,7 @@ const NewControlPage = () => {
 								{ name: "Front Left", value: getWheelsDrivingValue(roverState)[0]},
 								{ name: "Front Right", value: getWheelsDrivingValue(roverState)[1]},
 								{ name: "Back Right", value: getWheelsDrivingValue(roverState)[2]},
-								{ name: "Bsck Left", value: getWheelsDrivingValue(roverState)[3]},
+								{ name: "Back Left", value: getWheelsDrivingValue(roverState)[3]},
 							]}
 							unit="m/s"
 						/>
@@ -265,7 +265,7 @@ const NewControlPage = () => {
 								{ name: "Front Left", value: getSteeringAngles(roverState)[0]},
 								{ name: "Front Right", value: getSteeringAngles(roverState)[1]},
 								{ name: "Back Right", value: getSteeringAngles(roverState)[2]},
-								{ name: "Bsck Left", value: getSteeringAngles(roverState)[3]},
+								{ name: "Back Left", value: getSteeringAngles(roverState)[3]},
 							]}
 							unit="°"
 						/>
@@ -306,7 +306,7 @@ const NewControlPage = () => {
 							title="Power Consumption"
 							infos={[
 								{ name: "Current", value: getCurrentOutput(roverState), unit: "A"},
-								{ name: "Battery Level", value: getWheelsDrivingValue(roverState)[1], unit: "V"},
+								{ name: "Battery Level", value: getBatteryLevel(roverState), unit: "V"},
 							]}
 						/>
 						<InfoBox

@@ -466,7 +466,7 @@ const getTorqueGripper = (data: any) => {
 
 //////////////////////// ELECTRONICS ////////////////////////
 
-const BATTERY_MAX_VOLTAGE = 28;
+const BATTERY_MAX_VOLTAGE = 27.8;
 const BATTERY_MIN_VOLTAGE = 23;
 
 /**
@@ -480,9 +480,9 @@ const getBatteryLevel = (data: any) => {
 	}
 
 	return (
-		(Number(data["electronics"]["power"]["voltage"]) -
-			BATTERY_MIN_VOLTAGE / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE)) *
-		100
+		Math.round((Number(data["electronics"]["power"]["voltage"]) -
+			BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) *
+		100)
 	);
 };
 
@@ -493,6 +493,43 @@ const getCurrentOutput = (data: any) => {
 
 	return Number(data["electronics"]["power"]["current"])
 };
+
+const getMassArmSensor = (data: any) => {
+	if (!data || !data["electronics"]) {
+		return "NO DATA"
+	}
+
+	return Number(data['electronics']['sensors']['mass_sensors']["mass_container"])
+}
+
+const getMassDrillSensor = (data: any) => {
+	if (!data || !data["electronics"]) {
+		return "NO DATA"
+	}
+
+	return Number(data['electronics']['sensors']['mass_sensors']["mass_drill"])
+}
+
+const getForInOneSensor = (data: any) => {
+	if (!data || !data["electronics"]) {
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+	}
+
+	return {
+		temperature: Number(data['electronics']['sensors']['four_in_one']['temperature']),
+        moisture: Number(data['electronics']['sensors']['four_in_one']['moisture']),
+        conductivity: Number(data['electronics']['sensors']['four_in_one']['conductivity']),
+        ph: Number(data['electronics']['sensors']['four_in_one']['ph'])
+	}
+}
+
+const getDustSensor = (data: any) => {
+	if (!data || !data["electronics"]) {
+		return "NO DATA"
+	}
+
+	return Number(data['electronics']['sensors']['dust_sensor'])
+}
 
 //////////////////////// DRILL ////////////////////////
 
@@ -587,4 +624,8 @@ getLinearVelocity,
 getAngularVelocity,
 getDistanceToGoal,
 getCameraStatesCS,
-getStateFSM};
+getStateFSM,
+getMassArmSensor,
+getMassDrillSensor,
+getDustSensor,
+getForInOneSensor};

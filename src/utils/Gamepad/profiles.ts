@@ -31,14 +31,14 @@ const computeNavigationCommandClassicGamepad = (
 			0,
 		],
 		buttons: [
-			0,
-			0,
+			buttons[ClassicalGamepad.Button.A] ? 1 : 0, // Change of Kinematics
+			buttons[ClassicalGamepad.Button.X] ? 1 : 0, // Change of Mode Subsystem
 			0,
 			buttons[ClassicalGamepad.Button.LEFT] ? 1 : 0, // Slide left
 			buttons[ClassicalGamepad.Button.RIGHT] ? 1 : 0, // Slide right
 			0,
 			0,
-			0,
+			buttons[ClassicalGamepad.Button.LEFT_STICK] ? 1 : 0 // Press left joystick
 		],
 	};
 };

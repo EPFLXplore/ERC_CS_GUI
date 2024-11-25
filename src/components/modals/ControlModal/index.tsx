@@ -3,7 +3,6 @@ import styles from "./style.module.sass";
 import ROSLIB from "roslib";
 import { executeSSHCommand, CommandsSSH, IDConnections, closeSSH } from "../../../utils/sshCommands";
 import { AlertColor } from "@mui/material";
-import { useUser } from '../../../hooks/context'
 
 function ControlModal({
     onClose,
@@ -12,8 +11,6 @@ function ControlModal({
     onClose: () => void;
 	snackBar: (severity: AlertColor, message: string) => void
 }) {
-
-	const { status, addStatus, removeStatus } = useUser();
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -33,7 +30,7 @@ function ControlModal({
 								className={styles.Choice}
 								//@ts-ignore
 								onClick={() => {
-									executeSSHCommand(task.action, snackBar, task.name, addStatus)
+									executeSSHCommand(task.action, snackBar, task.name)
 									
 								}}
 								>
@@ -52,7 +49,7 @@ function ControlModal({
 							<button
 								className={styles.Choice}
 								//@ts-ignore
-								onClick={() => executeSSHCommand(task.action, snackBar, task.name, addStatus)}
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name)}
 								>
 									{task.name}
 							</button>
@@ -69,7 +66,7 @@ function ControlModal({
 							<button
 								className={styles.Choice}
 								//@ts-ignore
-								onClick={() => executeSSHCommand(task.action, snackBar, task.name, addStatus)}
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name)}
 								>
 									{task.name}
 							</button>

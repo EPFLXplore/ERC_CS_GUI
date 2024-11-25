@@ -40,7 +40,7 @@ const Timer = ({
 			<p className={`${styles.status} ${status}`} />
 			<div className={styles.battery}>
 				{getBatteryState(battery)}
-				<p>{battery} {battery === "NO DATA" ? "" : "?"}</p>
+				<p>{battery} {battery === "NO DATA" ? "" : "%"}</p>
 			</div>
 			<div className={styles.wifi}>
 				<CellWifiIcon className={styles.icon} />

@@ -5,7 +5,6 @@ import "./styles/_global.sass";
 import "./styles/_typography.sass";
 
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
-import { UserProvider } from './hooks/context'
 import reportWebVitals from "./reportWebVitals";
 
 import { App } from "./App";
