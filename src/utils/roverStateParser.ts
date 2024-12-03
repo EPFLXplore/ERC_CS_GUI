@@ -214,7 +214,11 @@ const getSteeringState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push(wheels[wheel]["steering_motor_state"] ? "Connected": "Disconnected");
+		if(wheels[wheel]["steering_fault"]) {
+			states.push("Fault!")
+		} else {
+			states.push(wheels[wheel]["steering_motor_state"] ? "Connected": "Disconnected");
+		}
 	}
 
 	return states;
@@ -230,7 +234,11 @@ const getDrivingState = (data: any) => {
 
 	for (const wheel in wheels) {
 		if (wheel === "pivot") continue;
-		states.push(wheels[wheel]["driving_wheel_state"] ? "Connected" : "Disconnected");
+		if(wheels[wheel]["driving_fault"]) {
+			states.push("Fault!")	
+		} else {
+			states.push(wheels[wheel]["driving_motor_state"] ? "Connected" : "Disconnected");
+		}
 	}
 
 	return states;

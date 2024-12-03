@@ -67,6 +67,18 @@ const StopWheelsControl: SSHCommands = {
     commands: ['cd /home/xplore/Desktop/ERC_NAV/docker_humble_jetson', './stop_docker_nav.sh']
 };
 
+// Activates the FSM and other stuff
+const ActivateHdMotorControl: SSHCommands = {
+    device: JETSON_NAV,
+    commands: ['cd /home/xplore/Document/ERC_HD/docker_humble_jetson', './.sh']
+};
+
+// Stops the FSM and other stuff. 
+const StopHdMotorControl: SSHCommands = {
+    device: JETSON_NAV,
+    commands: ['cd /home/xplore/Document/ERC_HD/docker_humble_jetson', './.sh']
+};
+
 const CommandsSSH = {
     "rpi_rover_drill": [
     {

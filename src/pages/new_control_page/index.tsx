@@ -57,6 +57,8 @@ import { ReactElement } from "react";
 import ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
+import Gamepad from "../../components/Controls/Gamepad";
+import {resetFaults, resetHome} from "../../utils/navigationActions";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -449,6 +451,30 @@ const NewControlPage = () => {
 					{modalRosNodes}
 					<AlertSnackbar alertMessage={snackbar} />
 				</div>
+				<div className={styles.previews}>
+					<Gamepad
+						mode={manualMode}
+						submode={
+							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+							States.MANUAL_DIRECT
+								? States.MANUAL_DIRECT
+								: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+									States.MANUAL_INVERSE
+								? States.MANUAL_INVERSE
+								: States.MANUAL
+						}
+						selectorCallback={changeMode}
+						visible={
+							stateServices[SubSystems.NAGIVATION].service.state ===
+								States.MANUAL ||
+							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+								States.MANUAL_DIRECT ||
+							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
+								States.MANUAL_INVERSE
+						}
+						ros={ros}
+					/>
+				</div>
 			</div>
 		</div>
 	);
@@ -502,6 +528,10 @@ const selectModal = (
 		case SubSystems.NAGIVATION:
 			return (
 				<NavigationGoalModal
+					ros={ros}
+					snackBar={showSnackbar}
+					onResetFaults={resetFaults}
+					onResetHome={resetHome}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {

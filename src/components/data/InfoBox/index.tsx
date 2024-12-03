@@ -61,8 +61,9 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 						return (
 							<div className={styles.info} key={index}>
 								<p className={styles.infoName}>{info.info.name}</p>
-								{(info.connected === "NO DATA" || info.connected !== "Connected") ?
+								{(info.connected === "NO DATA" || info.connected === "Disonnected") ?
 									<p className={styles.infoNameColoredRed}>{info.connected}</p>
+								: info.connected === "Fault!" ? <p className={styles.infoNameFault}>{info.connected}</p>
 								: <p className={styles.infoNameColoredGreen}>{info.connected}</p>}
 								<p className={styles.infoValueController}>{`${info.info.value} 
 								${unit ?? (info.info.unit ?? "")}`}</p>

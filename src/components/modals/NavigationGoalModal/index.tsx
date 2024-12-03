@@ -4,17 +4,27 @@ import { Pose2D } from "../../../data/pose2d.type";
 import SubSystems from "../../../data/subsystems.type";
 import { roundToTwoDecimals } from "../../../utils/maths";
 import { map3DTo2D } from "../../../utils/mapUtils";
+import { AlertColor } from "@mui/material";
+import * as ROSLIB from "roslib";
 
 function ArmGoalModal({
+	ros,
 	onSetGoal,
 	onClose,
 	onCancelGoal,
+	onResetFaults,
+	onResetHome,
+	snackBar,
 	currentGoal = undefined,
 	pointOnMap,
 }: {
+	ros: ROSLIB.Ros | null,
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
+	onResetFaults: (ros: ROSLIB.Ros | null, subsystem: string, snackBar: (severity: AlertColor, message: string) => void) => void;
+	onResetHome: (ros: ROSLIB.Ros | null, subsystem: string, snackBar: (severity: AlertColor, message: string) => void) => void;
+	snackBar: (severity: AlertColor, message: string) => void;
 	currentGoal?: { x: number; y: number; o: number };
 	pointOnMap: { x: number; y: number };
 }) {
@@ -90,6 +100,23 @@ function ArmGoalModal({
 						}}
 					>
 						Cancel Goal
+					</button>
+				</div>
+				<div className={styles.ModalHeader}>
+					<h1>Reset Faults and Home</h1>
+				</div>
+				<div className={styles.ModalContent}>
+					<button
+						className={styles.Choice}
+						onClick={() => onResetFaults(ros, SubSystems.NAGIVATION, snackBar)}
+					>
+						Reset Faults
+					</button>
+					<button
+						className={styles.Choice}
+						onClick={() => onResetHome(ros, SubSystems.NAGIVATION, snackBar)}
+					>
+						Reset Home
 					</button>
 				</div>
 			</div>
