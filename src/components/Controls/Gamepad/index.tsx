@@ -12,7 +12,6 @@ const Gamepad = ({
 	submode,
 	visible = true,
 	ros,
-	changeCam,
 }: {
 	selectorCallback?: () => void;
 	mode: Task;
@@ -25,7 +24,6 @@ const Gamepad = ({
 		ros,
 		mode,
 		submode,
-		changeCam,
 		selectorCallback
 	);
 

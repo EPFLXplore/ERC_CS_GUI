@@ -1,3 +1,9 @@
+/*
+Author: Giovanni Ranieri
+Year: 2024
+Description: Name of Subsystems. 
+*/
+
 enum SubSystems {
     NAGIVATION = "navigation",
     HANDLING_DEVICE = "handling_device",

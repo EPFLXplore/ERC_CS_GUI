@@ -2,6 +2,12 @@ import { AlertColor } from "@mui/material";
 import { useState } from "react";
 import { AlertSnackbarMessage } from "../components/ui/Snackbar";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Hook for showing a bar of information on the web page
+*/
+
 const useAlert = () => {
 	const [snackbar, setSnackbar] = useState<AlertSnackbarMessage>({
 		severity: "error",

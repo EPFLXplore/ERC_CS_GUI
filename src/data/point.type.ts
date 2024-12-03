@@ -1,3 +1,9 @@
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Type for Points in simulation
+*/
+
 type Point2D = {
 	x: number;
 	y: number;

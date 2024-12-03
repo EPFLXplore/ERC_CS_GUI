@@ -9,7 +9,6 @@ const actionGoal = (
 	system: string,
 	start: boolean,
 	action: Action,
-	sentAction: (b: boolean) => void,
 	updateActions: (states: any) => void,
 	snackBar: (sev: AlertColor, mes: string) => void,
 	actionArgs: Object

@@ -1,6 +1,8 @@
 /*
-for nav => [[drill, false], [hd, true]]
-service deals with activating the compatibility
+Author: Giovanni Ranieri
+Year: 2024
+Description: Class defining an Action ROS to keep the current state of it. They are instantiate in 
+the actionHooks.ts. 
 */
 
 class Action {

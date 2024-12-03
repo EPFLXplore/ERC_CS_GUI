@@ -2,6 +2,14 @@ import { AlertColor } from "@mui/material";
 import SubSystems from "../data/subsystems.type"
 import * as ROSLIB from "roslib";
 
+/*
+Author: Giovanni Ranieri
+ERC: 2024-25
+Description: Functions for reseting the fault states of motors and setting the current place as home
+position for the wheels. They bypass the Orchestrator for simplicity (they communicate directly 
+with the motor lifecycle node of NAV)
+*/
+
 const resetFaults = (ros: ROSLIB.Ros | null, subsystem: string,
     snackBar: (severity: AlertColor, message: string) => void,
 ) => {

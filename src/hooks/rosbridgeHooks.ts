@@ -3,15 +3,23 @@ import React from "react";
 import { useState, useEffect } from "react";
 import * as ROSLIB from "roslib";
 
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024
+Description: Hooks managing the rosbridge server. Please check the documentation on Notion to understand
+what is this server. 
+*/
+
 function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
 	const [connected, setConnected] = useState(false);
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 
+	// At initialization, we connect to port 9090. You have different modes:
+	// 1. Launching the server locally:           use => ros_server.connect("ws://localhost:9090");
+	// 2. Launching the server on another device: use => ros_server.connect("ws://IP_SERVER:9090");
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
-		//ros_server.connect("ws://192.168.52.178:9090");
-		//ros_server.connect("ws://169.254.55.193:9090");
 		ros_server.connect("ws://localhost:9090");
 
 		ros_server.on("error", function (error) {
@@ -37,7 +45,8 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 		};
 	}, []);
 
-	// Check if the rover is connected
+	// Check if the Rover Node is connected. This is important because if it is not activated,
+	// then we can't recieve any data
 	React.useEffect(() => {
 		if (ros) {
 			let num_checks = 0;

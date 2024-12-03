@@ -3,8 +3,16 @@ import { Service, RuleRover } from "../data/service.type";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
-import { time } from "console";
 
+/*
+Author: Giovanni Ranieri
+Year: 2024
+Description: Hook for managing the services currently running and everything related to them. The main object
+is the stateServices that holds the objects Service. 
+*/
+
+// These are a set of rules to activate a subsystem. For example the first one is the navigation.
+// The first rule is for the DRILL. To change the NAV in AUTO or MANUAL, the DRILL needs to be OFF
 const rulesNavigation: RuleRover[] = [
 	{
 		name: SubSystems.DRILL,
@@ -41,8 +49,6 @@ type ServiceType = { [key: string]: ServiceElement };
 
 function useService(
 	roverState: any,
-	nbr_service: number,
-	isServiceRequested: boolean,
 	snackBar: (severity: AlertColor, message: string) => void
 ) {
 	const [init, setInit] = useState(true);
@@ -82,6 +88,8 @@ function useService(
 		},
 	});
 
+	// This function synchronize the changes between 2 CS. If the roverState differs from the CS, we update
+	// the CS states. For example, if someone changes the state of NAV, it will change also on your CS.
 	useEffect(() => {
 		setStateServices((old) => {
 			let newStates = { ...old };

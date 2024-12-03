@@ -7,7 +7,6 @@ const requestChangeMode = (
 	ros: ROSLIB.Ros | null,
 	isCamera: boolean,
 	request_mode: any,
-	sendingRequest: (b: boolean) => void,
 	snackBar: (severity: AlertColor, message: string) => void,
 ) => {
 
@@ -91,7 +90,6 @@ const requestChangeMode = (
 			});
 		}
 
-		sendingRequest(true);
 		changeModeSystem.callService(
 			request,
 			(res) => {
@@ -104,11 +102,9 @@ const requestChangeMode = (
 						// @ts-ignore
 						console.log(res["error_message"])
 					}
-				sendingRequest(false);
 			},
 			(err) => {
 				snackBar("error", "Error from ROS while request service: " + err);
-				sendingRequest(false);
 			}
 		);
 		

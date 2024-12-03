@@ -1,6 +1,9 @@
-/**
- * Possible themes for some components
- */
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Themes for web page, for example the Logs
+*/ 
+
 export enum Themes {
 	LIGHT = "light",
 	DARK = "dark",

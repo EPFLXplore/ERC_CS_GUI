@@ -1,5 +1,4 @@
 import styles from "./styles.module.sass";
-import Timer from "../../components/ui/Timer";
 import Gamepad from "../../components/Controls/Gamepad";
 import { useNavigate } from "react-router-dom";
 
@@ -12,7 +11,6 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import { Dvr, Settings } from "@mui/icons-material";
-import { Status } from "../../data/status.type";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -61,8 +59,6 @@ const SimulationPage = () => {
 		triggerDataFocus,
 		point,
 		setPoint,
-		sentAction,
-		setSendAction,
 		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 

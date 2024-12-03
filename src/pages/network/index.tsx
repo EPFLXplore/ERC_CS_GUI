@@ -41,8 +41,6 @@ const NetworkPage = () => {
 		triggerDataFocus,
 		point,
 		setPoint,
-		sentAction,
-		setSendAction,
 		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 

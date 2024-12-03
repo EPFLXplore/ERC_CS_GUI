@@ -2,6 +2,14 @@ import React from "react";
 import { useState, useEffect } from "react";
 import * as ROSLIB from "roslib";
 
+/*
+Author: Ugo Balducci
+Year: 2024
+Description: Hooks managing the Logs recieved by the /rosout topic. It's a high level interface
+for showing logs on the Log page. We listen on the /rosout topic and create our type of Log. We can
+also filter them using filters.
+*/
+
 export type Log = {
 	timestamp: number;
 	node: string;

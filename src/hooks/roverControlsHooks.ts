@@ -11,8 +11,16 @@ import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024
+Description: Hooks controlling multiple Hooks for the general control of the Rover. The main things are:
+
+1) Its the only place we use useRoverState to have the roverState. 
+2) The main functions for ROS are defined here.
+*/
+
 const MAX_CAMERAS = 5;
-const NBR_SERVICES = 4;
 
 type typeModal = {
 	[key: string]: boolean;
@@ -24,25 +32,26 @@ const useRoverControls = (
 	ros: ROSLIB.Ros | null,
 	showSnackbar: (sev: AlertColor, mes: string) => void
 ) => {
-	const [roverState] = useRoverState(ros);
-	const [cameraStates, images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState);
 
+	// RoverState
+	const [roverState] = useRoverState(ros);
+
+	// Cameras
+	const [cameraStates, images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState);
 	const [dataOpen, setDataOpen] = useState(false);
 	const [display, setDisplay] = useState("camera");
 
-	const [sentService, setSendService] = useState(false);
+	// Services ROS
 	const [stateServices, ] = useService(
 		roverState,
-		NBR_SERVICES,
-		sentService,
 		(sev, mess) => showSnackbar(sev, mess)
 	);
 
-	const [sentAction, setSendAction] = useState(false);
-	const [stateActions, setStateActions] = useActions(roverState, sentAction, (sev, mes) =>
-		showSnackbar(sev, mes)
-	);
+	// Actions ROS
+	const [stateActions, setStateActions] = useActions(roverState)
 
+	// Panels of Control for Actions. Which one is open on the control page
+	const [modal, setModal] = useState<ReactElement | null>(null);
 	const [systemsModalOpen, setSystemsModalOpen] = useState<typeModal>({
 		[SubSystems.CAMERA]: false,
 		[SubSystems.NAGIVATION]: false,
@@ -51,6 +60,8 @@ const useRoverControls = (
 		["cancel"]: false,
 	});
 
+	// Panels of Control for ROS nodes. Which one is open on the control page
+	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
 	const [rosModalOpen, setRosModalOpen] = useState<typeModal>({
 		[SubSystems.ROVER]: false,
 		[SubSystems.NAGIVATION]: false,
@@ -59,15 +70,19 @@ const useRoverControls = (
 		[SubSystems.EL]: false,
 	});
 
+	// Gamepad
 	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
-	const [modal, setModal] = useState<ReactElement | null>(null);
-	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
+
+	// Simulation
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
-
 	const [point, setPoint] = useState({ x: -10, y: -10 });
-
 	const [volumetric, setVolumetric] = useState(false);
 
+	// ------------------------------------------------------------------------------------
+	// Methods
+	// ------------------------------------------------------------------------------------
+
+	// Cancel an action for a subsystem. If no action is running, it does nothing
 	const cancelAction = (system: string) => {
 		setStateActions((old) => {
 			let newStates = { ...old };
@@ -82,7 +97,6 @@ const useRoverControls = (
 				system,
 				false,
 				newStates[system].action,
-				(b) => setSendAction(b),
 				(actions: ActionType) => setStateActions(actions),
 				showSnackbar,
 				systemsModalOpen
@@ -92,6 +106,7 @@ const useRoverControls = (
 		});
 	};
 
+	// Cancel all actions. If no actions are running, it does nothing.
 	const cancelAllActions = () => {
 		let canceled = false
 		for (const key in stateActions) {
@@ -105,7 +120,7 @@ const useRoverControls = (
 					) {
 						newStates[key].ros_object.cancelGoal(newStates[key].goal_object);
 
-						// can't check if the cancelation is successful it's not a future
+						// can't check if the cancelation is successful it's not a future!
 
 						newStates[key].goal_params = null;
 						newStates[key].goal_object = undefined;
@@ -132,6 +147,8 @@ const useRoverControls = (
 		}
 	};
 
+	// Launch an action for a subsystem with the arguments for ROS. If the system is not enabled, 
+	// it shows a snack bar. If an action is already running it's similar.
 	const launchAction = (system: string, actionArgs: Object) => {
 		setStateActions((old) => {
 			let newStates = { ...old };
@@ -151,12 +168,12 @@ const useRoverControls = (
 				showSnackbar("error", "An action is already running for the system " + system);
 				return newStates;
 			}
+
 			actionGoal(
 				ros,
 				system,
 				true,
 				newStates[system].action,
-				(b) => setSendAction(b),
 				(actions: ActionType) => setStateActions(actions),
 				showSnackbar,
 				actionArgs
@@ -165,6 +182,8 @@ const useRoverControls = (
 		});
 	};
 
+	// Launch a service for either a subystem, or the cameras. If isCamera is true, thenb it is used
+	// to activate or deactivate a camera (with the activatedCamera boolean)
 	const startService = async (system: string, mode: string, isCamera: boolean, activatedCamera: boolean = false) => {
 		
 		if(!isCamera) {
@@ -202,7 +221,6 @@ const useRoverControls = (
 				ros,
 				true,
 				request_object,
-				(b) => setSendService(b),
 				(sev, mes) => showSnackbar(sev, mes)
 			);
 		} else {
@@ -220,12 +238,12 @@ const useRoverControls = (
 				ros,
 				false,
 				request_object,
-				(b) => setSendService(b),
 				(sev, mes) => showSnackbar(sev, mes)
 			);
 		}
 	};
 
+	// Change the mode of the gamepad publisher.
 	const changeMode = () => {
 		setManualMode((old) => {
 			if (old === Task.NAVIGATION) {
@@ -236,6 +254,7 @@ const useRoverControls = (
 		});
 	};
 
+	// ?
 	const triggerDataFocus = (data: string) => {
 		setDataFocus((old) => {
 			const newFocus = [...old];
@@ -251,6 +270,7 @@ const useRoverControls = (
 		});
 	};
 
+	// Change the camera on the screen
 	useEffect(() => {
 		const handleNext = (event: { key: string }) => {
 			if (event.key === "ArrowRight") {
@@ -300,8 +320,6 @@ const useRoverControls = (
 		triggerDataFocus,
 		point,
 		setPoint,
-		sentAction,
-		setSendAction,
 		setVolumetric,
 		rosModalOpen,
 		setRosModalOpen,

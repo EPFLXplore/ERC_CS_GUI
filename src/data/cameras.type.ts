@@ -1,3 +1,9 @@
+/*
+Author: Giovanni Ranieri
+Year: 2024
+Description: Type for Cameras and their states
+*/
+
 interface CameraElement {
 	name: string;
 	states: {}

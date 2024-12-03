@@ -1,6 +1,13 @@
 import { useState, useEffect, startTransition } from "react";
 import * as ROSLIB from "roslib";
 
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024
+Description: Hooks managing the roverState. It's the main feed of information of the Rover. It's a JSON
+stringified and then converted to JSON again by us to access it easily.
+*/
+
 function useRoverState(ros: ROSLIB.Ros | null) {
 	const [roverState, setRoverState] = useState<object>({});
 

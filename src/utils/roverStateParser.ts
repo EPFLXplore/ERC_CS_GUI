@@ -49,7 +49,7 @@ const getNetworkData = (data: any) => {
 	return {
 		main_ip: data['rover']["network"]["ipv4"],
 		main_mac: data['rover']["network"]["mac"],
-		signal_strength: data['rover']["network"]["signal_strength"],
+		signal_strength: Number(data['rover']["network"]["signal_strength"]),
 		devices: devices_connected
 	}
 }

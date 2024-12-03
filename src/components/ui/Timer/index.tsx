@@ -1,8 +1,4 @@
 import styles from "./style.module.sass";
-import { Status } from "../../../data/status.type";
-import PlayArrowIcon from "@mui/icons-material/PlayArrowRounded";
-import PauseIcon from "@mui/icons-material/PauseRounded";
-import Replay10Icon from "@mui/icons-material/Replay10Rounded";
 import CellWifiIcon from "@mui/icons-material/CellWifi";
 import {
 	Battery2Bar,
@@ -14,21 +10,14 @@ import {
 	Battery6Bar,
 	BatteryFullRounded,
 } from "@mui/icons-material";
-import useTimer from "../../../hooks/timerHooks";
 
 const Timer = ({
-	onFinished,
-	status = Status.IDLE,
 	battery,
-	wifiLevel,
+	wifiLevel
 }: {
-	onFinished?: () => void;
-	status?: Status;
 	battery: number | string;
-	wifiLevel: number | string;
+	wifiLevel: number | string
 }) => {
-	const [minutes, seconds, active, inputFocused, changeTime, setActive, setInputFocused] =
-		useTimer(onFinished);
 
 	return (
 		<div
@@ -37,7 +26,6 @@ const Timer = ({
 				e.stopPropagation();
 			}}
 		>
-			<p className={`${styles.status} ${status}`} />
 			<div className={styles.battery}>
 				{getBatteryState(battery)}
 				<p>{battery} {battery === "NO DATA" ? "" : "%"}</p>
@@ -52,15 +40,6 @@ const Timer = ({
 
 export default Timer;
 
-////////////////////////////METHODS///////////////////////////
-
-const timeRepresentation = (time: number, active = true) => {
-	if (time < 10 && active) {
-		return `0${time}`;
-	} else {
-		return time.toString();
-	}
-};
 
 const getBatteryState = (battery: number | string) => {
 	if (typeof battery == "number") {
@@ -85,52 +64,3 @@ const getBatteryState = (battery: number | string) => {
 		return <Battery0Bar className={styles.icon} />;
 	}
 };
-
-/*
-<div className={styles.time}>
-				<input
-					type="text"
-					maxLength={2}
-					value={inputFocused ? undefined : timeRepresentation(minutes, true)}
-					onFocus={(e) => {
-						e.target.value = "";
-						setInputFocused(true);
-					}}
-					onBlur={(e) => {
-						if (e.target.value !== "") {
-							changeTime(parseInt(e.target.value), seconds);
-						}
-						setInputFocused(false);
-					}}
-					className={styles.input}
-				/>
-				
-				<p className={styles.comma}>:</p>
-				<input
-					type="text"
-					maxLength={2}
-					value={inputFocused ? undefined : timeRepresentation(seconds, true)}
-					onFocus={(e) => {
-						e.target.value = "";
-						setInputFocused(true);
-					}}
-					onBlur={(e) => {
-						if (e.target.value !== "") {
-							changeTime(minutes, parseInt(e.target.value));
-						}
-						setInputFocused(false);
-					}}
-					className={styles.input}
-				/>
-				<button className={styles.button} onClick={() => setActive(!active)}>
-					{active ? (
-						<PauseIcon className={styles.icon} />
-					) : (
-						<PlayArrowIcon className={styles.icon} />
-					)}
-				</button>
-				<button className={styles.button} onClick={() => changeTime(minutes, seconds + 10)}>
-					<Replay10Icon className={styles.icon} />
-				</button>
-			</div>
-*/

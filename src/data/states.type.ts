@@ -1,3 +1,9 @@
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Types of states for subsystems. This helps having the same names everywhere
+*/
+
 enum States {
 	ON = "On",
 	OFF = "Off",

@@ -3,6 +3,16 @@ import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { Task } from "../data/tasks.type";
 import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../utils/Gamepad/bindings";
+
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Hooks responsible of keeping the state of the Gamepad. It uses a gamepad controller that
+manages how the bindings are done depending on the OS, type of gamepad and web browser. Please go to notion
+for detailed explanations: Control Station > Gamepad CS
+*/
+
+
 export enum GamepadCommandState {
 	UI,
 	CONTROL,
@@ -12,7 +22,6 @@ function useGamepad(
 	ros: ROSLIB.Ros | null,
 	mode: string,
 	submode?: string,
-	changeCam?: (dir: number) => void,
 	selectorCallback?: () => void
 ) {
 	const [gamepad, setGamepad] = useState<GamepadController | null>(null);
@@ -23,6 +32,7 @@ function useGamepad(
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [interval, setIntervalCallback] = useState<NodeJS.Timeout | null>(null);
 
+	// Initialize the gamepad states. 
 	useEffect(() => {
 
 		const gamepad = new GamepadController((state) => {
@@ -51,16 +61,15 @@ function useGamepad(
 			"gamepadButtonPressed",
 			ClassicalGamepad.Button.START,
 			() => {
-				console.log("Gamepad Command: Change Mode");
 				selectorCallback?.();
 			}
 		);
 		
 	}, []);
 
+	// Create the publisher for Navigation and Handling devices Subsystems
 	useEffect(() => {
 		if (ros) {
-			console.log("Create topic gamepad");
 			setPublisher(
 				new ROSLIB.Topic<any>({
 					ros: ros,
@@ -80,6 +89,8 @@ function useGamepad(
 		};
 	}, [ros, mode]);
 
+	// Function sending the commands through ROS. Depending on which subsystem is activated for the 
+	// gamepad, it will publish on the right one.
 	const sendCommand = () => {
 
 		const gamepadState = gamepad?.getState();
@@ -87,7 +98,6 @@ function useGamepad(
 			if (mode === Task.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
 				publisher.publish(message);
-				//console.log(message.axes)
 			} else {
 				if (submode) {
 					const message = gamepad.handleDirectArm(
@@ -106,11 +116,11 @@ function useGamepad(
 		}
 	};
 
+	// The function publishes on the topic every 300ms. This value can be changed. 
 	useEffect(() => {
 		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
 			setIntervalCallback(setInterval(sendCommand, 300));
 		} else {
-			console.log("No publisher");
 			if (interval) {
 				clearInterval(interval);
 			}

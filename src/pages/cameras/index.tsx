@@ -48,8 +48,6 @@ const CamerasPage = () => {
 		triggerDataFocus,
 		point,
 		setPoint,
-		sentAction,
-		setSendAction,
 		setVolumetric,
 	] = useRoverControls(ros, showSnackbar);
 

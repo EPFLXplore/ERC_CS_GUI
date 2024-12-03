@@ -3,20 +3,30 @@ import * as ROSLIB from "roslib";
 import SubSystems from "../data/subsystems.type";
 import {CameraType } from "../data/cameras.type";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Hooks for managing the states of the different cameras. It creates the subscribers to
+get the feeds of the cameras. 
+*/
+
 function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
 
+	// Topics for the cameras. If you decide to modify them, you need to update also in the 
+	// submodule of the cameras => in the launch files.
 	const CAMERA_CONFIGS = [
 		"/ROVER/feed_camera_cs_0", 
 		"/ROVER/feed_camera_cs_1", 
 		"/ROVER/feed_camera_cs_2",
 		"/ROVER/feed_camera_hd_0"
-		]; 
+	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
 	const [listeners, setListeners] = useState<ROSLIB.Topic<any>[]>([])
 
+	// Keep the states of the cameras (on or off)
 	const [cameraStates, setCameraStates] = useState<CameraType>({
 		[SubSystems.CS]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.CS],
 		[SubSystems.HANDLING_DEVICE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.HANDLING_DEVICE],
@@ -50,7 +60,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				_listeners = [..._listeners, listener]
 			});
-			/*
+			
 			setListeners(old => {
 				old.forEach((listener) => {
 					listener.unsubscribe()
@@ -58,7 +68,6 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				return _listeners;
 			})
-			*/
 			
 		}
 	}, [ros, currentVideo]);

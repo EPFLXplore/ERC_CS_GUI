@@ -23,7 +23,6 @@ import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data/InfoBox";
 import { Dvr } from "@mui/icons-material";
-import { Status } from "../../data/status.type";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -93,8 +92,6 @@ const NewControlPage = () => {
 		triggerDataFocus,
 		point,
 		setPoint,
-		sentAction,
-		setSendAction,
 		setVolumetric,
 		rosModalOpen,
 		setRosModalOpen,
@@ -191,7 +188,7 @@ const NewControlPage = () => {
 					onClick={() => navigate("/logs")}
 				/>
 				<Timer
-					status={active ? Status.RUNNING : Status.NOT_STARTED} // @ts-ignore
+					//@ts-ignore
 					wifiLevel={getNetworkData(roverState).signal_strength}
 					battery={getBatteryLevel(roverState)}
 				/>

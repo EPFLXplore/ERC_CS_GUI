@@ -1,3 +1,11 @@
+/*
+Author: Giovanni Ranieri
+Year: 2024
+Description: Class defining a Service ROS to keep the current state of it. They are instantiate in 
+the serviceHooks.ts. It uses Rules, which are a set of rules that say which subsystem can be activated
+in terms of the one already activated.
+*/
+
 interface RuleRover {
     name: string,
     new_mode: string[];
@@ -21,6 +29,11 @@ class Service {
         this.multipleStates = [];
     }
 
+    /**
+     * Return true if the state of the service can be changed with respect to another one
+     * @param ser the other service
+     * @param mode the mode
+     */
     public canChange(ser: Service, mode: string): boolean {
         for(let i = 0; i < this.rules.length; i++) {
             const obj = this.rules[i]
