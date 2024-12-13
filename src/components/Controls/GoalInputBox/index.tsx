@@ -2,6 +2,8 @@ import React from "react";
 import styles from "./style.module.sass";
 import { Point } from "../../../utils/maths";
 
+// TODO: WHAT
+
 export type Goal = Point & { id: string };
 
 type DispatchType =

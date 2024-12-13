@@ -436,7 +436,22 @@ const getJointsStates = (data: any) => {
 	const states = [];
 
 	for (const joint in joints) {
-		states.push(joints[joint]["states"] ? "Connected" : "Disconnected");
+		states.push(joints[joint]["state"] ? "Connected" : "Disconnected");
+	}
+
+	return states;
+};
+
+const getJointsModeMotors = (data: any) => {
+	if (!data || !data["handling_device"]) {
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
+	}
+
+	const joints = data["handling_device"]["joints"];
+	const states = [];
+
+	for (const joint in joints) {
+		states.push(joints[joint]["mode_motor"]);
 	}
 
 	return states;

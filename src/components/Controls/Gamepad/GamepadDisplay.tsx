@@ -1,5 +1,11 @@
 import * as React from "react";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Styles of the Gamepad on the screen
+*/
+
 export default ({
 	buttonLeft,
 	buttonUp,

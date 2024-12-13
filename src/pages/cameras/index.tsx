@@ -11,10 +11,11 @@ const CAMERA_CONFIGS = [
 	["Camera 0"],
 	["Camera 1"],
 	["Camera 2"],
-	["Camera 3"]
+	["Camera 3"],
+	["Camera 4"]
 ];
 
-const MAX_CAMERAS = 4;
+const MAX_CAMERAS = 5;
 
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();

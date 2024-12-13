@@ -33,7 +33,7 @@ const ActivateRoverNode: SSHCommands = {
 };
 
 const ActivateCameraNode: SSHCommands = {
-    device: RPI_CAMS,
+    device: RPI_ROVER_DRILL,
     commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_cameras.sh']
 };
 

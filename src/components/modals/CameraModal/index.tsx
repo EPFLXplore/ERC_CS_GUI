@@ -10,7 +10,13 @@ import useRoverState from "../../../hooks/roverStateHooks";
 
 function dataRateDiv(cameraStates: any, camera: string) {
 
-	let rate = Math.round(Number(cameraStates[camera]['data_rate']))
+	let rate = 0
+	
+	if(cameraStates[camera]['status']) {
+		rate = Math.round(Number(cameraStates[camera]['data_rate']))
+	} else {
+		rate = 0.0
+	}
 	let unit = "Mbps"
 
 	return (

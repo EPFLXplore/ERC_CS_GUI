@@ -3,6 +3,13 @@ import styles from "./style.module.sass";
 import image from "../../../assets/images/icons/back_button.png";
 import { useNavigate } from "react-router-dom";
 
+/*
+Author: Ugo Balducci
+Year: 2024
+Description: Button on the Log page to return on the control page
+*/
+
+
 const BackButton = ({ onGoBack }: { onGoBack?: () => void }) => {
 	const navigate = useNavigate();
 

@@ -6,6 +6,13 @@ import * as ROSLIB from "roslib";
 import States from "../../../data/states.type";
 import { ClassicalGamepad } from "../../../utils/Gamepad/bindings";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: React Component for the Gamepad. Its displays the gamepad on the screen and map the 
+correct bindings. 
+*/
+
 const Gamepad = ({
 	selectorCallback,
 	mode,
@@ -18,7 +25,6 @@ const Gamepad = ({
 	submode?: States.MANUAL | States.MANUAL_DIRECT | States.MANUAL_INVERSE;
 	visible?: boolean;
 	ros: ROSLIB.Ros | null;
-	changeCam?: (dir: number) => void;
 }) => {
 	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(
 		ros,

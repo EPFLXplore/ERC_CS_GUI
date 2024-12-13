@@ -30,13 +30,15 @@ const resetFaults = (ros: ROSLIB.Ros | null, subsystem: string,
                     request,
                     (res) => {
                         // @ts-ignore
-                        if (res["success"] != 0) {
+                        if (!res["success"]) {
                             snackBar("error","Error from request (NOT ROS): " + 
                                 // @ts-ignore
                                 res["message"]);
                             } else {
                                 // @ts-ignore
-                                console.log(res["message"])
+                                snackBar("success", 
+                                // @ts-ignore
+                                res["message"]);
                             }
                     },
                     (err) => {
@@ -68,13 +70,15 @@ const resetHome = (ros: ROSLIB.Ros | null, subsystem: string,
                     request,
                     (res) => {
                         // @ts-ignore
-                        if (res["success"] != 0) {
+                        if (!res["success"]) {
                             snackBar("error","Error from request (NOT ROS): " + 
                                 // @ts-ignore
                                 res["message"]);
                             } else {
                                 // @ts-ignore
-                                console.log(res["message"])
+                                snackBar("success", 
+                                    // @ts-ignore
+                                    res["message"]);
                             }
                     },
                     (err) => {
