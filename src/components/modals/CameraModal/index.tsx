@@ -7,6 +7,13 @@ import useNewCamera from "../../../hooks/newCameraHooks";
 import ROSLIB from "roslib";
 import useRoverState from "../../../hooks/roverStateHooks";
 
+/*
+Author: Giovanni Ranieri and Matas Jones
+Year: 2024
+Description: Camera Modal. You can activate, deactivate each camera by sending a request. The button
+is red if the camera is publishing. White button means nothing, the camera node for each camera is not
+necessarily running. Check instead on the ROS panel. The data rate is also shown. 
+*/
 
 function dataRateDiv(cameraStates: any, camera: string) {
 

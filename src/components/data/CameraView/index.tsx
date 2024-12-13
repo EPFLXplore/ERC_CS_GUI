@@ -1,6 +1,10 @@
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 
+/*
+#TODO
+*/
+
 const CameraView = ({
 	currentVideo,
 	images,

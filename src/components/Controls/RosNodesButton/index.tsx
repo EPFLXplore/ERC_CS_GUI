@@ -1,5 +1,11 @@
 import styles from "./style.module.sass";
 
+/*
+Author: Giovanni Ranieri
+Year: 2024
+Description: Button on the control page in the ROS node panel.
+*/
+
 function RosNodesButton({
 	onClick,
 	icon,

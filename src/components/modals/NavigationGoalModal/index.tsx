@@ -7,6 +7,12 @@ import { map3DTo2D } from "../../../utils/mapUtils";
 import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Navigation Modal. You can send a nav2 position goal by writing the coordinates.
+*/
+
 function ArmGoalModal({
 	ros,
 	onSetGoal,

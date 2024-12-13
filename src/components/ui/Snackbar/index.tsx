@@ -1,6 +1,13 @@
 import { Alert, AlertColor, Snackbar } from "@mui/material";
 import { SyntheticEvent, useEffect, useState } from "react";
 
+/*
+Author: Ugo Balducci
+Year: 2024
+Description: Snack Bar. When used, shows a bar of information on the current screen, with info, warning and
+error severity. 
+*/
+
 // This interface is used to define the content of an alert message
 export interface AlertSnackbarMessage {
 	severity: AlertColor;
@@ -12,15 +19,7 @@ type AlertSnackbarState = AlertSnackbarMessage & {
 	open: boolean;
 };
 
-/**
- * This component is used to display a snackbar with a message and a severity
- * @param alertMessage The message and severity of the snackbar
- * @returns A snackbar with the message and severity
- * @example
- * ```tsx
- * <AlertSnackbar alertMessage={{ severity: "error", message: "This is an error message" }} />
- * ```
- */
+
 const AlertSnackbar = ({ alertMessage }: { alertMessage: AlertSnackbarMessage }) => {
 	const [snackbar, setSnackbar] = useState<AlertSnackbarState>({
 		open: false,

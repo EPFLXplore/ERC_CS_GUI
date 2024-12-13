@@ -3,6 +3,13 @@ import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
 
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024
+Description: Drill Modal. You can send commands to the drill. Auto will execute the complete FSM:
+	START => DOWN => UP => OPEN => RELEASE => CLOSE => STOP
+*/
+
 enum DrillTask {
 	AUTO = "Auto",
 	START = "Start",
@@ -14,10 +21,6 @@ enum DrillTask {
 	CLOSE = "Close",
 	OPEN = "Open"
 }
-
-/*
-TODO: REPLACE THE TRUE OF NODE ACTIVE WITH THE VALUE OF THE ROVER STATE
-*/
 
 function DrillGoalModal({
 	roverState,

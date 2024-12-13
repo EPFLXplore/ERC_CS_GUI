@@ -1,5 +1,5 @@
 import styles from "./style.module.sass";
-import Timer from "../../components/ui/Timer";
+import Header from "../../components/ui/Header";
 import QuickAction from "../../components/Controls/QuickAction";
 import { useNavigate } from "react-router-dom";
 
@@ -70,8 +70,6 @@ const NewControlPage = () => {
 		rotateCams,
 		currentVideo,
 		setCurrentVideo,
-		dataOpen,
-		setDataOpen,
 		display,
 		setDisplay,
 		stateServices,
@@ -187,7 +185,7 @@ const NewControlPage = () => {
 					}}
 					onClick={() => navigate("/logs")}
 				/>
-				<Timer
+				<Header
 					//@ts-ignore
 					wifiLevel={getNetworkData(roverState).signal_strength}
 					battery={getBatteryLevel(roverState)}

@@ -2,6 +2,16 @@ import { roundToTwoDecimals } from "../../../utils/maths";
 import styles from "./style.module.sass";
 import RosNodesButton from "../../Controls/RosNodesButton";
 
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024
+Description: Panels on the control page. Depending on the type of the panel, it returns different
+shapes of panel. The InfoBox is the simplest, with data - value. The second adds something in between,
+for example the disconnected or connected for motors. The last is data - icon, for example the ROS nodes
+panel.
+*/
+
+
 export interface Info {
 	name: string;
 	value: any;

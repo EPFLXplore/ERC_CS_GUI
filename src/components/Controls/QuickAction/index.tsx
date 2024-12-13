@@ -1,6 +1,12 @@
 import States from "../../../data/states.type";
 import styles from "./style.module.sass";
 
+/*
+Author: Ugo Balducci
+Year: 2022
+Description: Buttons for Actions on control page. It's the different modals
+*/
+
 function QuickAction({
 	onClick,
 	selected,

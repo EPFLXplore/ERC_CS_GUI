@@ -11,7 +11,13 @@ import {
 	BatteryFullRounded,
 } from "@mui/icons-material";
 
-const Timer = ({
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024
+Description: Header of information on the control page: battery level and network dbm
+*/
+
+const Header = ({
 	battery,
 	wifiLevel
 }: {
@@ -38,7 +44,7 @@ const Timer = ({
 	);
 };
 
-export default Timer;
+export default Header;
 
 
 const getBatteryState = (battery: number | string) => {

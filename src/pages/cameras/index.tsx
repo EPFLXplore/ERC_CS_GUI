@@ -7,6 +7,7 @@ import SubSystems from "../../data/subsystems.type";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 
+
 const CAMERA_CONFIGS = [
 	["Camera 0"],
 	["Camera 1"],
@@ -27,8 +28,6 @@ const CamerasPage = () => {
 		rotateCams,
 		currentVideo,
 		setCurrentVideo,
-		dataOpen,
-		setDataOpen,
 		display,
 		setDisplay,
 		stateServices,

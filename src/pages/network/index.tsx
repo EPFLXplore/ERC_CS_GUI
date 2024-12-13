@@ -19,8 +19,6 @@ const NetworkPage = () => {
 		rotateCams,
 		currentVideo,
 		setCurrentVideo,
-		dataOpen,
-		setDataOpen,
 		display,
 		setDisplay,
 		stateServices,

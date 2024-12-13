@@ -1,6 +1,11 @@
 import styles from "./style.module.sass";
 import ROSLIB from "roslib";
 
+/*
+Author: Giovanni Ranieri
+Year: 2024
+Description: ROS node Modal. Shows which nodes are running. It uses the rover state.
+*/
 
 function NodeModal({
 	roverState,
@@ -11,8 +16,6 @@ function NodeModal({
     name: string,
     onClose: () => void;
 }) {
-
-	
 
 	return (
 		<div className={styles.Background} onClick={onClose}>

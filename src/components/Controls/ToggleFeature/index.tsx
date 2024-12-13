@@ -1,5 +1,11 @@
 import styles from "./style.module.sass";
 
+/*
+Author: Ugo Balducci
+Year: 2024
+Description: Toggle in the settings panel of the control page
+*/
+
 const ToggleFeature = ({
 	title,
 	onChange,

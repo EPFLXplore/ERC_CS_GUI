@@ -1,5 +1,11 @@
 import styles from "./style.module.sass";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: Sliders with choices to select the subsystem mode. It's on the control page
+*/
+
 function SystemMode({
 	system,
 	currentMode,

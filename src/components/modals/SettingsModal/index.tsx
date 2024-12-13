@@ -2,6 +2,12 @@ import React, { useState } from "react";
 import styles from "./style.module.sass";
 import ToggleFeature from "../../Controls/ToggleFeature";
 
+/*
+Author: Giovanni Ranieri and Matas Jones
+Year: 2024
+Description: Settings Modal. Shows the settings of the simulation. Actually it is not used.
+*/
+
 function SettingsModal({
 	title = "Settings",
 	volumetric,

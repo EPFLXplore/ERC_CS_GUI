@@ -3,6 +3,13 @@ import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
 
+/*
+Author: Ugo Balducci
+Year: 2023
+Description: HD Modal. We select a task and then send it through the send task button. We can cancel a task
+using the cancel task button.
+*/
+
 type ArmTask = {
 	name: string;
 	msg: string;

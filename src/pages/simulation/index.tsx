@@ -3,7 +3,6 @@ import Gamepad from "../../components/Controls/Gamepad";
 import { useNavigate } from "react-router-dom";
 
 import Simulation from "../../components/data/Simulation";
-import RoverData from "../../components/data/RoverData";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -37,8 +36,6 @@ const SimulationPage = () => {
 		rotateCams,
 		currentVideo,
 		setCurrentVideo,
-		dataOpen,
-		setDataOpen,
 		display,
 		setDisplay,
 		stateServices,
@@ -97,26 +94,6 @@ const SimulationPage = () => {
 				/>
 			</div>
 			<div className={styles.control}>
-				<div
-					className={styles.data}
-					style={{ width: dataOpen ? "18%" : 0, marginLeft: dataOpen ? 20 : 0 }}
-				>
-					{dataOpen && <h1>Rover Data</h1>}
-					{
-						// @ts-ignore
-						dataOpen && !roverState["rover"] && <p>No data yet</p>
-					}
-					{
-						// @ts-ignore
-						dataOpen && roverState["rover"] && (
-							<RoverData
-								json={roverState}
-								triggerDataFocus={triggerDataFocus}
-								focusedData={dataFocus}
-							/>
-						)
-					}
-				</div>
 				<div className={styles.visualization}>
 					<Simulation
 						drill_value={getMotorModule(roverState)['position']}
