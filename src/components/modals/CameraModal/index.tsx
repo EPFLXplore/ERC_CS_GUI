@@ -47,7 +47,7 @@ function CameraModal({
 }) {
 
 	const [roverState] = useRoverState(ros)
-	const [cameraStates, images, rotateCams, currentVideo, setCurrentVideo] =
+	const [cameraStates, images, currentVideo, setCurrentVideo] =
 		useNewCamera(ros, roverState)
 
 	return (

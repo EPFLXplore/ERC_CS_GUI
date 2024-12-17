@@ -1,22 +1,31 @@
 import styles from "./styles.module.sass";
-import { useNavigate } from "react-router-dom";
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import CameraView from "../../components/data/CameraView";
 import useRosBridge from "../../hooks/rosbridgeHooks";
-import SubSystems from "../../data/subsystems.type";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 
-
+/**
+ * This has a particular format. Each Camera_i is a particular camera with index i. This index i
+ * is the index in the list of newCameraHooks.ts representing a camera. Index i = 0 is the
+ * /ROVER/feed_camera_cs_0, so the first camera of the CS. We have then the following convention:
+ * 
+ * i = 0: CS cam number 1
+ * i = 1: CS cam number 2
+ * i = 2: CS cam number 3
+ * i = 3: NAV cam number 1
+ * i = 4: HD cam number 1
+ */
 const CAMERA_CONFIGS = [
-	["Camera 0"],
-	["Camera 1"],
-	["Camera 2"],
-	["Camera 3"],
-	["Camera 4"]
+	["Camera_0"],
+	["Camera_1"],
+	["Camera_2"],
+	["Camera_3"],
+	["Camera_4"],
+	["Camera_3", "Camera_0"],
 ];
 
-const MAX_CAMERAS = 5;
+const MAX_CAMERAS = 6;
 
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
@@ -25,7 +34,6 @@ const CamerasPage = () => {
 		roverState,
 		cameraStates,
 		images,
-		rotateCams,
 		currentVideo,
 		setCurrentVideo,
 		display,
@@ -62,7 +70,6 @@ const CamerasPage = () => {
 						<CameraView
 							currentVideo={currentVideo}
 							images={images}
-							rotate={rotateCams}
 							currentCam={CAMERA_CONFIGS[currentVideo]}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {

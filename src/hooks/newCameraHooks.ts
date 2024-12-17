@@ -12,16 +12,16 @@ get the feeds of the cameras.
 
 function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 	const [images, setImage] = useState<Array<string>>([]);
-	const [rotateCams, setRotateCam] = useState<Array<boolean>>([false]);
 
 	// Topics for the cameras. If you decide to modify them, you need to update also in the 
 	// submodule of the cameras => in the launch files.
 	const CAMERA_CONFIGS = [
-		"/ROVER/feed_camera_cs_0", 
-		"/ROVER/feed_camera_cs_1", 
-		"/ROVER/feed_camera_cs_2",
-		"/ROVER/feed_camera_hd_0",
-		"/NAV/feed_camera_nav_0"
+		["/ROVER/feed_camera_cs_0"], 
+		["/ROVER/feed_camera_cs_1"], 
+		["/ROVER/feed_camera_cs_2"],
+		["/ROVER/feed_camera_hd_0"],
+		["/NAV/feed_camera_nav_0"],
+		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_0"]
 	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
@@ -36,19 +36,30 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 	useEffect(() => {
 		if (ros) {
+			const cameras = CAMERA_CONFIGS[currentVideo];
 			let _listeners: ROSLIB.Topic<any>[] = []
 			setImage(Array(CAMERA_CONFIGS.length).fill(""));
-			CAMERA_CONFIGS.forEach((camera) => {
+
+			setListeners(old => {
+				old.forEach((listener) => {
+					listener.unsubscribe()
+				});
+
+				return _listeners;
+			})
+
+			cameras.forEach((camera) => {
 				const listener = new ROSLIB.Topic({
 					ros: ros,
 					name: camera,
 					messageType: "sensor_msgs/CompressedImage",
 					compression: "jpeg",
+					queue_size: 1
 				});
 
 				listener.subscribe((message) => {
 					setImage((prev) => {
-						const index = CAMERA_CONFIGS.indexOf(camera);
+						const index = cameras.indexOf(camera);
 						const newImages = [...prev];
 						//@ts-ignore
 						if(message.data) {
@@ -61,15 +72,6 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 
 				_listeners = [..._listeners, listener]
 			});
-			
-			setListeners(old => {
-				old.forEach((listener) => {
-					listener.unsubscribe()
-				});
-
-				return _listeners;
-			})
-			
 		}
 	}, [ros, currentVideo]);
 
@@ -89,7 +91,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	return [cameraStates, images, rotateCams, currentVideo, setCurrentVideo] as const;
+	return [cameraStates, images, currentVideo, setCurrentVideo] as const;
 }
 
 export default useNewCamera;

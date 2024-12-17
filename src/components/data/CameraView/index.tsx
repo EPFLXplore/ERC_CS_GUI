@@ -8,47 +8,73 @@ import DefaultImage from "../../../assets/images/NoCam.png";
 const CameraView = ({
 	currentVideo,
 	images,
-	rotate = [false],
 	changeCam,
 	currentCam,
-	small = false,
 }: {
 	currentVideo: number;
 	images: Array<string>;
-	rotate?: boolean[];
 	changeCam: (dir: number) => void;
 	currentCam: Array<string>;
-	small?: boolean;
 }) => {
-	const processNameCam = (name: string | null) => {
-		if (name) {
-			const names = name.split("_");
-			return (
-				names[0].charAt(0).toUpperCase() +
-				names[0].slice(1) +
-				" " +
-				(parseInt(names[1]) + 1)
-			);
-		} else {
-			return name;
-		}
-	};
 
-	return (
-		<div className={styles.Container}>
-			{!small && (
-				<CameraSelector
-					currentCam={currentCam[0] ?? "No Camera"}
-					changeCam={changeCam}
+	if(currentCam.length == 1) {
+
+		return (
+			<div className={styles.Container}>
+				{(
+					<CameraSelector
+						currentCam={currentCam[0] ?? "No Camera"}
+						changeCam={changeCam}
+					/>
+				)}
+				<img
+					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+					alt="Camera"
+					className={styles.Image}
 				/>
-			)}
-			<img
-				src={images[currentVideo] && images[currentVideo].length > 0 ? images[currentVideo] : DefaultImage}
-				alt="Camera"
-				className={rotate[0] ? styles.RotatedImage : styles.Image}
-			/>
+			</div>
+		);
+
+	} else if (currentCam.length === 2) {
+		return (
+			<div className={styles.Container}>
+				{<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
+				<img
+					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+					alt="Camera"
+					className={styles.Half}
+					// onContextMenu={(e) => {
+					// 	e.preventDefault();
+					// 	const a = document.createElement("a");
+					// 	a.setAttribute("download", "reactflow.png");
+					// 	a.setAttribute("href", images[0] ?? DefaultImage);
+					// 	a.click();
+					// 	console.log("Saved!");
+					// }}
+				/>
+				<img
+					src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
+					alt="Camera"
+					className={styles.Half}
+					// onContextMenu={(e) => {
+					// 	e.preventDefault();
+					// 	const a = document.createElement("a");
+					// 	a.setAttribute("download", "reactflow.png");
+					// 	a.setAttribute("href", images[1] ?? DefaultImage);
+					// 	a.click();
+					// 	console.log("Saved!");
+					// }}
+				/>
+			</div>
+		);
+	} else {
+		return (
+		<div className={styles.Container}>
+			{<CameraSelector currentCam={"No Camera"} changeCam={changeCam} />}
+			<img src={DefaultImage} alt="Camera" className={styles.Image} />
 		</div>
-	);
+		)
+	}
 };
 
 

@@ -67,7 +67,6 @@ const NewControlPage = () => {
 		roverState,
 		cameraStates,
 		images,
-		rotateCams,
 		currentVideo,
 		setCurrentVideo,
 		display,

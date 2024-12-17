@@ -37,7 +37,7 @@ const useRoverControls = (
 	const [roverState] = useRoverState(ros);
 
 	// Cameras
-	const [cameraStates, images, rotateCams, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState);
+	const [cameraStates, images, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState);
 	const [display, setDisplay] = useState("camera");
 
 	// Services ROS
@@ -294,7 +294,6 @@ const useRoverControls = (
 		roverState,
 		cameraStates,
 		images,
-		rotateCams,
 		currentVideo,
 		setCurrentVideo,
 		display,

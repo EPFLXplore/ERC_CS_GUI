@@ -16,7 +16,6 @@ const NetworkPage = () => {
 		roverState,
 		cameraStates,
 		images,
-		rotateCams,
 		currentVideo,
 		setCurrentVideo,
 		display,

@@ -30,7 +30,7 @@ const requestChangeMode = (
 						: mode === States.MANUAL_DIRECT
 						? 1
 						: mode === States.MANUAL_INVERSE
-						? 2
+						? 2 // compliance mode, will be changed afterwards!!
 						: 3,
 			};
 		} else if (system === SubSystems.DRILL) {
