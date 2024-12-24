@@ -88,6 +88,14 @@ const getErrors = (data: any) => {
 	return data['rover']['status']['errors']
 }
 
+const getLogs = (data: any) => {
+	if(!data || !data['rover']) {
+		return [];
+	}
+
+	return data['rover']['network']['logs']
+}
+
 //////////////////////// NAVIGATION ////////////////////////
 
 const getGpsCoordinates = (data: any) => {
@@ -629,6 +637,7 @@ export {
 	getWheelsDrivingValue,
 	getWarnings,
 	getErrors,
+	getLogs,
 	getNetworkData,
 	getCurrentDriving,
 	getCurrentDrivingAveraged,
