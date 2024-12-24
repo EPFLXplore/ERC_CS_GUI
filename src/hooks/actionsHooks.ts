@@ -3,6 +3,7 @@ import SubSystems from "../data/subsystems.type";
 import Action from "../data/action.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Giovanni Ranieri
@@ -18,6 +19,7 @@ interface ActionElement {
 	goal_object: string | undefined;
 	ros_object: any;
 }
+
 export type ActionType = { [key: string]: ActionElement };
 
 function useActions(
@@ -35,7 +37,7 @@ function useActions(
 				!roverState[SubSystems.NAGIVATION]
 					? States.OFF
 					: roverState[SubSystems.NAGIVATION]["state"]["mode"],
-				"/CS/NavigationReachGoal",
+				Topics.NAVIGATION_ACTION,
 				"NAVReachGoal"
 			),
 			goal_params: null,
@@ -48,7 +50,7 @@ function useActions(
 				!roverState[SubSystems.HANDLING_DEVICE]
 					? States.OFF
 					: roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"],
-				"/CS/HandlingDeviceManipulation",
+				Topics.HANDLING_DEVICE_ACTION,
 				"HDManipulation"
 			),
 			goal_params: null,
@@ -61,7 +63,7 @@ function useActions(
 				!roverState[SubSystems.DRILL]
 					? States.OFF
 					: roverState[SubSystems.DRILL]["state"]["mode"],
-				"CS/DrillTerrain",
+				Topics.DRILL_ACTION,
 				"DrillCmd"
 			),
 			goal_params: null,

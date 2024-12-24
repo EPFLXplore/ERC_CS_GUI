@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import * as ROSLIB from "roslib";
 import SubSystems from "../data/subsystems.type";
 import {CameraType } from "../data/cameras.type";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci
@@ -10,7 +11,8 @@ Description: Hooks for managing the states of the different cameras. It creates 
 get the feeds of the cameras. 
 */
 
-function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
+function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
+) {
 	const [images, setImage] = useState<Array<string>>([]);
 
 	// Topics for the cameras. If you decide to modify them, you need to update also in the 
@@ -33,7 +35,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 		[SubSystems.HANDLING_DEVICE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.HANDLING_DEVICE],
 		[SubSystems.NAGIVATION]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.NAGIVATION],
 	})
-
+	
 	useEffect(() => {
 		if (ros) {
 			const cameras = CAMERA_CONFIGS[currentVideo];
@@ -91,7 +93,8 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any) {
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	return [cameraStates, images, currentVideo, setCurrentVideo] as const;
+	return [cameraStates, images, currentVideo, setCurrentVideo
+	] as const;
 }
 
 export default useNewCamera;

@@ -2,6 +2,7 @@ import * as ROSLIB from "roslib";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
+import { Topics } from "../data/topics.type";
 
 const requestChangeMode = (
 	ros: ROSLIB.Ros | null,
@@ -78,14 +79,14 @@ const requestChangeMode = (
 
 			changeModeSystem = new ROSLIB.Service({
 				ros: ros,
-				name: "/CS/ChangeModeCamera",
+				name: Topics.CHANGE_MODE_CAMERA_SRV,
 				serviceType: "custom_msg/srv/ChangeModeCamera",
 			});
 		} else {
 
 			changeModeSystem = new ROSLIB.Service({
 				ros: ros,
-				name: "/CS/ChangeModeSystem",
+				name: Topics.CHANGE_MODE_SUBSYSTEM,
 				serviceType: "custom_msg/srv/ChangeModeSystem",
 			});
 		}

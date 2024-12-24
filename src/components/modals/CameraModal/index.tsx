@@ -1,8 +1,6 @@
-import React, { useEffect } from "react";
 import styles from "./style.module.sass";
-import { CameraType } from "../../../data/cameras.type";
 import SubSystems from "../../../data/subsystems.type";
-import { CameraCS, CameraHD, CameraNAV, CameraSC, CameraHD_RGB } from "../../../data/cameras.type";
+import { CameraCS, CameraHD, CameraNAV, CameraHD_RGB } from "../../../data/cameras.type";
 import useNewCamera from "../../../hooks/newCameraHooks";
 import ROSLIB from "roslib";
 import useRoverState from "../../../hooks/roverStateHooks";
@@ -47,8 +45,7 @@ function CameraModal({
 }) {
 
 	const [roverState] = useRoverState(ros)
-	const [cameraStates, images, currentVideo, setCurrentVideo] =
-		useNewCamera(ros, roverState)
+	const [cameraStates, images, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState)
 
 	return (
 		<div className={styles.Background} onClick={onClose}>

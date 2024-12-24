@@ -1,6 +1,7 @@
 import { AlertColor } from "@mui/material";
 import SubSystems from "../data/subsystems.type"
 import * as ROSLIB from "roslib";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Giovanni Ranieri
@@ -18,7 +19,7 @@ const resetFaults = (ros: ROSLIB.Ros | null, subsystem: string,
             if(ros) {
                 const reset = new ROSLIB.Service({
                     ros: ros,
-                    name: "/CS/ResetNavMotors",
+                    name: Topics.RESET_NAVIGATION_MOTORS,
                     serviceType: "std_srvs/srv/SetBool",
                 });
 
@@ -58,7 +59,7 @@ const resetHome = (ros: ROSLIB.Ros | null, subsystem: string,
             if(ros) {
                 const reset = new ROSLIB.Service({
                     ros: ros,
-                    name: "/CS/ResetHomeNavMotors",
+                    name: Topics.RESET_HOME_NAVIGATION_MOTORS,
                     serviceType: "std_srvs/srv/SetBool",
                 });
 

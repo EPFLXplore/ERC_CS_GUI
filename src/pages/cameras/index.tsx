@@ -57,6 +57,10 @@ const CamerasPage = () => {
 		point,
 		setPoint,
 		setVolumetric,
+		rosModalOpen,
+		setRosModalOpen,
+		modalRosNodes,
+		setModalRosNodes,
 	] = useRoverControls(ros, showSnackbar);
 
 	return (

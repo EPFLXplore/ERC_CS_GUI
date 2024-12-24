@@ -1,6 +1,7 @@
 import * as ROSLIB from "roslib";
 import SubSystems from "../data/subsystems.type";
 import { AlertColor } from "@mui/material";
+import { Topics } from "../data/topics.type";
 
 
 const startCamModeService = ( 
@@ -19,7 +20,7 @@ const startCamModeService = (
         if (subsystem === SubSystems.HANDLING_DEVICE) {
             changeModeSystem = new ROSLIB.Service({
                 ros: ros,
-                name: "/CS/ChangeModeHDCamera",
+                name: Topics.CHANGE_MODE_RGB_HD,
                 serviceType: "std_srvs/srv/SetBool",
             });
 

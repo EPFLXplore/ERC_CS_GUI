@@ -1,7 +1,7 @@
 import useGamepad, { GamepadCommandState } from "../../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
-import { Task } from "../../../data/tasks.type";
+import { PublishTo, PublishToType } from "../../../data/publishTo.type";
 import * as ROSLIB from "roslib";
 import States from "../../../data/states.type";
 import { ClassicalGamepad } from "../../../utils/Gamepad/bindings";
@@ -21,7 +21,7 @@ const Gamepad = ({
 	ros,
 }: {
 	selectorCallback?: () => void;
-	mode: Task;
+	mode: PublishToType;
 	submode?: States.MANUAL | States.MANUAL_DIRECT | States.MANUAL_INVERSE;
 	visible?: boolean;
 	ros: ROSLIB.Ros | null;
@@ -115,7 +115,7 @@ const Gamepad = ({
 					isControlling={gamepadCommandState === GamepadCommandState.CONTROL}
 				/>
 				<div className={styles.GamepadMode}>
-					<p>{mode === Task.NAVIGATION ? "NAV" : "HD"}</p>
+					<p>{mode === PublishTo.NAVIGATION ? "NAV" : mode == PublishTo.HANDLING_DEVICE ? "HD" : "CAMS"}</p>
 				</div>
 			</div>
 		);

@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
-import { Task } from "../data/tasks.type";
+import { PublishTo, PublishToType } from "../data/publishTo.type";
 import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../utils/Gamepad/bindings";
+import States from "../data/states.type";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci
 Year: 2023
 Description: Hooks responsible of keeping the state of the Gamepad. It uses a gamepad controller that
 manages how the bindings are done depending on the OS, type of gamepad and web browser. Please go to notion
-for detailed explanations: Control Station > Gamepad CS
+for detailed explanations
 */
 
 
@@ -20,7 +22,7 @@ export enum GamepadCommandState {
 
 function useGamepad(
 	ros: ROSLIB.Ros | null,
-	mode: string,
+	mode: PublishToType,
 	submode?: string,
 	selectorCallback?: () => void
 ) {
@@ -30,6 +32,7 @@ function useGamepad(
 		GamepadCommandState.UI
 	);
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
+	const [frontCameraPublisher, setFrontCameraPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [interval, setIntervalCallback] = useState<NodeJS.Timeout | null>(null);
 
 	// Initialize the gamepad states. 
@@ -49,7 +52,7 @@ function useGamepad(
 				setGamepadCommandState((prev) => {
 					if (
 						prev === GamepadCommandState.UI &&
-						(mode === Task.NAVIGATION || mode === Task.HANDLING_DEVICE)
+						(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)
 					)
 						return GamepadCommandState.CONTROL;
 					else return GamepadCommandState.UI;
@@ -74,12 +77,17 @@ function useGamepad(
 				new ROSLIB.Topic<any>({
 					ros: ros,
 					name:
-						mode === Task.NAVIGATION
-							? "/CS/GamepadCmdsNavigation"
-							: "/CS/GamepadCmdsHandlingDevice",
+						mode === PublishTo.NAVIGATION
+							? Topics.NAVIGATION_GAMEPAD_PUBLISHER
+							: Topics.HANDLING_DEVICE_GAMEPAD_PUBLISHER,
 					messageType: "sensor_msgs/Joy",
 				})
 			);
+			setFrontCameraPublisher(new ROSLIB.Topic<any>({
+				ros: ros,
+				name: Topics.CHANGE_ANGLE_FRONT_CAMERA,
+				messageType: "std_msgs/msg/---",
+			}))
 		}
 
 		return () => {
@@ -95,16 +103,20 @@ function useGamepad(
 
 		const gamepadState = gamepad?.getState();
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
-			if (mode === Task.NAVIGATION) {
+			if (mode === PublishTo.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
 				publisher.publish(message);
-			} else {
-				if (submode) {
+			
+			// Handling device
+			} else if (mode == PublishTo.HANDLING_DEVICE) {
+				if (submode == States.MANUAL_DIRECT) {
 					const message = gamepad.handleDirectArm(
 						gamepadState.buttons,
 						gamepadState.axes
 					);
 					publisher.publish(message);
+				
+				// Manual Inverse
 				} else {
 					const message = gamepad.handleInverseArm(
 						gamepadState.buttons,
@@ -112,13 +124,18 @@ function useGamepad(
 					);
 					publisher.publish(message);
 				}
+			} else if(mode == PublishTo.CAMERA_NAV) {
+				if (frontCameraPublisher) {
+					const message = gamepad.handleAngleFrontCamera(gamepadState.buttons, gamepadState.axes);
+					frontCameraPublisher.publish(message);
+				}
 			}
 		}
 	};
 
 	// The function publishes on the topic every 300ms. This value can be changed. 
 	useEffect(() => {
-		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
+		if (publisher && frontCameraPublisher && gamepadCommandState === GamepadCommandState.CONTROL) {
 			setIntervalCallback(setInterval(sendCommand, 300));
 		} else {
 			if (interval) {

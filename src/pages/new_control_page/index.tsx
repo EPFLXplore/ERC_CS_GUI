@@ -93,7 +93,7 @@ const NewControlPage = () => {
 		rosModalOpen,
 		setRosModalOpen,
 		modalRosNodes,
-		setModalRosNodes
+		setModalRosNodes,
 	] = useRoverControls(ros, showSnackbar);
 
 	/**
@@ -159,19 +159,19 @@ const NewControlPage = () => {
 					<SystemMode
 						system={"Navigation"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
-						modes={["Auto", "Manual", "Off"]}
+						modes={[States.AUTO, States.MANUAL, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode, false)}
 					/>
 					<SystemMode
 						system={"Handling Device"}
 						currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
-						modes={["Auto", "Manual Direct", "Manual Inverse", "Off"]}
+						modes={[States.AUTO, States.MANUAL_DIRECT, States.MANUAL_INVERSE, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode, false)}
 					/>
 					<SystemMode
 						system={"Drill"}
 						currentMode={stateServices[SubSystems.DRILL].service.state}
-						modes={["On", "Off"]}
+						modes={[States.ON, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.DRILL, mode, false)}
 					/>
 				</div>

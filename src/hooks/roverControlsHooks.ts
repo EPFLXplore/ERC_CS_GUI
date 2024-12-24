@@ -4,7 +4,7 @@ import useActions, { ActionType } from "./actionsHooks";
 import useRoverState from "./roverStateHooks";
 import useNewCamera from "./newCameraHooks";
 import SubSystems from "../data/subsystems.type";
-import { Task } from "../data/tasks.type";
+import { PublishTo, PublishToType } from "../data/publishTo.type";
 import actionGoal from "../utils/actionGoal";
 import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
@@ -70,7 +70,7 @@ const useRoverControls = (
 	});
 
 	// Gamepad
-	const [manualMode, setManualMode] = useState(Task.NAVIGATION);
+	const [manualMode, setManualMode] = useState<PublishToType>(PublishTo.NAVIGATION);
 
 	// Simulation
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
@@ -245,10 +245,10 @@ const useRoverControls = (
 	// Change the mode of the gamepad publisher.
 	const changeMode = () => {
 		setManualMode((old) => {
-			if (old === Task.NAVIGATION) {
-				return Task.HANDLING_DEVICE;
+			if (old === PublishTo.NAVIGATION) {
+				return PublishTo.HANDLING_DEVICE;
 			} else {
-				return Task.NAVIGATION;
+				return PublishTo.NAVIGATION;
 			}
 		});
 	};
@@ -320,7 +320,7 @@ const useRoverControls = (
 		rosModalOpen,
 		setRosModalOpen,
 		modalRosNodes,
-		setModalRosNodes
+		setModalRosNodes,
 	] as const;
 };
 
