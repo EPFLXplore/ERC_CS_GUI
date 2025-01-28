@@ -46,22 +46,6 @@ function NodeModal({
 							</div>
 						</div>
 					)) : <p>NO DATA</p>}
-
-					{//@ts-ignore
-					roverState['rover'] && name == "rover" ?  
-					//@ts-ignore
-					Object.values(roverState['rover']['cameras'][name]).map((el: any) => (
-						<div className={styles.ChoiceGroup}>
-							<div
-								className={`${styles.Choice} ${
-									//@ts-ignore
-									el['node'] ? styles.Selected : ""
-								}`}
-							>
-								{el['name']}
-							</div>
-						</div>
-					)) : <p>NO DATA</p>}
 				</div>
             </div>
 		</div>
