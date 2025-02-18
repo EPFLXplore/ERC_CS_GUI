@@ -140,23 +140,80 @@
     justify-content: center
     gap: 20px
 
-.confirm
-    position: absolute
+.confirm 
+    position: fixed
     top: 0
     bottom: 0
     right: 0
     left: 0
-    right: 0
-    width: fit-content
-    height: fit-content
     display: flex
     flex-direction: column
     gap: 20px
-    margin: auto
-    background: grey
-    padding: 5px
+    justify-content: center
+    align-items: center
+    
+    background: rgba(0, 0, 0, 0.4) // Semi-transparent background
+    #backdrop-filter: blur(10px) // Blurred background effect
+    z-index: 9999
 
-.confirmation
+
+.confirmation 
     display: flex
     flex-direction: row
     justify-content: space-around
+    gap: 15px
+
+
+.confirm p 
+    font-size: 1.2rem
+    color: white
+    text-align: center
+
+
+.confirmBox 
+    background: linear-gradient(135deg, #7B1FA2, #E53935) // Purple to red gradient
+    padding: 20px
+    border-radius: 12px
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.3)
+    text-align: center
+    min-width: 300px
+    animation: fadeIn 0.3s ease-in-out
+
+
+.confirmBtn
+    padding: 12px 18px
+    font-size: 1rem
+    font-weight: bold
+    border: none
+    border-radius: 8px
+    cursor: pointer
+    transition: all 0.3s ease-in-out
+    text-transform: uppercase
+    letter-spacing: 1px
+    color: white
+    background: linear-gradient(135deg, #7B1FA2, #E53935) // Purple to red gradient
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2)
+
+    &:hover 
+        background: linear-gradient(135deg, #9C27B0, #D32F2F) // Slightly lighter on hover
+        transform: scale(1.05)
+        box-shadow: 0px 6px 15px rgba(0, 0, 0, 0.3)
+    
+
+    &:active 
+        transform: scale(0.95)
+        box-shadow: none
+    
+
+
+// Fade-in animation
+@keyframes fadeIn 
+    from 
+        opacity: 0
+        transform: scale(0.9)
+    
+    to 
+        opacity: 1
+        transform: scale(1)
+    
+

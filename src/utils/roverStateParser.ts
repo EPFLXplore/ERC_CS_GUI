@@ -495,6 +495,22 @@ const getTorqueGripper = (data: any) => {
 	return Number(data['handling_device']['gripper']['torque'])
 }
 
+const getCurrentHDTask = (data: any) => {
+	if(!data || !data['rover']) {
+		return "NO DATA"
+	}
+
+	return data['handling_device']['state']['task']
+}
+
+const getCurrentHDCommand = (data: any) => {
+	if(!data || !data['rover']) {
+		return "NO DATA"
+	}
+
+	return data['handling_device']['state']['current_command']
+}
+
 //////////////////////// ELECTRONICS ////////////////////////
 
 const BATTERY_MAX_VOLTAGE = 27.8;
@@ -660,4 +676,6 @@ getStateFSM,
 getMassArmSensor,
 getMassDrillSensor,
 getDustSensor,
-getForInOneSensor};
+getForInOneSensor,
+getCurrentHDCommand,
+getCurrentHDTask};

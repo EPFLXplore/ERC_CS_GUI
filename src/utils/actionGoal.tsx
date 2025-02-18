@@ -48,12 +48,9 @@ const actionGoal = (
 			actionType: "custom_msg/action/" + action.name_action_file,
 		});
 
-		console.log(actionArgs);
-		//sentAction(true);
 		const goalHandle = actionClient.sendGoal(
 			actionArgs,
 			(result: any) => {
-				console.log(result);
 				updateActions((old: ActionType) => {
 					const newStates = { ...old };			
 
@@ -64,7 +61,11 @@ const actionGoal = (
 					return newStates;
 				});
 
-				snackBar("success", "Action " + system + " successfully completed")
+				if(result.result.error_type == 0) {
+					snackBar("success", system + ": " + result.result.result)
+				} else {
+					snackBar("error", system + ": " + result.result.result + "   " + result.result.error_message)
+				}
 			},
 			(feedback: any) => {
 				console.log(feedback);

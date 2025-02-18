@@ -22,7 +22,7 @@ import NodeModal from "../../components/modals/NodeModal";
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data/InfoBox";
-import { Dvr } from "@mui/icons-material";
+import { Dvr, VoicemailRounded } from "@mui/icons-material";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -46,7 +46,9 @@ import {
 	getLinearVelocity,
 	getAngularVelocity,
 	getDistanceToGoal,
-	getStateFSM
+	getStateFSM,
+	getCurrentHDTask,
+	getCurrentHDCommand
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -122,6 +124,7 @@ const NewControlPage = () => {
 						cancelAction,
 						showSnackbar,
 						startService,
+						hdConfirmation,
 						ros
 					)
 				);
@@ -194,12 +197,14 @@ const NewControlPage = () => {
 				<div className={styles.visualization}>
 					{hdConfirmation !== null && (
 						<div className={styles.confirm}>
+						<div className={styles.confirmBox}>
 							<p>Handling Device Confirmation</p>
 							<div className={styles.confirmation}>
-								<button onClick={() => hdConfirmation(true)}>Confirm</button>
-								<button onClick={() => hdConfirmation(false)}>Cancel</button>
+								<button className={styles.confirmBtn} onClick={() => hdConfirmation(true)}>Confirm</button>
+								<button className={styles.confirmBtn} onClick={() => hdConfirmation(false)}>Cancel</button>
 							</div>
 						</div>
+					</div>
 					)}
 					<div className={styles.infosLeft}>
 						<ControllerInfoBox
@@ -362,6 +367,13 @@ const NewControlPage = () => {
 								]}
 							/>
 						}
+						<InfoBox
+								title="HD Data"
+								infos={[
+									{ name: "Task", value: getCurrentHDTask(roverState) },
+									{ name: "Command", value: getCurrentHDCommand(roverState) },
+								]}
+							/>
 
 					</div>
 					<div className={styles.infosRight}>
@@ -484,6 +496,7 @@ const selectModal = (
 	cancelAction: (system: string) => void,
 	showSnackbar: (severity: AlertColor, message: string) => void,
 	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
+	resetHdConfirmation: ((value: boolean) => void) | null,
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
@@ -553,6 +566,7 @@ const selectModal = (
 					onSetGoal={launchAction}
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
+					resetHdConfirmation={resetHdConfirmation}
 				/>
 			);
 		case SubSystems.DRILL:

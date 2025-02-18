@@ -6,11 +6,6 @@ Description: The gamepad can publish to one of these 2 subsystems.
 
 import SubSystems from "./subsystems.type"
 
-// export enum Task {
-//     NAVIGATION = 'navigation',
-//     HANDLING_DEVICE = 'handling_device',
-// }
-
 export const PublishTo = {
     NAVIGATION: SubSystems.NAGIVATION,
     HANDLING_DEVICE: SubSystems.HANDLING_DEVICE,

@@ -21,12 +21,14 @@ function ArmGoalModal({
 	onCancelGoal,
 	currentTask = undefined,
 	snackBar,
+	resetHdConfirmation,
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	currentTask?: ArmTask;
 	snackBar: (sev: AlertColor, mes: string) => void;
+	resetHdConfirmation: ((confirm: boolean) => void) | null;
 }) {
 	const [task, setTask] = React.useState<ArmTask | null>(null);
 
@@ -51,110 +53,200 @@ function ArmGoalModal({
 					)}
 
 					<div className={styles.ChoiceGroup}>
-						<p className={styles.ChoiceCategory}>Panel Elements</p>
+						<p className={styles.ChoiceCategory}>Basic Switches</p>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 1" ? styles.Selected : ""
+								task?.name === "Main Switch" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 1", msg: "button_a0" })}
+							onClick={() => setTask({ name: "Main Switch", msg: "switch_main" })}
 						>
-							Button 1
+							Main Switch
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 2" ? styles.Selected : ""
+								task?.name === "Switch 1" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 2", msg: "button_a1" })}
+							onClick={() => setTask({ name: "Switch 1", msg: "switch_1" })}
 						>
-							Button 2
+							Switch 1
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 3" ? styles.Selected : ""
+								task?.name === "Switch 2" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 3", msg: "button_a2" })}
+							onClick={() => setTask({ name: "Switch 2", msg: "switch_2" })}
 						>
-							Button 3
+							Switch 2
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 4" ? styles.Selected : ""
+								task?.name === "Switch 3" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 4", msg: "button_a3"})}
+							onClick={() => setTask({ name: "Switch 3", msg: "switch_3" })}
 						>
-							Button 4
+							Switch 3
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 5" ? styles.Selected : ""
+								task?.name === "Switch 4" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 5", msg: "button_a4" })}
+							onClick={() => setTask({ name: "Switch 4", msg: "switch_4"})}
 						>
-							Button 5
+							Switch 4
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 6" ? styles.Selected : ""
+								task?.name === "Switch 5" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 6",msg: "button_a5" })}
+							onClick={() => setTask({ name: "Switch 5", msg: "switch_5" })}
 						>
-							Button 6
+							Switch 5
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 7" ? styles.Selected : ""
+								task?.name === "Switch 6" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 7", msg: "button_a6" })}
+							onClick={() => setTask({ name: "Switch 6",msg: "switch_6" })}
 						>
-							Button 7
+							Switch 6
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 8" ? styles.Selected : ""
+								task?.name === "Switch 7" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 8", msg: "button_a7" })}
+							onClick={() => setTask({ name: "Switch 7", msg: "switch_7" })}
 						>
-							Button 8
+							Switch 7
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 9" ? styles.Selected : ""
+								task?.name === "Switch 8" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 9", msg: "button_a8"})}
+							onClick={() => setTask({ name: "Switch 8", msg: "switch_8" })}
 						>
-							Button 9
+							Switch 8
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Button 10" ? styles.Selected : ""
+								task?.name === "Switch 9" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Button 10", msg: "button_a9" })}
+							onClick={() => setTask({ name: "Switch 9", msg: "switch_9"})}
 						>
-							Button 10
+							Switch 9
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Voltmeter" ? styles.Selected : ""
+								task?.name === "Switch 10" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Voltmeter", msg: "voltmeter" })}
+							onClick={() => setTask({ name: "Switch 10", msg: "switch_10" })}
 						>
-							Voltmeter
+							Switch 10
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Metal Bar" ? styles.Selected : ""
+								task?.name === "Switch 11" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Metal Bar", msg: "" })}
+							onClick={() => setTask({ name: "Switch 11", msg: "switch_11" })}
 						>
-							Metal Bar
+							Switch 11
 						</button>
 						<button
 							className={`${styles.Choice} ${
-								task?.name === "Ethernet Cable" ? styles.Selected : ""
+								task?.name === "Switch 12" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Ethernet Cable", msg: "" })}
+							onClick={() => setTask({ name: "Switch 12", msg: "switch_12" })}
 						>
-							Ethernet Cable
+							Switch 12
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Switch 13" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Switch 13", msg: "switch_13" })}
+						>
+							Switch 13
+						</button>
+						<p className={styles.ChoiceCategory}>Other</p>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Electromagnet" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Electromagnet", msg: "electromagnet" })}
+						>
+							Electromagnet
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Socket 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Socket 1", msg: "socket_1" })}
+						>
+							Socket 1
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Socket 2" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Socket 2", msg: "socket_2" })}
+						>
+							Socket 2
+						</button>
+						<p className={styles.ChoiceCategory}>Control and Power Switches</p>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Control Switch 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Control Switch 1", msg: "control_switch_1" })}
+						>
+							Control Switch 1
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Control Switch 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Control Switch 2", msg: "control_switch_2" })}
+						>
+							Control Switch 2
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Control Switch 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Control Switch 3", msg: "control_switch_3" })}
+						>
+							Control Switch 3
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Control Switch 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Control Switch 4", msg: "control_switch_4" })}
+						>
+							Control Switch 4
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Control Switch 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Control Switch 5", msg: "control_switch_5" })}
+						>
+							Control Switch 5
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Power Switch 1" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Power Switch 1", msg: "power_switch_1" })}
+						>
+							Power Switch 1
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Power Switch 2" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Power Switch 2", msg: "power_switch_2" })}
+						>
+							Power Switch 2
 						</button>
 						<p className={styles.ChoiceCategory}>Predefined Positions</p>
 						<button
@@ -180,30 +272,6 @@ function ArmGoalModal({
 							onClick={() => setTask({ name: "Cobra", msg: "cobra"})}
 						>
 							Cobra
-						</button>
-						<button
-							className={`${styles.Choice} ${
-								task?.name === "Panel A Position" ? styles.Selected : ""
-							}`}
-							onClick={() => setTask({ name: "Panel A Position", msg: "" })}
-						>
-							Panel A Position
-						</button>
-						<button
-							className={`${styles.Choice} ${
-								task?.name === "Panel B Position" ? styles.Selected : ""
-							}`}
-							onClick={() => setTask({ name: "Panel B Position", msg:"" })}
-						>
-							Panel B Position
-						</button>
-						<button
-							className={`${styles.Choice} ${
-								task?.name === "Panel C Position" ? styles.Selected : ""
-							}`}
-							onClick={() => setTask({ name: "Panel C Position", msg: "" })}
-						>
-							Panel C Position
 						</button>
 						<button
 							className={`${styles.Choice} ${
@@ -243,6 +311,9 @@ function ArmGoalModal({
 					<button
 						onClick={() => {
 							onCancelGoal(SubSystems.HANDLING_DEVICE);
+							if(resetHdConfirmation) {
+								resetHdConfirmation(false);
+							}
 						}}
 					>
 						Cancel Task

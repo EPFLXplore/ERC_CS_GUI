@@ -2,6 +2,7 @@ import { AlertColor } from "@mui/material";
 import React from "react";
 import { useState, useEffect } from "react";
 import * as ROSLIB from "roslib";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -83,13 +84,12 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 		// The Service object does double duty for both calling and advertising services
 		var askUserConfirmation = new ROSLIB.Service({
 			ros: ros,
-			name: "/Rover/HD/human_verification",
+			name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
 			serviceType: "std_srvs/Trigger",
 		});
 
 		// Use the advertise() method to indicate that we want to provide this service
 		askUserConfirmation.advertiseAsync(async (request) => {
-			console.log("Received HD Confirmation request ");
 			const result = await new Promise<boolean>((resolve, reject) => {
 				setHDConfirmation(() => (confirm: boolean) => {
 					resolve(confirm)
