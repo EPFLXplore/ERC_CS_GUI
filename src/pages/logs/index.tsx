@@ -14,9 +14,11 @@ const Logs = () => {
 	const bottomRef = useRef<HTMLDivElement | null>(null);
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
-	const [roverlogs, filters, changeFilter] = useRoverLogs(ros);
+	const [roverlogs, filters, isAtBottom, changeFilter, handleScroll] = useRoverLogs(ros);
 
 	useEffect(() => {
+		if (!isAtBottom) return;
+
 		// 👇️ scroll to bottom every time messages change
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [roverlogs]);
@@ -87,7 +89,7 @@ const Logs = () => {
 							}}
 						/>
 					</div>
-					<div className={styles.Logs}>
+					<div className={styles.Logs} onScroll={handleScroll}>
 						{roverlogs.map((log) => (
 							<Tooltip
 								title={log.file + " - line " + log.line}
