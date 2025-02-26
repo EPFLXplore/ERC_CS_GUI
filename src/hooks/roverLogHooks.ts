@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import * as ROSLIB from "roslib";
+import Database from "../utils/IndexedDB/database";
 
 /*
 Author: Ugo Balducci
@@ -44,67 +45,88 @@ const getType = (type: number): string => {
 
 function useRoverLogs(ros: ROSLIB.Ros | null) {
 	const [roverlogs, setRoverLogs] = useState<Log[]>([]);
-	const [filters, setFilters] = React.useState<string[]>([
+	const [filters, setFilters] = useState<string[]>([
 		LogLevel.INFO,
 		LogLevel.WARNING,
 		LogLevel.ERROR,
 	]);
-	const [filteredLogs, setFilteredLogs] = React.useState<Log[]>([]);
+	const [db, setDb] = useState<Database | null>(null);
+	const [isAtBottom, setIsAtBottom] = useState(true);
+	const PAGE_SIZE = 50;
+	const [oldestTimestamp, setOldestTimestamp] = useState<number | null>(null);
 
 	useEffect(() => {
-		if (ros) {
+		if (ros && db) {
 			const listener = new ROSLIB.Topic({
 				ros: ros,
 				name: "/rosout",
 				messageType: "rcl_interfaces/msg/Log",
 			});
 
-			
 			listener.subscribe((message) => {
-				setRoverLogs((prev) => [
-					...prev,
-					{
-						// @ts-ignore
-						timestamp: message.stamp.sec,
-						// @ts-ignore
-						node: message.name,
-						// @ts-ignore
-						type: getType(message.level),
-						// @ts-ignore
-						message: message.msg,
-						// @ts-ignore
-						file: message.file,
-						// @ts-ignore
-						line: message.line,
-					},
-				]);
+				const newLog = {
+					// @ts-ignore
+					timestamp: message.stamp.sec,
+					// @ts-ignore
+					node: message.name,
+					// @ts-ignore
+					type: getType(message.level),
+					// @ts-ignore
+					message: message.msg,
+					// @ts-ignore
+					file: message.file,
+					// @ts-ignore
+					line: message.line,
+				} as Log;
+
+				db.addLog(newLog);
+
+				if (roverlogs.length >= PAGE_SIZE) {
+					setRoverLogs((prevLogs) => [...prevLogs, newLog].slice(-PAGE_SIZE));
+				} else {
+					setRoverLogs((prevLogs) => [...prevLogs, newLog]);
+				}
 			});
-			
 		}
-	}, [ros]);
+	}, [ros, db]);
 
-	const clearLogs = () => {
-		setRoverLogs([])
-	}
+	useEffect(() => {
+		const db = new Database();
+		db.init("rover")
+			.then(() => setDb(db))
+			.catch(console.error);
+	}, []);
 
-	const filterLogs = (types: string[]) => {
-		if (types.length === 0) setFilteredLogs(roverlogs);
-		else setFilteredLogs(roverlogs.filter((log) => types.includes(log.type)));
-	};
-
-	const changeFilter = (type: string, add: boolean) => {
-		if (add) {
-			if (!filters.includes(type)) setFilters([...filters, type]);
-		} else {
-			setFilters(filters.filter((filter) => filter !== type));
+	const fetchLogs = async (from: number | null, types: string[]) => {
+		if (!db) return;
+		const logs = (await db.getLogsByTimestamp(from, PAGE_SIZE, types)) as Log[];
+		if (logs.length > 0) {
+			setOldestTimestamp(logs[logs.length - 1].timestamp);
+			setRoverLogs((prevLogs) => [...prevLogs, ...logs]);
 		}
 	};
 
 	useEffect(() => {
-		filterLogs(filters);
-	}, [filters, roverlogs]); // eslint-disable-line react-hooks/exhaustive-deps
+		fetchLogs(null, filters);
+	}, [db, filters]);
 
-	return [filteredLogs, filters, changeFilter] as const;
+	const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
+		const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+		if (scrollTop === 0 && oldestTimestamp) {
+			fetchLogs(oldestTimestamp, filters);
+		}
+		setIsAtBottom(scrollHeight - scrollTop <= clientHeight + 10);
+	};
+
+	const changeFilter = (type: string, add: boolean) => {
+		setFilters((prev) => (add ? [...prev, type] : prev.filter((filter) => filter !== type)));
+	};
+
+	const getFilteredLogs = () => {
+		return roverlogs.filter((log) => filters.includes(log.type));
+	};
+
+	return [getFilteredLogs(), filters, isAtBottom, changeFilter, handleScroll] as const;
 }
 
 export default useRoverLogs;
