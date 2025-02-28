@@ -12,6 +12,7 @@ export enum Topics {
     RESET_NAVIGATION_MOTORS = "/CS/ResetNavMotors",
     RESET_HOME_NAVIGATION_MOTORS = "/CS/ResetHomeNavMotors",
     REQUEST_HUMAIN_VERIFICATION_HD = "/Rover/HD/human_verification",
+    REQUEST_SELECTION_ROCK = "/HD/RockImageSelection",
 
     // Action
     NAVIGATION_ACTION = "/CS/NavigationReachGoal",

@@ -18,6 +18,7 @@ import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
 import NodeModal from "../../components/modals/NodeModal";
+import ImageRockDisplay from "../../components/data/RockImageSelection";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
@@ -60,11 +61,13 @@ import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
+import useNewCamera from "../../hooks/newCameraHooks";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
+	
 	const [
 		roverState,
 		cameraStates,
@@ -97,6 +100,8 @@ const NewControlPage = () => {
 		modalRosNodes,
 		setModalRosNodes,
 	] = useRoverControls(ros, showSnackbar);
+
+	const [, , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page
@@ -195,6 +200,15 @@ const NewControlPage = () => {
 			</div>
 			<div className={styles.control}>
 				<div className={styles.visualization}>
+
+					{hdConfirmationRocks !== null && (
+						<div>
+						{imageRock && <ImageRockDisplay imageData={imageRock} 
+						 setCoordinates={(x: number, y: number) => hdConfirmationRocks(x, y)}
+						 onClose={() => setImageRock(null)} />}
+					  </div>
+					)}
+
 					{hdConfirmation !== null && (
 						<div className={styles.confirm}>
 						<div className={styles.confirmBox}>

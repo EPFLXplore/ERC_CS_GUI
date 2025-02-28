@@ -10,6 +10,7 @@ import States from "../data/states.type";
 import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -289,6 +290,12 @@ const useRoverControls = (
 			window.removeEventListener("keydown", handleNext);
 		};
 	}, []);
+
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	// HD CONTROL PANEL FUNCTIONS
+
+	
 
 	return [
 		roverState,

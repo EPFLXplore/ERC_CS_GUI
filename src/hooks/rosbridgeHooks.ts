@@ -45,6 +45,7 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 			ros_server.close();
 		};
 	}, []);
+	
 
 	// Check if the Rover Node is connected. This is important because if it is not activated,
 	// then we can't recieve any data

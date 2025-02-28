@@ -14,6 +14,8 @@ get the feeds of the cameras.
 function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 ) {
 	const [images, setImage] = useState<Array<string>>([]);
+	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
+	const [imageRock, setImageRock] = useState<string | null>(null);
 
 	// Topics for the cameras. If you decide to modify them, you need to update also in the 
 	// submodule of the cameras => in the launch files.
@@ -93,7 +95,37 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	return [cameraStates, images, currentVideo, setCurrentVideo
+	// Service that triggers Human verification for selecting a Rock on an image
+
+	useEffect(() => {
+		if (ros) {
+			var res = new ROSLIB.Service({
+				ros: ros,
+				name: Topics.REQUEST_SELECTION_ROCK,
+				serviceType: "custom_msg/srv/RockSelection",
+			});
+
+			res.advertiseAsync(async (request: any) => {
+				setImageRock("data:image/jpeg;charset=utf-8;base64," + request.rock_image.data)
+
+				const result = await new Promise<{x: number, y: number}>((resolve, reject) => {
+					setHDConfirmationRocks(() => (x: number, y: number) => {
+						resolve({x, y});
+						setHDConfirmationRocks(null);
+					});
+				});
+
+				return {
+					x: result.x,
+					y: result.y
+				};
+			})
+		}
+
+	}, [ros]);
+
+	return [cameraStates, images, currentVideo, setCurrentVideo, hdConfirmationRocks,
+		imageRock, setImageRock
 	] as const;
 }
 
