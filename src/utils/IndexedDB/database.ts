@@ -2,6 +2,7 @@ import { Log } from "../../hooks/roverLogHooks";
 
 class Database {
 	webDB: IDBDatabase | undefined;
+	isConnected: boolean = false;
 
 	init(name: string) {
 		return new Promise((resolve, reject) => {
@@ -10,6 +11,12 @@ class Database {
 				reject(request.error);
 			};
 			request.onsuccess = () => {
+				const db = request.result;
+
+				this.webDB = db;
+				this.isConnected = true;
+				console.log("Database initialized");
+
 				resolve(request.result);
 			};
 			request.onupgradeneeded = () => {
@@ -25,6 +32,8 @@ class Database {
 				objStore.createIndex("timestamp", "timestamp", { unique: false });
 
 				this.webDB = db;
+				this.isConnected = true;
+				console.log("Database initialized");
 
 				resolve(db);
 			};
@@ -110,7 +119,12 @@ class Database {
 		});
 	}
 
-	getLogsByTimestamp(from: number | null, limit: number, types: string[]) {
+	getLogsByTimestamp(
+		from: number | null,
+		limit: number,
+		types: string[],
+		nodes?: string | string[]
+	) {
 		return new Promise((resolve, reject) => {
 			if (!this.webDB) {
 				reject(new Error("Database not initialized"));
@@ -121,7 +135,6 @@ class Database {
 			const store = transaction.objectStore("logs");
 			const index = store.index("timestamp");
 
-			// If `from` is null, get the most recent logs
 			const range = from ? IDBKeyRange.upperBound(from) : null;
 			const request = index.openCursor(range, "prev");
 
@@ -131,13 +144,18 @@ class Database {
 			request.onerror = () => reject(request.error);
 			request.onsuccess = () => {
 				const cursor = request.result;
-				if (
-					cursor &&
-					count < limit &&
-					(types.length === 0 || types.includes(cursor.value.type))
-				) {
-					logs.push(cursor.value);
-					count++;
+				if (cursor && count < limit) {
+					const { type, node } = cursor.value;
+					const nodeMatch =
+						!nodes ||
+						nodes.length === 0 ||
+						(Array.isArray(nodes) ? nodes.includes(node) : node === nodes);
+					const typeMatch = types.length === 0 || types.includes(type);
+
+					if (typeMatch && nodeMatch) {
+						logs.push(cursor.value);
+						count++;
+					}
 					cursor.continue();
 				} else {
 					resolve(logs);
