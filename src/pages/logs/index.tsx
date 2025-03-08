@@ -9,12 +9,23 @@ import useRoverLogs, { LogLevel } from "../../hooks/roverLogHooks";
 import { Tooltip, tooltipClasses } from "@mui/material";
 import useAlert from "../../hooks/alertHooks";
 import AlertSnackbar from "../../components/ui/Snackbar";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 const Logs = () => {
 	const bottomRef = useRef<HTMLDivElement | null>(null);
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
-	const [roverlogs, filters, isAtBottom, changeFilter, handleScroll] = useRoverLogs(ros);
+	const [
+		roverlogs,
+		filters,
+		isAtBottom,
+		mode,
+		hasMore,
+		setMode,
+		changeFilter,
+		handleScroll,
+		getOlderLogs,
+	] = useRoverLogs(ros);
 
 	useEffect(() => {
 		if (!isAtBottom) return;
@@ -37,7 +48,7 @@ const Logs = () => {
 	};
 
 	return (
-		<div className="page center">
+		<div className="page center" style={{ overflow: "hidden" }}>
 			<Background />
 			<BackButton />
 			<div className={styles.TabContainer}>
@@ -88,34 +99,101 @@ const Logs = () => {
 								changeFilter(LogLevel.ERROR, false);
 							}}
 						/>
+						<LogFilter
+							name="All"
+							active={mode === "all"}
+							color={Themes.GREY}
+							onActivate={() => {
+								setMode("all");
+							}}
+							onDisactivate={() => {}}
+						/>
+						<LogFilter
+							name="NAV"
+							active={mode === "nav"}
+							color={Themes.GREY}
+							onActivate={() => {
+								setMode("nav");
+							}}
+							onDisactivate={() => {}}
+						/>
+						<LogFilter
+							name="HD"
+							active={mode === "hd"}
+							color={Themes.GREY}
+							onActivate={() => {
+								setMode("hd");
+							}}
+							onDisactivate={() => {}}
+						/>
+						<LogFilter
+							name="CS"
+							active={mode === "cs"}
+							color={Themes.GREY}
+							onActivate={() => {
+								setMode("cs");
+							}}
+							onDisactivate={() => {}}
+						/>
+						<LogFilter
+							name="SC"
+							active={mode === "sc"}
+							color={Themes.GREY}
+							onActivate={() => {
+								setMode("sc");
+							}}
+							onDisactivate={() => {}}
+						/>
 					</div>
-					<div className={styles.Logs} onScroll={handleScroll}>
-						{roverlogs.map((log) => (
-							<Tooltip
-								title={log.file + " - line " + log.line}
-								enterDelay={1000}
-								slotProps={{
-									popper: {
-										sx: {
-											[`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
-												{
-													marginTop: "0px",
-													maxWidth: 800,
-												},
+					<div
+						id="scrollableDiv"
+						className={styles.Logs}
+						onScroll={handleScroll}
+						style={{ display: "flex", flexDirection: "column-reverse", height: "100%" }}
+					>
+						<InfiniteScroll
+							dataLength={roverlogs.length}
+							inverse={true}
+							next={() => {
+								console.log("fetching more logs");
+								getOlderLogs();
+							}}
+							hasMore={hasMore}
+							loader={<h4>Loading...</h4>}
+							scrollableTarget="scrollableDiv"
+							style={{ display: "flex", flexDirection: "column", height: "100%" }}
+						>
+							{roverlogs.reverse().map((log) => (
+								<Tooltip
+									title={log.file + " - line " + log.line}
+									enterDelay={1000}
+									slotProps={{
+										popper: {
+											sx: {
+												[`&.${tooltipClasses.popper}[data-popper-placement*="bottom"] .${tooltipClasses.tooltip}`]:
+													{
+														marginTop: "0px",
+														maxWidth: 800,
+													},
+											},
 										},
-									},
-								}}
-							>
-								<div className={styles.Log}>
-									<div className={styles.LogTime}>[{log.node}]</div>
-									<div className={`${styles.LogType} ${getColorType(log.type)}`}>
-										{log.type}
+									}}
+								>
+									<div className={styles.Log}>
+										<div className={styles.LogTime}>[{log.node}]</div>
+										<div
+											className={`${styles.LogType} ${getColorType(
+												log.type
+											)}`}
+										>
+											{log.type}
+										</div>
+										<div className={styles.LogMessage}>{log.message}</div>
 									</div>
-									<div className={styles.LogMessage}>{log.message}</div>
-								</div>
-							</Tooltip>
-						))}
-						<div ref={bottomRef}></div>
+								</Tooltip>
+							))}
+							<div ref={bottomRef}></div>
+						</InfiniteScroll>
 					</div>
 				</div>
 			</div>

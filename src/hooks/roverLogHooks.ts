@@ -27,6 +27,20 @@ export enum LogLevel {
 	ERROR = "error",
 }
 
+export const NODE_FILTERS = {
+	ALL: [],
+	HD: ["HDCSInterfacing", "MotorController", "kinematics_task_executor"],
+	NAV: [
+		"NAV_cmd_vel_manager",
+		"NAV_displacement_cmds",
+		"NAV_gamepad_interface",
+		"NAV_motor_cmds",
+		"NavCSInterfacing",
+	],
+	SC: ["drill_fsm_node", "SC_motor_cmds"],
+	CS: ["/ROVER/camera_cs_0"],
+};
+
 const getType = (type: number): string => {
 	switch (type) {
 		case 10:
@@ -54,9 +68,11 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 	const [isAtBottom, setIsAtBottom] = useState(true);
 	const PAGE_SIZE = 50;
 	const [oldestTimestamp, setOldestTimestamp] = useState<number | null>(null);
+	const [hasMore, setHasMore] = useState(true);
+	const [mode, setMode] = useState<"all" | "nav" | "hd" | "cs" | "sc" | "el">("all");
 
 	useEffect(() => {
-		if (ros && db) {
+		if (ros && db && db.isConnected) {
 			const listener = new ROSLIB.Topic({
 				ros: ros,
 				name: "/rosout",
@@ -80,8 +96,22 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 				} as Log;
 
 				db.addLog(newLog);
+				setOldestTimestamp((prev) =>
+					prev ? Math.min(prev, newLog.timestamp) : newLog.timestamp
+				);
 
-				if (roverlogs.length >= PAGE_SIZE) {
+				if (
+					!filters.includes(newLog.type) ||
+					(mode !== "all" &&
+						!NODE_FILTERS[mode.toUpperCase() as keyof typeof NODE_FILTERS].includes(
+							// @ts-ignore
+							newLog.node
+						))
+				) {
+					return;
+				}
+
+				if (roverlogs.length >= PAGE_SIZE && isAtBottom) {
 					setRoverLogs((prevLogs) => [...prevLogs, newLog].slice(-PAGE_SIZE));
 				} else {
 					setRoverLogs((prevLogs) => [...prevLogs, newLog]);
@@ -98,24 +128,34 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 	}, []);
 
 	const fetchLogs = async (from: number | null, types: string[]) => {
-		if (!db) return;
-		const logs = (await db.getLogsByTimestamp(from, PAGE_SIZE, types)) as Log[];
+		if (!db || !db.isConnected) return;
+		const logs = (await db.getLogsByTimestamp(
+			from,
+			PAGE_SIZE,
+			types,
+			NODE_FILTERS[mode.toUpperCase() as keyof typeof NODE_FILTERS]
+		)) as Log[];
 		if (logs.length > 0) {
+			console.log("adding logs", logs);
 			setOldestTimestamp(logs[logs.length - 1].timestamp);
-			setRoverLogs((prevLogs) => [...prevLogs, ...logs]);
+			setRoverLogs((prevLogs) => [...logs, ...prevLogs]);
+
+			if (logs.length < PAGE_SIZE) {
+				setHasMore(false);
+			}
 		}
 	};
 
 	useEffect(() => {
+		setRoverLogs([]);
+		setOldestTimestamp(null);
+		setHasMore(true);
 		fetchLogs(null, filters);
-	}, [db, filters]);
+	}, [db, filters, mode]);
 
 	const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
 		const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
-		if (scrollTop === 0 && oldestTimestamp) {
-			fetchLogs(oldestTimestamp, filters);
-		}
-		setIsAtBottom(scrollHeight - scrollTop <= clientHeight + 10);
+		setIsAtBottom(scrollHeight - scrollTop <= clientHeight + 200);
 	};
 
 	const changeFilter = (type: string, add: boolean) => {
@@ -126,7 +166,22 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 		return roverlogs.filter((log) => filters.includes(log.type));
 	};
 
-	return [getFilteredLogs(), filters, isAtBottom, changeFilter, handleScroll] as const;
+	const getOlderLogs = () => {
+		console.log("fetching older logs");
+		fetchLogs(oldestTimestamp, filters);
+	};
+
+	return [
+		getFilteredLogs(),
+		filters,
+		isAtBottom,
+		mode,
+		hasMore,
+		setMode,
+		changeFilter,
+		handleScroll,
+		getOlderLogs,
+	] as const;
 }
 
 export default useRoverLogs;
