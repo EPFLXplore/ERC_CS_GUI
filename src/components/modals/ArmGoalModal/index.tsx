@@ -275,6 +275,15 @@ function ArmGoalModal({
 						</button>
 						<button
 							className={`${styles.Choice} ${
+								task?.name === "Sad" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Sad", msg: "sad"})}
+						>
+							Sad Arm
+						</button>
+						<p className={styles.ChoiceCategory}>Tasks</p>
+						<button
+							className={`${styles.Choice} ${
 								task?.name === "Pick Rock" ? styles.Selected : ""
 							}`}
 							onClick={() => setTask({ name: "Pick Rock", msg: "" })}

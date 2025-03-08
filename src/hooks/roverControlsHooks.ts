@@ -153,7 +153,9 @@ const useRoverControls = (
 		setStateActions((old) => {
 			let newStates = { ...old };
 
-			if (stateServices[system].service.state === States.OFF) {
+			if (stateServices[system].service.state === States.OFF
+				
+			) {
 				// the system is not ON
 				showSnackbar(
 					"error",

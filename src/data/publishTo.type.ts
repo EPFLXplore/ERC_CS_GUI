@@ -1,7 +1,7 @@
 /*
 Author: Giovanni Ranieri
 Year: 2023
-Description: The gamepad can publish to one of these 2 subsystems.
+Description: The gamepad can publish to one of these 3 subsystems.
 */
 
 import SubSystems from "./subsystems.type"

@@ -105,7 +105,6 @@ function useGamepad(
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
 			if (mode === PublishTo.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
-				console.log(message)
 				publisher.publish(message);
 			
 			// Handling device
@@ -137,7 +136,7 @@ function useGamepad(
 	// The function publishes on the topic every 300ms. This value can be changed. 
 	useEffect(() => {
 		if (publisher && frontCameraPublisher && gamepadCommandState === GamepadCommandState.CONTROL) {
-			setIntervalCallback(setInterval(sendCommand, 300));
+			setIntervalCallback(setInterval(sendCommand, 30));
 		} else {
 			if (interval) {
 				clearInterval(interval);

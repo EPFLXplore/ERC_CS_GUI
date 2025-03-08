@@ -10,31 +10,38 @@ const RPI_ROVER_DRILL: EndSystem = {
     name: 'RPI Rover/Drill'
 }
 
-const RPI_CAMS: EndSystem = {
-    ip: '169.254.55.240',
-    hostname: 'xplore',
-    password: 'xplore',
-    name: 'RPI Cams'
-}
+// const RPI_CAMS: EndSystem = {
+//     ip: '169.254.55.240',
+//     hostname: 'xplore',
+//     password: 'xplore',
+//     name: 'RPI Cams'
+// }
 
 const JETSON_NAV: EndSystem = {
-    ip: '169.254.55.230',
-    hostname: 'xplore',
+    ip: '169.254.55.231',
+    hostname: 'xplore-nav',
     password: 'xplore',
     name: 'Jetson NAV'
+}
+
+const JETSON_HD: EndSystem = {
+    ip: '169.254.55.230',
+    hostname: 'xplore-hd',
+    password: 'xplore',
+    name: 'Jetson HD'
 }
 
 // Inside each run file, there is a check if the docker is already running. If yes, then nothing is run
 // and a message will be printed on the screen.
 
 const ActivateRoverNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_rover.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './run_rover.sh']
 };
 
 const ActivateCameraNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_cameras.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './run_cameras.sh']
 };
 
 const ActivateDrillNode: SSHCommands = {
@@ -48,47 +55,39 @@ const StopDrillNode: SSHCommands = {
 };
 
 const StopRoverNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
 };
 
 const StopCameraNode: SSHCommands = {
-    device: RPI_CAMS,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_cameras.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './stop_docker_cameras.sh']
 };
 
 const ActivateWheelsControl: SSHCommands = {
     device: JETSON_NAV,
-    commands: ['cd /home/xplore/Desktop/ERC_NAV/docker_humble_jetson', './run_wheels_control.sh']
+    commands: ['cd /home/xplore/Documents/ERC_NAV/docker_humble_jetson', './run_wheels_control.sh']
 };
 
 const StopWheelsControl: SSHCommands = {
     device: JETSON_NAV,
-    commands: ['cd /home/xplore/Desktop/ERC_NAV/docker_humble_jetson', './stop_docker_nav.sh']
+    commands: ['cd /home/xplore/Documents/ERC_NAV/docker_humble_jetson', './stop_docker_nav.sh']
 };
 
 // Activates the FSM and other stuff
 const ActivateHdMotorControl: SSHCommands = {
-    device: JETSON_NAV,
-    commands: ['cd /home/xplore/Document/ERC_HD/docker_humble_jetson', './.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore/Documents/ERC_HD/docker_humble_jetson', './.sh']
 };
 
 // Stops the FSM and other stuff. 
 const StopHdMotorControl: SSHCommands = {
-    device: JETSON_NAV,
-    commands: ['cd /home/xplore/Document/ERC_HD/docker_humble_jetson', './.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore/Documents/ERC_HD/docker_humble_jetson', './.sh']
 };
 
 const CommandsSSH = {
-    "rpi_rover_drill": [
-    {
-        name: "Start Rover Node",
-        action: ActivateRoverNode,
-    },
-    {
-        name: "Stop Rover Node",
-        action: StopRoverNode,
-    },
+    "rpi_drill": [
     {
         name: "Start Drill Node",
         action: ActivateDrillNode,
@@ -98,17 +97,7 @@ const CommandsSSH = {
         action: StopDrillNode,
     }],
 
-    "rpi_cameras_cs": [
-    {
-        name: "Start Camera Node",
-        action: ActivateCameraNode,
-    },
-    {
-        name: "Stop Camera Node",
-        action: StopCameraNode,
-    }],
-
-    "jetson_xavier": [
+    "jetson_nav": [
     {
         name: "Start Wheels Control",
         action: ActivateWheelsControl,
@@ -116,6 +105,32 @@ const CommandsSSH = {
     {
         name: "Stop Wheels Control",
         action: StopWheelsControl,
+    }],
+
+    "jetson_hd": [
+    {
+        name: "Start Camera Node",
+        action: ActivateCameraNode,
+    },
+    {
+        name: "Stop Camera Node",
+        action: StopCameraNode,
+    },
+    {
+        name: "Start Rover Node",
+        action: ActivateRoverNode,
+    },
+    {
+        name: "Stop Rover Node",
+        action: StopRoverNode,
+    },
+    {
+        name: "Start HD Motors",
+        action: ActivateHdMotorControl,
+    },
+    {
+        name: "Stop HD Motors",
+        action: StopHdMotorControl,
     }]
 };
 

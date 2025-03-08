@@ -34,11 +34,11 @@ function ControlModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-						<h1>RPI Cams</h1>
+						<h1>Jetson NAV/CS</h1>
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
-						{CommandsSSH.rpi_cameras_cs.map((task) => (
+						{CommandsSSH.jetson_nav.map((task) => (
 							<button
 								className={styles.Choice}
 								//@ts-ignore
@@ -54,11 +54,11 @@ function ControlModal({
 				</div>
 
 				<div className={styles.ModalHeader}>
-						<h1>RPI Rover/Drill</h1>
+						<h1>RPI Drill</h1>
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
-						{CommandsSSH.rpi_rover_drill.map((task) => (
+						{CommandsSSH.rpi_drill.map((task) => (
 							<button
 								className={styles.Choice}
 								//@ts-ignore
@@ -71,11 +71,11 @@ function ControlModal({
 				</div>
 
 				<div className={styles.ModalHeader}>
-						<h1>Jetson</h1>
+						<h1>Jetson HD/Rover/Cams</h1>
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
-						{CommandsSSH.jetson_xavier.map((task) => (
+						{CommandsSSH.jetson_hd.map((task) => (
 							<button
 								className={styles.Choice}
 								//@ts-ignore

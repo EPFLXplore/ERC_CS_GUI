@@ -103,12 +103,13 @@ const computeInverseArmCommandClassicGamepad = (
 	return {
 		axes: [
 			axes[ClassicalGamepad.Axis.RIGHT_STICK_X], // TX
-			axes[ClassicalGamepad.Axis.RIGHT_STICK_Y], // TY
-			axes[ClassicalGamepad.Axis.RT] - axes[ClassicalGamepad.Axis.LT], // TZ
-			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // RX
-			axes[ClassicalGamepad.Axis.LEFT_STICK_X], // RY
-			(buttons[ClassicalGamepad.Button.RB] ? 1 : 0) -
-				(buttons[ClassicalGamepad.Button.LB] ? 1 : 0), // RZ
+			axes[ClassicalGamepad.Axis.RIGHT_STICK_Y], // TZ
+			axes[ClassicalGamepad.Axis.RT] - axes[ClassicalGamepad.Axis.LT], // TY
+			-axes[ClassicalGamepad.Axis.LEFT_STICK_X], // Ry
+			-axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // Rx
+			axes[ClassicalGamepad.Button.LB] - axes[ClassicalGamepad.Button.RB], // RZ
+			// (buttons[ClassicalGamepad.Button.RB] ? 1 : 0) -
+			// 	(buttons[ClassicalGamepad.Button.LB] ? 1 : 0), // RZ
 			(buttons[ClassicalGamepad.Button.B] ? 1 : 0) -
 				(buttons[ClassicalGamepad.Button.X] ? 1 : 0) +
 				(buttons[ClassicalGamepad.Button.Y] ? 0.1 : 0) -

@@ -20,13 +20,15 @@ class Service {
     public rules: RuleRover[];
     public isMultipleStates: boolean;
     public multipleStates: string[];
+    public mode_for_launching_action: string[];
 
-    constructor(name: string, state: string, rules: RuleRover[], isMultipleStates: boolean) {
+    constructor(name: string, state: string, rules: RuleRover[], isMultipleStates: boolean, mode_for_launching_action: string[]) {
         this.name = name;
         this.state = state;
         this.rules = rules;
         this.isMultipleStates = isMultipleStates;
         this.multipleStates = [];
+        this.mode_for_launching_action = [];
     }
 
     /**
@@ -46,6 +48,10 @@ class Service {
             }
         }
         return true
+    }
+
+    public canLaunchAction(): boolean {
+        return this.mode_for_launching_action.includes(this.state)
     }
 }
 

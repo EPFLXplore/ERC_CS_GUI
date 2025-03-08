@@ -10,7 +10,7 @@ enum States {
 	MANUAL = "Manual",
 	MANUAL_INVERSE = "Manual Inverse",
 	MANUAL_DIRECT = "Manual Direct",
-	AUTO = "Auto",
+	AUTO = "Auto"
 }
 
 export default States;
