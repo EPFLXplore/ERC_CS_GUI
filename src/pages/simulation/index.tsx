@@ -121,12 +121,14 @@ const SimulationPage = () => {
 									: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 									  States.MANUAL_INVERSE
 									? States.MANUAL_INVERSE
-									: States.MANUAL
+									: States.ACKERMANN
 							}
 							selectorCallback={changeMode}
 							visible={
 								stateServices[SubSystems.NAGIVATION].service.state ===
-									States.MANUAL ||
+									States.ACKERMANN ||
+								stateServices[SubSystems.NAGIVATION].service.state ===
+									States.OMNI_DIRECTIONAL ||
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 									States.MANUAL_DIRECT ||
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===

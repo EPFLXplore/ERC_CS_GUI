@@ -49,7 +49,8 @@ import {
 	getDistanceToGoal,
 	getStateFSM,
 	getCurrentHDTask,
-	getCurrentHDCommand
+	getCurrentHDCommand,
+	getTotalJointsCurrent
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -167,7 +168,7 @@ const NewControlPage = () => {
 					<SystemMode
 						system={"Navigation"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
-						modes={[States.AUTO, States.MANUAL, States.OFF]}
+						modes={[States.AUTO, States.ACKERMANN, States.OMNI_DIRECTIONAL, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode, false)}
 					/>
 					<SystemMode
@@ -252,8 +253,9 @@ const NewControlPage = () => {
 								{ info: { name: "Joint 4", value: getJointsCurrent(roverState)[3] }, connected: getJointsStates(roverState)[3] },
 								{ info: { name: "Joint 5", value: getJointsCurrent(roverState)[4] }, connected: getJointsStates(roverState)[4] },
 								{ info: { name: "Joint 6", value: getJointsCurrent(roverState)[5] }, connected: getJointsStates(roverState)[5] },
+								{ info: { name: "Total", value: getTotalJointsCurrent(roverState) }, connected: null },
 							]}
-							unit="mA"
+							unit="A"
 						/>
 						<ControllerInfoBox
 							title="Drill Currents"
@@ -481,12 +483,14 @@ const NewControlPage = () => {
 								: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 									States.MANUAL_INVERSE
 								? States.MANUAL_INVERSE
-								: States.MANUAL
+								: States.ACKERMANN
 						}
 						selectorCallback={changeMode}
 						visible={
 							stateServices[SubSystems.NAGIVATION].service.state ===
-								States.MANUAL ||
+								States.ACKERMANN || 
+							stateServices[SubSystems.NAGIVATION].service.state ===
+								States.OMNI_DIRECTIONAL ||
 							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 								States.MANUAL_DIRECT ||
 							stateServices[SubSystems.HANDLING_DEVICE].service.state ===

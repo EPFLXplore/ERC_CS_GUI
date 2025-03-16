@@ -34,7 +34,7 @@ function ControlModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-						<h1>Jetson NAV/CS</h1>
+						<h1>Jetson NAV</h1>
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
@@ -58,7 +58,7 @@ function ControlModal({
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
-						{CommandsSSH.rpi_drill.map((task) => (
+						{CommandsSSH.drill.map((task) => (
 							<button
 								className={styles.Choice}
 								//@ts-ignore
@@ -71,7 +71,24 @@ function ControlModal({
 				</div>
 
 				<div className={styles.ModalHeader}>
-						<h1>Jetson HD/Rover/Cams</h1>
+						<h1>RPI ROVER</h1>
+				</div>
+				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						{CommandsSSH.rover.map((task) => (
+							<button
+								className={styles.Choice}
+								//@ts-ignore
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name)}
+								>
+									{task.name}
+							</button>
+						))}
+					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+						<h1>Jetson HD</h1>
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>

@@ -35,7 +35,6 @@ function createSSHConnection(req, res) {
             return res.status(500).json({ error: 'SSH command failed' }).end()
         }
         
-        let output = '';
         stream.on('data', (data) => {
           res.write(data.toString());
         });

@@ -22,7 +22,7 @@ const Gamepad = ({
 }: {
 	selectorCallback?: () => void;
 	mode: PublishToType;
-	submode?: States.MANUAL | States.MANUAL_DIRECT | States.MANUAL_INVERSE;
+	submode?: States.ACKERMANN | States.OMNI_DIRECTIONAL | States.MANUAL_DIRECT | States.MANUAL_INVERSE;
 	visible?: boolean;
 	ros: ROSLIB.Ros | null;
 }) => {

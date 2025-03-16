@@ -133,7 +133,7 @@ function useGamepad(
 		}
 	};
 
-	// The function publishes on the topic every 300ms. This value can be changed. 
+	// The function publishes on the topic every 30ms. This value can be changed. 
 	useEffect(() => {
 		if (publisher && frontCameraPublisher && gamepadCommandState === GamepadCommandState.CONTROL) {
 			setIntervalCallback(setInterval(sendCommand, 30));

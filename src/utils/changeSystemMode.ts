@@ -20,7 +20,8 @@ const requestChangeMode = (
 		if (system === SubSystems.NAGIVATION) {
 			request = {
 				system: 0,
-				mode: mode === States.OFF ? 0 : mode === States.MANUAL ? 1 : 2,
+				mode: mode === States.OFF ? 0 : mode === States.ACKERMANN ? 
+				1 : mode === States.OMNI_DIRECTIONAL ? 2 : 3,
 			};
 		} else if (system === SubSystems.HANDLING_DEVICE) {
 			request = {

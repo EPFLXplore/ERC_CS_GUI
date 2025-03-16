@@ -16,7 +16,7 @@ is the stateServices that holds the objects Service.
 const rulesNavigation: RuleRover[] = [
 	{
 		name: SubSystems.DRILL,
-		new_mode: [States.AUTO, States.MANUAL],
+		new_mode: [States.AUTO, States.ACKERMANN, States.OMNI_DIRECTIONAL],
 		state_sys: States.OFF,
 	},
 	{

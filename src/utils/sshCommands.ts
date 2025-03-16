@@ -10,13 +10,6 @@ const RPI_ROVER_DRILL: EndSystem = {
     name: 'RPI Rover/Drill'
 }
 
-// const RPI_CAMS: EndSystem = {
-//     ip: '169.254.55.240',
-//     hostname: 'xplore',
-//     password: 'xplore',
-//     name: 'RPI Cams'
-// }
-
 const JETSON_NAV: EndSystem = {
     ip: '169.254.55.231',
     hostname: 'xplore-nav',
@@ -35,13 +28,13 @@ const JETSON_HD: EndSystem = {
 // and a message will be printed on the screen.
 
 const ActivateRoverNode: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './run_rover.sh']
+    device: RPI_ROVER_DRILL,
+    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_rover.sh']
 };
 
 const ActivateCameraNode: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './run_cameras.sh']
+    device: RPI_ROVER_DRILL,
+    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_cameras.sh']
 };
 
 const ActivateDrillNode: SSHCommands = {
@@ -55,13 +48,13 @@ const StopDrillNode: SSHCommands = {
 };
 
 const StopRoverNode: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
+    device: RPI_ROVER_DRILL,
+    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
 };
 
 const StopCameraNode: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore/Documents/ERC_CS_Rover/docker_humble_jetson', './stop_docker_cameras.sh']
+    device: RPI_ROVER_DRILL,
+    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_cameras.sh']
 };
 
 const ActivateWheelsControl: SSHCommands = {
@@ -87,7 +80,7 @@ const StopHdMotorControl: SSHCommands = {
 };
 
 const CommandsSSH = {
-    "rpi_drill": [
+    "drill": [
     {
         name: "Start Drill Node",
         action: ActivateDrillNode,
@@ -96,18 +89,7 @@ const CommandsSSH = {
         name: "Stop Drill Node",
         action: StopDrillNode,
     }],
-
-    "jetson_nav": [
-    {
-        name: "Start Wheels Control",
-        action: ActivateWheelsControl,
-    },
-    {
-        name: "Stop Wheels Control",
-        action: StopWheelsControl,
-    }],
-
-    "jetson_hd": [
+    "rover": [
     {
         name: "Start Camera Node",
         action: ActivateCameraNode,
@@ -123,7 +105,19 @@ const CommandsSSH = {
     {
         name: "Stop Rover Node",
         action: StopRoverNode,
+    }],
+
+    "jetson_nav": [
+    {
+        name: "Start Wheels Control",
+        action: ActivateWheelsControl,
     },
+    {
+        name: "Stop Wheels Control",
+        action: StopWheelsControl,
+    }],
+
+    "jetson_hd": [
     {
         name: "Start HD Motors",
         action: ActivateHdMotorControl,
@@ -176,29 +170,3 @@ const closeSSH = async (name: string, id: string) => {
 export {executeSSHCommand, ActivateRoverNode, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))
-
-/*
-try {
-      const response = await axios.post('http://your-server.com/execute-command', {
-        host: 'example.com',
-        username: 'user',
-        password: 'password',
-        commands: ['ls', 'pwd'], // Example commands
-      }, {
-        responseType: 'stream', // Important for receiving the response as a stream
-      });
-
-      const reader = response.data.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        setOutput(prevOutput => prevOutput + decoder.decode(value, { stream: true }));
-      }
-    } catch (error) {
-      console.error('Error executing SSH command:', error);
-    }
-  };
-*/

@@ -435,6 +435,10 @@ const getJointsCurrent = (data: any) => {
 	return currents;
 };
 
+const getTotalJointsCurrent = (data: any) => {
+	return Math.round(getJointsCurrent(data).reduce((total, current) => total + current, 0));
+};
+
 const getJointsStates = (data: any) => {
 	if (!data || !data["handling_device"]) {
 		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
@@ -444,7 +448,13 @@ const getJointsStates = (data: any) => {
 	const states = [];
 
 	for (const joint in joints) {
-		states.push(joints[joint]["state"] ? "Connected" : "Disconnected");
+		if(joints[joint]["mode_motor"] === "NotReadyToSwitchOn") {
+			states.push("Disconnected");	
+		} else if(joints[joint]["mode_motor"] === "OperationEnabled") {
+			states.push("Connected");
+		} else {
+			states.push(joints[joint]["mode_motor"]);
+		}
 	}
 
 	return states;
@@ -678,4 +688,5 @@ getMassDrillSensor,
 getDustSensor,
 getForInOneSensor,
 getCurrentHDCommand,
-getCurrentHDTask};
+getCurrentHDTask,
+getTotalJointsCurrent};

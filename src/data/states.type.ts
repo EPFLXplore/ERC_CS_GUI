@@ -7,7 +7,8 @@ Description: Types of states for subsystems. This helps having the same names ev
 enum States {
 	ON = "On",
 	OFF = "Off",
-	MANUAL = "Manual",
+	ACKERMANN = "Ackermann",
+	OMNI_DIRECTIONAL = "Omni Directional",
 	MANUAL_INVERSE = "Manual Inverse",
 	MANUAL_DIRECT = "Manual Direct",
 	AUTO = "Auto"

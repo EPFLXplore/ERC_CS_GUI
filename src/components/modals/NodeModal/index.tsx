@@ -1,3 +1,4 @@
+import SubSystems from "../../../data/subsystems.type";
 import styles from "./style.module.sass";
 import ROSLIB from "roslib";
 
@@ -46,6 +47,23 @@ function NodeModal({
 							</div>
 						</div>
 					)) : <p>NO DATA</p>}
+
+{
+					//@ts-ignore
+					name == SubSystems.ROVER ?  
+					//@ts-ignore
+					Object.values(roverState['cameras']["control_station"]).map((el: any) => (
+						<div className={styles.ChoiceGroup}>
+							<div
+								className={`${styles.Choice} ${
+									//@ts-ignore
+									el['status'] ? styles.Selected : ""
+								}`}
+							>
+								{el['name']}
+							</div>
+						</div>
+					)) : null}
 				</div>
             </div>
 		</div>

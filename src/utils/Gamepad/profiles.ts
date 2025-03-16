@@ -21,24 +21,24 @@ const computeNavigationCommandClassicGamepad = (
 ): { buttons: number[]; axes: number[] } => {
 	return {
 		axes: [
-			axes[ClassicalGamepad.Axis.LEFT_STICK_X], // Left/Right
-			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // Up/Down
-			axes[ClassicalGamepad.Axis.LT], // Throttle backward
+			axes[ClassicalGamepad.Axis.LEFT_STICK_X], // NORMAL MODE: LEFT/RIGHT | LATERAL: NOTHING
+			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // NORMAL MODE: Up/Down | LATERAL: MOVE FORWARD AND BACKWARD
+			axes[ClassicalGamepad.Axis.LT], // NORMAL MODE: BACKWARD | LATERAL: NOTHING
+			axes[ClassicalGamepad.Axis.RIGHT_STICK_Y], // NORMAL MODE: NOTHING | LATERAL: LEFT/RIGHT
 			0,
-			0,
-			axes[ClassicalGamepad.Axis.RT], // Throttle forward
+			axes[ClassicalGamepad.Axis.RT], // NORMAL MODE: FORWARD | LATERAL: NOTHING
 			0,
 			0,
 		],
 		buttons: [
-			buttons[ClassicalGamepad.Button.A] ? 1 : 0, // Change of Kinematics
-			buttons[ClassicalGamepad.Button.X] ? 1 : 0, // Change of Mode Subsystem
+			0,
+			buttons[ClassicalGamepad.Button.X] ? 1 : 0, // Change of Mode
 			0,
 			buttons[ClassicalGamepad.Button.LEFT] ? 1 : 0, // Slide left
 			buttons[ClassicalGamepad.Button.RIGHT] ? 1 : 0, // Slide right
 			0,
 			0,
-			buttons[ClassicalGamepad.Button.LEFT_STICK] ? 1 : 0 // Press left joystick
+			buttons[ClassicalGamepad.Button.LEFT_STICK] ? 1 : 0 // Press left joystick for crab mode
 		],
 	};
 };
@@ -107,7 +107,7 @@ const computeInverseArmCommandClassicGamepad = (
 			axes[ClassicalGamepad.Axis.RT] - axes[ClassicalGamepad.Axis.LT], // TY
 			-axes[ClassicalGamepad.Axis.LEFT_STICK_X], // Ry
 			-axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // Rx
-			axes[ClassicalGamepad.Button.LB] - axes[ClassicalGamepad.Button.RB], // RZ
+			-axes[ClassicalGamepad.Button.LB] + axes[ClassicalGamepad.Button.RB], // RZ
 			// (buttons[ClassicalGamepad.Button.RB] ? 1 : 0) -
 			// 	(buttons[ClassicalGamepad.Button.LB] ? 1 : 0), // RZ
 			(buttons[ClassicalGamepad.Button.B] ? 1 : 0) -

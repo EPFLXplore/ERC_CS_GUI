@@ -1,6 +1,8 @@
 import { roundToTwoDecimals } from "../../../utils/maths";
 import styles from "./style.module.sass";
 import RosNodesButton from "../../Controls/RosNodesButton";
+import HDMotorStates from "../../../data/HDMotorStates.types";
+import { Hd } from "@mui/icons-material";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -64,17 +66,24 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 				<h3 className={styles.infosTitle}>{title}</h3>
 				<div className={styles.infoArrangementController}>
 					{infos.map((info, index) => {
-						const value =
-							typeof info.info.value === "number"
-								? roundToTwoDecimals(info.info.value)
-								: info.info.value;
+						// const value =
+						// 	typeof info.info.value === "number"
+						// 		? roundToTwoDecimals(info.info.value)
+						// 		: info.info.value;
 						return (
 							<div className={styles.info} key={index}>
 								<p className={styles.infoName}>{info.info.name}</p>
+								
 								{(info.connected === "NO DATA" || info.connected === "Disconnected") ?
 									<p className={styles.infoNameColoredRed}>{info.connected}</p>
-								: info.connected === "Fault!" ? <p className={styles.infoNameFault}>{info.connected}</p>
-								: <p className={styles.infoNameColoredGreen}>{info.connected}</p>}
+
+								: (info.connected === HDMotorStates.Fault || info.connected === HDMotorStates.FaultReactionActive) ? 
+								<p className={styles.infoNameFault}>{info.connected}</p>
+
+								: (info.connected === "Connected") ? 
+									<p className={styles.infoNameColoredGreen}>{info.connected}</p>
+
+								: <p className={styles.infoNameWeirdState}>{info.connected}</p>}
 								<p className={styles.infoValueController}>{`${info.info.value} 
 								${unit ?? (info.info.unit ?? "")}`}</p>
 							</div>
