@@ -314,6 +314,14 @@ function ArmGoalModal({
 						>
 							Pick Probe
 						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Drop Samples" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Drop Samples", msg: "drop sample" })}
+						>
+							Pick Probe
+						</button>
 					</div>
 				</div>
 

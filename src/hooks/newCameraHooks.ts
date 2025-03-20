@@ -117,7 +117,8 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 
 				return {
 					x: result.x,
-					y: result.y
+					y: result.y,
+					success: true
 				};
 			})
 		}
