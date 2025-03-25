@@ -66,10 +66,6 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 				<h3 className={styles.infosTitle}>{title}</h3>
 				<div className={styles.infoArrangementController}>
 					{infos.map((info, index) => {
-						// const value =
-						// 	typeof info.info.value === "number"
-						// 		? roundToTwoDecimals(info.info.value)
-						// 		: info.info.value;
 						return (
 							<div className={styles.info} key={index}>
 								<p className={styles.infoName}>{info.info.name}</p>

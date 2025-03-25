@@ -41,7 +41,6 @@ const RobotVisual = ({
 	armJointAngles,
 	wheelsSteeringAngle,
 	wheelsDrivingValue,
-	pivotAngle,
 	position,
 	rotation,
 	terrainRef,
@@ -50,7 +49,6 @@ const RobotVisual = ({
 	armJointAngles: number[];
 	wheelsSteeringAngle: number[];
 	wheelsDrivingValue: number[];
-	pivotAngle: number;
 	position: Point2D;
 	rotation: Point3D;
 	terrainRef: React.MutableRefObject<THREE.Object3D | undefined>;
@@ -158,10 +156,6 @@ const RobotVisual = ({
 
 		// Set the drill depth value
 		robot.joints[`drill_module`].setJointValue(mapRangeDrill(drill_value))
-
-		// Set pivot angle
-		robot.joints["pivot_right"].setJointValue(THREE.MathUtils.degToRad(pivotAngle));
-		robot.joints["pivot_left"].setJointValue(THREE.MathUtils.degToRad(-pivotAngle));
 	});
 
 	useEffect(() => {

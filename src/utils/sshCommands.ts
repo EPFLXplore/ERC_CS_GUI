@@ -38,13 +38,13 @@ const ActivateCameraNode: SSHCommands = {
 };
 
 const ActivateDrillNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_SC_Drill/docker_humble_jetson', './run_drill.sh']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './run_drill.sh']
 };
 
 const StopDrillNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['docker stop sc_humble_jetson']
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './stop_docker_drill.sh']
 };
 
 const StopRoverNode: SSHCommands = {

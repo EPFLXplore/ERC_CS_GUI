@@ -15,7 +15,6 @@ import {
 	getCurrentPosition,
 	getJointsPositions,
 	getMotorModule,
-	getPivotAngle,
 	getSteeringAngles,
 	getTrajectory,
 	getWheelsDrivingValue
@@ -103,7 +102,6 @@ const SimulationPage = () => {
 						armJointAngles={getJointsPositions(roverState)}
 						wheelsSteeringAngle={getSteeringAngles(roverState)}
 						wheelsDrivingValue={getWheelsDrivingValue(roverState)}
-						pivotAngle={getPivotAngle(roverState)}
 						point={point}
 						setPoint={setPoint}
 						roverPosition={getCurrentPosition(roverState)}

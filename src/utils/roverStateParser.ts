@@ -36,23 +36,24 @@ const getNodes = (data: any) => {
 	return result
 }
 
+
 const getNetworkData = (data: any) => {
 	if (!data || !data['rover']) {
-		return ["NO DATA", "NO DATA", "NO DATA", []];
+		return ["NO DATA"];
 	}
 
+	/*
 	let devices_connected = ["No device connected"]
 	if (data['rover']["network"]["connected_devices"].length != 0) {
 		devices_connected = data['rover']["network"]["connected_devices"]
 	}
+	*/
 
 	return {
-		main_ip: data['rover']["network"]["ipv4"],
-		main_mac: data['rover']["network"]["mac"],
 		signal_strength: Number(data['rover']["network"]["signal_strength"]),
-		devices: devices_connected
 	}
 }
+
 
 const getStateSystem = (data: any, system: SubSystems) => {
 	if (!data || !data[system]) {
@@ -342,20 +343,6 @@ const getTrajectory = (data: any) => {
 	);
 };
 
-/**
- * Get the angle of the pivot wheel of the rover.
- * @param data The rover state data.
- * @returns The angle of the pivot wheel in degrees.
- * 
- * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
- */
-const getPivotAngle = (data: any) => {
-	if (!data || !data["navigation"]) {
-		return 0;
-	}
-
-	return Number(data["navigation"]["wheels"]["pivot"]["angle"]);
-};
 
 /**
  * Get the current position of the rover.
@@ -422,7 +409,7 @@ const getJointsPositions = (data: any) => {
 
 const getJointsCurrent = (data: any) => {
 	if (!data || !data["handling_device"]) {
-		return [0, 0, 0, 0, 0, 0];
+		return [0, 0, 0, 0, 0, 0, 0];
 	}
 
 	const joints = data["handling_device"]["joints"];
@@ -441,7 +428,7 @@ const getTotalJointsCurrent = (data: any) => {
 
 const getJointsStates = (data: any) => {
 	if (!data || !data["handling_device"]) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
+		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
 	}
 
 	const joints = data["handling_device"]["joints"];
@@ -460,49 +447,19 @@ const getJointsStates = (data: any) => {
 	return states;
 };
 
-const getJointsModeMotors = (data: any) => {
-	if (!data || !data["handling_device"]) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
-	}
-
-	const joints = data["handling_device"]["joints"];
-	const states = [];
-
-	for (const joint in joints) {
-		states.push(joints[joint]["mode_motor"]);
-	}
-
-	return states;
-};
-
-const getGripperPosition = (data: any) => {
-	if(!data || !data['rover']) {
-		return {
-			x: 0, y: 0, z: 0
-		}
-	}
-
-	return {
-		x: Number(data['handling_device']['gripper']['position']['x']),
-		y: Number(data['handling_device']['gripper']['position']['y']),
-		z: Number(data['handling_device']['gripper']['position']['z'])
-	}
-};
-
-const getAngleGripper = (data: any) => {
-	if(!data || !data['rover']) {
-		return "NO DATA"
-	}
-
-	return Number(data['handling_device']['gripper']['angle'])
-}
-
 const getTorqueGripper = (data: any) => {
 	if(!data || !data['rover']) {
 		return "NO DATA"
 	}
 
-	return Number(data['handling_device']['gripper']['torque'])
+	// 0.00416: torque constant of motor
+	// 243: gear ratio
+	// 0.65: gearbox efficiency
+	// 0.5: gripper external reduction
+	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
+
+	// see if this works
+	return Number(data["handling_device"]["joints"][6]["torque"])
 }
 
 const getCurrentHDTask = (data: any) => {
@@ -525,6 +482,14 @@ const getCurrentHDCommand = (data: any) => {
 
 const BATTERY_MAX_VOLTAGE = 27.8;
 const BATTERY_MIN_VOLTAGE = 23;
+
+const getBatteryState = (data: any) => {
+	if (!data || !data["electronics"]) {
+		return "NO DATA";
+	}
+
+	return data["electronics"]["power"]["state"]
+}
 
 /**
  * Get the battery level of the rover.
@@ -654,7 +619,6 @@ export {
 	getStateSystem,
 	getJointsPositions,
 	getSteeringAngles,
-	getPivotAngle,
 	getCurrentPosition,
 	getCurrentOrientation,
 	getBatteryLevel,
@@ -689,4 +653,7 @@ getDustSensor,
 getForInOneSensor,
 getCurrentHDCommand,
 getCurrentHDTask,
-getTotalJointsCurrent};
+getTotalJointsCurrent,
+getBatteryState,
+getTorqueGripper
+};

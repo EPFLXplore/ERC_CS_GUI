@@ -30,7 +30,6 @@ const Simulation = ({
 	armJointAngles,
 	wheelsSteeringAngle,
 	wheelsDrivingValue,
-	pivotAngle,
 	point,
 	setPoint,
 	roverPosition,
@@ -43,7 +42,6 @@ const Simulation = ({
 	armJointAngles: number[];
 	wheelsSteeringAngle: number[];
 	wheelsDrivingValue: number[];
-	pivotAngle: number;
 	point: { x: number; y: number };
 	setPoint: (point: Point2D) => void;
 	roverPosition: Point2D;
@@ -83,7 +81,6 @@ const Simulation = ({
 					armJointAngles={armJointAngles}
 					wheelsSteeringAngle={wheelsSteeringAngle}
 					wheelsDrivingValue={wheelsDrivingValue}
-					pivotAngle={pivotAngle}
 					position={roverPosition}
 					rotation={roverRotation}
 					terrainRef={terrainRef}

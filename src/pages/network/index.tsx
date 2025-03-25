@@ -62,6 +62,7 @@ const NetworkPage = () => {
 				<img src={logo} className={styles.logo} alt="Logo Xplore" />
 			</div>
 
+		
     	<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', marginRight: '30px', marginLeft : '125px'}}>
         {/* Signal Caracteristics */}
         <TableContainer className={styles.RightTable}>
@@ -72,21 +73,21 @@ const NetworkPage = () => {
                 <TableCell sx={{color: 'white'}} align="center">Signal Strength</TableCell>
                 <TableCell sx={{color: 'white'}} align="center"> {
 				//@ts-ignore	
-				getNetworkData(roverState)['signal_strength']
+				//getNetworkData(roverState)['signal_strength']
 				}</TableCell>
               	</TableRow>
 				<TableRow>
                 <TableCell sx={{color: 'white'}} align="center">Main IP</TableCell>
                 <TableCell sx={{color: 'white'}} align="center"> {
 				//@ts-ignore	
-				getNetworkData(roverState)['ipv4']
+				//getNetworkData(roverState)['ipv4']
 				}</TableCell>
               	</TableRow>
 				<TableRow>
                 <TableCell sx={{color: 'white'}} align="center">Main MAC</TableCell>
-                <TableCell sx={{color: 'white'}} align="center"> {
+                {/* <TableCell sx={{color: 'white'}} align="center"> {
 				//@ts-ignore	
-				getNetworkData(roverState)['mac']}</TableCell>
+				getNetworkData(roverState)['mac']}</TableCell> */}
               	</TableRow>
             </TableBody>
           </Table>
@@ -103,13 +104,13 @@ const NetworkPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-			{Array.isArray(networkData) ? networkData[3] : networkData.devices.map((dev: any, index: number) => (
+			{/* {Array.isArray(networkData) ? networkData[3] : networkData.devices.map((dev: any, index: number) => (
               <TableRow>
                 <TableCell sx={{color: 'white'}} align="center">{dev.device}
 				</TableCell>
                 <TableCell sx={{color: 'white'}} align="center">{dev.time}</TableCell>
               </TableRow>
-			))}
+			))} */}
             </TableBody>
           </Table>
         </TableContainer>
@@ -129,14 +130,14 @@ const NetworkPage = () => {
 					</TableRow>
 					</TableHead>
 					<TableBody>
-						{getLogs(roverState).map((log: any, index: number) => (
+						{/* {getLogs(roverState).map((log: any, index: number) => (
 							<TableRow>
 							<TableCell  sx={{color: 'white'}} align="right"> {log.id} </TableCell>
 							<TableCell  sx={{color: 'white'}} align="right">{log.topics}</TableCell>
 							<TableCell  sx={{color: 'white'}} align="right">{log.time}</TableCell>
 							<TableCell  sx={{color: 'white'}} align="right">{log.message}</TableCell>
 							</TableRow>
-						))}
+						))} */}
 					</TableBody>
 				</Table>
 				</div>

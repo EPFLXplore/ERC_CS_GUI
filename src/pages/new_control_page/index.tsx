@@ -29,7 +29,6 @@ import {
 	getCurrentPosition,
 	getNetworkData,
 	getJointsPositions,
-	getPivotAngle,
 	getSteeringAngles,
 	getTrajectory,
 	getMotorDrill,
@@ -50,7 +49,10 @@ import {
 	getStateFSM,
 	getCurrentHDTask,
 	getCurrentHDCommand,
-	getTotalJointsCurrent
+	getTotalJointsCurrent,
+	getBatteryState,
+	getTorqueGripper
+	
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
@@ -195,7 +197,7 @@ const NewControlPage = () => {
 				/>
 				<Header
 					//@ts-ignore
-					wifiLevel={getNetworkData(roverState).signal_strength}
+					wifiLevel={getNetworkData(roverState)}
 					battery={getBatteryLevel(roverState)}
 				/>
 			</div>
@@ -288,7 +290,7 @@ const NewControlPage = () => {
 							unit="°"
 						/>
 						<InfoBox
-							title="Joints Angles"
+							title="Joints HD"
 							infos={[
 								{ name: "Joint 1", value: getJointsPositions(roverState)[0] },
 								{ name: "Joint 2", value: getJointsPositions(roverState)[1] },
@@ -296,27 +298,10 @@ const NewControlPage = () => {
 								{ name: "Joint 4", value: getJointsPositions(roverState)[3] },
 								{ name: "Joint 5", value: getJointsPositions(roverState)[4] },
 								{ name: "Joint 6", value: getJointsPositions(roverState)[5] },
+								{ name: "Gripper", value: getJointsPositions(roverState)[6] },
+								{ name: "G. Torque", value: getTorqueGripper(roverState), unit: "N/m" },
 							]}
 							unit="°"
-						/>
-						<InfoBox
-							title="Drill Data"
-							infos={[
-								{
-									name: "Height",
-									value: getMotorModule(roverState).position,
-									unit: "%"
-								},
-								{
-									name: "Velocity",
-									value: getMotorDrill(roverState).speed,
-									unit: "rpm"
-								},
-								{
-									name: "FSM State",
-									value: getStateFSM(roverState),
-								}
-							]}
 						/>
 					</div>
 					<div className={styles.infosMidLeft2}>
@@ -325,22 +310,19 @@ const NewControlPage = () => {
 							infos={[
 								{ name: "Current", value: getCurrentOutput(roverState), unit: "A"},
 								{ name: "Battery Level", value: getBatteryLevel(roverState), unit: "V"},
+								{ name: "Battery State", value: getBatteryState(roverState)},
 							]}
 						/>
 						<InfoBox
-							title="Science Sensors"
+							title="Sensors"
 							infos={[
-								{ name: "Sensor 1", value: "NO DATA" },
-								{ name: "Sensor 2", value: "NO DATA" },
+								{ name: "Dust", value: "NO DATA" },
+								{ name: "pH", value: "NO DATA" },
+								{ name: "Temperature", value: "NO DATA" },
+								{ name: "Moisture", value: "NO DATA" },
+								{ name: "Mass Drill", value: "NO DATA" },
+								{ name: "Mass HD", value: "NO DATA" }
 							]}
-						/>
-						<InfoBox
-							title="Pivot Angle"
-							infos={[
-								{ name: "Left", value: getPivotAngle(roverState) },
-								{ name: "Right", value: getPivotAngle(roverState) },
-							]}
-							unit="°"
 						/>
 					</div>
 					<div className={styles.infosMidRight}>
@@ -390,6 +372,25 @@ const NewControlPage = () => {
 									{ name: "Command", value: getCurrentHDCommand(roverState) },
 								]}
 							/>
+						<InfoBox
+							title="Drill Data"
+							infos={[
+								{
+									name: "Height",
+									value: getMotorModule(roverState).position,
+									unit: "%"
+								},
+								{
+									name: "Velocity",
+									value: getMotorDrill(roverState).speed,
+									unit: "rpm"
+								},
+								{
+									name: "FSM State",
+									value: getStateFSM(roverState),
+								}
+							]}
+						/>
 
 					</div>
 					<div className={styles.infosRight}>
