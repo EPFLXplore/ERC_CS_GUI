@@ -58,7 +58,7 @@ function useService(
 			service: new Service(
 				SubSystems.NAGIVATION,
 				!roverState["rover"]
-					? "Ackermann"
+					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"],
 				rulesNavigation,
 				false,
