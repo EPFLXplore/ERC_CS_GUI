@@ -261,6 +261,8 @@ const useRoverControls = (
 		setManualMode((old) => {
 			if (old === PublishTo.NAVIGATION) {
 				return PublishTo.HANDLING_DEVICE;
+			} else if (old === PublishTo.HANDLING_DEVICE) {
+				return PublishTo.CAMERA_NAV;
 			} else {
 				return PublishTo.NAVIGATION;
 			}

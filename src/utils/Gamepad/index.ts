@@ -277,7 +277,6 @@ class GamepadController {
 		callback: (e: CustomEvent) => void
 	): void {
 		if (event === "gamepadButtonPressed") {
-			console.log("Adding gamepadButtonPressed event listener", button);
 			// @ts-ignore
 			window.addEventListener("gamepadButtonPressed", (e: CustomEvent) => {
 				if (button === e.detail.buttonIndex) {

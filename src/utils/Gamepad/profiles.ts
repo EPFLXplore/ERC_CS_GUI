@@ -125,7 +125,7 @@ const computeCameraClassicGamepad = (
 ): { buttons: number[]; axes: number[] } => {
 	return {
 		axes: [
-			axes[ClassicalGamepad.Axis.LEFT_STICK_X], // for new, it's just the front camera
+			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // for new, it's just the front camera
 			0,
 			0,
 			0,

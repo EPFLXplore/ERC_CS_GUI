@@ -46,22 +46,6 @@ function useGamepad(
 
 		GamepadController.addGamepadListener(
 			"gamepadButtonPressed",
-			ClassicalGamepad.Button.BACK,
-			() => {
-				console.log("Gamepad Command: Start Sending");
-				setGamepadCommandState((prev) => {
-					if (
-						prev === GamepadCommandState.UI &&
-						(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)
-					)
-						return GamepadCommandState.CONTROL;
-					else return GamepadCommandState.UI;
-				});
-			}
-		);
-
-		GamepadController.addGamepadListener(
-			"gamepadButtonPressed",
 			ClassicalGamepad.Button.START,
 			() => {
 				selectorCallback?.();
@@ -69,6 +53,21 @@ function useGamepad(
 		);
 		
 	}, []);
+
+	GamepadController.addGamepadListener(
+		"gamepadButtonPressed",
+		ClassicalGamepad.Button.BACK,
+		() => {
+			setGamepadCommandState((prev) => {
+				if (
+					prev === GamepadCommandState.UI &&
+					(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE || mode === PublishTo.CAMERA_NAV)
+				)
+					return GamepadCommandState.CONTROL;
+				else return GamepadCommandState.UI;
+			});
+		}
+	);
 
 	// Create the publisher for Navigation and Handling devices Subsystems
 	useEffect(() => {
@@ -86,13 +85,16 @@ function useGamepad(
 			setFrontCameraPublisher(new ROSLIB.Topic<any>({
 				ros: ros,
 				name: Topics.CHANGE_ANGLE_FRONT_CAMERA,
-				messageType: "std_msgs/msg/---",
+				messageType: "sensor_msgs/Joy",
 			}))
 		}
 
 		return () => {
 			if (publisher) {
 				publisher.unadvertise();
+			}
+			if (frontCameraPublisher) {
+				frontCameraPublisher.unadvertise();
 			}
 		};
 	}, [ros, mode]);
@@ -127,7 +129,7 @@ function useGamepad(
 			} else if(mode == PublishTo.CAMERA_NAV) {
 				if (frontCameraPublisher) {
 					const message = gamepad.handleAngleFrontCamera(gamepadState.buttons, gamepadState.axes);
-					frontCameraPublisher.publish(message);
+					frontCameraPublisher.publish(message)
 				}
 			}
 		}
