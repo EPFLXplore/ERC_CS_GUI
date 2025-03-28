@@ -102,6 +102,7 @@ const NewControlPage = () => {
 		setRosModalOpen,
 		modalRosNodes,
 		setModalRosNodes,
+		changeSpeedRover
 	] = useRoverControls(ros, showSnackbar);
 
 	const [, , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
@@ -133,6 +134,7 @@ const NewControlPage = () => {
 						showSnackbar,
 						startService,
 						hdConfirmation,
+						changeSpeedRover,
 						ros
 					)
 				);
@@ -516,6 +518,7 @@ const selectModal = (
 	showSnackbar: (severity: AlertColor, message: string) => void,
 	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
 	resetHdConfirmation: ((value: boolean) => void) | null,
+	changeSpeedRover: (value: number) => void,
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
@@ -555,6 +558,7 @@ const selectModal = (
 			return (
 				<NavigationGoalModal
 					ros={ros}
+					setSpeedRoverService={changeSpeedRover}
 					snackBar={showSnackbar}
 					onResetFaults={resetFaults}
 					onResetHome={resetHome}

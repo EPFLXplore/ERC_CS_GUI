@@ -60,6 +60,17 @@ const useRoverControls = (
 		["cancel"]: false,
 	});
 
+	let changeSpeedTopic: ROSLIB.Topic<{ data: number }> | null = null;
+
+	// Navigation
+	if(ros) {
+		changeSpeedTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.CHANGE_SPEED_ROVER,
+			messageType: "std_msgs/Float32",
+		})
+	}
+
 	// Panels of Control for ROS nodes. Which one is open on the control page
 	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
 	const [rosModalOpen, setRosModalOpen] = useState<typeModal>({
@@ -295,9 +306,16 @@ const useRoverControls = (
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
-	// HD CONTROL PANEL FUNCTIONS
+	// NAV CONTROL PANEL FUNCTIONS
 
-	
+	const changeSpeedRover = (speed: number) => {
+		if(ros) {
+			const object = {
+				data: speed
+			}
+			changeSpeedTopic?.publish(object)
+		}
+	} 
 
 	return [
 		roverState,
@@ -330,6 +348,7 @@ const useRoverControls = (
 		setRosModalOpen,
 		modalRosNodes,
 		setModalRosNodes,
+		changeSpeedRover
 	] as const;
 };
 

@@ -13,9 +13,10 @@ Year: 2023
 Description: Navigation Modal. You can send a nav2 position goal by writing the coordinates.
 */
 
-function ArmGoalModal({
+function NavigationGoalModal({
 	ros,
 	onSetGoal,
+	setSpeedRoverService,
 	onClose,
 	onCancelGoal,
 	onResetFaults,
@@ -26,6 +27,7 @@ function ArmGoalModal({
 }: {
 	ros: ROSLIB.Ros | null,
 	onSetGoal: (system: string, actionArgs: Object) => void;
+	setSpeedRoverService: (value: number) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	onResetFaults: (ros: ROSLIB.Ros | null, subsystem: string, snackBar: (severity: AlertColor, message: string) => void) => void;
@@ -38,6 +40,14 @@ function ArmGoalModal({
 	const [xCord, setXCord] = React.useState(roundToTwoDecimals(pointOnTerrain.x, 2));
 	const [yCord, setYCord] = React.useState(roundToTwoDecimals(pointOnTerrain.y, 2));
 	const [orientation, setOrientation] = React.useState(0);
+	const [speedRover, setSpeedRover] = React.useState<number>(0.7);
+
+	const handleClick = () => {
+		if (speedRover <= 0.5) return;
+		setSpeedRoverService(speedRover)
+		onClose()
+		snackBar("success", "Set Speed Rover to " + speedRover)
+	}
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -47,6 +57,7 @@ function ArmGoalModal({
 					e.stopPropagation();
 				}}
 			>
+
 				<div className={styles.ModalHeader}>
 					<h1>Set Goal</h1>
 				</div>
@@ -125,9 +136,23 @@ function ArmGoalModal({
 						Reset Home
 					</button>
 				</div>
+
+				<div className={styles.ModalHeader}>
+					<h1>Speed Rover</h1>
+				</div>
+				<div className={styles.ModalContent}>
+
+				<input
+					type="number"
+					value={speedRover}
+					onChange={(e) => setSpeedRover(parseFloat(e.target.value))}
+					placeholder="Enter a number"
+				/>
+				<button onClick={handleClick}>Submit</button>
+				</div>
 			</div>
 		</div>
 	);
 }
 
-export default ArmGoalModal;
+export default NavigationGoalModal;

@@ -4,6 +4,7 @@ export enum Topics {
     NAVIGATION_GAMEPAD_PUBLISHER = "/CS/GamepadCmdsNavigation",
     HANDLING_DEVICE_GAMEPAD_PUBLISHER = "/CS/GamepadCmdsHandlingDevice",
     CHANGE_ANGLE_FRONT_CAMERA = "/CS/ChangeAngleFrontCamera",
+    CHANGE_SPEED_ROVER = "/CS/ChangeSpeedRover",
 
     // Service
     CHANGE_MODE_CAMERA_SRV = "/CS/ChangeModeCamera",
