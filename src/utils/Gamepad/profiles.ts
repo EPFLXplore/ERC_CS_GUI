@@ -1,3 +1,4 @@
+import { Class } from "@mui/icons-material";
 import { ClassicalGamepad, DeviceProfile } from "./bindings";
 
 ////////////////////////// BINDINGS FOR CLASSICAL GAMEPADS //////////////////////////
@@ -125,7 +126,7 @@ const computeCameraClassicGamepad = (
 ): { buttons: number[]; axes: number[] } => {
 	return {
 		axes: [
-			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // for new, it's just the front camera
+			0,
 			0,
 			0,
 			0,
@@ -134,7 +135,16 @@ const computeCameraClassicGamepad = (
 			0,
 			0
 		],
-		buttons: [],
+		buttons: [
+			buttons[ClassicalGamepad.Button.UP] ? 1 : 0,
+			buttons[ClassicalGamepad.Button.DOWN] ? -1 : 0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		],
 	};
 };
 
