@@ -123,32 +123,42 @@ function NavigationGoalModal({
 					<h1>Reset Faults and Home</h1>
 				</div>
 				<div className={styles.ModalContent}>
+				{/* Wrap the buttons in .ResetSection for nice spacing */}
+				<div className={styles.ResetSection}>
 					<button
-						className={styles.Choice}
-						onClick={() => onResetFaults(ros, SubSystems.NAGIVATION, snackBar)}
+					className={styles.Choice}
+					onClick={() => onResetFaults(ros, SubSystems.NAGIVATION, snackBar)}
 					>
-						Reset Faults
+					Reset Faults
 					</button>
 					<button
-						className={styles.Choice}
-						onClick={() => onResetHome(ros, SubSystems.NAGIVATION, snackBar)}
+					className={styles.Choice}
+					onClick={() => onResetHome(ros, SubSystems.NAGIVATION, snackBar)}
 					>
-						Reset Home
+					Reset Home
 					</button>
+				</div>
 				</div>
 
 				<div className={styles.ModalHeader}>
 					<h1>Speed Rover</h1>
 				</div>
 				<div className={styles.ModalContent}>
-
-				<input
+				<div className={styles.SpeedRoverSection}>
+					<input
 					type="number"
+					className={styles.SpeedRoverInput}
 					value={speedRover}
 					onChange={(e) => setSpeedRover(parseFloat(e.target.value))}
 					placeholder="Enter a number"
-				/>
-				<button onClick={handleClick}>Submit</button>
+					/>
+					<button
+					className={styles.SpeedRoverButton}
+					onClick={handleClick}
+					>
+					Submit
+					</button>
+				</div>
 				</div>
 			</div>
 		</div>
