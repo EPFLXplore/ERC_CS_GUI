@@ -12,12 +12,19 @@ const ImageRockDisplay: React.FC<ImageDisplayProps> = ({ imageData, setCoordinat
 
     const handleClick = (event: React.MouseEvent<HTMLImageElement, MouseEvent>) => {
       if (!imgRef.current) return;
-  
+    
       const rect = imgRef.current.getBoundingClientRect();
-      const x = event.clientX - rect.left; // X-coordinate relative to image
-      const y = event.clientY - rect.top; // Y-coordinate relative to image
-  
-      console.log("Clicked coordinates:", { x, y });
+      const naturalWidth = imgRef.current.naturalWidth;
+      const naturalHeight = imgRef.current.naturalHeight;
+      const displayWidth = rect.width;
+      const displayHeight = rect.height;
+    
+      const scaleX = naturalWidth / displayWidth;
+      const scaleY = naturalHeight / displayHeight;
+    
+      const x = Math.round((event.clientX - rect.left) * scaleX);
+      const y = Math.round((event.clientY - rect.top) * scaleY);
+    
       setCoordinates(x, y);
       onClose();
     };

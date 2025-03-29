@@ -39,7 +39,7 @@ const getNodes = (data: any) => {
 
 const getNetworkData = (data: any) => {
 	if (!data || !data['rover']) {
-		return ["NO DATA"];
+		return "NO DATA";
 	}
 
 	/*
@@ -49,9 +49,8 @@ const getNetworkData = (data: any) => {
 	}
 	*/
 
-	return {
-		signal_strength: Number(data['rover']["network"]["signal_strength"]),
-	}
+	return Number(data['rover']["network"]["signal_strength"])
+	
 }
 
 
@@ -394,7 +393,7 @@ const getCurrentOrientation = (data: any) => {
  */
 const getJointsPositions = (data: any) => {
 	if (!data || !data["handling_device"]) {
-		return [90, 90, 90, 0, 0, 0];
+		return [0, 0, 0, 0, 0, 0];
 	}
 
 	const joints = data["handling_device"]["joints"];
@@ -459,7 +458,8 @@ const getTorqueGripper = (data: any) => {
 	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
 
 	// see if this works
-	return Number(data["handling_device"]["joints"][6]["torque"])
+	//return Number(data["handling_device"]["joints"][6]["torque"])
+	return 1
 }
 
 const getCurrentHDTask = (data: any) => {
