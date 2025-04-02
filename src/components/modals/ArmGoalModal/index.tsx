@@ -318,9 +318,25 @@ function ArmGoalModal({
 							className={`${styles.Choice} ${
 								task?.name === "Drop Samples" ? styles.Selected : ""
 							}`}
-							onClick={() => setTask({ name: "Drop Samples", msg: "drop sample" })}
+							onClick={() => setTask({ name: "Drop Samples", msg: "drop" })}
 						>
-							Pick Probe
+							Drop Sample
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Approch ArUco" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Approch ArUco", msg: "aruco_approach" })}
+						>
+							Approach Aruco
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Rangement" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Rangement", msg: "rangement" })}
+						>
+							Rangement
 						</button>
 					</div>
 				</div>
