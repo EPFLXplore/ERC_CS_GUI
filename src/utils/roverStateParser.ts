@@ -448,18 +448,17 @@ const getJointsStates = (data: any) => {
 
 const getTorqueGripper = (data: any) => {
 	if(!data || !data['rover']) {
-		return "NO DATA"
+		return "0"
 	}
 
 	// 0.00416: torque constant of motor
 	// 243: gear ratio
 	// 0.65: gearbox efficiency
 	// 0.5: gripper external reduction
+	// More accurate value for the torque of the gripper
 	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
 
-	// see if this works
-	//return Number(data["handling_device"]["joints"][6]["torque"])
-	return 1
+	return (Number(data["handling_device"]["joints"][6]["current"]) * factor_conversion_to_torque).toFixed(2)
 }
 
 const getCurrentHDTask = (data: any) => {

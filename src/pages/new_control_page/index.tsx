@@ -294,16 +294,14 @@ const NewControlPage = () => {
 						<InfoBox
 							title="Joints HD"
 							infos={[
-								{ name: "Joint 1", value: getJointsPositions(roverState)[0] },
-								{ name: "Joint 2", value: getJointsPositions(roverState)[1] },
-								{ name: "Joint 3", value: getJointsPositions(roverState)[2] },
-								{ name: "Joint 4", value: getJointsPositions(roverState)[3] },
-								{ name: "Joint 5", value: getJointsPositions(roverState)[4] },
-								{ name: "Joint 6", value: getJointsPositions(roverState)[5] },
-								{ name: "Gripper", value: getJointsPositions(roverState)[6] },
-								{ name: "G. Torque", value: getTorqueGripper(roverState), unit: "N/m" },
+								{ name: "Joint 1", value: getJointsPositions(roverState)[0], unit:"°" },
+								{ name: "Joint 2", value: getJointsPositions(roverState)[1], unit:"°" },
+								{ name: "Joint 3", value: getJointsPositions(roverState)[2], unit:"°" },
+								{ name: "Joint 4", value: getJointsPositions(roverState)[3], unit:"°" },
+								{ name: "Joint 5", value: getJointsPositions(roverState)[4], unit:"°" },
+								{ name: "Joint 6", value: getJointsPositions(roverState)[5], unit:"°" },
+								{ name: "Gripper", value: getTorqueGripper(roverState), unit: "N/m"},
 							]}
-							unit="°"
 						/>
 					</div>
 					<div className={styles.infosMidLeft2}>
