@@ -281,6 +281,22 @@ function ArmGoalModal({
 						>
 							Sad Arm
 						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Rangement" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Rangement", msg: "rangement" })}
+						>
+							Rangement
+						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Front Panel" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Front Panel", msg: "front_panel" })}
+						>
+							Front Panel
+						</button>
 						<p className={styles.ChoiceCategory}>Tasks</p>
 						<button
 							className={`${styles.Choice} ${
@@ -329,14 +345,6 @@ function ArmGoalModal({
 							onClick={() => setTask({ name: "Approch ArUco", msg: "aruco_approach" })}
 						>
 							Approach Aruco
-						</button>
-						<button
-							className={`${styles.Choice} ${
-								task?.name === "Rangement" ? styles.Selected : ""
-							}`}
-							onClick={() => setTask({ name: "Rangement", msg: "rangement" })}
-						>
-							Rangement
 						</button>
 					</div>
 				</div>
