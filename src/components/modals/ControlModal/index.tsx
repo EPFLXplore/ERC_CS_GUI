@@ -103,6 +103,32 @@ function ControlModal({
 						))}
 					</div>
 				</div>
+				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						{CommandsSSH.elec.map((task) => (
+							<button
+								className={styles.Choice}
+								//@ts-ignore
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name)}
+								>
+									{task.name}
+							</button>
+						))}
+					</div>
+				</div>
+				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						{CommandsSSH.camera_hd.map((task) => (
+							<button
+								className={styles.Choice}
+								//@ts-ignore
+								onClick={() => executeSSHCommand(task.action, snackBar, task.name)}
+								>
+									{task.name}
+							</button>
+						))}
+					</div>
+				</div>
 			</div>
 		</div>
 	);

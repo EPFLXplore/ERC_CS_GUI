@@ -51,7 +51,8 @@ import {
 	getCurrentHDCommand,
 	getTotalJointsCurrent,
 	getBatteryState,
-	getTorqueGripper
+	getTorqueGripper,
+	getBatteryVoltage
 	
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
@@ -102,7 +103,8 @@ const NewControlPage = () => {
 		setRosModalOpen,
 		modalRosNodes,
 		setModalRosNodes,
-		changeSpeedRover
+		changeSpeedRover,
+		resetNodes
 	] = useRoverControls(ros, showSnackbar);
 
 	const [, , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
@@ -135,6 +137,7 @@ const NewControlPage = () => {
 						startService,
 						hdConfirmation,
 						changeSpeedRover,
+						resetNodes,
 						ros
 					)
 				);
@@ -200,7 +203,6 @@ const NewControlPage = () => {
 				<Header
 					//@ts-ignore
 					wifiLevel={getNetworkData(roverState)}
-					battery={getBatteryLevel(roverState)}
 				/>
 			</div>
 			<div className={styles.control}>
@@ -300,7 +302,7 @@ const NewControlPage = () => {
 								{ name: "Joint 4", value: getJointsPositions(roverState)[3], unit:"°" },
 								{ name: "Joint 5", value: getJointsPositions(roverState)[4], unit:"°" },
 								{ name: "Joint 6", value: getJointsPositions(roverState)[5], unit:"°" },
-								{ name: "Gripper", value: getTorqueGripper(roverState), unit: "N/m"},
+								{ name: "Gripper", value: getTorqueGripper(roverState), unit: "Nm"},
 							]}
 						/>
 					</div>
@@ -309,7 +311,7 @@ const NewControlPage = () => {
 							title="Power Consumption"
 							infos={[
 								{ name: "Current", value: getCurrentOutput(roverState), unit: "A"},
-								{ name: "Battery Level", value: getBatteryLevel(roverState), unit: "V"},
+								{ name: "Battery Level", value: getBatteryVoltage(roverState), unit: "V"},
 								{ name: "Battery State", value: getBatteryState(roverState)},
 							]}
 						/>
@@ -399,35 +401,7 @@ const NewControlPage = () => {
 							infos={[
 								{ name: "X", value: getCurrentPosition(roverState).x },
 								{ name: "Y", value: getCurrentPosition(roverState).y },
-							]}
-						/>
-						<InfoBox
-							title="Linear Velocity"
-							infos={[
-								{ name: "X", value: getLinearVelocity(roverState).x },
-								{ name: "Y", value: getLinearVelocity(roverState).y },
-							]}
-						/>
-						<InfoBox
-							title="Current Orientation"
-							infos={[
-								{ name: "Roll", value: getCurrentOrientation(roverState).x },
-								{ name: "Pitch", value: getCurrentOrientation(roverState).y },
-								{ name: "Yaw", value: getCurrentOrientation(roverState).z },
-							]}
-						/>
-						<InfoBox
-							title="Angular Velocity"
-							infos={[
-								{ name: "Roll", value: getAngularVelocity(roverState).x },
-								{ name: "Pitch", value: getAngularVelocity(roverState).y },
-								{ name: "Yaw", value: getAngularVelocity(roverState).y },
-							]}
-						/>
-						<InfoBox
-							title="Distance to Goal"
-							infos={[
-								{ name: "Distance", value: getDistanceToGoal(roverState), unit: "m" },
+								{ name: "Distance", value: getDistanceToGoal(roverState), unit: "m" }
 							]}
 						/>
 					</div>
@@ -490,6 +464,8 @@ const NewControlPage = () => {
 						visible={
 							stateServices[SubSystems.NAGIVATION].service.state ===
 								States.ACKERMANN || 
+								stateServices[SubSystems.NAGIVATION].service.state ===
+								States.OFF ||
 							stateServices[SubSystems.NAGIVATION].service.state ===
 								States.OMNI_DIRECTIONAL ||
 							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
@@ -517,6 +493,7 @@ const selectModal = (
 	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
 	resetHdConfirmation: ((value: boolean) => void) | null,
 	changeSpeedRover: (value: number) => void,
+	resetNodes: () => void,
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
@@ -588,6 +565,7 @@ const selectModal = (
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
 					resetHdConfirmation={resetHdConfirmation}
+					resetNodes={resetNodes}
 				/>
 			);
 		case SubSystems.DRILL:

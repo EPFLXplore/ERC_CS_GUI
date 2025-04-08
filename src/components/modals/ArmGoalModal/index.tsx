@@ -22,6 +22,7 @@ function ArmGoalModal({
 	currentTask = undefined,
 	snackBar,
 	resetHdConfirmation,
+	resetNodes,
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
@@ -29,6 +30,7 @@ function ArmGoalModal({
 	currentTask?: ArmTask;
 	snackBar: (sev: AlertColor, mes: string) => void;
 	resetHdConfirmation: ((confirm: boolean) => void) | null;
+	resetNodes: () => void;
 }) {
 	const [task, setTask] = React.useState<ArmTask | null>(null);
 
@@ -345,6 +347,15 @@ function ArmGoalModal({
 							onClick={() => setTask({ name: "Approch ArUco", msg: "aruco_approach" })}
 						>
 							Approach Aruco
+						</button>
+						<p className={styles.ChoiceCategory}>Other</p>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Reset Nodes" ? styles.Selected : ""
+							}`}
+							onClick={() => resetNodes()}
+						>
+							Reset Nodes
 						</button>
 					</div>
 				</div>

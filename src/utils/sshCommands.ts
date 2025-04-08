@@ -24,6 +24,13 @@ const JETSON_HD: EndSystem = {
     name: 'Jetson HD'
 }
 
+const RPI_ELEC: EndSystem = {
+    ip: '169.254.55.252',
+    hostname: 'xplore-avionics',
+    password: 'xplore',
+    name: 'RPI Elec'
+}
+
 // Inside each run file, there is a check if the docker is already running. If yes, then nothing is run
 // and a message will be printed on the screen.
 
@@ -89,6 +96,28 @@ const StopHdStack: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_hd_stack.sh']
 };
 
+const ActivateCameraHD: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_camera.sh']
+};
+
+// Stops the FSM and other stuff. 
+const StopCameraHD: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_camera.sh']
+};
+
+const ActivateElecStack: SSHCommands = {
+    device: RPI_ELEC,
+    commands: ['cd /home/xplore-avionics/Documents/ERC_EL_BroCo/src/docker_humble_jetson', './start_elec_stack.sh']
+};
+
+// Stops the FSM and other stuff. 
+const StopElecStack: SSHCommands = {
+    device: RPI_ELEC,
+    commands: ['cd /home/xplore-avionics/Documents/ERC_EL_BroCo/src/docker_humble_jetson', './stop_elec_stack.sh']
+};
+
 const CommandsSSH = {
     "drill": [
     {
@@ -98,6 +127,15 @@ const CommandsSSH = {
     {
         name: "Stop Drill Node",
         action: StopDrillNode,
+    }],
+    "elec": [
+    {
+        name: "Start ELEC Node",
+        action: ActivateElecStack,
+    },
+    {
+        name: "Stop ELEC Node",
+        action: StopElecStack,
     }],
     "rover": [
     {
@@ -143,6 +181,15 @@ const CommandsSSH = {
     {
         name: "Stop HD Stack",
         action: StopHdStack,
+    }],
+    "camera_hd": [
+    {
+        name: "Start Camera HD",
+        action: ActivateCameraHD,
+    },
+    {
+        name: "Stop Camera HD",
+        action: StopCameraHD,
     }]
 };
 

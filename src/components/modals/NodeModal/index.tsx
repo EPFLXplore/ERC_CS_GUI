@@ -48,11 +48,45 @@ function NodeModal({
 						</div>
 					)) : <p>NO DATA</p>}
 
-{
+					{
 					//@ts-ignore
 					name == SubSystems.ROVER ?  
 					//@ts-ignore
 					Object.values(roverState['cameras']["control_station"]).map((el: any) => (
+						<div className={styles.ChoiceGroup}>
+							<div
+								className={`${styles.Choice} ${
+									//@ts-ignore
+									el['status'] ? styles.Selected : ""
+								}`}
+							>
+								{el['name']}
+							</div>
+						</div>
+					)) : null}
+
+					{
+					//@ts-ignore
+					name == SubSystems.HANDLING_DEVICE ?  
+					//@ts-ignore
+					Object.values(roverState['cameras'][SubSystems.HANDLING_DEVICE]).map((el: any) => (
+						<div className={styles.ChoiceGroup}>
+							<div
+								className={`${styles.Choice} ${
+									//@ts-ignore
+									el['status'] ? styles.Selected : ""
+								}`}
+							>
+								{el['name']}
+							</div>
+						</div>
+					)) : null}
+
+{
+					//@ts-ignore
+					name == SubSystems.NAGIVATION ?  
+					//@ts-ignore
+					Object.values(roverState['cameras'][SubSystems.NAGIVATION]).map((el: any) => (
 						<div className={styles.ChoiceGroup}>
 							<div
 								className={`${styles.Choice} ${

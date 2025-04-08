@@ -61,6 +61,7 @@ const useRoverControls = (
 	});
 
 	let changeSpeedTopic: ROSLIB.Topic<{ data: number }> | null = null;
+	let hdResetNodesTopic: ROSLIB.Topic<{ data: boolean }> | null = null;
 
 	// Navigation
 	if(ros) {
@@ -68,6 +69,14 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.CHANGE_SPEED_ROVER,
 			messageType: "std_msgs/Float32",
+		})
+	}
+
+	if(ros) {
+		hdResetNodesTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.HANDLING_DEVICE_RESET_NODES,
+			messageType: "std_msgs/Bool",
 		})
 	}
 
@@ -319,6 +328,20 @@ const useRoverControls = (
 		}
 	} 
 
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	// HD CONTROL PANEL FUNCTIONS
+
+	const resetNodes = () => {
+		if(ros) {
+			const object = {
+				data: true
+			}
+			hdResetNodesTopic?.publish(object)
+		}
+	} 
+
+
 	return [
 		roverState,
 		cameraStates,
@@ -350,7 +373,8 @@ const useRoverControls = (
 		setRosModalOpen,
 		modalRosNodes,
 		setModalRosNodes,
-		changeSpeedRover
+		changeSpeedRover,
+		resetNodes
 	] as const;
 };
 

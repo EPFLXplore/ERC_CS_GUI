@@ -458,7 +458,7 @@ const getTorqueGripper = (data: any) => {
 	// More accurate value for the torque of the gripper
 	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
 
-	return (Number(data["handling_device"]["joints"][6]["current"]) * factor_conversion_to_torque).toFixed(2)
+	return (Number(data["handling_device"]["joints"]["joint_7"]["current"]) * factor_conversion_to_torque).toFixed(2)
 }
 
 const getCurrentHDTask = (data: any) => {
@@ -507,12 +507,25 @@ const getBatteryLevel = (data: any) => {
 	);
 };
 
+/**
+ * Get the battery level of the rover.
+ * @param data The rover state data.
+ * @returns The battery level of the rover in percentage.
+ */
+const getBatteryVoltage = (data: any) => {
+	if (!data || !data["electronics"]) {
+		return "NO DATA";
+	}
+
+	return (Number(data["electronics"]["power"]["voltage"])).toFixed(2)
+};
+
 const getCurrentOutput = (data: any) => {
 	if (!data || !data["electronics"]) {
 		return 0;
 	}
 
-	return Number(data["electronics"]["power"]["current"])
+	return (Number(data["electronics"]["power"]["current"])).toFixed(2)
 };
 
 const getMassArmSensor = (data: any) => {
@@ -581,8 +594,8 @@ const getMotorDrill = (data: any) => {
 
 	return {
 		speed: Number(data['drill']['motors']['motor_drill']['speed']),
-		current: Number(data['drill']['motors']['motor_module']['current']),
-		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
+		current: Number(data['drill']['motors']['motor_drill']['current']),
+		state: data['drill']['motors']['motor_drill']['state'] ? "Connected" : "Disconnected"
 	}
 }
 
@@ -654,5 +667,6 @@ getCurrentHDCommand,
 getCurrentHDTask,
 getTotalJointsCurrent,
 getBatteryState,
-getTorqueGripper
+getTorqueGripper,
+getBatteryVoltage
 };
