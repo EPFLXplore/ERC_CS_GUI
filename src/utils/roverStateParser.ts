@@ -540,18 +540,22 @@ const getMassDrillSensor = (data: any) => {
 	if (!data || !data["electronics"]) {
 		return "NO DATA"
 	}
-
 	return Number(data['electronics']['sensors']['mass_sensors']["mass_drill"])
 }
 
 const getForInOneSensor = (data: any) => {
 	if (!data || !data["electronics"]) {
-		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
+		return {
+			temperature: "NO DATA",
+			humidity: "NO DATA",
+			conductivity: "NO DATA",
+			ph: "NO DATA"
+		}
 	}
 
 	return {
 		temperature: Number(data['electronics']['sensors']['four_in_one']['temperature']),
-        moisture: Number(data['electronics']['sensors']['four_in_one']['moisture']),
+        humidity: Number(data['electronics']['sensors']['four_in_one']['humidity']),
         conductivity: Number(data['electronics']['sensors']['four_in_one']['conductivity']),
         ph: Number(data['electronics']['sensors']['four_in_one']['ph'])
 	}
@@ -559,10 +563,36 @@ const getForInOneSensor = (data: any) => {
 
 const getDustSensor = (data: any) => {
 	if (!data || !data["electronics"]) {
-		return "NO DATA"
+		return {
+			pm1_0_std: "NO DATA",
+			pm2_5_std: "NO DATA",
+			pm10_std: "NO DATA",
+			pm1_0_atm: "NO DATA",
+			pm2_5_atm: "NO DATA",
+			pm10_atm: "NO DATA",
+			num_particles_0_3: "NO DATA",
+			num_particles_0_5: "NO DATA",
+			num_particles_1_0: "NO DATA",
+			num_particles_2_5: "NO DATA",
+			num_particles_5_0: "NO DATA",
+			num_particles_10: "NO DATA"
+		}
 	}
 
-	return Number(data['electronics']['sensors']['dust_sensor'])
+	return {
+		pm1_0_std: Number(data['electronics']['sensors']['dust_sensor']['pm1_0_std']),
+		pm2_5_std: Number(data['electronics']['sensors']['dust_sensor']['pm2_5_std']),
+		pm10_std: Number(data['electronics']['sensors']['dust_sensor']['pm10_std']),
+		pm1_0_atm: Number(data['electronics']['sensors']['dust_sensor']['pm1_0_atm']),
+		pm2_5_atm: Number(data['electronics']['sensors']['dust_sensor']['pm2_5_atm']),
+		pm10_atm: Number(data['electronics']['sensors']['dust_sensor']['pm10_atm']),
+		num_particles_0_3: Number(data['electronics']['sensors']['dust_sensor']['num_particles_0_3']),
+		num_particles_0_5: Number(data['electronics']['sensors']['dust_sensor']['num_particles_0_5']),
+		num_particles_1_0: Number(data['electronics']['sensors']['dust_sensor']['num_particles_1_0']),
+		num_particles_2_5: Number(data['electronics']['sensors']['dust_sensor']['num_particles_2_5']),
+		num_particles_5_0: Number(data['electronics']['sensors']['dust_sensor']['num_particles_5_0']),
+		num_particles_10: Number(data['electronics']['sensors']['dust_sensor']['num_particles_10'])
+	}
 }
 
 //////////////////////// DRILL ////////////////////////

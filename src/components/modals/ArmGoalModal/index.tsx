@@ -348,6 +348,14 @@ function ArmGoalModal({
 						>
 							Approach Aruco
 						</button>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Grab Sand" ? styles.Selected : ""
+							}`}
+							onClick={() => setTask({ name: "Grab Sand", msg: "sand_collect" })}
+						>
+							Grand Sand
+						</button>
 						<p className={styles.ChoiceCategory}>Other</p>
 						<button
 							className={`${styles.Choice} ${

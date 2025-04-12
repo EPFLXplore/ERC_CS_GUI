@@ -52,7 +52,11 @@ import {
 	getTotalJointsCurrent,
 	getBatteryState,
 	getTorqueGripper,
-	getBatteryVoltage
+	getBatteryVoltage,
+	getDustSensor,
+	getMassDrillSensor,
+	getMassArmSensor,
+	getForInOneSensor
 	
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
@@ -318,12 +322,18 @@ const NewControlPage = () => {
 						<InfoBox
 							title="Sensors"
 							infos={[
-								{ name: "Dust", value: "NO DATA" },
-								{ name: "pH", value: "NO DATA" },
-								{ name: "Temperature", value: "NO DATA" },
-								{ name: "Moisture", value: "NO DATA" },
-								{ name: "Mass Drill", value: "NO DATA" },
-								{ name: "Mass HD", value: "NO DATA" }
+								{ name: "pm1_0_std", value: getDustSensor(roverState).pm1_0_std, unit: "ug/m3" },
+								{ name: "pm2_5_std", value: getDustSensor(roverState).pm2_5_std, unit: "ug/m3" },
+								{ name: "pm10_std", value: getDustSensor(roverState).pm10_std, unit: "ug/m3" },
+								{ name: "pm1_0_atm", value: getDustSensor(roverState).pm1_0_atm, unit: "ug/m3" },
+								{ name: "pm2_5_atm", value: getDustSensor(roverState).pm2_5_atm, unit: "ug/m3" },
+								{ name: "pm10_atm", value: getDustSensor(roverState).pm10_atm, unit: "ug/m3" },
+								{ name: "num_particles_0_3", value: getDustSensor(roverState).num_particles_0_3, unit: "p/L" },
+								{ name: "num_particles_0_5", value: getDustSensor(roverState).num_particles_0_5, unit: "p/L" },
+								{ name: "num_particles_1_0", value: getDustSensor(roverState).num_particles_1_0, unit: "p/L" },
+								{ name: "num_particles_2_5", value: getDustSensor(roverState).num_particles_2_5, unit: "p/L" },
+								{ name: "num_particles_5_0", value: getDustSensor(roverState).num_particles_5_0, unit: "p/L" },
+								{ name: "num_particles_10", value: getDustSensor(roverState).num_particles_10, unit: "p/L" },
 							]}
 						/>
 					</div>
@@ -391,6 +401,17 @@ const NewControlPage = () => {
 									name: "FSM State",
 									value: getStateFSM(roverState),
 								}
+							]}
+						/>
+						<InfoBox
+							title="Sensors"
+							infos={[
+								{ name: "pH", value: getForInOneSensor(roverState).ph },
+								{ name: "Temperature", value: getForInOneSensor(roverState).temperature, unit: '°C' },
+								{ name: "Humidity", value: getForInOneSensor(roverState).humidity, unit: '%' },
+								{ name: "Conductivity", value: getForInOneSensor(roverState).conductivity, unit: 'us/cm' },
+								{ name: "Mass Drill", value: getMassDrillSensor(roverState), unit: "g" },
+								{ name: "Mass HD", value: getMassArmSensor(roverState), unit: 'g' }
 							]}
 						/>
 
