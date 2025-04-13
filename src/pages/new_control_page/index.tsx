@@ -10,6 +10,7 @@ import Stop from "../../assets/images/icons/stop.png";
 import CommandsIcon from "../../assets/images/icons/settings_button.png";
 import Drill from "../../assets/images/icons/drill.png";
 import SystemMode from "../../components/Controls/SystemMode";
+import Science from "../../assets/images/icons/microscope-solid.png";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -70,6 +71,7 @@ import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import useNewCamera from "../../hooks/newCameraHooks";
+import ScienceModal from "../../components/modals/ScienceModal";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -403,17 +405,6 @@ const NewControlPage = () => {
 								}
 							]}
 						/>
-						<InfoBox
-							title="Sensors"
-							infos={[
-								{ name: "pH", value: getForInOneSensor(roverState).ph },
-								{ name: "Temperature", value: getForInOneSensor(roverState).temperature, unit: '°C' },
-								{ name: "Humidity", value: getForInOneSensor(roverState).humidity, unit: '%' },
-								{ name: "Conductivity", value: getForInOneSensor(roverState).conductivity, unit: 'us/cm' },
-								{ name: "Mass Drill", value: getMassDrillSensor(roverState), unit: "g" },
-								{ name: "Mass HD", value: getMassArmSensor(roverState), unit: 'g' }
-							]}
-						/>
 
 					</div>
 					<div className={styles.infosRight}>
@@ -423,6 +414,17 @@ const NewControlPage = () => {
 								{ name: "X", value: getCurrentPosition(roverState).x },
 								{ name: "Y", value: getCurrentPosition(roverState).y },
 								{ name: "Distance", value: getDistanceToGoal(roverState), unit: "m" }
+							]}
+						/>
+						<InfoBox
+							title="Sensors"
+							infos={[
+								{ name: "pH", value: getForInOneSensor(roverState).ph },
+								{ name: "Temperature", value: getForInOneSensor(roverState).temperature, unit: '°C' },
+								{ name: "Humidity", value: getForInOneSensor(roverState).humidity, unit: '%' },
+								{ name: "Conductivity", value: getForInOneSensor(roverState).conductivity, unit: 'us/cm' },
+								{ name: "Mass Drill", value: getMassDrillSensor(roverState), unit: "g" },
+								{ name: "Mass HD", value: getMassArmSensor(roverState), unit: 'g' }
 							]}
 						/>
 					</div>
@@ -453,7 +455,13 @@ const NewControlPage = () => {
 							icon={Drill}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal("", false)}
+							onClick={() => displaySystemModal(SubSystems.SCIENCE, false)}
+							selected={systemsModalOpen[SubSystems.SCIENCE]}
+							running={States.OFF}
+							icon={Science}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal("", true)}
 							selected={false}
 							running={States.OFF}
 							icon={Stop}
@@ -604,6 +612,22 @@ const selectModal = (
 					onSetGoal={launchAction}
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
+				/>
+			);
+
+		case SubSystems.SCIENCE:
+			return (
+				<ScienceModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen[SubSystems.SCIENCE] = false;
+							return newModalOpen;
+						});
+					}}
+					snackBar={showSnackbar}
+					onClick={() => console.log("TODO SERVICE OR TOPIC")}
 				/>
 			);
 		default:

@@ -57,6 +57,7 @@ const useRoverControls = (
 		[SubSystems.NAGIVATION]: false,
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
+		[SubSystems.SCIENCE]: false,
 		["cancel"]: false,
 	});
 
