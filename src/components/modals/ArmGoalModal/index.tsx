@@ -354,7 +354,7 @@ function ArmGoalModal({
 							}`}
 							onClick={() => setTask({ name: "Grab Sand", msg: "sand_collect" })}
 						>
-							Grand Sand
+							Grab Sand
 						</button>
 						<p className={styles.ChoiceCategory}>Other</p>
 						<button
