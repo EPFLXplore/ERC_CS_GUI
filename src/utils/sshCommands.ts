@@ -76,24 +76,23 @@ const StopWheelsControl: SSHCommands = {
 
 const ActivateHdMotorControl: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_motors.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_motors.sh']
 };
 
-// Stops the FSM and other stuff. 
 const StopHdMotorControl: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_motors.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_motors.sh']
 };
 
 const ActivateHdStack: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_hd_stack.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_hd_stack.sh']
 };
 
 // Stops the FSM and other stuff. 
 const StopHdStack: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_hd_stack.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_hd_stack.sh']
 };
 
 const ActivateCameraHD: SSHCommands = {

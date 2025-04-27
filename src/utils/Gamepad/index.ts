@@ -117,13 +117,6 @@ class GamepadController {
 		return (this.deviceProfile || profiles.DEFAULT_PROFILE).navigationHandler(buttons, axes);
 	}
 
-	public handleAngleFrontCamera(
-		buttons: readonly boolean[],
-		axes: readonly number[]
-	): { buttons: number[]; axes: number[] } {
-		return (this.deviceProfile || profiles.DEFAULT_PROFILE).camerasHandler(buttons, axes);
-	}
-
 	public handleDirectArm(
 		buttons: readonly boolean[],
 		axes: readonly number[]

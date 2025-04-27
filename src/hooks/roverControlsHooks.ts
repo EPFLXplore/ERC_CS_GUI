@@ -11,6 +11,7 @@ import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
+import { Sensors } from "../data/sensors.types";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -63,6 +64,7 @@ const useRoverControls = (
 
 	let changeSpeedTopic: ROSLIB.Topic<{ data: number }> | null = null;
 	let hdResetNodesTopic: ROSLIB.Topic<{ data: boolean }> | null = null;
+	let resetDustSensorTopic: ROSLIB.Topic<{ data: boolean }> | null = null;
 
 	// Navigation
 	if(ros) {
@@ -77,6 +79,15 @@ const useRoverControls = (
 		hdResetNodesTopic = new ROSLIB.Topic<any>({
 			ros: ros,
 			name: Topics.HANDLING_DEVICE_RESET_NODES,
+			messageType: "std_msgs/Bool",
+		})
+	}
+
+	// Science
+	if(ros) {
+		resetDustSensorTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.CHANGE_SPEED_ROVER,
 			messageType: "std_msgs/Bool",
 		})
 	}
@@ -342,6 +353,23 @@ const useRoverControls = (
 		}
 	} 
 
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	// SCIENCE CONTROL PANEL FUNCTIONS
+
+	const resetSensor = (sensor: Sensors) => {
+		if(ros) {
+			const object = {
+				data: true
+			}
+			switch (sensor) {
+				case Sensors.DUST:
+					resetDustSensorTopic?.publish(object)
+					break;
+			}
+		}
+	} 
+
 
 	return [
 		roverState,
@@ -375,7 +403,8 @@ const useRoverControls = (
 		modalRosNodes,
 		setModalRosNodes,
 		changeSpeedRover,
-		resetNodes
+		resetNodes,
+		resetSensor
 	] as const;
 };
 

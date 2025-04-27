@@ -81,10 +81,6 @@ interface DeviceProfile {
 		buttons: readonly boolean[],
 		axes: readonly number[]
 	) => { buttons: number[]; axes: number[] };
-	camerasHandler: (
-		buttons: readonly boolean[],
-		axes: readonly number[]
-	) => { buttons: number[]; axes: number[] };
 }
 
 /** Class representing a classical gamepad like the Xbox controller and the PlayStation controller.

@@ -18,11 +18,11 @@ on the ROS panel.
 
 function ScienceModal({
     onClose,
-	onClick,
+	resetSensors,
 	snackBar,
 }: {
     onClose: () => void;
-	onClick: () => void;
+	resetSensors: (name_sensor: Sensors) => void;
 	snackBar: (severity: AlertColor, message: string) => void
 }) {
 
@@ -37,11 +37,11 @@ function ScienceModal({
 				<div className={styles.ModalHeader}>
 						<h1>Reset Sensors</h1>
 				</div>
-				{Object.values(Sensors).map((sensor_name: string) => (
+				{Object.values(Sensors).map((sensor_name: Sensors) => (
 					<div className={styles.ChoiceContainer}>
 						<button
 							className={`${styles.Choice}`}
-							onClick={() => onClick()}
+							onClick={() => resetSensors(sensor_name)}
 						>
 							Reset {sensor_name}
 						</button>

@@ -34,9 +34,9 @@ const computeNavigationCommandClassicGamepad = (
 		buttons: [
 			0,
 			buttons[ClassicalGamepad.Button.X] ? 1 : 0, // Change of Mode
+			buttons[ClassicalGamepad.Button.UP] ? 1 : 0, // +10° on camera front
+			buttons[ClassicalGamepad.Button.DOWN] ? -1 : 0, // -10° on camera front
 			0,
-			buttons[ClassicalGamepad.Button.LEFT] ? 1 : 0, // Slide left
-			buttons[ClassicalGamepad.Button.RIGHT] ? 1 : 0, // Slide right
 			0,
 			0,
 			buttons[ClassicalGamepad.Button.LEFT_STICK] ? 1 : 0 // Press left joystick for crab mode
@@ -116,34 +116,6 @@ const computeInverseArmCommandClassicGamepad = (
 				(buttons[ClassicalGamepad.Button.A] ? 0.1 : 0), // Gripper
 		],
 		buttons: [],
-	};
-};
-
-const computeCameraClassicGamepad = (
-	buttons: readonly boolean[],
-	axes: readonly number[]
-): { buttons: number[]; axes: number[] } => {
-	return {
-		axes: [
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0
-		],
-		buttons: [
-			buttons[ClassicalGamepad.Button.UP] ? 1 : 0,
-			buttons[ClassicalGamepad.Button.DOWN] ? -1 : 0,
-			0,
-			0,
-			0,
-			0,
-			0,
-			0
-		],
 	};
 };
 
@@ -262,7 +234,6 @@ const XBOX_FIREFOX_LINUX: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const XBOX_CHROME_LINUX: DeviceProfile = {
@@ -376,7 +347,6 @@ const XBOX_CHROME_LINUX: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const XBOX_CHROME_MAC: DeviceProfile = {
@@ -490,7 +460,6 @@ const XBOX_CHROME_MAC: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const XBOX_CHROME_WINDOWS: DeviceProfile = {
@@ -604,7 +573,6 @@ const XBOX_CHROME_WINDOWS: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const XBOX_EDGE_WINDOWS: DeviceProfile = {
@@ -718,7 +686,6 @@ const XBOX_EDGE_WINDOWS: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const XBOX_FIREFOX_WINDOWS: DeviceProfile = {
@@ -832,7 +799,6 @@ const XBOX_FIREFOX_WINDOWS: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const PS4_FIREFOX_LINUX: DeviceProfile = {
@@ -844,7 +810,6 @@ const PS4_FIREFOX_LINUX: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const PS4_CHROME_LINUX: DeviceProfile = {
@@ -964,7 +929,6 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const PS4_CHROME_MAC: DeviceProfile = {
@@ -976,7 +940,6 @@ const PS4_CHROME_MAC: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 const PS4_CHROME_WINDOWS: DeviceProfile = {
@@ -988,7 +951,6 @@ const PS4_CHROME_WINDOWS: DeviceProfile = {
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,
 	inverseArmHandler: computeInverseArmCommandClassicGamepad,
-	camerasHandler: computeCameraClassicGamepad
 };
 
 //#endregion

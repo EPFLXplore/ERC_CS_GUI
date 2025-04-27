@@ -32,7 +32,6 @@ function useGamepad(
 		GamepadCommandState.UI
 	);
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
-	const [frontCameraPublisher, setFrontCameraPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [interval, setIntervalCallback] = useState<NodeJS.Timeout | null>(null);
 
 	// Initialize the gamepad states. 
@@ -82,19 +81,11 @@ function useGamepad(
 					messageType: "sensor_msgs/Joy",
 				})
 			);
-			setFrontCameraPublisher(new ROSLIB.Topic<any>({
-				ros: ros,
-				name: Topics.CHANGE_ANGLE_FRONT_CAMERA,
-				messageType: "sensor_msgs/Joy",
-			}))
 		}
 
 		return () => {
 			if (publisher) {
 				publisher.unadvertise();
-			}
-			if (frontCameraPublisher) {
-				frontCameraPublisher.unadvertise();
 			}
 		};
 	}, [ros, mode]);
@@ -124,12 +115,8 @@ function useGamepad(
 						gamepadState.buttons,
 						gamepadState.axes
 					);
+					console.log(message.axes);
 					publisher.publish(message);
-				}
-			} else if(mode == PublishTo.CAMERA_NAV) {
-				if (frontCameraPublisher) {
-					const message = gamepad.handleAngleFrontCamera(gamepadState.buttons, gamepadState.axes);
-					frontCameraPublisher.publish(message)
 				}
 			}
 		}
@@ -137,7 +124,7 @@ function useGamepad(
 
 	// The function publishes on the topic every 30ms. This value can be changed. 
 	useEffect(() => {
-		if (publisher && frontCameraPublisher && gamepadCommandState === GamepadCommandState.CONTROL) {
+		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
 			setIntervalCallback(setInterval(sendCommand, 30));
 		} else {
 			if (interval) {

@@ -72,6 +72,7 @@ import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import useNewCamera from "../../hooks/newCameraHooks";
 import ScienceModal from "../../components/modals/ScienceModal";
+import { Sensors } from "../../data/sensors.types";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -110,7 +111,8 @@ const NewControlPage = () => {
 		modalRosNodes,
 		setModalRosNodes,
 		changeSpeedRover,
-		resetNodes
+		resetNodes,
+		resetSensors
 	] = useRoverControls(ros, showSnackbar);
 
 	const [, , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
@@ -144,6 +146,7 @@ const NewControlPage = () => {
 						hdConfirmation,
 						changeSpeedRover,
 						resetNodes,
+						resetSensors,
 						ros
 					)
 				);
@@ -523,6 +526,7 @@ const selectModal = (
 	resetHdConfirmation: ((value: boolean) => void) | null,
 	changeSpeedRover: (value: number) => void,
 	resetNodes: () => void,
+	resetSensors: (name: Sensors) => void,
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
@@ -627,7 +631,7 @@ const selectModal = (
 						});
 					}}
 					snackBar={showSnackbar}
-					onClick={() => console.log("TODO SERVICE OR TOPIC")}
+					resetSensors={resetSensors}
 				/>
 			);
 		default:
