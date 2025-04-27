@@ -25,7 +25,7 @@ function NavigationGoalModal({
 	currentGoal = undefined,
 	pointOnMap,
 }: {
-	ros: ROSLIB.Ros | null,
+	ros: ROSLIB.Ros | null;
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	setSpeedRoverService: (value: number) => void;
 	onClose: () => void;
@@ -42,123 +42,116 @@ function NavigationGoalModal({
 	const [orientation, setOrientation] = React.useState(0);
 	const [speedRover, setSpeedRover] = React.useState<number>(0.7);
 
-	const handleClick = () => {
+	const handleSpeedSubmit = () => {
 		if (speedRover <= 0.5) return;
-		setSpeedRoverService(speedRover)
-		onClose()
-		snackBar("success", "Set Speed Rover to " + speedRover)
-	}
+		setSpeedRoverService(speedRover);
+		onClose();
+		snackBar("success", `Set Speed Rover to ${speedRover}`);
+	};
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
 			<div
 				className={styles.Modal}
-				onClick={(e) => {
-					e.stopPropagation();
-				}}
+				onClick={(e) => e.stopPropagation()}
 			>
-
 				<div className={styles.ModalHeader}>
-					<h1>Set Goal</h1>
+					<h1>Navigation Goal Task</h1>
 				</div>
+
 				<div className={styles.ModalContent}>
-					{currentGoal ? (
-						<p>
-							Current Goal is at {xCord}, {yCord}, {orientation}.
-						</p>
-					) : (
-						<p>No current goal set.</p>
-					)}
+
 					<div className={styles.InputGroup}>
-						<label htmlFor="x">X</label>
+						<label htmlFor="x">X-Coordinate</label>
 						<input
 							type="number"
 							id="x"
 							value={xCord}
-							onChange={(e) => setXCord(parseInt(e.target.value))}
+							onChange={(e) => setXCord(parseFloat(e.target.value))}
 						/>
 					</div>
+
 					<div className={styles.InputGroup}>
-						<label htmlFor="y">Y</label>
+						<label htmlFor="y">Y-Coordinate</label>
 						<input
 							type="number"
 							id="y"
 							value={yCord}
-							onChange={(e) => setYCord(parseInt(e.target.value))}
+							onChange={(e) => setYCord(parseFloat(e.target.value))}
 						/>
 					</div>
+
 					<div className={styles.InputGroup}>
 						<label htmlFor="o">Orientation</label>
 						<input
 							type="number"
 							id="o"
 							value={orientation}
-							onChange={(e) => setOrientation(parseInt(e.target.value))}
+							onChange={(e) => setOrientation(parseFloat(e.target.value))}
 						/>
 					</div>
+
+					<div className={styles.ModalFooter}>
+						<button
+							className={styles.PrimaryColor}
+							onClick={() => {
+								onSetGoal(SubSystems.NAGIVATION, {
+									mode: 0,
+									goal: new Pose2D(xCord, yCord, orientation),
+								});
+							}}
+						>
+							Set Goal
+						</button>
+						<button onClick={() => onCancelGoal(SubSystems.NAGIVATION)}>
+							Cancel Goal
+						</button>
+					</div>
 				</div>
-				<div className={styles.ModalFooter}>
-					<button
-						onClick={() => {
-							onSetGoal(SubSystems.NAGIVATION, {
-								mode: 0,
-								goal: new Pose2D(xCord, yCord, orientation),
-							});
-							//onClose();
-						}}
-						className={styles.PrimaryColor}
-					>
-						Set Goal
-					</button>
-					<button
-						onClick={() => {
-							onCancelGoal(SubSystems.NAGIVATION);
-							//onClose();
-						}}
-					>
-						Cancel Goal
-					</button>
-				</div>
+
+				<div className={styles.Separator}></div>
+
 				<div className={styles.ModalHeader}>
 					<h1>Reset Faults and Home</h1>
 				</div>
+
 				<div className={styles.ModalContent}>
-				{/* Wrap the buttons in .ResetSection for nice spacing */}
-				<div className={styles.ResetSection}>
-					<button
-					className={styles.Choice}
-					onClick={() => onResetFaults(ros, SubSystems.NAGIVATION, snackBar)}
-					>
-					Reset Faults
-					</button>
-					<button
-					className={styles.Choice}
-					onClick={() => onResetHome(ros, SubSystems.NAGIVATION, snackBar)}
-					>
-					Reset Home
-					</button>
-				</div>
+					<div className={styles.ResetSection}>
+						<button
+							className={styles.Choice}
+							onClick={() => onResetFaults(ros, SubSystems.NAGIVATION, snackBar)}
+						>
+							Reset Faults
+						</button>
+						<button
+							className={styles.Choice}
+							onClick={() => onResetHome(ros, SubSystems.NAGIVATION, snackBar)}
+						>
+							Reset Home
+						</button>
+					</div>
 				</div>
 
 				<div className={styles.ModalHeader}>
 					<h1>Speed Rover</h1>
 				</div>
+
 				<div className={styles.ModalContent}>
-				<div className={styles.SpeedRoverSection}>
-					<input
-					type="number"
-					className={styles.SpeedRoverInput}
-					value={speedRover}
-					onChange={(e) => setSpeedRover(parseFloat(e.target.value))}
-					placeholder="Enter a number"
-					/>
-					<button
-					className={styles.SpeedRoverButton}
-					onClick={handleClick}
-					>
-					Submit
-					</button>
-				</div>
+					<div className={styles.SpeedRoverSection}>
+						<input
+							type="number"
+							className={styles.SpeedRoverInput}
+							value={speedRover}
+							onChange={(e) => setSpeedRover(parseFloat(e.target.value))}
+							placeholder="Enter speed"
+						/>
+						<button
+							className={styles.SpeedRoverButton}
+							onClick={handleSpeedSubmit}
+						>
+							Submit
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

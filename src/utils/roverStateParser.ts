@@ -49,6 +49,10 @@ const getNetworkData = (data: any) => {
 	}
 	*/
 
+	if(Number(data['rover']["network"]["signal_strength"]) == 0.0) {
+		return -40
+	}
+
 	return Number(data['rover']["network"]["signal_strength"])
 	
 }

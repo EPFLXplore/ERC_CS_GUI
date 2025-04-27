@@ -23,13 +23,11 @@ enum DrillTask {
 }
 
 function DrillGoalModal({
-	roverState,
 	onSetGoal,
 	onClose,
 	onCancelGoal,
 	snackBar,
 }: {
-	roverState: any,
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
@@ -46,42 +44,21 @@ function DrillGoalModal({
 				}}
 			>
 				<div className={styles.ModalHeader}>
-					<h1>Set Drill Task</h1>
+					<h1>Drill Task</h1>
 				</div>
 				<div className={styles.ModalContent}>
-					{task ? (
-						<p>Selected Task is {task}.</p>
-					) : (
-						<p>No current task set.</p>
-					)}
 
 					<div className={styles.ChoiceGroup}>
-						{Object.values(DrillTask).map((_task) => (
-							<button
-								className={`${styles.Choice} ${
-									task === _task ? styles.Selected : ""
-								}`}
-								onClick={() => setTask(_task)}
-							>
-								{_task}
-							</button>
-						))}
+					{Object.values(DrillTask).map((_task) => (
+						<button
+							key={_task}
+							className={`${styles.Choice} ${task === _task ? styles.Selected : ""}`}
+							onClick={() => setTask(_task)}
+						>
+							{_task}
+						</button>
+					))}
 					</div>
-				</div>
-
-				<div className={styles.ModalHeader}>
-					<h2>Drill Feedback</h2>
-				</div>
-				<div
-					className={styles.ModalFeedback}
-				>
-					<span style={{display: 'block'}} color={`${
-						Number(roverState['drill']['state']['warning_type']) != 0 ? 'red' : 'white' 
-					}`}>
-						{`${!roverState['rover'] ? "" : 
-							roverState['drill']['state']['current_status']
-						}`}
-					</span>
 				</div>
 
 				<div className={styles.ModalFooter}>
@@ -94,7 +71,7 @@ function DrillGoalModal({
 								snackBar("error", "No task selected");
 							}
 						}}
-						className={styles.PrimaryColor}
+						className={`${styles.PrimaryColor}`}
 					>
 						Set Task
 					</button>

@@ -604,7 +604,6 @@ const selectModal = (
 		case SubSystems.DRILL:
 			return (
 				<DrillGoalModal
-					roverState={roverState}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {
