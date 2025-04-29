@@ -118,43 +118,35 @@ const StopElecStack: SSHCommands = {
 };
 
 const CommandsSSH = {
-    "drill": [
+    "science": [
     {
-        name: "Start Drill Node",
+        name: "Start Drill",
         action: ActivateDrillNode,
     },
     {
-        name: "Stop Drill Node",
+        name: "Stop Drill",
         action: StopDrillNode,
     }],
-    "elec": [
+    "avionics": [
     {
-        name: "Start ELEC Node",
+        name: "Start Avionics",
         action: ActivateElecStack,
     },
     {
-        name: "Stop ELEC Node",
+        name: "Stop Avionics",
         action: StopElecStack,
     }],
     "rover": [
     {
-        name: "Start Camera Node",
-        action: ActivateCameraNode,
-    },
-    {
-        name: "Stop Camera Node",
-        action: StopCameraNode,
-    },
-    {
-        name: "Start Rover Node",
+        name: "Start Rover",
         action: ActivateRoverNode,
     },
     {
-        name: "Stop Rover Node",
+        name: "Stop Rover",
         action: StopRoverNode,
     }],
 
-    "jetson_nav": [
+    "nav": [
     {
         name: "Start Wheels Control",
         action: ActivateWheelsControl,
@@ -164,7 +156,7 @@ const CommandsSSH = {
         action: StopWheelsControl,
     }],
 
-    "jetson_hd": [
+    "hd": [
     {
         name: "Start HD Motors",
         action: ActivateHdMotorControl,
@@ -181,7 +173,7 @@ const CommandsSSH = {
         name: "Stop HD Stack",
         action: StopHdStack,
     }],
-    "camera_hd": [
+    "cameras": [
     {
         name: "Start Camera HD",
         action: ActivateCameraHD,

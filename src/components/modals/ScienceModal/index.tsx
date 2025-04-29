@@ -2,6 +2,7 @@ import styles from "./style.module.sass";
 import ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
 import { Sensors } from "../../../data/sensors.types";
+import React from "react";
 
 /*
 Author: Giovanni Ranieri
@@ -37,15 +38,23 @@ function ScienceModal({
 				<div className={styles.ModalHeader}>
 						<h1>Reset Sensors</h1>
 				</div>
-				{Object.values(Sensors).map((sensor_name: Sensors) => (
-					<div className={styles.ChoiceContainer}>
-						<button
-							className={`${styles.Choice}`}
-							onClick={() => resetSensors(sensor_name)}
-						>
-							Reset {sensor_name}
-						</button>
-				</div>))}
+
+				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						{Object.values(Sensors).map((sensor_name: Sensors) => (
+							<React.Fragment key={sensor_name}>
+								<button
+									key={sensor_name}
+									className={`${styles.Choice}`}
+									onClick={() => resetSensors(sensor_name)}
+									>
+									{sensor_name}
+								</button>
+							</React.Fragment>
+						))}
+	
+					</div>
+				</div>
 			</div>
 		</div>
 	);

@@ -1,9 +1,10 @@
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
-import { CameraCS, CameraHD, CameraNAV, CameraHD_RGB } from "../../../data/cameras.type";
+import { CameraCS, CameraHD, CameraNAV, CameraHD_RGB, allCameras} from "../../../data/cameras.type";
 import useNewCamera from "../../../hooks/newCameraHooks";
 import ROSLIB from "roslib";
 import useRoverState from "../../../hooks/roverStateHooks";
+import React from "react";
 
 /*
 Author: Giovanni Ranieri and Matas Jones
@@ -55,107 +56,54 @@ function CameraModal({
 					e.stopPropagation();
 				}}
 			>
+
 				<div className={styles.ModalHeader}>
-					<h1>Cameras CS</h1>
+					<h1>Cameras</h1>
 				</div>
+
 				<div className={styles.ModalContent}>
-
 					<div className={styles.ChoiceGroup}>
-						{cameraStates[SubSystems.CS] != null ?
 
-							Object.values(CameraCS).map((camera: string) => (
-								<div className={styles.ChoiceContainer}>
-									<button
-										className={`${styles.Choice} ${
-											//@ts-ignore
-											cameraStates[SubSystems.CS][camera]['status'] ? styles.Selected : ""
-											}`}
-										onClick={() => {
-											//@ts-ignore
-											if (!cameraStates[SubSystems.CS][camera]['status']) {
-												onClick(SubSystems.CS, camera, true)
-											} else {
-												onClick(SubSystems.CS, camera, false)
-											}
-										}}
-									>
-										{camera}
-									</button>
-									{dataRateDiv(cameraStates[SubSystems.CS], camera)}
-								</div>
-							)) : <p>NO DATA</p>}
+						{(Object.keys(allCameras) as Array<keyof typeof allCameras>).map((cameraGroup) => (
+						<React.Fragment key={cameraGroup}>
+							<div className={styles.ChoiceCategory}>
+								<h2>{cameraGroup}</h2>
+							</div>
+							
+							{cameraStates[allCameras[cameraGroup].subsystem_to_check] != null ?
+								<React.Fragment>
+									{Object.values(allCameras[cameraGroup].enum).map((camera: string) => (
+										<React.Fragment key={camera}>
+											<div className={styles.ChoiceWrapper}>
+											<button
+											className={`${styles.Choice} ${
+												//@ts-ignore
+												cameraStates[allCameras[cameraGroup].subsystem_to_check][camera]['status'] ? styles.Selected : ""
+												}`}
+											onClick={() => {
+												//@ts-ignore
+												if (!cameraStates[allCameras[cameraGroup].subsystem_to_check][camera]['status']) {
+													onClick(allCameras[cameraGroup].subsystem_to_check, camera, true)
+												} else {
+													onClick(allCameras[cameraGroup].subsystem_to_check, camera, false)
+												}
+											}}
+											>
+												{camera}
+											</button>
+										{dataRateDiv(cameraStates[allCameras[cameraGroup].subsystem_to_check], camera)}
+											</div>
+										</React.Fragment>
+									))}
+								</React.Fragment> : <p>NO DATA</p>}
+						</React.Fragment>
+						))}
 					</div>
-				</div>
-
-				<div className={styles.ModalHeader}>
-					<h1>Cameras HD</h1>
-				</div>
-				<div className={styles.ModalContent}>
-
+				
 					<div className={styles.ChoiceGroup}>
-						{cameraStates[SubSystems.HANDLING_DEVICE] != null ?
-
-							Object.values(CameraHD).map((camera: string) => (
-								<div className={styles.ChoiceContainer}>
-									<button
-										className={`${styles.Choice} ${
-											//@ts-ignore
-											cameraStates[SubSystems.HANDLING_DEVICE][camera]['status'] ? styles.Selected : ""
-											}`}
-										onClick={() => {
-											//@ts-ignore
-											if (!cameraStates[SubSystems.HANDLING_DEVICE][camera]['status']) {
-												onClick(SubSystems.HANDLING_DEVICE, camera, true)
-											} else {
-												onClick(SubSystems.HANDLING_DEVICE, camera, false)
-											}
-										}}
-									>
-										{camera}
-									</button>
-									{dataRateDiv(cameraStates[SubSystems.HANDLING_DEVICE], camera)}
-								</div>
-							)) : <p>NO DATA</p>}
-					</div>
-				</div>
-
-				<div className={styles.ModalHeader}>
-					<h1>Cameras NAV</h1>
-				</div>
-				<div className={styles.ModalContent}>
-
-					<div className={styles.ChoiceGroup}>
-						{cameraStates[SubSystems.NAGIVATION] != null ?
-
-							Object.values(CameraNAV).map((camera: string) => (
-								<div className={styles.ChoiceContainer}>
-									<button
-										className={`${styles.Choice} ${
-											//@ts-ignore
-											cameraStates[SubSystems.NAGIVATION][camera]['status'] ? styles.Selected : ""
-											}`}
-										onClick={() => {
-											//@ts-ignore
-											if (!cameraStates[SubSystems.NAGIVATION][camera]['status']) {
-												onClick(SubSystems.NAGIVATION, camera, true)
-											} else {
-												onClick(SubSystems.NAGIVATION, camera, false)
-											}
-										}}
-									>
-										{camera}
-									</button>
-									{dataRateDiv(cameraStates[SubSystems.NAGIVATION], camera)}
-								</div>
-							)) : <p>NO DATA</p>}
-					</div>
-				</div>
-				<div className={styles.ModalHeader}>
-					<h1>Camera HD RGB/RGBD</h1>
-				</div>
-				<div className={styles.ModalContent}>
-
-					<div className={styles.ChoiceGroup}>
+						<div className={styles.ChoiceCategory}>
+							<h2>Camera HD RGB/RGBD</h2>
+						</div>
 						{cameraStates[SubSystems.HANDLING_DEVICE] != null ?
 
 							Object.values(CameraHD_RGB).map((camera: string) => (

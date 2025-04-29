@@ -641,25 +641,6 @@ const getStateFSM = (data: any) => {
 	return data['drill']['state']['state_fsm']
 }
 
-//////////////////////// CAMERAS ////////////////////////
-
-const getCameraStatesCS = (data: any) => {
-	if (!data || !data["cameras"]) {
-		return "NO DATA"
-	}
-
-	const cameras = data["cameras"]["control_station"];
-	const result = [];
-
-	for (const cams in cameras) {
-		result.push({
-			name: cameras[cams]["name"],
-			status: cameras[cams]['status'] ? "Connected" : "Disconnected"
-		});
-	}
-
-	return result;
-};
 
 export {
 	getStateSystem,
@@ -691,7 +672,6 @@ getMainProcesses,
 getLinearVelocity,
 getAngularVelocity,
 getDistanceToGoal,
-getCameraStatesCS,
 getStateFSM,
 getMassArmSensor,
 getMassDrillSensor,

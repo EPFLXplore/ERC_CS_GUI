@@ -4,13 +4,13 @@ import QuickAction from "../../components/Controls/QuickAction";
 import { useNavigate } from "react-router-dom";
 
 import NavIcon from "../../assets/images/icons/nav_logo.png";
-import CameraIcon from "../../assets/images/icons/353401_camera_icon.png"
+import CameraIcon from "../../assets/images/icons/camera.png"
 import HDIcon from "../../assets/images/icons/handling_device_logo.png";
 import Stop from "../../assets/images/icons/stop.png";
-import CommandsIcon from "../../assets/images/icons/settings_button.png";
+import CommandsIcon from "../../assets/images/icons/setting.png";
 import Drill from "../../assets/images/icons/drill.png";
 import SystemMode from "../../components/Controls/SystemMode";
-import Science from "../../assets/images/icons/microscope-solid.png";
+import Science from "../../assets/images/icons/microscope.png";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -364,12 +364,12 @@ const NewControlPage = () => {
 										icon: CommandsIcon
 									},
 									{
-										name: "Drill",
+										name: "Science",
 										onClick: () => displayRosModal(SubSystems.DRILL),
 										icon: CommandsIcon
 									},
 									{
-										name: "Elec",
+										name: "Avionics",
 										onClick: () => displayRosModal(SubSystems.EL),
 										icon: CommandsIcon
 									}
@@ -464,16 +464,16 @@ const NewControlPage = () => {
 							icon={Science}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal("", true)}
-							selected={false}
-							running={States.OFF}
-							icon={Stop}
-						/>
-						<QuickAction
 							onClick={() => displaySystemModal("commands", false)}
 							selected={false}
 							running={States.OFF}
 							icon={CommandsIcon}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal("", true)}
+							selected={false}
+							running={States.OFF}
+							icon={Stop}
 						/>
 					</div>
 					{modal}

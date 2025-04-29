@@ -33,7 +33,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 
 	// Keep the states of the cameras (on or off)
 	const [cameraStates, setCameraStates] = useState<CameraType>({
-		[SubSystems.CS]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.CS],
+		[SubSystems.ROVER]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.ROVER],
 		[SubSystems.HANDLING_DEVICE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.HANDLING_DEVICE],
 		[SubSystems.NAGIVATION]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.NAGIVATION],
 	})

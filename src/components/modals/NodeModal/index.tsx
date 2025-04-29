@@ -8,98 +8,58 @@ Year: 2024
 Description: ROS node Modal. Shows which nodes are running. It uses the rover state.
 */
 
+const sections = [SubSystems.ROVER, SubSystems.NAGIVATION, SubSystems.HANDLING_DEVICE];
+
 function NodeModal({
 	roverState,
-    name,
-    onClose,
+	name,
+	onClose,
 }: {
-	roverState: any,
-    name: string,
-    onClose: () => void;
+	roverState: any;
+	name: string;
+	onClose: () => void;
 }) {
-
 	return (
 		<div className={styles.Background} onClick={onClose}>
 			<div
 				className={styles.Modal}
-				onClick={(e) => {
-					e.stopPropagation();
-				}}
+				onClick={(e) => e.stopPropagation()}
 			>
 				<div className={styles.ModalHeader}>
-					<h1>{name.toUpperCase()}</h1>
+					<h1>{name.toLocaleUpperCase()}</h1>
 				</div>
 				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						{/** Nodes from the 'rover' software state */}
+						{roverState?.rover?.software?.nodes?.[name] ? (
+							Object.values(roverState.rover.software.nodes[name]).map((el: any, idx: number) => (
+								<div
+									key={`rover-node-${idx}`}
+									className={`${styles.Choice} ${el.status ? styles.Selected : ""}`}
+								>
+									{el.name}
+								</div>
+							))
+						) : (
+							<p style={{ color: "white" }}>NO DATA</p>
+						)}
 
-					{
-					//@ts-ignore
-					roverState['rover'] ?  
-					//@ts-ignore
-					Object.values(roverState['rover']['software']['nodes'][name]).map((el: any) => (
-						<div className={styles.ChoiceGroup}>
-							<div
-								className={`${styles.Choice} ${
-									//@ts-ignore
-									el['status'] ? styles.Selected : ""
-								}`}
-							>
-								{el['name']}
-							</div>
-						</div>
-					)) : <p>NO DATA</p>}
-
-					{
-					//@ts-ignore
-					name == SubSystems.ROVER ?  
-					//@ts-ignore
-					Object.values(roverState['cameras']["control_station"]).map((el: any) => (
-						<div className={styles.ChoiceGroup}>
-							<div
-								className={`${styles.Choice} ${
-									//@ts-ignore
-									el['status'] ? styles.Selected : ""
-								}`}
-							>
-								{el['name']}
-							</div>
-						</div>
-					)) : null}
-
-					{
-					//@ts-ignore
-					name == SubSystems.HANDLING_DEVICE ?  
-					//@ts-ignore
-					Object.values(roverState['cameras'][SubSystems.HANDLING_DEVICE]).map((el: any) => (
-						<div className={styles.ChoiceGroup}>
-							<div
-								className={`${styles.Choice} ${
-									//@ts-ignore
-									el['status'] ? styles.Selected : ""
-								}`}
-							>
-								{el['name']}
-							</div>
-						</div>
-					)) : null}
-
-{
-					//@ts-ignore
-					name == SubSystems.NAGIVATION ?  
-					//@ts-ignore
-					Object.values(roverState['cameras'][SubSystems.NAGIVATION]).map((el: any) => (
-						<div className={styles.ChoiceGroup}>
-							<div
-								className={`${styles.Choice} ${
-									//@ts-ignore
-									el['status'] ? styles.Selected : ""
-								}`}
-							>
-								{el['name']}
-							</div>
-						</div>
-					)) : null}
+						{/** Camera nodes by subsystem */}
+						{sections.map((system: SubSystems) =>
+							name === system && roverState?.cameras?.[system]
+								? Object.values(roverState.cameras[system]).map((el: any, idx: number) => (
+										<div
+											key={`camera-node-${idx}`}
+											className={`${styles.Choice} ${el.status ? styles.Selected : ""}`}
+										>
+											{el.name}
+										</div>
+								  ))
+								: null
+						)}
+					</div>
 				</div>
-            </div>
+			</div>
 		</div>
 	);
 }
