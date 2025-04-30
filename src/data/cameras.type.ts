@@ -13,7 +13,7 @@ interface CameraElement {
 
 type CameraType = { [key: string]: null | object };
 
-enum CameraCS {
+enum CameraRover {
     RIGHT = "Right",
     LEFT = "Left",
     BEHIND = "Behind"
@@ -39,9 +39,9 @@ enum CameraHD_RGB
 }
 
 const allCameras = {
-    "Control Station": {
-        enum: CameraCS,
-        subsystem_to_check: SubSystems.CS
+    "Rover": {
+        enum: CameraRover,
+        subsystem_to_check: SubSystems.ROVER
     },
     "Handling Device": {
         enum: CameraHD,
@@ -55,4 +55,4 @@ const allCameras = {
 
 
 export type {CameraElement, CameraType}
-export {CameraCS, CameraHD, CameraNAV, CameraSC, CameraHD_RGB, allCameras}
+export {CameraRover, CameraHD, CameraNAV, CameraSC, CameraHD_RGB, allCameras}

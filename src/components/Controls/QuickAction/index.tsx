@@ -12,11 +12,13 @@ function QuickAction({
 	selected,
 	running,
 	icon,
+	tooltip
 }: {
 	onClick: () => void;
 	selected: boolean;
 	running: string;
 	icon: string;
+	tooltip: string;
 }) {
 	return (
 		<div
@@ -26,6 +28,7 @@ function QuickAction({
 			onClick={onClick}
 		>
 			<img className={styles.icon} src={icon} alt="icon" />
+			<span className={styles.tooltip}>{tooltip}</span>
 		</div>
 	);
 }

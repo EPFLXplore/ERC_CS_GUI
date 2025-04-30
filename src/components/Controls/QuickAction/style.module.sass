@@ -1,6 +1,7 @@
 @import '../../../styles/variables.sass'
-    
+
 .container
+    position: relative
     width: 60px
     height: 60px
     background-color: $backgroundColor
@@ -8,6 +9,9 @@
     padding: 10px
     cursor: pointer
     user-select: none
+    display: flex
+    align-items: center
+    justify-content: center
 
 .icon
     width: 100%
@@ -18,3 +22,27 @@
 
 .running
     background-color: $secondaryColor !important
+
+.tooltip
+    visibility: hidden
+    width: max-content
+    max-width: 220px
+    background-color: rgba(0, 0, 0, 0.8)
+    color: white
+    text-align: center
+    border-radius: 6px
+    padding: 5px 8px
+    position: absolute
+    bottom: calc(100% + 8px)
+    left: 50%
+    transform: translateX(-50%)
+    z-index: 1
+    font-size: 12px
+    line-height: 1.2
+    white-space: nowrap
+    opacity: 0
+    transition: opacity 0.3s ease
+
+.container:hover .tooltip
+    visibility: visible
+    opacity: 1

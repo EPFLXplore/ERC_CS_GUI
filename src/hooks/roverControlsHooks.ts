@@ -62,9 +62,10 @@ const useRoverControls = (
 		["cancel"]: false,
 	});
 
-	let changeSpeedTopic: ROSLIB.Topic<{ data: number }> | null = null;
-	let hdResetNodesTopic: ROSLIB.Topic<{ data: boolean }> | null = null;
-	let resetDustSensorTopic: ROSLIB.Topic<{ data: boolean }> | null = null;
+	let resetDustSensorTopic: ROSLIB.Topic<any>;
+	let ledCommandsTopic: ROSLIB.Topic<any>;
+	let changeSpeedTopic: ROSLIB.Topic<any>;
+	let hdResetNodesTopic: ROSLIB.Topic<any>;
 
 	// Navigation
 	if(ros) {
@@ -72,7 +73,7 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.CHANGE_SPEED_ROVER,
 			messageType: "std_msgs/Float32",
-		})
+		});
 	}
 
 	if(ros) {
@@ -89,6 +90,15 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.CHANGE_SPEED_ROVER,
 			messageType: "std_msgs/Bool",
+		})
+	}
+
+	// Avionics
+	if(ros) {
+		ledCommandsTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.LED_PUBLISHER,
+			messageType: "custom_msg/LEDMessage",
 		})
 	}
 
@@ -329,7 +339,7 @@ const useRoverControls = (
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
-	// NAV CONTROL PANEL FUNCTIONS
+	// NAV CONTROL FUNCTIONS
 
 	const changeSpeedRover = (speed: number) => {
 		if(ros) {
@@ -342,7 +352,7 @@ const useRoverControls = (
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
-	// HD CONTROL PANEL FUNCTIONS
+	// HD CONTROL FUNCTIONS
 
 	const resetNodes = () => {
 		if(ros) {
@@ -355,7 +365,7 @@ const useRoverControls = (
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
-	// SCIENCE CONTROL PANEL FUNCTIONS
+	// SCIENCE CONTROL FUNCTIONS
 
 	const resetSensor = (sensor: Sensors) => {
 		if(ros) {
@@ -367,6 +377,30 @@ const useRoverControls = (
 					resetDustSensorTopic?.publish(object)
 					break;
 			}
+		}
+	} 
+
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	// AVIONICS CONTROL FUNCTIONS
+
+	const reset_motors = () => {
+		if(ros) {
+			const object = {
+				subsystem: 3,
+				mode: 4
+			}
+			ledCommandsTopic?.publish(object)
+		}
+	}
+
+	const emergency_shutdown = () => {
+		if(ros) {
+			const object = {
+				subsystem: 3,
+				mode: 5
+			}
+			ledCommandsTopic?.publish(object)
 		}
 	} 
 
@@ -404,7 +438,9 @@ const useRoverControls = (
 		setModalRosNodes,
 		changeSpeedRover,
 		resetNodes,
-		resetSensor
+		resetSensor,
+		reset_motors,
+		emergency_shutdown
 	] as const;
 };
 

@@ -30,9 +30,8 @@ function NodeModal({
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
-						{/** Nodes from the 'rover' software state */}
-						{roverState?.rover?.software?.nodes?.[name] ? (
-							Object.values(roverState.rover.software.nodes[name]).map((el: any, idx: number) => (
+						{roverState['rover'] ? (
+							Object.values(roverState['rover']['software']['nodes'][name]).map((el: any, idx: number) => (
 								<div
 									key={`rover-node-${idx}`}
 									className={`${styles.Choice} ${el.status ? styles.Selected : ""}`}

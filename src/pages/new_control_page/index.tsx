@@ -11,6 +11,8 @@ import CommandsIcon from "../../assets/images/icons/setting.png";
 import Drill from "../../assets/images/icons/drill.png";
 import SystemMode from "../../components/Controls/SystemMode";
 import Science from "../../assets/images/icons/microscope.png";
+import Canceled from "../../assets/images/icons/cancelled.png";
+import ResetMotors from "../../assets/images/icons/pitstop.png";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -24,7 +26,7 @@ import ImageRockDisplay from "../../components/data/RockImageSelection";
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data/InfoBox";
-import { Dvr, VoicemailRounded } from "@mui/icons-material";
+import { Dvr } from "@mui/icons-material";
 import {
 	getCurrentOrientation,
 	getCurrentPosition,
@@ -112,7 +114,9 @@ const NewControlPage = () => {
 		setModalRosNodes,
 		changeSpeedRover,
 		resetNodes,
-		resetSensors
+		resetSensors,
+		reset_motors,
+		emergency_shutdown
 	] = useRoverControls(ros, showSnackbar);
 
 	const [, , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
@@ -122,12 +126,18 @@ const NewControlPage = () => {
 	 * @param system the subsystem or empty string for the button cancel all actions
 	 * @param cancel if we use the cancel button or not
 	 */
-	const displaySystemModal = (system: SubSystems | string, cancel: boolean) => {
+	const displaySystemModal = (system: SubSystems | string) => {
 		setSystemsModalOpen((old) => {
 			let newModalOpen = { ...old };
 
-			if (cancel) {
+			if (system == "cancel_all_actions") {
 				cancelAllActions();
+				return newModalOpen;
+			} else if (system == "reset_motors") {
+				reset_motors();
+				return newModalOpen;
+			} else if (system == "emergency_shutdown") {
+				emergency_shutdown();
 				return newModalOpen;
 			} else {
 				// @ts-ignore
@@ -434,46 +444,67 @@ const NewControlPage = () => {
 
 					<div className={styles.actions}>
 						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.CAMERA, false)}
+							onClick={() => displaySystemModal(SubSystems.CAMERA)}
 							selected={systemsModalOpen[SubSystems.CAMERA]}
 							running={"Off"}
 							icon={CameraIcon}
+							tooltip={"Camera"}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.NAGIVATION, false)}
+							onClick={() => displaySystemModal(SubSystems.NAGIVATION)}
 							selected={systemsModalOpen[SubSystems.NAGIVATION]}
 							running={stateActions[SubSystems.NAGIVATION].action.state}
 							icon={NavIcon}
+							tooltip={"Navigation"}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.HANDLING_DEVICE, false)}
+							onClick={() => displaySystemModal(SubSystems.HANDLING_DEVICE)}
 							selected={systemsModalOpen[SubSystems.HANDLING_DEVICE]}
 							running={stateActions[SubSystems.HANDLING_DEVICE].action.state}
 							icon={HDIcon}
+							tooltip={"Handling Device"}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.DRILL, false)}
+							onClick={() => displaySystemModal(SubSystems.DRILL)}
 							selected={systemsModalOpen[SubSystems.DRILL]}
 							running={stateActions[SubSystems.DRILL].action.state}
 							icon={Drill}
+							tooltip={"Drill"}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.SCIENCE, false)}
+							onClick={() => displaySystemModal(SubSystems.SCIENCE)}
 							selected={systemsModalOpen[SubSystems.SCIENCE]}
 							running={States.OFF}
 							icon={Science}
+							tooltip={"Science"}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal("commands", false)}
+							onClick={() => displaySystemModal("commands")}
 							selected={false}
 							running={States.OFF}
 							icon={CommandsIcon}
+							tooltip={"Dockers"}
 						/>
 						<QuickAction
-							onClick={() => displaySystemModal("", true)}
+							onClick={() => displaySystemModal("cancel_all_actions")}
+							selected={false}
+							running={States.OFF}
+							icon={Canceled}
+							tooltip={"Cancel All Actions"}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal("reset_motors")}
+							selected={false}
+							running={States.OFF}
+							icon={ResetMotors}
+							tooltip={"Reset Motors Requested"}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal("emergency_shutdown")}
 							selected={false}
 							running={States.OFF}
 							icon={Stop}
+							tooltip={"Emergency Shutdown Requested"}
 						/>
 					</div>
 					{modal}

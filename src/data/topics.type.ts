@@ -6,6 +6,7 @@ export enum Topics {
     CHANGE_ANGLE_FRONT_CAMERA = "/CS/ChangeAngleFrontCamera",
     CHANGE_SPEED_ROVER = "/CS/ChangeSpeedRover",
     HANDLING_DEVICE_RESET_NODES = "/HD/kinematics/reset_nodes",
+    LED_PUBLISHER = "/EL/LedCommands",
 
     // Service
     CHANGE_MODE_CAMERA_SRV = "/CS/ChangeModeCamera",
