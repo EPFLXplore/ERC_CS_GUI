@@ -46,7 +46,7 @@ const requestChangeMode = (
 		let subsystem = request_mode.subsystem;
 		let mode = request_mode.index
 
-		if(subsystem == SubSystems.CS) {
+		if(subsystem == SubSystems.ROVER) {
 			request = {
 				subsystem: subsystem,
 				camera_name: mode,

@@ -22,7 +22,9 @@ const CAMERA_CONFIGS = [
 	["Camera_2"],
 	["Camera_3"],
 	["Camera_4"],
-	["Camera_3", "Camera_0"],
+	["Camera_5"],
+	["Camera_6"],
+	["Camera_0", "Camera_1"],
 ];
 
 const MAX_CAMERAS = 6;

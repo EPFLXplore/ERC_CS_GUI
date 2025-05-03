@@ -2,7 +2,7 @@ import { ReactElement, useEffect, useState } from "react";
 import useService from "./serviceHooks";
 import useActions, { ActionType } from "./actionsHooks";
 import useRoverState from "./roverStateHooks";
-import useNewCamera from "./newCameraHooks";
+import useNewCamera from "./cameraHooks";
 import SubSystems from "../data/subsystems.type";
 import { PublishTo, PublishToType } from "../data/publishTo.type";
 import actionGoal from "../utils/actionGoal";

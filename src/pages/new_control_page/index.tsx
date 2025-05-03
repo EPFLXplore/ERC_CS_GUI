@@ -72,7 +72,7 @@ import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
-import useNewCamera from "../../hooks/newCameraHooks";
+import useNewCamera from "../../hooks/cameraHooks";
 import ScienceModal from "../../components/modals/ScienceModal";
 import { Sensors } from "../../data/sensors.types";
 

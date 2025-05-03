@@ -1,7 +1,7 @@
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
-import { CameraRover, CameraHD, CameraNAV, CameraHD_RGB, allCameras} from "../../../data/cameras.type";
-import useNewCamera from "../../../hooks/newCameraHooks";
+import { CameraHD_RGB, allCameras} from "../../../data/cameras.type";
+import useNewCamera from "../../../hooks/cameraHooks";
 import ROSLIB from "roslib";
 import useRoverState from "../../../hooks/roverStateHooks";
 import React from "react";

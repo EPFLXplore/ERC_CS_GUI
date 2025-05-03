@@ -20,12 +20,14 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 	// Topics for the cameras. If you decide to modify them, you need to update also in the 
 	// submodule of the cameras => in the launch files.
 	const CAMERA_CONFIGS = [
+		["/NAV/feed_camera_nav_0"],
+		["/NAV/feed_camera_nav_1"],
+		["/NAV/feed_camera_nav_2"],
 		["/ROVER/feed_camera_cs_0"], 
 		["/ROVER/feed_camera_cs_1"], 
 		["/ROVER/feed_camera_cs_2"],
 		["/ROVER/feed_camera_hd_0"],
-		["/NAV/feed_camera_nav_0"],
-		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_0"]
+		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"]
 	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
