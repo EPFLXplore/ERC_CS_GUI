@@ -84,6 +84,8 @@ const NewControlPage = () => {
 	const [
 		roverState,
 		cameraStates,
+		rotateCams,
+		setRotateCams,
 		images,
 		currentVideo,
 		setCurrentVideo,
@@ -119,7 +121,7 @@ const NewControlPage = () => {
 		emergency_shutdown
 	] = useRoverControls(ros, showSnackbar);
 
-	const [, , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
+	const [, , , , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page

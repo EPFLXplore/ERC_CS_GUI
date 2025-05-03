@@ -32,8 +32,8 @@ const computeNavigationCommandClassicGamepad = (
 			0,
 		],
 		buttons: [
+			1, // DO NOT CHANGE THIS. It's a value that tells navigation command
 			0,
-			buttons[ClassicalGamepad.Button.X] ? 1 : 0, // Change of Mode
 			buttons[ClassicalGamepad.Button.UP] ? 1 : 0, // +10° on camera front
 			buttons[ClassicalGamepad.Button.DOWN] ? -1 : 0, // -10° on camera front
 			0,
@@ -79,7 +79,16 @@ const computeDirectArmCommandClassicGamepad = (
 				(buttons[ClassicalGamepad.Button.Y] ? 0.1 : 0) -
 				(buttons[ClassicalGamepad.Button.A] ? 0.1 : 0), // Gripper
 		],
-		buttons: [],
+		buttons: [
+			2, // DO NOT CHANGE THIS. It's a value that tells arm command
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		],
 	};
 };
 
@@ -115,7 +124,16 @@ const computeInverseArmCommandClassicGamepad = (
 				(buttons[ClassicalGamepad.Button.Y] ? 0.1 : 0) -
 				(buttons[ClassicalGamepad.Button.A] ? 0.1 : 0), // Gripper
 		],
-		buttons: [],
+		buttons: [
+			2, // DO NOT CHANGE THIS. It's a value that tells arm command
+			0,
+			0,
+			0,
+			0,
+			0,
+			0,
+			0
+		],
 	};
 };
 

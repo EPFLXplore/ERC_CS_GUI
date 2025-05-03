@@ -17,24 +17,25 @@ import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
  * i = 4: HD cam number 1
  */
 const CAMERA_CONFIGS = [
-	["Camera_0"],
-	["Camera_1"],
-	["Camera_2"],
-	["Camera_3"],
-	["Camera_4"],
-	["Camera_5"],
-	["Camera_6"],
-	["Camera_0", "Camera_1"],
+	["Front Cam"],
+	["Aruco Left"],
+	["Aruco Right"],
+	["Drill Cam"],
+	["Gripper Cam"],
+	["Left", "Right"],
+	["Aruco Left", "Aruco Right"],
 ];
 
-const MAX_CAMERAS = 6;
+const MAX_IMAGES = 7;
 
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
 	const [ros,] = useRosBridge(showSnackbar);
 	const [
 		roverState,
-		cameraStates,
+		cameraStates, 
+		rotateCams,
+		setRotateCams,
 		images,
 		currentVideo,
 		setCurrentVideo,
@@ -76,13 +77,15 @@ const CamerasPage = () => {
 						<CameraView
 							currentVideo={currentVideo}
 							images={images}
+							rotate={rotateCams}
+							setRotateCams={setRotateCams}
 							currentCam={CAMERA_CONFIGS[currentVideo]}
 							changeCam={(dir) => {
 								setCurrentVideo((old) => {
 									if (dir === 1) {
-										return (old + 1) % MAX_CAMERAS;
+										return (old + 1) % MAX_IMAGES;
 									} else {
-										return (old - 1 + MAX_CAMERAS) % MAX_CAMERAS;
+										return (old - 1 + MAX_IMAGES) % MAX_IMAGES;
 									}
 								});
 							}}

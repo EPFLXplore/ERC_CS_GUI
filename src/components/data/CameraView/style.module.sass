@@ -7,6 +7,18 @@
     flex-flow: row wrap
     border-radius: 10px
 
+.Rotate0
+  transform: rotate(0deg)
+
+.Rotate90
+  transform: rotate(90deg)
+
+.Rotate180
+  transform: rotate(180deg)
+
+.Rotate270
+  transform: rotate(270deg)
+
 .Image
     width: 100%
     height: 100%
@@ -17,23 +29,36 @@
     -webkit-user-select: none
     -o-user-select: none
     user-select: none
+    position: relative       
+    z-index: 1               
 
 .RotatedImage
     width: 100%
     height: 100%
     object-fit: cover
     overflow: hidden
-    -webkit-transform:rotate(180deg)
-    -moz-transform: rotate(180deg)
-    -ms-transform: rotate(180deg)
-    -o-transform: rotate(180deg)
-    transform: rotate(180deg)
 
 .Half
     width: 50%
     height: 100%
     object-fit: cover
     overflow: hidden
+
+.HalfImage
+  width: 90%     // ✅ scale down so you "see more"
+  height: auto
+  object-fit: contain
+  transition: transform 0.3s ease
+  user-select: none
+
+.HalfWrapper
+  width: 50%
+  height: 100%
+  display: flex
+  align-items: center
+  justify-content: center
+  overflow: hidden
+  background-color: black 
 
 .RotatedHalf
     width: 50%
@@ -70,6 +95,7 @@
     margin: 10px
     display: flex
     flex-direction: row
+    z-index: 2
 
     p
         margin: 0 10px

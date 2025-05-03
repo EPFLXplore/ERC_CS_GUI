@@ -1,19 +1,19 @@
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 
-/*
-#TODO
-*/
-
 const CameraView = ({
 	currentVideo,
 	images,
+	rotate = [0],
 	changeCam,
+	setRotateCams,
 	currentCam,
 }: {
 	currentVideo: number;
 	images: Array<string>;
+	rotate?: number[];
 	changeCam: (dir: number) => void;
+	setRotateCams: (rotate: number[]) => void;
 	currentCam: Array<string>;
 }) => {
 
@@ -30,7 +30,12 @@ const CameraView = ({
 				<img
 					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 					alt="Camera"
-					className={styles.Image}
+					className={`${styles.Image} ${styles[`Rotate${rotate[0]}`]}`}
+					onDoubleClick={() => {
+						const newRotation = ((rotate[0]) + 90) % 360;
+						setRotateCams([newRotation]);
+					}}
+					
 				/>
 			</div>
 		);
@@ -39,32 +44,21 @@ const CameraView = ({
 		return (
 			<div className={styles.Container}>
 				{<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
-				<img
-					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
-					alt="Camera"
-					className={styles.Half}
-					// onContextMenu={(e) => {
-					// 	e.preventDefault();
-					// 	const a = document.createElement("a");
-					// 	a.setAttribute("download", "reactflow.png");
-					// 	a.setAttribute("href", images[0] ?? DefaultImage);
-					// 	a.click();
-					// 	console.log("Saved!");
-					// }}
-				/>
-				<img
-					src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
-					alt="Camera"
-					className={styles.Half}
-					// onContextMenu={(e) => {
-					// 	e.preventDefault();
-					// 	const a = document.createElement("a");
-					// 	a.setAttribute("download", "reactflow.png");
-					// 	a.setAttribute("href", images[1] ?? DefaultImage);
-					// 	a.click();
-					// 	console.log("Saved!");
-					// }}
-				/>
+
+				<div className={styles.HalfWrapper}>
+					<img
+						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+						alt="Camera"
+						className={styles.HalfImage}
+					/>
+				</div>
+				<div className={styles.HalfWrapper}>
+					<img
+						src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
+						alt="Camera"
+						className={styles.HalfImage}
+					/>
+				</div>
 			</div>
 		);
 	} else {
@@ -109,3 +103,11 @@ const CameraSelector = ({
 };
 
 export default CameraView;
+
+/**
+ *     -webkit-transform:rotate(90deg)
+    -moz-transform: rotate(90deg)
+    -ms-transform: rotate(90deg)
+    -o-transform: rotate(90deg)
+    transform: rotate(90deg)
+ */

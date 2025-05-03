@@ -31,6 +31,8 @@ const SimulationPage = () => {
 	const [
 		roverState,
 		cameraStates,
+		rotateCams,
+		setRotateCams,
 		images,
 		currentVideo,
 		setCurrentVideo,

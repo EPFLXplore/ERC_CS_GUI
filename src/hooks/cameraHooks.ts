@@ -14,6 +14,7 @@ get the feeds of the cameras.
 function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 ) {
 	const [images, setImage] = useState<Array<string>>([]);
+	const [rotateCams, setRotateCams] = useState<Array<number>>([0]);
 	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
 	const [imageRock, setImageRock] = useState<string | null>(null);
 
@@ -23,11 +24,10 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 		["/NAV/feed_camera_nav_0"],
 		["/NAV/feed_camera_nav_1"],
 		["/NAV/feed_camera_nav_2"],
-		["/ROVER/feed_camera_cs_0"], 
-		["/ROVER/feed_camera_cs_1"], 
 		["/ROVER/feed_camera_cs_2"],
 		["/ROVER/feed_camera_hd_0"],
-		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"]
+		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"],
+		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"]
 	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
@@ -127,7 +127,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 
 	}, [ros]);
 
-	return [cameraStates, images, currentVideo, setCurrentVideo, hdConfirmationRocks,
+	return [cameraStates, rotateCams, setRotateCams, images, currentVideo, setCurrentVideo, hdConfirmationRocks,
 		imageRock, setImageRock
 	] as const;
 }

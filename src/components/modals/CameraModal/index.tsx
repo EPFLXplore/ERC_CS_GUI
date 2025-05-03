@@ -46,7 +46,7 @@ function CameraModal({
 }) {
 
 	const [roverState] = useRoverState(ros)
-	const [cameraStates, images, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState)
+	const [cameraStates, rotateCams, images, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState)
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
