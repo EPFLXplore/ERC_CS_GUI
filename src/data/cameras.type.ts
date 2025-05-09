@@ -16,6 +16,7 @@ type CameraType = { [key: string]: null | object };
 enum CameraRover {
     RIGHT = "Right",
     LEFT = "Left",
+    DRILL = "Drill",
     BEHIND = "Behind"
 }
 
@@ -33,9 +34,17 @@ enum CameraSC {
     MAIN = "Main",
 }
 
-enum CameraHD_RGB
-{
-    RGB = "RGB/RGBD",
+const depth_cameras = {
+    "Handling Device Depth": {
+        name: "Depth HD",
+        camera: "Gripper",
+        subsystem_to_check: SubSystems.HANDLING_DEVICE
+    },
+    "Navigation Depth": {
+        name: "Depth NAV",
+        camera: "Front",
+        subsystem_to_check: SubSystems.NAGIVATION
+    }
 }
 
 const allCameras = {
@@ -55,4 +64,4 @@ const allCameras = {
 
 
 export type {CameraElement, CameraType}
-export {CameraRover, CameraHD, CameraNAV, CameraSC, CameraHD_RGB, allCameras}
+export {CameraRover, CameraHD, CameraNAV, CameraSC, depth_cameras, allCameras}

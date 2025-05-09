@@ -1,6 +1,6 @@
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
-import { CameraHD_RGB, allCameras} from "../../../data/cameras.type";
+import { depth_cameras, allCameras} from "../../../data/cameras.type";
 import useNewCamera from "../../../hooks/cameraHooks";
 import ROSLIB from "roslib";
 import useRoverState from "../../../hooks/roverStateHooks";
@@ -101,30 +101,36 @@ function CameraModal({
 					</div>
 				
 					<div className={styles.ChoiceGroup}>
-						<div className={styles.ChoiceCategory}>
-							<h2>Camera HD RGB/RGBD</h2>
-						</div>
-						{cameraStates[SubSystems.HANDLING_DEVICE] != null ?
-
-							Object.values(CameraHD_RGB).map((camera: string) => (
-								<button
-									className={`${styles.Choice} ${
-										//@ts-ignore
-										roverState[SubSystems.HANDLING_DEVICE]['state']['rgbd'] ? styles.Selected : ""
-										}`}
-									onClick={() => {
-										//@ts-ignore
-										if (!roverState[SubSystems.HANDLING_DEVICE]['state']['rgbd']) {
-											rgbOnClick(SubSystems.HANDLING_DEVICE, true)
-										}
-										else {
-											rgbOnClick(SubSystems.HANDLING_DEVICE, false)
-										}
-									}}
-								>
-									{camera}
-								</button>
-							)) : <p>NO DATA</p>}
+						{(Object.keys(depth_cameras) as Array<keyof typeof depth_cameras>).map((cameraGroup) => (
+						<React.Fragment key={cameraGroup}>
+							<div className={styles.ChoiceCategory}>
+								<h2>{cameraGroup}</h2>
+							</div>
+							
+							{cameraStates[depth_cameras[cameraGroup].subsystem_to_check] != null ?
+								<React.Fragment key={cameraGroup}>
+										<div className={styles.ChoiceWrapper}>
+										<button
+										className={`${styles.Choice} ${
+											//@ts-ignore
+											cameraStates[depth_cameras[cameraGroup].subsystem_to_check][depth_cameras[cameraGroup].camera]['depth'] ? styles.Selected : ""
+											}`}
+										onClick={() => {
+											//@ts-ignore
+											if (!cameraStates[depth_cameras[cameraGroup].subsystem_to_check][depth_cameras[cameraGroup].camera]['depth']) {
+												rgbOnClick(depth_cameras[cameraGroup].subsystem_to_check, true)
+											} else {
+												rgbOnClick(depth_cameras[cameraGroup].subsystem_to_check, false)
+											}
+										}}
+										>
+											{depth_cameras[cameraGroup].name}
+										</button>
+										</div>
+									</React.Fragment>
+							: <p>NO DATA</p>}
+						</React.Fragment>
+						))}
 					</div>
 				</div>
 			</div>

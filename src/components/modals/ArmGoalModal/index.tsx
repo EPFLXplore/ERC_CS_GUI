@@ -70,18 +70,21 @@ function ArmGoalModal({
 		  { name: "Sad Arm", msg: "above_ground" },
 		  { name: "Rangement", msg: "rangement" },
 		  { name: "Front Panel", msg: "front_panel" },
-		  { name: "Probe 1", msg: "probe_1" },
-		  { name: "Probe 2", msg: "probe_2" },
-		  { name: "Probe 3", msg: "probe_3" },
+		//   { name: "Probe 1", msg: "probe_1" },
+		//   { name: "Probe 2", msg: "probe_2" },
+		//   { name: "Probe 3", msg: "probe_3" },
 		]},
 		{ category: "Tasks", items: [
-		  { name: "Pick Tool Rock", msg: "shovel" },
-		  { name: "Pick Tool Sand", msg: "shovel" },
+		  { name: "Pick Tool Sand", msg: "clam" },
 		  { name: "Pick Rock", msg: "rocks" },
 		  { name: "Pick Probe", msg: "probes" },
 		  { name: "Drop Samples", msg: "drop" },
 		  { name: "Approach Aruco", msg: "aruco_approach" },
 		  { name: "Grab Sand", msg: "sand_collect" },
+		  { name: "Brugg probe 1", msg: "probe_1" },
+		  { name: "Brugg probe 2", msg: "probe_2" },
+		  { name: "Brugg probe 3", msg: "probe_3" },
+		  { name: "Brugg rock", msg: "brugg_rock" },
 		]}
 	  ];
 	  

@@ -122,7 +122,7 @@ const computeInverseArmCommandClassicGamepad = (
 			(buttons[ClassicalGamepad.Button.B] ? 1 : 0) -
 				(buttons[ClassicalGamepad.Button.X] ? 1 : 0) +
 				(buttons[ClassicalGamepad.Button.Y] ? 0.1 : 0) -
-				(buttons[ClassicalGamepad.Button.A] ? 0.1 : 0), // Gripper
+				(buttons[ClassicalGamepad.Button.A] ? 0.1 : 0) // Gripper
 		],
 		buttons: [
 			2, // DO NOT CHANGE THIS. It's a value that tells arm command

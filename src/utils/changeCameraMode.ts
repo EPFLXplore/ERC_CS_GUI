@@ -27,6 +27,16 @@ const startCamModeService = (
             request = {
                 data: activate
             }
+        } else if (subsystem == SubSystems.NAGIVATION) {
+            changeModeSystem = new ROSLIB.Service({
+                ros: ros,
+                name: Topics.CHANGE_MODE_RGB_NAV,
+                serviceType: "std_srvs/srv/SetBool",
+            });
+
+            request = {
+                data: activate
+            }
         }
 
         if (changeModeSystem != null) {

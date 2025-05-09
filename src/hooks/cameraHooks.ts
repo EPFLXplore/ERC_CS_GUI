@@ -25,6 +25,7 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 		["/NAV/feed_camera_nav_1"],
 		["/NAV/feed_camera_nav_2"],
 		["/ROVER/feed_camera_cs_2"],
+		["/ROVER/feed_camera_cs_3"],
 		["/ROVER/feed_camera_hd_0"],
 		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"],
 		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"]

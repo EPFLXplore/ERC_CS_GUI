@@ -21,12 +21,13 @@ const CAMERA_CONFIGS = [
 	["Aruco Left"],
 	["Aruco Right"],
 	["Drill Cam"],
+	["Behind Cam"],
 	["Gripper Cam"],
 	["Left", "Right"],
 	["Aruco Left", "Aruco Right"],
 ];
 
-const MAX_IMAGES = 7;
+const MAX_IMAGES = 8;
 
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();

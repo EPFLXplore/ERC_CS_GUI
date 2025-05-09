@@ -387,7 +387,7 @@ const useRoverControls = (
 	const reset_motors = () => {
 		if(ros) {
 			const object = {
-				subsystem: 3,
+				system: 3,
 				mode: 4
 			}
 			ledCommandsTopic?.publish(object)
@@ -397,7 +397,7 @@ const useRoverControls = (
 	const emergency_shutdown = () => {
 		if(ros) {
 			const object = {
-				subsystem: 3,
+				system: 3,
 				mode: 5
 			}
 			ledCommandsTopic?.publish(object)
