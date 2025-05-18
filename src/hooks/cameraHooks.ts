@@ -5,18 +5,20 @@ import {CameraType } from "../data/cameras.type";
 import { Topics } from "../data/topics.type";
 
 /*
-Author: Ugo Balducci
-Year: 2023
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2025
 Description: Hooks for managing the states of the different cameras. It creates the subscribers to
 get the feeds of the cameras. 
 */
 
-function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
+function useCamera(ros: ROSLIB.Ros | null, roverState: any
 ) {
+	// const [shouldSubscribe, setShouldSubscribe] = useState(() => {
+    // 	return localStorage.getItem("cameraTabOpen") === "true";
+  	// });
+
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCams] = useState<Array<number>>([0]);
-	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
-	const [imageRock, setImageRock] = useState<string | null>(null);
 
 	// Topics for the cameras. If you decide to modify them, you need to update also in the 
 	// submodule of the cameras => in the launch files.
@@ -33,16 +35,14 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
 	const [listeners, setListeners] = useState<ROSLIB.Topic<any>[]>([])
-
-	// Keep the states of the cameras (on or off)
-	const [cameraStates, setCameraStates] = useState<CameraType>({
-		[SubSystems.ROVER]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.ROVER],
-		[SubSystems.HANDLING_DEVICE]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.HANDLING_DEVICE],
-		[SubSystems.NAGIVATION]: !roverState["rover"] ? null : roverState["cameras"][SubSystems.NAGIVATION],
-	})
 	
 	useEffect(() => {
 		if (ros) {
+
+			//if (!shouldSubscribe) return;
+
+			console.log("SUBSCRIBED TO CAMS")
+
 			const cameras = CAMERA_CONFIGS[currentVideo];
 			let _listeners: ROSLIB.Topic<any>[] = []
 			setImage(Array(CAMERA_CONFIGS.length).fill(""));
@@ -80,57 +80,60 @@ function useNewCamera(ros: ROSLIB.Ros | null, roverState: any
 				_listeners = [..._listeners, listener]
 			});
 		}
+
 	}, [ros, currentVideo]);
 
-	useEffect(() => {
-		setCameraStates((old) => {
-			let newStates = { ...old };
+	// useEffect(() => {
+	// 	setCameraStates((old) => {
+	// 		let newStates = { ...old };
 
-			if (roverState === undefined || roverState["cameras"] == undefined) {
-				return newStates;
-			}
-			for (const key in newStates) {
-				if (newStates.hasOwnProperty(key)) {
-					newStates[key] = roverState["cameras"][key]
-				}
-			}
-			return newStates;
-		});
-	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
+	// 		if (roverState === undefined || roverState["cameras"] == undefined) {
+	// 			return newStates;
+	// 		}
+	// 		for (const key in newStates) {
+	// 			if (newStates.hasOwnProperty(key)) {
+	// 				newStates[key] = roverState["cameras"][key]
+	// 			}
+	// 		}
+	// 		return newStates;
+	// 	});
+	// }, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
+	
 
-	// Service that triggers Human verification for selecting a Rock on an image
+	// // Change the camera on the screen
+	// useEffect(() => {
+	// 	const handleNext = (event: { key: string }) => {
+	// 		if (event.key === "ArrowRight") {
+	// 			setCurrentVideo((old) => {
+	// 				if (old === MAX_CAMERAS - 1) {
+	// 					return 0;
+	// 				} else {
+	// 					return old + 1;
+	// 				}
+	// 			});
+	// 		}
+	// 	};
+	// 	window.addEventListener("keydown", handleNext);
 
-	useEffect(() => {
-		if (ros) {
-			var res = new ROSLIB.Service({
-				ros: ros,
-				name: Topics.REQUEST_SELECTION_ROCK,
-				serviceType: "custom_msg/srv/RockSelection",
-			});
+	// 	return () => {
+	// 		window.removeEventListener("keydown", handleNext);
+	// 	};
+	// }, []);
 
-			res.advertiseAsync(async (request: any) => {
-				setImageRock("data:image/jpeg;charset=utf-8;base64," + request.rock_image.data)
+	// // Listen to other tabs updating the flag
+	// useEffect(() => {
+	// 	const handleStorage = (event: StorageEvent) => {
+	// 	if (event.key === "cameraTabOpen" && event.newValue !== null) {
+	// 		setShouldSubscribe(event.newValue === "true");
+	// 	}
+	// 	};
 
-				const result = await new Promise<{x: number, y: number}>((resolve, reject) => {
-					setHDConfirmationRocks(() => (x: number, y: number) => {
-						resolve({x, y});
-						setHDConfirmationRocks(null);
-					});
-				});
+	// 	window.addEventListener("storage", handleStorage);
+	// 	return () => window.removeEventListener("storage", handleStorage);
+	// }, []);
 
-				return {
-					x: result.x,
-					y: result.y,
-					success: true
-				};
-			})
-		}
-
-	}, [ros]);
-
-	return [cameraStates, rotateCams, setRotateCams, images, currentVideo, setCurrentVideo, hdConfirmationRocks,
-		imageRock, setImageRock
+	return [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo
 	] as const;
 }
 
-export default useNewCamera;
+export default useCamera;

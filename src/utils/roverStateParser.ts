@@ -1,3 +1,5 @@
+import { CameraType } from "../data/cameras.type";
+
 /**
  * This file contains functions that parse the rover state data and return the
  * values contained in the data.
@@ -66,32 +68,6 @@ const getStateSystem = (data: any, system: SubSystems) => {
 	return data[system]["state"]["mode"];
 };
 
-/**
- * Return all warnings
- * @param data the rover state data
- * @returns the warnings
- */
-const getWarnings = (data: any) => {
-	if(!data || !data['rover']) {
-		return [];
-	}
-
-	return data['rover']['status']['warnings']
-}
-
-/**
- * Return all errors
- * @param data the rover state data
- * @returns the errors
- */
-const getErrors = (data: any) => {
-	if(!data || !data['rover']) {
-		return [];
-	}
-
-	return data['rover']['status']['errors']
-}
-
 const getLogs = (data: any) => {
 	if(!data || !data['rover']) {
 		return [];
@@ -100,23 +76,23 @@ const getLogs = (data: any) => {
 	return data['rover']['network']['logs']
 }
 
-//////////////////////// NAVIGATION ////////////////////////
-
-const getGpsCoordinates = (data: any) => {
-	if(!data || !data['rover']) {
-		return {
-			latitude: "NO DATA",
-			longitude: "NO DATA",
-			altitude: "NO DATA"
-		}
+const getCameraStates = (data: any) => {
+	let result: CameraType = {}
+	if (!data || !data['rover']) {
+		result[SubSystems.ROVER] = null
+		result[SubSystems.HANDLING_DEVICE] = null
+		result[SubSystems.NAGIVATION] = null
+		return result
 	}
 
-	return {
-		latitude: Number(data['navigation']['localization']['gps_coordinates']['latitude']),
-		longitude: Number(data['navigation']['localization']['gps_coordinates']['longitude']),
-		altitude: Number(data['navigation']['localization']['gps_coordinates']['altitude']),
-	}
+	result[SubSystems.ROVER] = data['rover']["cameras"][SubSystems.ROVER]
+	result[SubSystems.HANDLING_DEVICE] = data['rover']["cameras"][SubSystems.HANDLING_DEVICE]
+	result[SubSystems.NAGIVATION] = data['rover']["cameras"][SubSystems.NAGIVATION]
+
+	return result
 }
+
+//////////////////////// NAVIGATION ////////////////////////
 
 const getLinearVelocity = (data: any) => {
 	if(!data || !data['rover']) {
@@ -652,8 +628,6 @@ export {
 	getCurrentGoal,
 	getTrajectory,
 	getWheelsDrivingValue,
-	getWarnings,
-	getErrors,
 	getLogs,
 	getNetworkData,
 	getCurrentDriving,
@@ -682,5 +656,6 @@ getCurrentHDTask,
 getTotalJointsCurrent,
 getBatteryState,
 getTorqueGripper,
-getBatteryVoltage
+getBatteryVoltage,
+getCameraStates
 };

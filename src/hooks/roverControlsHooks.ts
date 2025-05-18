@@ -2,7 +2,6 @@ import { ReactElement, useEffect, useState } from "react";
 import useService from "./serviceHooks";
 import useActions, { ActionType } from "./actionsHooks";
 import useRoverState from "./roverStateHooks";
-import useNewCamera from "./cameraHooks";
 import SubSystems from "../data/subsystems.type";
 import { PublishTo, PublishToType } from "../data/publishTo.type";
 import actionGoal from "../utils/actionGoal";
@@ -22,8 +21,6 @@ Description: Hooks controlling multiple Hooks for the general control of the Rov
 2) The main functions for ROS are defined here.
 */
 
-const MAX_CAMERAS = 5;
-
 type typeModal = {
 	[key: string]: boolean;
 };
@@ -38,12 +35,8 @@ const useRoverControls = (
 	// RoverState
 	const [roverState] = useRoverState(ros);
 
-	// Cameras
-	const [cameraStates, rotateCams, setRotateCams, images, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState);
-	const [display, setDisplay] = useState("camera");
-
 	// Services ROS
-	const [stateServices, ] = useService(
+	const [stateServices] = useService(
 		roverState,
 		(sev, mess) => showSnackbar(sev, mess)
 	);
@@ -76,6 +69,7 @@ const useRoverControls = (
 		});
 	}
 
+	// Handling Device
 	if(ros) {
 		hdResetNodesTopic = new ROSLIB.Topic<any>({
 			ros: ros,
@@ -83,6 +77,9 @@ const useRoverControls = (
 			messageType: "std_msgs/Bool",
 		})
 	}
+
+	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
+	const [imageRock, setImageRock] = useState<string | null>(null);
 
 	// Science
 	if(ros) {
@@ -292,8 +289,6 @@ const useRoverControls = (
 		setManualMode((old) => {
 			if (old === PublishTo.NAVIGATION) {
 				return PublishTo.HANDLING_DEVICE;
-			} else if (old === PublishTo.HANDLING_DEVICE) {
-				return PublishTo.CAMERA_NAV;
 			} else {
 				return PublishTo.NAVIGATION;
 			}
@@ -315,27 +310,6 @@ const useRoverControls = (
 			return newFocus;
 		});
 	};
-
-	// Change the camera on the screen
-	useEffect(() => {
-		const handleNext = (event: { key: string }) => {
-			if (event.key === "ArrowRight") {
-				console.log("Next camera");
-				setCurrentVideo((old) => {
-					if (old === MAX_CAMERAS - 1) {
-						return 0;
-					} else {
-						return old + 1;
-					}
-				});
-			}
-		};
-		window.addEventListener("keydown", handleNext);
-
-		return () => {
-			window.removeEventListener("keydown", handleNext);
-		};
-	}, []);
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
@@ -362,6 +336,36 @@ const useRoverControls = (
 			hdResetNodesTopic?.publish(object)
 		}
 	} 
+
+	// Service that triggers Human verification for selecting a Rock on an image
+
+	useEffect(() => {
+		if (ros) {
+			var res = new ROSLIB.Service({
+				ros: ros,
+				name: Topics.REQUEST_SELECTION_ROCK,
+				serviceType: "custom_msg/srv/RockSelection",
+			});
+
+			res.advertiseAsync(async (request: any) => {
+				setImageRock("data:image/jpeg;charset=utf-8;base64," + request.rock_image.data)
+
+				const result = await new Promise<{x: number, y: number}>((resolve, reject) => {
+					setHDConfirmationRocks(() => (x: number, y: number) => {
+						resolve({x, y});
+						setHDConfirmationRocks(null);
+					});
+				});
+
+				return {
+					x: result.x,
+					y: result.y,
+					success: true
+				};
+			})
+		}
+
+	}, [ros]);
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
@@ -407,14 +411,9 @@ const useRoverControls = (
 
 	return [
 		roverState,
-		cameraStates,
-		rotateCams,
-		setRotateCams,
-		images,
-		currentVideo,
-		setCurrentVideo,
-		display,
-		setDisplay,
+		hdConfirmationRocks,
+		imageRock,
+		setImageRock,
 		stateServices,
 		stateActions,
 		setStateActions,

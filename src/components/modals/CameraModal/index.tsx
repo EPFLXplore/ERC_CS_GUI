@@ -1,10 +1,8 @@
 import styles from "./style.module.sass";
-import SubSystems from "../../../data/subsystems.type";
 import { depth_cameras, allCameras} from "../../../data/cameras.type";
-import useNewCamera from "../../../hooks/cameraHooks";
 import ROSLIB from "roslib";
-import useRoverState from "../../../hooks/roverStateHooks";
 import React from "react";
+import { CameraType } from "../../../data/cameras.type";
 
 /*
 Author: Giovanni Ranieri and Matas Jones
@@ -34,19 +32,16 @@ function dataRateDiv(cameraStates: any, camera: string) {
 
 
 function CameraModal({
-	ros,
+	cameraStates,
 	onClose,
 	onClick,
 	rgbOnClick
 }: {
-	ros: ROSLIB.Ros | null,
+	cameraStates: CameraType,
 	onClose: () => void;
 	onClick: (subsystem: string, mode: string, activated: boolean) => void;
 	rgbOnClick: (subsystem: string, activate: boolean) => void; // button press -> change HD/NAV camera mode
 }) {
-
-	const [roverState] = useRoverState(ros)
-	const [cameraStates, rotateCams, images, currentVideo, setCurrentVideo] = useNewCamera(ros, roverState)
 
 	return (
 		<div className={styles.Background} onClick={onClose}>

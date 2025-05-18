@@ -108,7 +108,7 @@ const StopCameraHD: SSHCommands = {
 
 const ActivateElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['cd /home/xplore-avionics/Documents/ERC_EL_BroCo/src/docker_humble_jetson', './start_elec_stack.sh']
+    commands: ['cd /home/xplore-avionics/ERC_EL_BroCo/src/docker_humble_jetson', './start_elec_stack.sh']
 };
 
 // Stops the FSM and other stuff. 

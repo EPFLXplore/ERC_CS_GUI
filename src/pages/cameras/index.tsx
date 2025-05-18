@@ -1,20 +1,13 @@
 import styles from "./styles.module.sass";
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import CameraView from "../../components/data/CameraView";
-import useRosBridge from "../../hooks/rosbridgeHooks";
-import useAlert from "../../hooks/alertHooks";
-import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
+import { useRoverContext } from "../../roverControlsContext";
+import useCamera from "../../hooks/cameraHooks";
 
 /**
  * This has a particular format. Each Camera_i is a particular camera with index i. This index i
  * is the index in the list of newCameraHooks.ts representing a camera. Index i = 0 is the
- * /ROVER/feed_camera_cs_0, so the first camera of the CS. We have then the following convention:
- * 
- * i = 0: CS cam number 1
- * i = 1: CS cam number 2
- * i = 2: CS cam number 3
- * i = 3: NAV cam number 1
- * i = 4: HD cam number 1
+ * /ROVER/feed_camera_cs_0, so the first camera of the CS.
  */
 const CAMERA_CONFIGS = [
 	["Front Cam"],
@@ -30,18 +23,13 @@ const CAMERA_CONFIGS = [
 const MAX_IMAGES = 8;
 
 const CamerasPage = () => {
-	const [, showSnackbar] = useAlert();
-	const [ros,] = useRosBridge(showSnackbar);
+	const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
+	
 	const [
 		roverState,
-		cameraStates, 
-		rotateCams,
-		setRotateCams,
-		images,
-		currentVideo,
-		setCurrentVideo,
-		display,
-		setDisplay,
+		hdConfirmationRocks,
+		imageRock,
+		setImageRock,
 		stateServices,
 		stateActions,
 		setStateActions,
@@ -65,7 +53,23 @@ const CamerasPage = () => {
 		setRosModalOpen,
 		modalRosNodes,
 		setModalRosNodes,
-	] = useRoverControls(ros, showSnackbar);
+		changeSpeedRover,
+		resetNodes,
+		resetSensors,
+		reset_motors,
+		emergency_shutdown
+	] = roverControls;
+
+	// Cameras
+	const [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo] = useCamera(ros, roverState);
+
+	// useEffect(() => {
+	// 	localStorage.setItem("cameraTabOpen", "true");
+
+	// 	return () => {
+	// 		localStorage.setItem("cameraTabOpen", "false");
+	// 	};
+	// }, []);
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -74,26 +78,21 @@ const CamerasPage = () => {
 			</div>
 			<div className={styles.control}>
 				<div className={styles.visualization}>
-					{display === "camera" ? (
-						<CameraView
-							currentVideo={currentVideo}
-							images={images}
-							rotate={rotateCams}
-							setRotateCams={setRotateCams}
-							currentCam={CAMERA_CONFIGS[currentVideo]}
-							changeCam={(dir) => {
-								setCurrentVideo((old) => {
-									if (dir === 1) {
-										return (old + 1) % MAX_IMAGES;
-									} else {
-										return (old - 1 + MAX_IMAGES) % MAX_IMAGES;
-									}
-								});
-							}}
-						/>
-					) : (
-						<></>
-					)}
+					<CameraView
+						images={images}
+						rotate={rotateCams}
+						setRotateCams={setRotateCams}
+						currentCam={CAMERA_CONFIGS[currentVideo]}
+						changeCam={(dir) => {
+							setCurrentVideo((old: number) => {
+								if (dir === 1) {
+									return (old + 1) % MAX_IMAGES;
+								} else {
+									return (old - 1 + MAX_IMAGES) % MAX_IMAGES;
+								}
+							});
+						}}
+					/>
 				</div>
 			</div>
 		</div>

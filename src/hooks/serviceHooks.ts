@@ -18,12 +18,7 @@ const rulesNavigation: RuleRover[] = [
 		name: SubSystems.DRILL,
 		new_mode: [States.AUTO, States.ACKERMANN, States.OMNI_DIRECTIONAL],
 		state_sys: States.OFF,
-	},
-	{
-		name: SubSystems.CAMERA,
-		new_mode: [States.AUTO],
-		state_sys: States.OFF,
-	},
+	}
 ];
 
 const rulesCamera: RuleRover[] = [
@@ -135,7 +130,7 @@ function useService(
 		});
 	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
-	return [stateServices, setStateServices] as const;
+	return [stateServices] as const;
 }
 
 export default useService;

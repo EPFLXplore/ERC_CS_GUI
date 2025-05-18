@@ -60,7 +60,7 @@ function useGamepad(
 			setGamepadCommandState((prev) => {
 				if (
 					prev === GamepadCommandState.UI &&
-					(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE || mode === PublishTo.CAMERA_NAV)
+					(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)
 				)
 					return GamepadCommandState.CONTROL;
 				else return GamepadCommandState.UI;

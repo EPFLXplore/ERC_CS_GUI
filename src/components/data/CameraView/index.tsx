@@ -2,14 +2,12 @@ import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 
 const CameraView = ({
-	currentVideo,
 	images,
 	rotate = [0],
 	changeCam,
 	setRotateCams,
 	currentCam,
 }: {
-	currentVideo: number;
 	images: Array<string>;
 	rotate?: number[];
 	changeCam: (dir: number) => void;

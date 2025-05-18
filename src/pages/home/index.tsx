@@ -10,7 +10,7 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 const Home = () => {
 	const navigate = useNavigate();
 	const [snackbar, showSnackbar] = useAlert();
-	const [, connected] = useRosBridge(showSnackbar);
+	//const [, connected] = useRosBridge(showSnackbar);
 
 	return (
 		<div className="page">
@@ -20,33 +20,33 @@ const Home = () => {
 			</div>
 			<div className={styles.body}>
 				<a
-					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
-						if (connected) navigate("/control");
+						navigate("/control");
 					}}
 				>
 					Start
 				</a>
 				<a
-					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
-						if (connected) navigate("/simulation");
+						navigate("/simulation");
 					}}
 				>
 					Simulation
 				</a>
 				<a
-					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
-						if (connected) navigate("/network");
+						navigate("/network");
 					}}
 				>
 					Network
 				</a>
 				<a
-					className={connected ? styles.buttonStart : styles.buttonStartDisabled}
+					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
-						if (connected) navigate("/cameras");
+						navigate("/cameras");
 					}}
 				>
 					Cameras
@@ -80,9 +80,9 @@ const Home = () => {
 				<div className={styles.state}>
 					<div
 						className={styles.indicator}
-						style={{ background: connected ? "#5CCE7C" : "#FF4444" }}
+						style={{ background: true ? "#5CCE7C" : "#FF4444" }}
 					/>
-					<div className={styles.text}>Rover {connected ? "Connected" : "Off"}</div>
+					<div className={styles.text}>Rover {true ? "Connected" : "Off"}</div>
 				</div>
 			</div>
 			<AlertSnackbar alertMessage={snackbar} />

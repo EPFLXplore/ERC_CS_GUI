@@ -30,14 +30,9 @@ const SimulationPage = () => {
 	const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
 	const [
 		roverState,
-		cameraStates,
-		rotateCams,
-		setRotateCams,
-		images,
-		currentVideo,
-		setCurrentVideo,
-		display,
-		setDisplay,
+		hdConfirmationRocks,
+		imageRock,
+		setImageRock,
 		stateServices,
 		stateActions,
 		setStateActions,

@@ -59,7 +59,8 @@ import {
 	getDustSensor,
 	getMassDrillSensor,
 	getMassArmSensor,
-	getForInOneSensor
+	getForInOneSensor,
+	getCameraStates
 	
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
@@ -72,25 +73,22 @@ import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
-import useNewCamera from "../../hooks/cameraHooks";
 import ScienceModal from "../../components/modals/ScienceModal";
 import { Sensors } from "../../data/sensors.types";
+import { CameraType } from "../../data/cameras.type";
+import { useRoverContext } from "../../roverControlsContext";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
-	const [snackbar, showSnackbar] = useAlert();
-	const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
-	
-	const [
+
+	const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
+
+  	// Destructure like before:
+  	const [
 		roverState,
-		cameraStates,
-		rotateCams,
-		setRotateCams,
-		images,
-		currentVideo,
-		setCurrentVideo,
-		display,
-		setDisplay,
+		hdConfirmationRocks,
+		imageRock,
+		setImageRock,
 		stateServices,
 		stateActions,
 		setStateActions,
@@ -119,9 +117,7 @@ const NewControlPage = () => {
 		resetSensors,
 		reset_motors,
 		emergency_shutdown
-	] = useRoverControls(ros, showSnackbar);
-
-	const [, , , , , , hdConfirmationRocks, imageRock, setImageRock] = useNewCamera(ros, roverState)
+  	] = roverControls;
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page
@@ -129,7 +125,7 @@ const NewControlPage = () => {
 	 * @param cancel if we use the cancel button or not
 	 */
 	const displaySystemModal = (system: SubSystems | string) => {
-		setSystemsModalOpen((old) => {
+		setSystemsModalOpen((old: typeModal) => {
 			let newModalOpen = { ...old };
 
 			if (system == "cancel_all_actions") {
@@ -146,7 +142,7 @@ const NewControlPage = () => {
 				newModalOpen[system] = true;
 				setModal(
 					selectModal(
-						roverState,
+						getCameraStates(roverState),
 						system,
 						point,
 						setModal,
@@ -169,7 +165,7 @@ const NewControlPage = () => {
 	};
 
 	const displayRosModal = (system: SubSystems) => {
-		setRosModalOpen((old) => {
+		setRosModalOpen((old: typeModal) => {
 			let newModalOpen = { ...old };
 
 			// @ts-ignore
@@ -547,7 +543,7 @@ const NewControlPage = () => {
 };
 
 const selectModal = (
-	roverState: any,
+	cameraStates: CameraType,
 	system: SubSystems | string,
 	pointOnMap: { x: number; y: number },
 	setModal: (modal: ReactElement | null) => void,
@@ -589,7 +585,7 @@ const selectModal = (
 							return newModalOpen;
 						});
 					}}
-					ros={ros}
+					cameraStates={cameraStates}
 					onClick={(subsystem, mode, activated) => startService(subsystem, mode, true, activated)}
 					rgbOnClick={(subsystem, activate) => startCamModeService(subsystem, activate, ros, showSnackbar)}
 				/>
