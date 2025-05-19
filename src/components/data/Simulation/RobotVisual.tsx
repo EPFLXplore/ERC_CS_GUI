@@ -53,8 +53,7 @@ const RobotVisual = ({
 	rotation: Point3D;
 	terrainRef: React.MutableRefObject<THREE.Object3D | undefined>;
 }) => {
-	//var filepath = "/onyx_description_2/urdf/onyx.urdf";
-	var filepath = "/onyx_final_description/urdf/onyx_3.urdf";
+	var filepath = "/URDF_Full_description/urdf/URDF_Full.urdf";
 
 	// loading robot model from urdf
 	const ref = useRef();
@@ -133,15 +132,14 @@ const RobotVisual = ({
 	startTransition(() => {
 
 		// Set joint angles
-		const offsets = [180, -90, -90, 0, 0, -90]
 		for (let i = 0; i < 6; i++) {
-			robot.joints[`hd_joint_${i + 1}`].setJointValue(
-				THREE.MathUtils.degToRad(armJointAngles[i] + offsets[i])
+			robot.joints[`J${i + 1}`].setJointValue(
+				THREE.MathUtils.degToRad(armJointAngles[i])
 			);
 		}
 		// Set wheel steering angles
 		for (let i = 0; i < wheelsSteeringAngle.length; i++) {
-			robot.joints[`wheel_steering_${i + 1}`].setJointValue(
+			robot.joints[`ST${i + 1 + 4}`].setJointValue(
 				THREE.MathUtils.degToRad(wheelsSteeringAngle[i] + (i > 1 ? 90 : -90))
 			);
 		}
@@ -149,13 +147,13 @@ const RobotVisual = ({
 		// Set wheel diving values
 		for (let i = 0; i < wheelsDrivingValue.length; i++) {
 			let angle = wheelsDrivingMotion(currentAngle[i])
-			robot.joints[`wheel_driving_${i + 1}`].setJointValue(
+			robot.joints[`DR${i + 1}`].setJointValue(
 				THREE.MathUtils.degToRad(currentAngle[i])
 			);
 		}
 
 		// Set the drill depth value
-		robot.joints[`drill_module`].setJointValue(mapRangeDrill(drill_value))
+		robot.joints[`Drill_Linear`].setJointValue(mapRangeDrill(drill_value))
 	});
 
 	useEffect(() => {
@@ -192,7 +190,7 @@ const RobotVisual = ({
 					ref={ref}
 					object={robot}
 					position={[-0.35, -0.12, 0.25]}
-					rotation={[-0.5 * Math.PI, 0, -Math.PI]}
+					//rotation={[-0.5 * Math.PI, 0, -Math.PI]}
 					dispose={null}
 					castShadow
 				/>
