@@ -14,14 +14,14 @@ what is this server.
 function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
 	const [connected, setConnected] = useState(false);
-	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
+	// const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 
 	// At initialization, we connect to port 9090. You have different modes:
 	// 1. Launching the server locally:           use => ros_server.connect("ws://localhost:9090");
 	// 2. Launching the server on another device: use => ros_server.connect("ws://IP_SERVER:9090");
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
-		ros_server.connect("ws://localhost:9090");
+		ros_server.connect("ws://169.254.55.240:9090");
 
 		ros_server.on("error", function (error) {
 			snackBar("error", "Failed to connect to ROS server.");
@@ -75,35 +75,35 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 						clearInterval(check);
 					}
 				);
-			}, 1000);
+			}, 4000);
 		}
 	}, [ros]);
 
-	useEffect(() => {
-		if (!ros) return;
+	// useEffect(() => {
+	// 	if (!ros) return;
 
-		// The Service object does double duty for both calling and advertising services
-		var askUserConfirmation = new ROSLIB.Service({
-			ros: ros,
-			name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
-			serviceType: "std_srvs/Trigger",
-		});
+	// 	// The Service object does double duty for both calling and advertising services
+	// 	var askUserConfirmation = new ROSLIB.Service({
+	// 		ros: ros,
+	// 		name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
+	// 		serviceType: "std_srvs/Trigger",
+	// 	});
 
-		// Use the advertise() method to indicate that we want to provide this service
-		askUserConfirmation.advertiseAsync(async (request) => {
-			const result = await new Promise<boolean>((resolve, reject) => {
-				setHDConfirmation(() => (confirm: boolean) => {
-					resolve(confirm)
-					setHDConfirmation(null);
-				});
-			});
-			return {
-				success: result,
-			};
-		});
-	}, [ros]);
+	// 	// Use the advertise() method to indicate that we want to provide this service
+	// 	askUserConfirmation.advertiseAsync(async (request) => {
+	// 		const result = await new Promise<boolean>((resolve, reject) => {
+	// 			setHDConfirmation(() => (confirm: boolean) => {
+	// 				resolve(confirm)
+	// 				setHDConfirmation(null);
+	// 			});
+	// 		});
+	// 		return {
+	// 			success: result,
+	// 		};
+	// 	});
+	// }, [ros]);
 
-	return [ros, connected, hdConfirmation] as const;
+	return [ros, connected] as const;
 }
 
 export default useRosBridge;

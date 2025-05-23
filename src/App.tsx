@@ -40,7 +40,8 @@ const router = createBrowserRouter([
 ]);
 
 export const App = () => (
-  <RoverControlsProvider>
-    <RouterProvider router={router} />
-  </RoverControlsProvider>
+//   <RoverControlsProvider>
+//     <RouterProvider router={router} />
+//   </RoverControlsProvider>
+ <RouterProvider router={router} />
 );

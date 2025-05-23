@@ -78,6 +78,7 @@ const useRoverControls = (
 		})
 	}
 
+	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
 	const [imageRock, setImageRock] = useState<string | null>(null);
 
@@ -367,6 +368,30 @@ const useRoverControls = (
 
 	}, [ros]);
 
+	useEffect(() => {
+			if (!ros) return;
+	
+			// The Service object does double duty for both calling and advertising services
+			var askUserConfirmation = new ROSLIB.Service({
+				ros: ros,
+				name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
+				serviceType: "std_srvs/Trigger",
+			});
+	
+			// Use the advertise() method to indicate that we want to provide this service
+			askUserConfirmation.advertiseAsync(async (request) => {
+				const result = await new Promise<boolean>((resolve, reject) => {
+					setHDConfirmation(() => (confirm: boolean) => {
+						resolve(confirm)
+						setHDConfirmation(null);
+					});
+				});
+				return {
+					success: result,
+				};
+			});
+		}, [ros]);
+
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
 	// SCIENCE CONTROL FUNCTIONS
@@ -411,6 +436,7 @@ const useRoverControls = (
 
 	return [
 		roverState,
+		hdConfirmation,
 		hdConfirmationRocks,
 		imageRock,
 		setImageRock,

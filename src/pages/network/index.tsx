@@ -42,6 +42,7 @@ const NetworkPage = () => {
 	const [logs, setLogs] = useRoverNetwork(ros);
 	const [
 		roverState,
+		hdConfirmation,
 		hdConfirmationRocks,
 		imageRock,
 		setImageRock,

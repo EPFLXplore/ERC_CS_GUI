@@ -2,6 +2,8 @@ import styles from "./styles.module.sass";
 import CameraView from "../../components/data/CameraView";
 import { useRoverContext } from "../../roverControlsContext";
 import useCamera from "../../hooks/cameraHooks";
+import useAlert from "../../hooks/alertHooks";
+import useRosBridge from "../../hooks/rosbridgeHooks";
 
 const CAMERA_CONFIGS = [
 	["Front Cam"],
@@ -13,7 +15,11 @@ const CAMERA_CONFIGS = [
 const MAX_IMAGES = CAMERA_CONFIGS.length;
 
 const CamerasPage = () => {
-	const { ros } = useRoverContext();
+	
+	const [snackbar, showSnackbar] = useAlert();
+  	const [ros, active] = useRosBridge(showSnackbar);
+
+	//const { ros } = useRoverContext();
 
 	const [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo] = useCamera(ros);
 

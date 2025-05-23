@@ -16,49 +16,56 @@ import {
 	getWheelsDrivingValue
 } from "../../utils/roverStateParser";
 import SettingsModal from "../../components/modals/SettingsModal";
-import { useRoverContext } from "../../roverControlsContext";
+import useAlert from "../../hooks/alertHooks";
+import useRosBridge from "../../hooks/rosbridgeHooks";
+import useRoverControls from "../../hooks/roverControlsHooks";
 
 const SimulationPage = () => {
 	const navigate = useNavigate();
+
+	const [snackbar, showSnackbar] = useAlert();
+  	const [ros, active] = useRosBridge(showSnackbar);
+	const roverControls = useRoverControls(ros, showSnackbar);
 	
 
-	const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
+	//const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
 	
-		// Destructure like before:
-		const [
-			roverState,
-			hdConfirmationRocks,
-			imageRock,
-			setImageRock,
-			stateServices,
-			stateActions,
-			setStateActions,
-			systemsModalOpen,
-			setSystemsModalOpen,
-			manualMode,
-			modal,
-			volumetric,
-			setModal,
-			dataFocus,
-			cancelAction,
-			cancelAllActions,
-			launchAction,
-			startService,
-			changeMode,
-			triggerDataFocus,
-			point,
-			setPoint,
-			setVolumetric,
-			rosModalOpen,
-			setRosModalOpen,
-			modalRosNodes,
-			setModalRosNodes,
-			changeSpeedRover,
-			resetNodes,
-			resetSensors,
-			reset_motors,
-			emergency_shutdown
-		] = roverControls;
+	// Destructure like before:
+	const [
+		roverState,
+		hdConfirmation,
+		hdConfirmationRocks,
+		imageRock,
+		setImageRock,
+		stateServices,
+		stateActions,
+		setStateActions,
+		systemsModalOpen,
+		setSystemsModalOpen,
+		manualMode,
+		modal,
+		volumetric,
+		setModal,
+		dataFocus,
+		cancelAction,
+		cancelAllActions,
+		launchAction,
+		startService,
+		changeMode,
+		triggerDataFocus,
+		point,
+		setPoint,
+		setVolumetric,
+		rosModalOpen,
+		setRosModalOpen,
+		modalRosNodes,
+		setModalRosNodes,
+		changeSpeedRover,
+		resetNodes,
+		resetSensors,
+		reset_motors,
+		emergency_shutdown
+	] = roverControls;
 
 
 	return (

@@ -8,17 +8,16 @@ const RoverControlsContext = createContext<any | undefined>(undefined);
 
 export const RoverControlsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [snackbar, showSnackbar] = useAlert();
-  const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
+  const [ros, active] = useRosBridge(showSnackbar);
   const roverControls = useRoverControls(ros, showSnackbar);
 
   const value = useMemo(() => ({
     ros,
     active,
-    hdConfirmation,
     snackbar,
     showSnackbar,
     roverControls
-  }), [ros, active, hdConfirmation, snackbar, showSnackbar, roverControls]);
+  }), [ros, active, snackbar, showSnackbar, roverControls]);
 
   return (
     <RoverControlsContext.Provider value={value}>

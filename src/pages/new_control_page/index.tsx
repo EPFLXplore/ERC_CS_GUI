@@ -81,11 +81,16 @@ import { useRoverContext } from "../../roverControlsContext";
 const NewControlPage = () => {
 	const navigate = useNavigate();
 
-	const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
+	const [snackbar, showSnackbar] = useAlert();
+	const [ros, active] = useRosBridge(showSnackbar);
+	const roverControls = useRoverControls(ros, showSnackbar);
+
+	//const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
 
   	// Destructure like before:
   	const [
 		roverState,
+		hdConfirmation,
 		hdConfirmationRocks,
 		imageRock,
 		setImageRock,
