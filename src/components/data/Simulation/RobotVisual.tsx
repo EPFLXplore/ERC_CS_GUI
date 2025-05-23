@@ -136,11 +136,14 @@ const RobotVisual = ({
 			robot.joints[`J${i + 1}`].setJointValue(
 				THREE.MathUtils.degToRad(armJointAngles[i])
 			);
+			robot.joints[`J1`].setJointValue(
+				THREE.MathUtils.degToRad(30)
+			);
 		}
 		// Set wheel steering angles
 		for (let i = 0; i < wheelsSteeringAngle.length; i++) {
 			robot.joints[`ST${i + 1 + 4}`].setJointValue(
-				THREE.MathUtils.degToRad(wheelsSteeringAngle[i] + (i > 1 ? 90 : -90))
+				THREE.MathUtils.degToRad(wheelsSteeringAngle[i] + (i > 1 ? -90 : 90))
 			);
 		}
 

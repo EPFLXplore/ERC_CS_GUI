@@ -85,9 +85,9 @@ const getCameraStates = (data: any) => {
 		return result
 	}
 
-	result[SubSystems.ROVER] = data['rover']["cameras"][SubSystems.ROVER]
-	result[SubSystems.HANDLING_DEVICE] = data['rover']["cameras"][SubSystems.HANDLING_DEVICE]
-	result[SubSystems.NAGIVATION] = data['rover']["cameras"][SubSystems.NAGIVATION]
+	result[SubSystems.ROVER] = data["cameras"][SubSystems.ROVER]
+	result[SubSystems.HANDLING_DEVICE] = data["cameras"][SubSystems.HANDLING_DEVICE]
+	result[SubSystems.NAGIVATION] = data["cameras"][SubSystems.NAGIVATION]
 
 	return result
 }

@@ -1,12 +1,8 @@
 import styles from "./styles.module.sass";
 import Gamepad from "../../components/Controls/Gamepad";
 import { useNavigate } from "react-router-dom";
-
 import Simulation from "../../components/data/Simulation";
-
 import logo from "../../assets/images/logos/logo_XPlore.png";
-import useRosBridge from "../../hooks/rosbridgeHooks";
-
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
 import { Dvr, Settings } from "@mui/icons-material";
@@ -19,44 +15,50 @@ import {
 	getTrajectory,
 	getWheelsDrivingValue
 } from "../../utils/roverStateParser";
-import useAlert from "../../hooks/alertHooks";
-import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import SettingsModal from "../../components/modals/SettingsModal";
-
+import { useRoverContext } from "../../roverControlsContext";
 
 const SimulationPage = () => {
 	const navigate = useNavigate();
-	const [snackbar, showSnackbar] = useAlert();
-	const [ros, active, hdConfirmation] = useRosBridge(showSnackbar);
-	const [
-		roverState,
-		hdConfirmationRocks,
-		imageRock,
-		setImageRock,
-		stateServices,
-		stateActions,
-		setStateActions,
-		systemsModalOpen,
-		setSystemsModalOpen,
-		manualMode,
-		modal,
-		volumetric,
-		setModal,
-		dataFocus,
-		cancelAction,
-		cancelAllActions,
-		launchAction,
-		startService,
-		changeMode,
-		triggerDataFocus,
-		point,
-		setPoint,
-		setVolumetric,
-		rosModalOpen,
-		setRosModalOpen,
-		modalRosNodes,
-		setModalRosNodes,
-	] = useRoverControls(ros, showSnackbar);
+	
+
+	const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
+	
+		// Destructure like before:
+		const [
+			roverState,
+			hdConfirmationRocks,
+			imageRock,
+			setImageRock,
+			stateServices,
+			stateActions,
+			setStateActions,
+			systemsModalOpen,
+			setSystemsModalOpen,
+			manualMode,
+			modal,
+			volumetric,
+			setModal,
+			dataFocus,
+			cancelAction,
+			cancelAllActions,
+			launchAction,
+			startService,
+			changeMode,
+			triggerDataFocus,
+			point,
+			setPoint,
+			setVolumetric,
+			rosModalOpen,
+			setRosModalOpen,
+			modalRosNodes,
+			setModalRosNodes,
+			changeSpeedRover,
+			resetNodes,
+			resetSensors,
+			reset_motors,
+			emergency_shutdown
+		] = roverControls;
 
 
 	return (
