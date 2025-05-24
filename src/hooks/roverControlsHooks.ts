@@ -86,7 +86,7 @@ const useRoverControls = (
 	if(ros) {
 		resetDustSensorTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.CHANGE_SPEED_ROVER,
+			name: "/test_tt",
 			messageType: "std_msgs/Bool",
 		})
 	}

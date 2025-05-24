@@ -4,7 +4,7 @@ import { SSHCommands, EndSystem, Connection } from "../data/ssh.type"
 
 
 const RPI_ROVER_DRILL: EndSystem = {
-    ip: '169.254.55.251',
+    ip: '169.254.55.240',
     hostname: 'xplore',
     password: 'xplore',
     name: 'RPI Rover/Drill'
