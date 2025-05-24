@@ -43,6 +43,8 @@ function CameraModal({
 	rgbOnClick: (subsystem: string, activate: boolean) => void; // button press -> change HD/NAV camera mode
 }) {
 
+	const [camera, clickedCamera] = React.useState<string | null>(null);
+
 	return (
 		<div className={styles.Background} onClick={onClose}>
 			<div
@@ -82,6 +84,7 @@ function CameraModal({
 												} else {
 													onClick(allCameras[cameraGroup].subsystem_to_check, camera, false)
 												}
+												clickedCamera(camera)
 											}}
 											>
 												{camera}
