@@ -27,8 +27,6 @@ const SimulationPage = () => {
   	const [ros, active] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
 	
-
-	//const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
 	
 	// Destructure like before:
 	const [

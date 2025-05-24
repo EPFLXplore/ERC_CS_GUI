@@ -36,6 +36,11 @@ ROS URDf
 
 */
 
+const MIN_DRILL_ENCODER = 0.0
+const MAX_DRILL_ENCODER = 30000000.0
+const MIN_DRILL_STATE = 0.0
+const MAX_DRILL_STATE = -0.64
+
 const RobotVisual = ({
 	drill_value,
 	armJointAngles,
@@ -59,11 +64,6 @@ const RobotVisual = ({
 	const ref = useRef();
 	const [roverMapPosition, setRoverMapPosition] = useState({ x: 0, y: 0, z: 0 });
 	const { raycaster } = useThree();
-
-	const MIN_DRILL_ENCODER = 0.0
-	const MAX_DRILL_ENCODER = 30000000.0
-	const MIN_DRILL_STATE = 0.0
-	const MAX_DRILL_STATE = -0.64
 
 	const [currentAngle, setCurrentAngle] = useState([0.0, 0.0, 0.0, 0.0])
 
@@ -136,10 +136,8 @@ const RobotVisual = ({
 			robot.joints[`J${i + 1}`].setJointValue(
 				THREE.MathUtils.degToRad(armJointAngles[i])
 			);
-			robot.joints[`J1`].setJointValue(
-				THREE.MathUtils.degToRad(30)
-			);
 		}
+
 		// Set wheel steering angles
 		for (let i = 0; i < wheelsSteeringAngle.length; i++) {
 			robot.joints[`ST${i + 1 + 4}`].setJointValue(
