@@ -1,4 +1,4 @@
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, startTransition, useEffect, useState } from "react";
 import useService from "./serviceHooks";
 import useActions, { ActionType } from "./actionsHooks";
 import useRoverState from "./roverStateHooks";
@@ -81,6 +81,7 @@ const useRoverControls = (
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
 	const [imageRock, setImageRock] = useState<string | null>(null);
+	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
 	// Science
 	if(ros) {
@@ -336,7 +337,7 @@ const useRoverControls = (
 			}
 			hdResetNodesTopic?.publish(object)
 		}
-	} 
+	}
 
 	// Service that triggers Human verification for selecting a Rock on an image
 
@@ -392,6 +393,29 @@ const useRoverControls = (
 			});
 		}, [ros]);
 
+	useEffect(() => {
+		if (ros) {
+			const hdStackLaunched = new ROSLIB.Topic({
+				ros: ros,
+				name: Topics.CONFIRMATION_HDS_LAUNCHED,
+				messageType: "std_msgs/Bool",
+			});
+
+			hdStackLaunched.subscribe(async (message) => {
+				//@ts-ignore
+				const data = message.data
+				//startTransition(() => setRoverState(data));
+
+				const result = await new Promise<boolean>((resolve, reject) => {
+					setHdStackLaunched(() => (confirm: boolean) => {
+						resolve(confirm)
+						setHdStackLaunched(null);
+					});
+				});
+			});
+		}
+		}, [ros]);
+
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
 	// SCIENCE CONTROL FUNCTIONS
@@ -436,6 +460,7 @@ const useRoverControls = (
 
 	return [
 		roverState,
+		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationRocks,
 		imageRock,

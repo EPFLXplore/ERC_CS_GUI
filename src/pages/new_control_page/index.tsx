@@ -90,6 +90,7 @@ const NewControlPage = () => {
   	// Destructure like before:
   	const [
 		roverState,
+		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationRocks,
 		imageRock,
@@ -229,6 +230,17 @@ const NewControlPage = () => {
 			</div>
 			<div className={styles.control}>
 				<div className={styles.visualization}>
+
+					{hdStackLaunched !== null && (
+						<div className={styles.confirm}>
+						<div className={styles.confirmBox}>
+							<p>Handling Device Started</p>
+							<div className={styles.confirmation}>
+								<button className={styles.confirmBtn} onClick={() => hdStackLaunched(true)}>Acknowledge</button>
+							</div>
+						</div>
+					</div>
+					)}
 
 					{hdConfirmationRocks !== null && (
 						<div>

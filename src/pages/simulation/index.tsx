@@ -31,6 +31,7 @@ const SimulationPage = () => {
 	// Destructure like before:
 	const [
 		roverState,
+		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationRocks,
 		imageRock,
