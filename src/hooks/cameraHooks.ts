@@ -47,8 +47,9 @@ function useCamera(ros: ROSLIB.Ros | null) {
 					ros: ros,
 					name: camera,
 					messageType: "sensor_msgs/CompressedImage",
-					compression: "cbor-raw",//"jpeg",
-					queue_length: 1
+					compression: "jpeg",
+					queue_length: 1,
+					queue_size: 1
 				});
 
 				listener.subscribe((message) => {
