@@ -7,7 +7,7 @@ export enum Topics {
     CHANGE_SPEED_ROVER = "/CS/ChangeSpeedRover",
     HANDLING_DEVICE_RESET_NODES = "/HD/kinematics/reset_nodes",
     LED_PUBLISHER = "/EL/LedCommands",
-    CONFIRMATION_HDS_LAUNCHED = "/HD/stackHDLaunched",
+    CONFIRMATION_HDS_LAUNCHED = "/HD/kinematics/stackHDLaunched",
 
     // Service
     CHANGE_MODE_CAMERA_SRV = "/CS/ChangeModeCamera",
