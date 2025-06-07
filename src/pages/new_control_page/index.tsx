@@ -44,7 +44,8 @@ import {
 	getCurrentDriving,
 	getCurrentSteering,
 	getCurrentOutput,
-	getMainProcesses,
+	getJetsonStatsHD,
+	getJetsonStatsNAV,
 	getNodes,
 	getLinearVelocity,
 	getAngularVelocity,
@@ -367,6 +368,34 @@ const NewControlPage = () => {
 							]}
 						/>
 					</div>
+
+					<div className={styles.infosMidRight2}>
+						<InfoBox
+							title="Jetson HD"
+							infos={[
+								{ name: "RAM", value: getJetsonStatsHD(roverState).ram, unit: "GB"},
+								{ name: "GPU", value: getJetsonStatsHD(roverState).load_gpu, unit: "%"},
+								{ name: "Power", value: getJetsonStatsHD(roverState).power_tot, unit: "W"},
+								{ name: "Fan", value: getJetsonStatsHD(roverState).fan_rpm, unit: 'rpm'},
+								{ name: "CPU Temp", value: getJetsonStatsHD(roverState).temp_cpu, unit: '°C'},
+								{ name: "GPU Temp", value: getJetsonStatsHD(roverState).temp_gpu, unit: '°C'}
+							]}
+						/>
+
+						<InfoBox
+							title="Jetson NAV"
+							infos={[
+								{ name: "RAM", value: getJetsonStatsNAV(roverState).ram, unit: "GB"},
+								{ name: "GPU", value: getJetsonStatsNAV(roverState).load_gpu, unit: "%"},
+								{ name: "Power", value: getJetsonStatsNAV(roverState).power_tot, unit: "W"},
+								{ name: "Fan", value: getJetsonStatsNAV(roverState).fan_rpm, unit: 'rpm'},
+								{ name: "CPU Temp", value: getJetsonStatsNAV(roverState).temp_cpu, unit: '°C'},
+								{ name: "GPU Temp", value: getJetsonStatsNAV(roverState).temp_gpu, unit: '°C'}
+							]}
+						/>
+					</div>
+					
+
 					<div className={styles.infosMidRight}>
 						{typeof getNodes(roverState) !== "string" ?
 

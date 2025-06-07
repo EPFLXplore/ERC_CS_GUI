@@ -45,13 +45,8 @@ const startCamModeService = (
                 request,
                 (res) => {
                     // @ts-ignore
-                    if (res["success"] !== 0) {
-                        snackBar("error", "Error from request (NOT ROS): " +
-                            // @ts-ignore
-                            res["error_message"]);
-                    } else {
-                        // @ts-ignore
-                        console.log("error")
+                    if (res["success"]) {
+                        snackBar("success", "Successfully change mode camera")
                     }
                 },
                 (err) => {

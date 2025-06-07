@@ -12,12 +12,52 @@ import SubSystems from "../data/subsystems.type";
 
 //////////////////////// GENERAL ////////////////////////
 
-const getMainProcesses = (data: any) => {
+const getJetsonStatsHD = (data: any) => {
 	if (!data || !data['rover']) {
-		return "NO DATA"
+		return {
+			ram: 0,
+			load_gpu: 0,
+			fan_rpm: 0,
+			power_tot: 0,
+			temp_cpu: 0,
+			temp_gpu: 0
+		}
 	}
 
-	return data['rover']["software"]["main_processes"];
+	const stats = data['rover']['hardware']['stats_hd']
+
+	return {
+		ram: stats['ram'] === undefined ? 0 : stats['ram'],
+		load_gpu: stats['load_gpu'] === undefined ? 0 : stats['load_gpu'],
+		fan_rpm: stats['fan_rpm'] === undefined ? 0 : stats['fan_rpm'],
+		power_tot: stats['power_tot'] === undefined ? 0 : stats['power_tot'],
+		temp_cpu: stats['temp_cpu'] === undefined ? 0 : stats['temp_cpu'],
+		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu']
+	}
+}
+
+const getJetsonStatsNAV = (data: any) => {
+	if (!data || !data['rover']) {
+		return {
+			ram: 0,
+			load_gpu: 0,
+			fan_rpm: 0,
+			power_tot: 0,
+			temp_cpu: 0,
+			temp_gpu: 0
+		}
+	}
+
+	const stats = data['rover']['hardware']['stats_nav']
+
+	return {
+		ram: stats['ram'] === undefined ? 0 : stats['ram'],
+		load_gpu: stats['load_gpu'] === undefined ? 0 : stats['load_gpu'],
+		fan_rpm: stats['fan_rpm'] === undefined ? 0 : stats['fan_rpm'],
+		power_tot: stats['power_tot'] === undefined ? 0 : stats['power_tot'],
+		temp_cpu: stats['temp_cpu'] === undefined ? 0 : stats['temp_cpu'],
+		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu']
+	}
 }
 
 const getNodes = (data: any) => {
@@ -642,7 +682,8 @@ getJointsStates,
 getJointsCurrent,
 getMotorModule,
 getNodes,
-getMainProcesses,
+getJetsonStatsHD,
+getJetsonStatsNAV,
 getLinearVelocity,
 getAngularVelocity,
 getDistanceToGoal,
