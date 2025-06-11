@@ -378,8 +378,9 @@ const NewControlPage = () => {
 								{ name: "Power", value: getJetsonStatsHD(roverState).power_tot, unit: "W"},
 								{ name: "Fan", value: getJetsonStatsHD(roverState).fan_rpm, unit: 'rpm'},
 								{ name: "CPU Temp", value: getJetsonStatsHD(roverState).temp_cpu, unit: '°C'},
-								{ name: "GPU Temp", value: getJetsonStatsHD(roverState).temp_gpu, unit: '°C'}
+								{ name: "GPU Temp", value: getJetsonStatsHD(roverState).temp_gpu, unit: '°C'},
 							]}
+							usages={ getJetsonStatsHD(roverState).cpu_usage }
 						/>
 
 						<InfoBox
@@ -392,6 +393,7 @@ const NewControlPage = () => {
 								{ name: "CPU Temp", value: getJetsonStatsNAV(roverState).temp_cpu, unit: '°C'},
 								{ name: "GPU Temp", value: getJetsonStatsNAV(roverState).temp_gpu, unit: '°C'}
 							]}
+							usages={ getJetsonStatsNAV(roverState).cpu_usage }
 						/>
 					</div>
 					

@@ -13,11 +13,22 @@ for example the disconnected or connected for motors. The last is data - icon, f
 panel.
 */
 
+const ORANGE_THRESHOLD = 50
+const RED_THRESHOLD = 80
+
 
 export interface Info {
 	name: string;
 	value: any;
 	unit?: string;
+}
+
+interface InfoBoxProps {
+  title: string
+  infos: Info[]
+  unit?: string
+  color?: boolean,
+  usages?: number[] // Optional, for CPU usage circles
 }
 
 export interface WheelsInfo {
@@ -31,7 +42,13 @@ export interface RosNodesInfo {
     icon: string;
 }
 
-const InfoBox = ({ title, infos, unit, color = false }: { title: string; infos: Info[]; unit?: string, color?: boolean }) => {
+const InfoBox: React.FC<InfoBoxProps> = ({
+  title,
+  infos,
+  unit,
+  color = false,
+  usages
+}) => {
 	return (
 		<div className={styles.infos}>
 			<div>
@@ -54,6 +71,32 @@ const InfoBox = ({ title, infos, unit, color = false }: { title: string; infos: 
 						);
 					})}
 				</div>
+
+				{/* --- NEW: CPU cores section, still INSIDE the dark box --- */}
+				{usages && usages.length === 8 && (
+					<div className={styles.cpuSection}>
+					<p className={styles.cpuSectionTitle}>CPU cores</p>
+					<div className={styles.cpuCircles}>
+						{usages.map((u, i) => {
+						const cls =
+							u >= RED_THRESHOLD
+							? styles.red
+							: u >= ORANGE_THRESHOLD
+							? styles.orange
+							: styles.green
+
+						return (
+							<span
+							key={i}
+							className={`${styles.circle} ${cls}`}
+							title={`CPU ${i}: ${u}%`}
+							/>
+						)
+						})}
+					</div>
+					</div>
+				)}
+
 			</div>
 		</div>
 	);

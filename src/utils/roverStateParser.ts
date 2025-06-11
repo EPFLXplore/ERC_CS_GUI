@@ -20,7 +20,8 @@ const getJetsonStatsHD = (data: any) => {
 			fan_rpm: 0,
 			power_tot: 0,
 			temp_cpu: 0,
-			temp_gpu: 0
+			temp_gpu: 0,
+			cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
 		}
 	}
 
@@ -32,7 +33,8 @@ const getJetsonStatsHD = (data: any) => {
 		fan_rpm: stats['fan_rpm'] === undefined ? 0 : stats['fan_rpm'],
 		power_tot: stats['power_tot'] === undefined ? 0 : stats['power_tot'],
 		temp_cpu: stats['temp_cpu'] === undefined ? 0 : stats['temp_cpu'],
-		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu']
+		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu'],
+		cpu_usage: stats['utilization_cpus'] === undefined ? [0, 0, 0, 0, 0, 0, 0, 0] : stats['utilization_cpus'],
 	}
 }
 
@@ -44,7 +46,8 @@ const getJetsonStatsNAV = (data: any) => {
 			fan_rpm: 0,
 			power_tot: 0,
 			temp_cpu: 0,
-			temp_gpu: 0
+			temp_gpu: 0,
+			cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
 		}
 	}
 
@@ -56,7 +59,8 @@ const getJetsonStatsNAV = (data: any) => {
 		fan_rpm: stats['fan_rpm'] === undefined ? 0 : stats['fan_rpm'],
 		power_tot: stats['power_tot'] === undefined ? 0 : stats['power_tot'],
 		temp_cpu: stats['temp_cpu'] === undefined ? 0 : stats['temp_cpu'],
-		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu']
+		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu'],
+		cpu_usage: stats['utilization_cpus'] === undefined ? [0, 0, 0, 0, 0, 0, 0, 0] : stats['utilization_cpus'],
 	}
 }
 

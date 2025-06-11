@@ -98,3 +98,32 @@
     color: white
     text-align: right
     margin: 0
+
+/* the little header for the CPU line */
+.cpuSectionTitle
+  margin: 16px 0 8px
+  font-size: 1em
+  font-weight: 600
+  color: white
+
+/* grid of 8 */
+.cpuCircles
+  display: grid
+  grid-template-columns: repeat(8, 1fr)
+  gap: 6px
+
+/* each dot */
+.circle
+  width: 14px
+  height: 14px
+  border-radius: 50%
+  background-color: gray  // fallback
+
+.green
+  background-color: #4caf50
+
+.orange
+  background-color: #ff9800
+
+.red
+  background-color: #f44336
