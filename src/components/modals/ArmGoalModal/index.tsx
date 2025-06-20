@@ -30,7 +30,7 @@ function ArmGoalModal({
 	resetHdConfirmation: ((confirm: boolean) => void) | null;
 	resetNodes: () => void;
 }) {
-	const [task, setTask] = React.useState<ArmTask | null>(null);
+	const [tasks, setTasks] = React.useState<ArmTask[] | null>(null);
 
 	const armTasks = [
 		{ category: "Switches", items: [
@@ -55,13 +55,13 @@ function ArmGoalModal({
 		  { name: "Socket 2", msg: "socket_2" },
 		]},
 		{ category: "Control and Power Switches", items: [
-		  { name: "Control Switch 1", msg: "control_switch_1" },
-		  { name: "Control Switch 2", msg: "control_switch_2" },
-		  { name: "Control Switch 3", msg: "control_switch_3" },
-		  { name: "Control Switch 4", msg: "control_switch_4" },
-		  { name: "Control Switch 5", msg: "control_switch_5" },
-		  { name: "Power Switch 1", msg: "power_switch_1" },
-		  { name: "Power Switch 2", msg: "power_switch_2" },
+		  { name: "Control Switch 1", msg: "small_rotation_switch_1" },
+		  { name: "Control Switch 2", msg: "small_rotation_switch_2" },
+		  { name: "Control Switch 3", msg: "small_rotation_switch_3" },
+		  { name: "Control Switch 4", msg: "small_rotation_switch_4" },
+		  { name: "Control Switch 5", msg: "small_rotation_switch_5" },
+		  { name: "Power Switch 1", msg: "big_rotation_switch_1" },
+		  { name: "Power Switch 2", msg: "big_rotation_switch_2" },
 		]},
 		{ category: "Predefined Positions", items: [
 		  { name: "Home Position", msg: "home" },
@@ -108,33 +108,35 @@ function ArmGoalModal({
 							{group.items.map((item) => (
 								<button
 								key={item.name}
-								className={`${styles.Choice} ${task?.name === item.name ? styles.Selected : ""}`}
-								onClick={() => setTask({ name: item.name, msg: item.msg })}
+								className={`${styles.Choice} ${tasks?.some(t => t.name === item.name) ? styles.Selected : ""}`}
+								onClick={() => setTasks((old: ArmTask[] | null) => {
+									if(old === null) {
+										return [{ name: item.name, msg: item.msg }];
+									}
+
+									if (old.some(t => t.name === item.name)) {
+										return old.filter(t => t.name !== item.name);
+									}
+
+									const newTasks = [...old];
+									newTasks.push({ name: item.name, msg: item.msg});
+									return newTasks;
+								})}
 								>
 								{item.name}
 								</button>
 							))}
 							</React.Fragment>
 						))}
-						
-						<p className={styles.ChoiceCategory}>Other</p>
-						<button
-							className={`${styles.Choice} ${
-								task?.name === "Reset Nodes" ? styles.Selected : ""
-							}`}
-							onClick={() => resetNodes()}
-						>
-							Reset Nodes
-						</button>
 					</div>
 				</div>
 
 				<div className={styles.ModalFooter}>
 					<button
 						onClick={() => {
-							if (task) {
+							if (tasks) {
 								onSetGoal(SubSystems.HANDLING_DEVICE, {
-									action: task.msg
+									action: tasks?.map(t => t.msg)
 								});
 								onClose();
 							} else {
@@ -163,3 +165,16 @@ function ArmGoalModal({
 }
 
 export default ArmGoalModal;
+
+/**
+ * 
+ * <p className={styles.ChoiceCategory}>Other</p>
+						<button
+							className={`${styles.Choice} ${
+								task?.name === "Reset Nodes" ? styles.Selected : ""
+							}`}
+							onClick={() => resetNodes()}
+						>
+							Reset Nodes
+						</button>
+ */

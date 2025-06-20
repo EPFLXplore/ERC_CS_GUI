@@ -10,12 +10,11 @@ Description: Docker Modal. You can activate the dockers ROVER, NAV, DRILL actual
 */
 
 const sections = [
+  { label: "Rover", key: "rover" },
   { label: "Navigation", key: "nav" },
   { label: "Handling Device", key: "hd" },
   { label: "Science", key: "science" },
-  { label: "Avionics", key: "avionics" },
-  { label: "Rover", key: "rover" },
-  { label: "Cameras", key: "cameras" },
+  { label: "Avionics", key: "avionics" }
 ];
 
 function ControlModal({

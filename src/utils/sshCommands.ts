@@ -39,11 +39,6 @@ const ActivateRoverNode: SSHCommands = {
     commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_rover.sh']
 };
 
-const ActivateCameraNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_cameras.sh']
-};
-
 const ActivateDrillNode: SSHCommands = {
     device: JETSON_HD,
     commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './run_drill.sh']
@@ -59,11 +54,6 @@ const StopRoverNode: SSHCommands = {
     commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
 };
 
-const StopCameraNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_cameras.sh']
-};
-
 const ActivateWheelsControl: SSHCommands = {
     device: JETSON_NAV,
     commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './run_wheels_control.sh']
@@ -74,15 +64,15 @@ const StopWheelsControl: SSHCommands = {
     commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './stop_docker_nav.sh']
 };
 
-const ActivateHdMotorControl: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_motors.sh']
-};
+// const ActivateHdMotorControl: SSHCommands = {
+//     device: JETSON_HD,
+//     commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_motors.sh']
+// };
 
-const StopHdMotorControl: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_motors.sh']
-};
+// const StopHdMotorControl: SSHCommands = {
+//     device: JETSON_HD,
+//     commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_motors.sh']
+// };
 
 const ActivateHdStack: SSHCommands = {
     device: JETSON_HD,
@@ -93,17 +83,6 @@ const ActivateHdStack: SSHCommands = {
 const StopHdStack: SSHCommands = {
     device: JETSON_HD,
     commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_hd_stack.sh']
-};
-
-const ActivateCameraHD: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_camera.sh']
-};
-
-// Stops the FSM and other stuff. 
-const StopCameraHD: SSHCommands = {
-    device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_camera.sh']
 };
 
 const ActivateElecStack: SSHCommands = {
@@ -158,29 +137,12 @@ const CommandsSSH = {
 
     "hd": [
     {
-        name: "Start HD Motors",
-        action: ActivateHdMotorControl,
-    },
-    {
-        name: "Stop HD Motors",
-        action: StopHdMotorControl,
-    },
-    {
         name: "Start HD Stack",
         action: ActivateHdStack,
     },
     {
         name: "Stop HD Stack",
         action: StopHdStack,
-    }],
-    "cameras": [
-    {
-        name: "Start Camera HD",
-        action: ActivateCameraHD,
-    },
-    {
-        name: "Stop Camera HD",
-        action: StopCameraHD,
     }]
 };
 
