@@ -70,9 +70,6 @@ function ArmGoalModal({
 		  { name: "Sad Arm", msg: "above_ground" },
 		  { name: "Rangement", msg: "rangement" },
 		  { name: "Front Panel", msg: "front_panel" },
-		//   { name: "Probe 1", msg: "probe_1" },
-		//   { name: "Probe 2", msg: "probe_2" },
-		//   { name: "Probe 3", msg: "probe_3" },
 		]},
 		{ category: "Tasks", items: [
 		  { name: "Pick Tool Sand", msg: "clam" },
@@ -80,11 +77,7 @@ function ArmGoalModal({
 		  { name: "Pick Probe", msg: "probes" },
 		  { name: "Drop Samples", msg: "drop" },
 		  { name: "Approach Aruco", msg: "aruco_approach" },
-		  { name: "Grab Sand", msg: "sand_collect" },
-		  { name: "Brugg probe 1", msg: "probe_1" },
-		  { name: "Brugg probe 2", msg: "probe_2" },
-		  { name: "Brugg probe 3", msg: "probe_3" },
-		  { name: "Brugg rock", msg: "brugg_rock" },
+		  { name: "Grab Sand", msg: "sand_collect" }
 		]}
 	  ];
 	  
@@ -111,6 +104,8 @@ function ArmGoalModal({
 								className={`${styles.Choice} ${tasks?.some(t => t.name === item.name) ? styles.Selected : ""}`}
 								onClick={() => setTasks((old: ArmTask[] | null) => {
 									if(old === null) {
+										const t = [{ name: item.name, msg: item.msg }]
+										console.log("Setting taskssss:", t);
 										return [{ name: item.name, msg: item.msg }];
 									}
 
@@ -120,6 +115,7 @@ function ArmGoalModal({
 
 									const newTasks = [...old];
 									newTasks.push({ name: item.name, msg: item.msg});
+									console.log(newTasks);
 									return newTasks;
 								})}
 								>
@@ -135,9 +131,11 @@ function ArmGoalModal({
 					<button
 						onClick={() => {
 							if (tasks) {
+								const _tasks = tasks?.map(t => t.msg)
 								onSetGoal(SubSystems.HANDLING_DEVICE, {
-									action: tasks?.map(t => t.msg)
+									actions: _tasks
 								});
+								
 								onClose();
 							} else {
 								snackBar("error", "No task selected");

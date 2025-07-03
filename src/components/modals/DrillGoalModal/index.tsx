@@ -6,8 +6,11 @@ import { AlertColor } from "@mui/material";
 /*
 Author: Ugo Balducci and Giovanni Ranieri
 Year: 2024
-Description: Drill Modal. You can send commands to the drill. Auto will execute the complete FSM:
-	START => DOWN => UP => OPEN => RELEASE => CLOSE => STOP
+Description: Drill Modal. You can send commands to the drill. Auto will execute the complete FSM
+
+Additionally, the modal implements small actions like step up and step down, where the drill will move
+up and down by a small amount. Clicking on the buttons will send directly the commands, without clicking on the
+"Set Task" button.
 */
 
 enum DrillTask {
@@ -19,7 +22,13 @@ enum DrillTask {
 	ABORT = "Abort",
 	STOP = "Stop",
 	CLOSE = "Close",
-	OPEN = "Open"
+	OPEN = "Open",
+	SEMI_RETURN = "semi_return"
+}
+
+enum DrillSmallActions {
+	STEP_DOWN = "step_down",
+    STEP_UP = "step_up"
 }
 
 function DrillGoalModal({
@@ -34,6 +43,7 @@ function DrillGoalModal({
 	snackBar: (sev: AlertColor, mes: string) => void;
 }) {
 	const [task, setTask] = React.useState<DrillTask | null>(null);
+	const [action, setAction] = React.useState<DrillSmallActions | null>(null);
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -56,6 +66,23 @@ function DrillGoalModal({
 							onClick={() => setTask(_task)}
 						>
 							{_task}
+						</button>
+					))}
+					</div>
+				</div>
+
+				<div className={styles.ModalContent}>
+
+					<div className={styles.ChoiceGroup}>
+					{Object.values(DrillSmallActions).map((_action) => (
+						<button
+							key={_action}
+							className={`${styles.Choice}`}
+							onClick={() => {
+								onSetGoal(SubSystems.DRILL, { action: _action.toLowerCase() });
+							}}
+						>
+							{_action}
 						</button>
 					))}
 					</div>
