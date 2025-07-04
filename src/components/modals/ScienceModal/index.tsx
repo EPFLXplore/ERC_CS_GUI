@@ -7,14 +7,7 @@ import React from "react";
 /*
 Author: Giovanni Ranieri
 Year: 2024
-Description: Docker Modal. You can activate the dockers ROVER, NAV, DRILL actually. There is a button start
-and stop for each. Stop stops the docker completely. The pipeline is: 
-
-	1) Axios HTTP request to small express webserver (see in the webserver.js)
-	2) SSH request to the correct device and runs a script
-
-No feedback on the commands is available. To see if the dockers start, see which ROS nodes are running
-on the ROS panel.
+Description: You can send reset sensors from the Science Modal.
 */
 
 function ScienceModal({

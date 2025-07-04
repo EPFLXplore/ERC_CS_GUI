@@ -11,6 +11,7 @@ import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
+import { BrokenImageSharp } from "@mui/icons-material";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -55,7 +56,8 @@ const useRoverControls = (
 		["cancel"]: false,
 	});
 
-	let resetDustSensorTopic: ROSLIB.Topic<any>;
+	let resetMassDrillTopic: ROSLIB.Topic<any>;
+	let resetMassHDTopic: ROSLIB.Topic<any>;
 	let ledCommandsTopic: ROSLIB.Topic<any>;
 	let changeSpeedTopic: ROSLIB.Topic<any>;
 	let hdResetNodesTopic: ROSLIB.Topic<any>;
@@ -85,10 +87,16 @@ const useRoverControls = (
 
 	// Science
 	if(ros) {
-		resetDustSensorTopic = new ROSLIB.Topic<any>({
+		resetMassDrillTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: "/test_tt",
-			messageType: "std_msgs/Bool",
+			name: "/CS/reset_mass_drill",
+			messageType: "custom_msg/MassRequestDrill",
+		})
+
+		resetMassHDTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: "/CS/reset_mass_hd",
+			messageType: "custom_msg/MassRequestHD",
 		})
 	}
 
@@ -423,12 +431,20 @@ const useRoverControls = (
 	const resetSensor = (sensor: Sensors) => {
 		if(ros) {
 			const object = {
-				data: true
+				tare: true,
+				scale: 1.0
 			}
 			switch (sensor) {
-				case Sensors.DUST:
-					resetDustSensorTopic?.publish(object)
-					break;
+				case Sensors.MASS_HD:
+					resetMassHDTopic?.publish(object)
+					break
+
+				case Sensors.MASS_DRILL:
+					resetMassDrillTopic?.publish(object)
+					break
+
+				default:
+					break
 			}
 		}
 	} 
