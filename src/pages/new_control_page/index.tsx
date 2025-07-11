@@ -91,6 +91,8 @@ const NewControlPage = () => {
   	// Destructure like before:
   	const [
 		roverState,
+		qrCode,
+		setQrCode,
 		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationRocks,
@@ -255,9 +257,16 @@ const NewControlPage = () => {
 						<div className={styles.confirm}>
 						<div className={styles.confirmBox}>
 							<p>Handling Device Confirmation</p>
+							<p>Data: {qrCode}</p>
 							<div className={styles.confirmation}>
-								<button className={styles.confirmBtn} onClick={() => hdConfirmation(true)}>Confirm</button>
-								<button className={styles.confirmBtn} onClick={() => hdConfirmation(false)}>Cancel</button>
+								<button className={styles.confirmBtn} onClick={() => {
+									hdConfirmation(true)
+									setQrCode(null)
+								}}>Confirm</button>
+								<button className={styles.confirmBtn} onClick={() => {
+									hdConfirmation(false)
+									setQrCode(null)
+								}}>Cancel</button>
 							</div>
 						</div>
 					</div>

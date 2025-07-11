@@ -6,12 +6,14 @@ Description: Type for Cameras and their states
 
 import SubSystems from "./subsystems.type";
 
-interface CameraElement {
-	name: string;
-	states: {}
-}
+type CameraElement = {
+  name: string;
+  status: boolean;
+  node: boolean;
+  data_rate: string
+};
 
-type CameraType = { [key: string]: null | object };
+type CameraType = { [key: string]: null | CameraElement[] };
 
 enum CameraRover {
     RIGHT = "Right",

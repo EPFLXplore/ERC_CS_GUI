@@ -9,7 +9,8 @@ const CAMERA_CONFIGS = [
 	["Front Cam"],
 	["Gripper Cam"],
 	["ST", "ST", "DR", "BH"],
-	["Front", "ST", "ST"]
+	["Front", "ST", "ST"],
+	['LEFT', 'RIGHT']
 ];
 
 const MAX_IMAGES = CAMERA_CONFIGS.length;

@@ -82,6 +82,7 @@ const useRoverControls = (
 
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
+	const [qrCode, setQrCode] = useState<string | null>(null);
 	const [imageRock, setImageRock] = useState<string | null>(null);
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
@@ -384,11 +385,14 @@ const useRoverControls = (
 			var askUserConfirmation = new ROSLIB.Service({
 				ros: ros,
 				name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
-				serviceType: "std_srvs/Trigger",
+				serviceType: "custom_msg/srv/HumanVerification",
 			});
 	
 			// Use the advertise() method to indicate that we want to provide this service
 			askUserConfirmation.advertiseAsync(async (request) => {
+				//@ts-ignore
+				const information = request.information
+				setQrCode(information)
 				const result = await new Promise<boolean>((resolve, reject) => {
 					setHDConfirmation(() => (confirm: boolean) => {
 						resolve(confirm)
@@ -410,10 +414,6 @@ const useRoverControls = (
 			});
 
 			hdStackLaunched.subscribe(async (message) => {
-				//@ts-ignore
-				const data = message.data
-				//startTransition(() => setRoverState(data));
-
 				const result = await new Promise<boolean>((resolve, reject) => {
 					setHdStackLaunched(() => (confirm: boolean) => {
 						resolve(confirm)
@@ -476,6 +476,8 @@ const useRoverControls = (
 
 	return [
 		roverState,
+		qrCode,
+		setQrCode,
 		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationRocks,

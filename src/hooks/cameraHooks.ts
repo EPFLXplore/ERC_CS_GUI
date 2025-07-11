@@ -21,7 +21,8 @@ function useCamera(ros: ROSLIB.Ros | null) {
 		["/NAV/feed_camera_nav_0"],
 		["/ROVER/feed_camera_hd_0"],
 		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_3"],
-		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"]
+		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"],
+		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"]
 	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);

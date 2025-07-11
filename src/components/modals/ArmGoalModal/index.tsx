@@ -77,7 +77,8 @@ function ArmGoalModal({
 		  { name: "Pick Probe", msg: "probes" },
 		  { name: "Drop Samples", msg: "drop" },
 		  { name: "Approach Aruco", msg: "aruco_approach" },
-		  { name: "Grab Sand", msg: "sand_collect" }
+		  { name: "Grab Sand", msg: "sand_collect" },
+		  { name: "QR Code", msg: "qr_code"}
 		]}
 	  ];
 	  
