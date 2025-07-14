@@ -85,6 +85,11 @@ const StopHdStack: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_hd_stack.sh']
 };
 
+const ActivateCamerasCSOnHdStack: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_cameras_cs.sh']
+};
+
 const ActivateElecStack: SSHCommands = {
     device: RPI_ELEC,
     commands: ['cd /home/xplore-avionics/ERC_EL_BroCo/src/docker_humble_jetson', './start_elec_stack.sh']
@@ -143,6 +148,10 @@ const CommandsSSH = {
     {
         name: "Stop HD Stack",
         action: StopHdStack,
+    },
+    {
+        name: "Cameras CS",
+        action: ActivateCamerasCSOnHdStack
     }]
 };
 

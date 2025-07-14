@@ -79,6 +79,15 @@ function ArmGoalModal({
 		  { name: "Approach Aruco", msg: "aruco_approach" },
 		  { name: "Grab Sand", msg: "sand_collect" },
 		  { name: "QR Code", msg: "qr_code"}
+		]},
+		{ category: "Only Models", items: [
+		  { name: "Control Switch 1", msg: "model_small_rotation_switch_1" },
+		  { name: "Control Switch 2", msg: "model_small_rotation_switch_2" },
+		  { name: "Control Switch 3", msg: "model_small_rotation_switch_3" },
+		  { name: "Control Switch 4", msg: "model_small_rotation_switch_4" },
+		  { name: "Control Switch 5", msg: "model_small_rotation_switch_5" },
+		  { name: "Power Switch 1", msg: "model_big_rotation_switch_1" },
+		  { name: "Power Switch 2", msg: "model_big_rotation_switch_2" },
 		]}
 	  ];
 	  
