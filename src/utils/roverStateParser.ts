@@ -1,4 +1,6 @@
 import { CameraType } from "../data/cameras.type";
+import axios from "axios"
+import { SensorsType } from "../data/sensors.types";
 
 /**
  * This file contains functions that parse the rover state data and return the
@@ -660,7 +662,6 @@ const getStateFSM = (data: any) => {
 
 	return data['drill']['state']['state_fsm']
 }
-
 
 export {
 	getStateSystem,

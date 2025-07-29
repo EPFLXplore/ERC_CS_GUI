@@ -1,8 +1,26 @@
-const express = require('express');
+// SSH2
 const { Client } = require('ssh2');
+let activeConnection = 0
+const connections = {}
+
+// Backup files
+const os = require('os');
+const fs = require('fs');
+const homeDir = os.homedir();
+const record = require('./record.js');
+
+const mass_arm = 'mass_arm';
+const mass_arm_file = `${mass_arm}_data`;
+const mass_arm_format_line = 'timestamp, mass\n';
+
+record.checkCSVFileExists(homeDir, mass_arm_file, mass_arm_format_line);
+
+// ExpressJS
+const express = require('express');
 const app = express();
 app.use(express.json());
 
+// Cors
 const cors = require('cors');
 app.use(cors());
 
@@ -12,8 +30,6 @@ app.use(cors());
 // on the rover. It is not meant for constant SSH connections.
 // -----------------------------------------------------------------------
 
-let activeConnection = 0
-const connections = {};
 
 function generateUniqueID(name) {
   return `${name}-${Math.floor(Math.random() * 1000)}`;
@@ -72,10 +88,42 @@ app.get('/close-connection/:id', (req, res) => {
   }
 });
 
-// // to debug
-// setInterval(() => {
-//   console.log(`Active SSH Connections: ${activeConnection}`);
-// }, 1000);
+app.post('/sensor-record', (req, res) => {
+  const {type_sensor, timestamp, values} = req.body;
+
+  const line = [timestamp, ...values].join(',') + '\n';
+
+  switch (type_sensor) {
+    case mass_arm:
+      if(fs.existsSync(`${mass_arm_file}.csv`)) {
+        fs.appendFile(`${mass_arm_file}.csv`, line, (err) => {
+          if (err) {
+            console.error('Write error:', err);
+            return res.sendStatus(500);
+          }
+          
+        });
+      }
+      res.sendStatus(200);
+      break;
+
+    default:
+      return res.status(400).json({ error: 'Invalid sensor type' }).end();
+  }
+});
+
+// Handle Ctrl+C (SIGINT) or `kill` (SIGTERM)
+process.on('SIGINT', () => {
+  console.log('Gracefully shutting down...');
+  record.backupCSV(homeDir, mass_arm_file);
+  process.exit();
+});
+
+process.on('SIGTERM', () => {
+  console.log('Process terminated.');
+  record.backupCSV(homeDir, mass_arm_file);
+  process.exit();
+});
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
