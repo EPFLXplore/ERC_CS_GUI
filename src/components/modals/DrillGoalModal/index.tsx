@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
+import { act } from "@react-three/fiber";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -23,12 +24,18 @@ enum DrillTask {
 	STOP = "Stop",
 	CLOSE = "Close",
 	OPEN = "Open",
-	SEMI_RETURN = "semi_return"
+	SEMI_RETURN = "semi_return",
+	TEST_AUTO = "test_auto"
 }
 
 enum DrillSmallActions {
 	STEP_DOWN = "step_down",
     STEP_UP = "step_up"
+}
+
+interface DrillGoalModalProps {
+	task: DrillSmallActions,
+	multiple_increment: number
 }
 
 function DrillGoalModal({
@@ -43,7 +50,10 @@ function DrillGoalModal({
 	snackBar: (sev: AlertColor, mes: string) => void;
 }) {
 	const [task, setTask] = React.useState<DrillTask | null>(null);
-	const [action, setAction] = React.useState<DrillSmallActions | null>(null);
+	const [actionSmallTask, setActionSmallTask] = React.useState<DrillGoalModalProps>({
+		task: DrillSmallActions.STEP_DOWN,
+		multiple_increment: 1
+	});
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -79,10 +89,25 @@ function DrillGoalModal({
 							key={_action}
 							className={`${styles.Choice}`}
 							onClick={() => {
-								onSetGoal(SubSystems.DRILL, { action: _action.toLowerCase() });
+
+								if(actionSmallTask.task === _action) {
+									setActionSmallTask({
+										task: _action,
+										multiple_increment: actionSmallTask.multiple_increment + 1
+									});
+								} else {
+									setActionSmallTask({
+										task: _action,
+										multiple_increment: 2
+									});
+								}
+
+								console.log("Action Small Task: ", actionSmallTask);
+
+								//onSetGoal(SubSystems.DRILL, { action: _action.toLowerCase() });
 							}}
 						>
-							{_action}
+							{_action} : {actionSmallTask.task == _action ? actionSmallTask.multiple_increment : 1}
 						</button>
 					))}
 					</div>
@@ -94,8 +119,15 @@ function DrillGoalModal({
 							if (task) {
 								onSetGoal(SubSystems.DRILL, { action: task.toLowerCase() });
 								onClose();
+							} else if (actionSmallTask.task) {
+								onSetGoal(SubSystems.DRILL, {
+									action: actionSmallTask.task.toLowerCase(),
+									multiple_increment: actionSmallTask.multiple_increment
+								});
+								onClose();
 							} else {
 								snackBar("error", "No task selected");
+								onClose();
 							}
 						}}
 						className={`${styles.PrimaryColor}`}

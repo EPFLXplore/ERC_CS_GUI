@@ -101,6 +101,8 @@ const useRoverControls = (
 		})
 	}
 
+	const [recordSensors, setRecordSensors] = useState(false)
+
 	// Avionics
 	if(ros) {
 		ledCommandsTopic = new ROSLIB.Topic<any>({
@@ -510,7 +512,9 @@ const useRoverControls = (
 		resetNodes,
 		resetSensor,
 		reset_motors,
-		emergency_shutdown
+		emergency_shutdown,
+		recordSensors, 
+		setRecordSensors
 	] as const;
 };
 

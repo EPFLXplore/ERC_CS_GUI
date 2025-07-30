@@ -34,9 +34,7 @@ function useActions(
 		[SubSystems.NAGIVATION]: {
 			action: new Action(
 				SubSystems.NAGIVATION,
-				!roverState[SubSystems.NAGIVATION]
-					? States.OFF
-					: roverState[SubSystems.NAGIVATION]["state"]["mode"],
+				States.OFF,
 				Topics.NAVIGATION_ACTION,
 				"NAVReachGoal"
 			),
@@ -47,9 +45,7 @@ function useActions(
 		[SubSystems.HANDLING_DEVICE]: {
 			action: new Action(
 				SubSystems.HANDLING_DEVICE,
-				!roverState[SubSystems.HANDLING_DEVICE]
-					? States.OFF
-					: roverState[SubSystems.HANDLING_DEVICE]["state"]["mode"],
+				States.OFF,
 				Topics.HANDLING_DEVICE_ACTION,
 				"HDManipulation"
 			),
@@ -60,9 +56,7 @@ function useActions(
 		[SubSystems.DRILL]: {
 			action: new Action(
 				SubSystems.DRILL,
-				!roverState[SubSystems.DRILL]
-					? States.OFF
-					: roverState[SubSystems.DRILL]["state"]["mode"],
+				States.OFF,
 				Topics.DRILL_ACTION,
 				"DrillCmd"
 			),

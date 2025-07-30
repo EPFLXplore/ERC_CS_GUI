@@ -13,6 +13,7 @@ import SystemMode from "../../components/Controls/SystemMode";
 import Science from "../../assets/images/icons/microscope.png";
 import Canceled from "../../assets/images/icons/cancelled.png";
 import ResetMotors from "../../assets/images/icons/pitstop.png";
+import Sensor from "../../assets/images/icons/sensor.png";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -49,7 +50,6 @@ import {
 	getNodes,
 	getLinearVelocity,
 	getAngularVelocity,
-	getDistanceToGoal,
 	getStateFSM,
 	getCurrentHDTask,
 	getCurrentHDCommand,
@@ -126,7 +126,9 @@ const NewControlPage = () => {
 		resetNodes,
 		resetSensors,
 		reset_motors,
-		emergency_shutdown
+		emergency_shutdown,
+		recordSensors,
+		setRecordSensors
   	] = roverControls;
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
@@ -148,9 +150,7 @@ const NewControlPage = () => {
 	}
 
 	const test = () => {
-		//console.log("Testing sensor data recording...");
-		if(getMassArmSensor(roverState) === "NO DATA") return;
-		//console.log("Recording sensor data...");
+		if(getMassArmSensor(roverState) === "NO DATA" || !recordSensors) return;
 		recordSensorData(SensorsType.MASS_HD, 
 			getMassArmSensor(roverState).toString(),
 			getMassDrillSensor(roverState).toString(),
@@ -174,7 +174,7 @@ const NewControlPage = () => {
 
 	useEffect(() => {
 		console.log("Rover state updated");
-		const interval = setInterval(test, 200);
+		const interval = setInterval(test, 2000);
     	return () => clearInterval(interval);
 
 	}, [roverState])
@@ -196,6 +196,9 @@ const NewControlPage = () => {
 				return newModalOpen;
 			} else if (system == "emergency_shutdown") {
 				emergency_shutdown();
+				return newModalOpen;
+			} else if (system == "record_sensors") {
+				setRecordSensors(!recordSensors);
 				return newModalOpen;
 			} else {
 				// @ts-ignore
@@ -531,8 +534,7 @@ const NewControlPage = () => {
 							title="Current Position"
 							infos={[
 								{ name: "X", value: getCurrentPosition(roverState).x },
-								{ name: "Y", value: getCurrentPosition(roverState).y },
-								{ name: "Distance", value: getDistanceToGoal(roverState), unit: "m" }
+								{ name: "Y", value: getCurrentPosition(roverState).y }
 							]}
 						/>
 						<InfoBox
@@ -597,6 +599,13 @@ const NewControlPage = () => {
 							running={States.OFF}
 							icon={Canceled}
 							tooltip={"Cancel All Actions"}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal("record_sensors")}
+							selected={false}
+							running={recordSensors ? States.ON : States.OFF}
+							icon={Sensor}
+							tooltip={"Record Sensors"}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal("reset_motors")}

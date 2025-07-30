@@ -322,14 +322,6 @@ const getWheelsDrivingValue = (data: any) => {
 	return values;
 };
 
-const getDistanceToGoal = (data: any) => {
-	if(!data || !data['rover']) {
-		return "NO DATA"
-	}
-
-	return Number(data['navigation']['state']['distance_to_goal'])
-}
-
 // TODO GET OBSTACLES
 
 /**
@@ -689,7 +681,6 @@ getJetsonStatsHD,
 getJetsonStatsNAV,
 getLinearVelocity,
 getAngularVelocity,
-getDistanceToGoal,
 getStateFSM,
 getMassArmSensor,
 getMassDrillSensor,
