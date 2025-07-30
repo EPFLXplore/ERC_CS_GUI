@@ -21,7 +21,7 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	// 2. Launching the server on another device: use => ros_server.connect("ws://IP_SERVER:9090");
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
-		ros_server.connect("ws://localhost:9090");
+		ros_server.connect("ws://169.254.55.251:9090");
 
 		ros_server.on("error", function (error) {
 			snackBar("error", "Failed to connect to ROS server.");
