@@ -661,7 +661,6 @@ const getStateFSM = (data: any) => {
 	return data['drill']['state']['state_fsm']
 }
 
-
 export {
 	getStateSystem,
 	getJointsPositions,

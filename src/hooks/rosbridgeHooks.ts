@@ -2,7 +2,6 @@ import { AlertColor } from "@mui/material";
 import React from "react";
 import { useState, useEffect } from "react";
 import * as ROSLIB from "roslib";
-import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri

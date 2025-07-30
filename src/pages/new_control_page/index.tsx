@@ -68,16 +68,17 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
-import { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
-import { Sensors } from "../../data/sensors.types";
+import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
 import { useRoverContext } from "../../roverControlsContext";
+import axios from "axios";
 
 const NewControlPage = () => {
 	const navigate = useNavigate();
@@ -127,6 +128,56 @@ const NewControlPage = () => {
 		reset_motors,
 		emergency_shutdown
   	] = roverControls;
+
+	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
+    
+		await axios.post('http://localhost:5000/sensor-record', {
+			type_sensor: type_sensor, 
+			timestamp: new Date().toISOString(),
+			values: values
+		})
+		.then(async data => {
+			
+			console.log("Sensor data recorded successfully:", data);
+			
+		})
+		.catch(error => {
+			console.error("Error recording sensor data:", error);
+		})
+		
+	}
+
+	const test = () => {
+		//console.log("Testing sensor data recording...");
+		if(getMassArmSensor(roverState) === "NO DATA") return;
+		//console.log("Recording sensor data...");
+		recordSensorData(SensorsType.MASS_HD, 
+			getMassArmSensor(roverState).toString(),
+			getMassDrillSensor(roverState).toString(),
+			getForInOneSensor(roverState).temperature.toString(),
+			getForInOneSensor(roverState).humidity.toString(),
+			getForInOneSensor(roverState).conductivity.toString(),
+			getForInOneSensor(roverState).ph.toString(),
+			getDustSensor(roverState).pm1_0_std.toString(),
+			getDustSensor(roverState).pm2_5_std.toString(),
+			getDustSensor(roverState).pm10_std.toString(),
+			getDustSensor(roverState).pm1_0_atm.toString(),
+			getDustSensor(roverState).pm2_5_atm.toString(),
+			getDustSensor(roverState).pm10_atm.toString(),
+			getDustSensor(roverState).num_particles_0_3.toString(),
+			getDustSensor(roverState).num_particles_0_5.toString(),
+			getDustSensor(roverState).num_particles_1_0.toString(),
+			getDustSensor(roverState).num_particles_2_5.toString(),
+			getDustSensor(roverState).num_particles_5_0.toString(),
+			getDustSensor(roverState).num_particles_10.toString())
+	}
+
+	useEffect(() => {
+		console.log("Rover state updated");
+		const interval = setInterval(test, 200);
+    	return () => clearInterval(interval);
+
+	}, [roverState])
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page

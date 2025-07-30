@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
 import * as ROSLIB from "roslib";
-import SubSystems from "../data/subsystems.type";
-import {CameraType } from "../data/cameras.type";
-import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -21,7 +18,7 @@ function useCamera(ros: ROSLIB.Ros | null) {
 		["/NAV/feed_camera_nav_0"],
 		["/ROVER/feed_camera_hd_0"],
 		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_3"],
-		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1"],
+		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_1"],
 		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"],
 		["/ROVER/feed_camera_cs_4", "/ROVER/feed_camera_cs_5"],
 	]; 
