@@ -64,19 +64,19 @@ const StopWheelsControl: SSHCommands = {
     commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './stop_docker_nav.sh']
 };
 
-// const ActivateHdMotorControl: SSHCommands = {
-//     device: JETSON_HD,
-//     commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_motors.sh']
-// };
+const ActivateHdMotorControl: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_motors.sh']
+};
 
-// const StopHdMotorControl: SSHCommands = {
-//     device: JETSON_HD,
-//     commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_motors.sh']
-// };
+const StopHdMotorControl: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_motors.sh']
+};
 
 const ActivateHdStack: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_hd_stack.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_hd_stack.sh']
 };
 
 // Stops the FSM and other stuff. 

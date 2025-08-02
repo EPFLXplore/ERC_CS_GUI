@@ -55,7 +55,7 @@ function useService(
 				!roverState["rover"]
 					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"],
-				rulesNavigation,
+				[],
 				false,
 				[States.AUTO]
 			),
@@ -79,7 +79,7 @@ function useService(
 				!roverState["rover"]
 					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.DRILL]["status"],
-				rulesDrill,
+				[],
 				false,
 				[]
 			),

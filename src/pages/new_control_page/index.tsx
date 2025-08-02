@@ -114,6 +114,7 @@ const NewControlPage = () => {
 		launchAction,
 		startService,
 		changeMode,
+		selectSubMode,
 		triggerDataFocus,
 		point,
 		setPoint,
@@ -123,7 +124,6 @@ const NewControlPage = () => {
 		modalRosNodes,
 		setModalRosNodes,
 		changeSpeedRover,
-		resetNodes,
 		resetSensors,
 		reset_motors,
 		emergency_shutdown,
@@ -174,10 +174,10 @@ const NewControlPage = () => {
 
 	useEffect(() => {
 		console.log("Rover state updated");
-		const interval = setInterval(test, 2000);
+		const interval = setInterval(test, 500);
     	return () => clearInterval(interval);
 
-	}, [roverState])
+	}, [roverState, recordSensors])
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page
@@ -216,7 +216,6 @@ const NewControlPage = () => {
 						startService,
 						hdConfirmation,
 						changeSpeedRover,
-						resetNodes,
 						resetSensors,
 						ros
 					)
@@ -629,15 +628,7 @@ const NewControlPage = () => {
 				<div className={styles.previews}>
 					<Gamepad
 						mode={manualMode}
-						submode={
-							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-							States.MANUAL_DIRECT
-								? States.MANUAL_DIRECT
-								: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									States.MANUAL_INVERSE
-								? States.MANUAL_INVERSE
-								: States.ACKERMANN
-						}
+						submode={[stateServices[SubSystems.NAGIVATION].service.state, stateServices[SubSystems.HANDLING_DEVICE].service.state]}
 						selectorCallback={changeMode}
 						visible={
 							stateServices[SubSystems.NAGIVATION].service.state ===
@@ -671,7 +662,6 @@ const selectModal = (
 	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
 	resetHdConfirmation: ((value: boolean) => void) | null,
 	changeSpeedRover: (value: number) => void,
-	resetNodes: () => void,
 	resetSensors: (name: Sensors) => void,
 	ros: ROSLIB.Ros | null
 ) => {
@@ -744,7 +734,6 @@ const selectModal = (
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
 					resetHdConfirmation={resetHdConfirmation}
-					resetNodes={resetNodes}
 				/>
 			);
 		case SubSystems.DRILL:

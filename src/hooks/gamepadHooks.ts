@@ -23,7 +23,7 @@ export enum GamepadCommandState {
 function useGamepad(
 	ros: ROSLIB.Ros | null,
 	mode: PublishToType,
-	submode?: string,
+	submode: string[],
 	selectorCallback?: () => void
 ) {
 	const [gamepad, setGamepad] = useState<GamepadController | null>(null);
@@ -95,18 +95,21 @@ function useGamepad(
 	const sendCommand = () => {
 
 		const gamepadState = gamepad?.getState();
+		//console.log("mode " + mode)
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
 			if (mode === PublishTo.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
+				//console.log(message.buttons)
 				publisher.publish(message);
 			
 			// Handling device
 			} else if (mode == PublishTo.HANDLING_DEVICE) {
-				if (submode == States.MANUAL_DIRECT) {
+				if (submode[1] == States.MANUAL_DIRECT) {
 					const message = gamepad.handleDirectArm(
 						gamepadState.buttons,
 						gamepadState.axes
 					);
+					//console.log(message.buttons)
 					publisher.publish(message);
 				
 				// Manual Inverse
@@ -115,7 +118,6 @@ function useGamepad(
 						gamepadState.buttons,
 						gamepadState.axes
 					);
-					console.log(message.axes);
 					publisher.publish(message);
 				}
 			}

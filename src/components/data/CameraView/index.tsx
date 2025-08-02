@@ -44,14 +44,20 @@ const CameraView = ({
 					<img
 						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 						alt="Camera"
-						className={styles.HalfImage}
+						className={`${styles.HalfImage} ${rotate[0] ? styles.Rotate180 : ""}`}
+						onDoubleClick={() => {
+							setRotateCams([!rotate[0], rotate[1]]);
+						}}
 					/>
 				</div>
 				<div className={styles.HalfWrapper}>
 					<img
 						src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
 						alt="Camera"
-						className={styles.HalfImage}
+						className={`${styles.HalfImage} ${rotate[1] ? styles.Rotate180 : ""}`}
+						onDoubleClick={() => {
+							setRotateCams([rotate[0], !rotate[1]]);
+						}}
 					/>
 				</div>
 			</div>

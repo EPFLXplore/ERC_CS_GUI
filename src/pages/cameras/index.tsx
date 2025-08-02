@@ -1,6 +1,5 @@
 import styles from "./styles.module.sass";
 import CameraView from "../../components/data/CameraView";
-import { useRoverContext } from "../../roverControlsContext";
 import useCamera from "../../hooks/cameraHooks";
 import useAlert from "../../hooks/alertHooks";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -10,8 +9,9 @@ const CAMERA_CONFIGS = [
 	["Gripper Cam"],
 	["ST", "ST", "DR", "BH"],
 	["Front", "ST", "ST"],
-	['LEFT', 'RIGHT'],
-	['Other1', 'Other2']
+	['LEFT', 'RIGHT'], // Tests for Nav
+	['Other1', 'Other2'], // Astrio-Bio and Deep Sampling
+	['SL', 'SR'] // Maintenance
 ];
 
 const MAX_IMAGES = CAMERA_CONFIGS.length;
@@ -20,8 +20,6 @@ const CamerasPage = () => {
 	
 	const [snackbar, showSnackbar] = useAlert();
   	const [ros, active] = useRosBridge(showSnackbar);
-
-	//const { ros } = useRoverContext();
 
 	const [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo] = useCamera(ros);
 

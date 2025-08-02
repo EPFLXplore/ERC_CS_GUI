@@ -21,14 +21,12 @@ function ArmGoalModal({
 	onCancelGoal,
 	snackBar,
 	resetHdConfirmation,
-	resetNodes,
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	snackBar: (sev: AlertColor, mes: string) => void;
 	resetHdConfirmation: ((confirm: boolean) => void) | null;
-	resetNodes: () => void;
 }) {
 	const [tasks, setTasks] = React.useState<ArmTask[] | null>(null);
 
@@ -173,16 +171,3 @@ function ArmGoalModal({
 }
 
 export default ArmGoalModal;
-
-/**
- * 
- * <p className={styles.ChoiceCategory}>Other</p>
-						<button
-							className={`${styles.Choice} ${
-								task?.name === "Reset Nodes" ? styles.Selected : ""
-							}`}
-							onClick={() => resetNodes()}
-						>
-							Reset Nodes
-						</button>
- */

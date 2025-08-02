@@ -53,6 +53,7 @@ const SimulationPage = () => {
 		launchAction,
 		startService,
 		changeMode,
+		selectSubMode,
 		triggerDataFocus,
 		point,
 		setPoint,
@@ -62,7 +63,6 @@ const SimulationPage = () => {
 		modalRosNodes,
 		setModalRosNodes,
 		changeSpeedRover,
-		resetNodes,
 		resetSensors,
 		reset_motors,
 		emergency_shutdown
@@ -119,14 +119,7 @@ const SimulationPage = () => {
 					<div className={styles.previews}>
 						<Gamepad
 							mode={manualMode}
-							submode={
-								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_DIRECT
-									? States.MANUAL_DIRECT
-									: stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-									  States.MANUAL_INVERSE
-									? States.MANUAL_INVERSE
-									: States.ACKERMANN
+							submode={[stateServices[SubSystems.NAGIVATION].service.state, stateServices[SubSystems.HANDLING_DEVICE].service.state]
 							}
 							selectorCallback={changeMode}
 							visible={

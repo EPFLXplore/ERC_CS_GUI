@@ -15,7 +15,6 @@ class GamepadController {
 	private gamepadState: GamepadControllerState | null;
 	private prevGamepadState: GamepadControllerState | null;
 	private deviceProfile: DeviceProfile | null = null;
-	private firstMap: boolean = true
 
 	constructor(stateCallback: (state: GamepadControllerState) => void) {
 		if (navigator.getGamepads().length > 0 && navigator.getGamepads()[0]) {

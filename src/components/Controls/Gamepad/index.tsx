@@ -3,7 +3,6 @@ import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
 import { PublishTo, PublishToType } from "../../../data/publishTo.type";
 import * as ROSLIB from "roslib";
-import States from "../../../data/states.type";
 import { ClassicalGamepad } from "../../../utils/Gamepad/bindings";
 
 /*
@@ -22,7 +21,7 @@ const Gamepad = ({
 }: {
 	selectorCallback?: () => void;
 	mode: PublishToType;
-	submode?: States.ACKERMANN | States.OMNI_DIRECTIONAL | States.MANUAL_DIRECT | States.MANUAL_INVERSE;
+	submode: string[];
 	visible?: boolean;
 	ros: ROSLIB.Ros | null;
 }) => {

@@ -308,6 +308,17 @@ const useRoverControls = (
 		});
 	};
 
+	// Select the submode of subsystem
+	const selectSubMode = () => {
+		if(stateServices[SubSystems.NAGIVATION].service.state === States.ACKERMANN || stateServices[SubSystems.NAGIVATION].service.state === States.OMNI_DIRECTIONAL) {
+			return stateServices[SubSystems.NAGIVATION].service.state
+		} else if (stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT || stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_INVERSE) {
+			return stateServices[SubSystems.HANDLING_DEVICE].service.state
+		} else {
+			return States.ACKERMANN
+		}
+	};
+
 	// ?
 	const triggerDataFocus = (data: string) => {
 		setDataFocus((old) => {
@@ -336,19 +347,6 @@ const useRoverControls = (
 			changeSpeedTopic?.publish(object)
 		}
 	} 
-
-	// ----------------------------------------------------------------------------
-	// ----------------------------------------------------------------------------
-	// HD CONTROL FUNCTIONS
-
-	const resetNodes = () => {
-		if(ros) {
-			const object = {
-				data: true
-			}
-			hdResetNodesTopic?.publish(object)
-		}
-	}
 
 	// Service that triggers Human verification for selecting a Rock on an image
 
@@ -500,6 +498,7 @@ const useRoverControls = (
 		launchAction,
 		startService,
 		changeMode,
+		selectSubMode,
 		triggerDataFocus,
 		point,
 		setPoint,
@@ -509,7 +508,6 @@ const useRoverControls = (
 		modalRosNodes,
 		setModalRosNodes,
 		changeSpeedRover,
-		resetNodes,
 		resetSensor,
 		reset_motors,
 		emergency_shutdown,
