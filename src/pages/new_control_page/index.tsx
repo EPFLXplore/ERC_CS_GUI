@@ -133,7 +133,7 @@ const NewControlPage = () => {
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
     
-		await axios.post('http://localhost:5000/sensor-record', {
+		await axios.post('http://169.254.55.178:5000/sensor-record', {
 			type_sensor: type_sensor, 
 			timestamp: new Date().toISOString(),
 			values: values
@@ -405,7 +405,7 @@ const NewControlPage = () => {
 					</div>
 					<div className={styles.infosMidLeft2}>
 						<InfoBox
-							title="Power Consumption"
+							title="Power"
 							infos={[
 								{ name: "Current", value: getCurrentOutput(roverState), unit: "A"},
 								{ name: "Battery Level", value: getBatteryVoltage(roverState), unit: "V"},

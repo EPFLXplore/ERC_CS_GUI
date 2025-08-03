@@ -70,13 +70,16 @@ function ArmGoalModal({
 		  { name: "Front Panel", msg: "front_panel" },
 		]},
 		{ category: "Tasks", items: [
-		  { name: "Pick Tool Sand", msg: "clam" },
 		  { name: "Pick Rock", msg: "rocks" },
-		  { name: "Pick Probe", msg: "probes" },
-		  { name: "Drop Samples", msg: "drop" },
 		  { name: "Approach Aruco", msg: "aruco_approach" },
 		  { name: "Grab Sand", msg: "sand_collect" },
-		  { name: "QR Code", msg: "qr_code"}
+		  { name: "QR Code", msg: "qr_code"},
+		  { name: "Turn J6 30° POS", msg: "turn_j6_30_pos"},
+		  { name: "Turn J6 45° POS", msg: "turn_j6_45_pos"},
+		  { name: "Turn J6 90° POS", msg: "turn_j6_90_pos"},
+		  { name: "Turn J6 30° NEG", msg: "turn_j6_30_neg"},
+		  { name: "Turn J6 45° NEG", msg: "turn_j6_45_neg"},
+		  { name: "Turn J6 90° NEG", msg: "turn_j6_90_neg"}
 		]},
 		{ category: "Only Models", items: [
 		  { name: "Control Switch 1", msg: "model_small_rotation_switch_1" },

@@ -16,11 +16,11 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	// const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 
 	// At initialization, we connect to port 9090. You have different modes:
-	// 1. Launching the server locally:           use => ros_server.connect("ws://localhost:9090");
+	// 1. Launching the server locally:           use => ros_server.connect("ws://169.254.55.178:9090");
 	// 2. Launching the server on another device: use => ros_server.connect("ws://IP_SERVER:9090");
 	useEffect(() => {
 		const ros_server = new ROSLIB.Ros({});
-		ros_server.connect("ws://localhost:9090");
+		ros_server.connect("ws://169.254.55.178:9090");
 
 		ros_server.on("error", function (error) {
 			snackBar("error", "Failed to connect to ROS server.");
