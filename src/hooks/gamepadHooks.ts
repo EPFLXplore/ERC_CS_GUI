@@ -99,7 +99,7 @@ function useGamepad(
 		if (gamepad?.getGamepad() && gamepadState && publisher) {
 			if (mode === PublishTo.NAVIGATION) {
 				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
-				//console.log(message.buttons)
+				console.log(message.buttons)
 				publisher.publish(message);
 			
 			// Handling device

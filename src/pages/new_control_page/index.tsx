@@ -87,9 +87,7 @@ const NewControlPage = () => {
 	const [ros, active] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
 
-	//const { ros, active, hdConfirmation, snackbar, showSnackbar, roverControls } = useRoverContext();
-
-  	// Destructure like before:
+  	// Destructure:
   	const [
 		roverState,
 		qrCode,
@@ -115,7 +113,6 @@ const NewControlPage = () => {
 		startService,
 		changeMode,
 		selectSubMode,
-		triggerDataFocus,
 		point,
 		setPoint,
 		setVolumetric,
@@ -125,6 +122,7 @@ const NewControlPage = () => {
 		setModalRosNodes,
 		changeSpeedRover,
 		resetSensors,
+		reset_leds,
 		reset_motors,
 		emergency_shutdown,
 		recordSensors,
@@ -217,6 +215,7 @@ const NewControlPage = () => {
 						hdConfirmation,
 						changeSpeedRover,
 						resetSensors,
+						reset_leds,
 						ros
 					)
 				);
@@ -663,6 +662,7 @@ const selectModal = (
 	resetHdConfirmation: ((value: boolean) => void) | null,
 	changeSpeedRover: (value: number) => void,
 	resetSensors: (name: Sensors) => void,
+	reset_leds: () => void,
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
@@ -678,6 +678,7 @@ const selectModal = (
 						})
 					}}
 					snackBar={showSnackbar}
+					resetLeds={reset_leds}
 				/>
 			)
 

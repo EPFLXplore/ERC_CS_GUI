@@ -64,7 +64,6 @@ const NetworkPage = () => {
 		launchAction,
 		startService,
 		changeMode,
-		triggerDataFocus,
 		point,
 		setPoint,
 		setVolumetric,

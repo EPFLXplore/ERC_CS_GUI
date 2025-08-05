@@ -54,7 +54,6 @@ const SimulationPage = () => {
 		startService,
 		changeMode,
 		selectSubMode,
-		triggerDataFocus,
 		point,
 		setPoint,
 		setVolumetric,
@@ -64,6 +63,7 @@ const SimulationPage = () => {
 		setModalRosNodes,
 		changeSpeedRover,
 		resetSensors,
+		reset_leds,
 		reset_motors,
 		emergency_shutdown
 	] = roverControls;

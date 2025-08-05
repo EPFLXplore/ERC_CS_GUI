@@ -20,9 +20,11 @@ const sections = [
 function ControlModal({
   onClose,
   snackBar,
+  resetLeds
 }: {
   onClose: () => void;
   snackBar: (severity: AlertColor, message: string) => void;
+  resetLeds: () => void;
 }) {
   return (
     <div className={styles.Background} onClick={onClose}>
@@ -44,7 +46,7 @@ function ControlModal({
 						<button
 							key={task.name}
 							className={styles.Choice}
-							onClick={() => executeSSHCommand(task.action, snackBar, task.name)}
+							onClick={() => executeSSHCommand(task.action, snackBar, task.name, resetLeds)}
 						>
 							{task.name}
 						</button>

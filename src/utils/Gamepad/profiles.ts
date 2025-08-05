@@ -34,8 +34,8 @@ const computeNavigationCommandClassicGamepad = (
 		buttons: [
 			1, // DO NOT CHANGE THIS. It's a value that tells navigation command
 			buttons[ClassicalGamepad.Button.LEFT] ? 1 : 0, // change mode
-			buttons[ClassicalGamepad.Button.UP] ? 1 : 0, // +10° on camera front
-			buttons[ClassicalGamepad.Button.DOWN] ? -1 : 0, // -10° on camera front
+			buttons[ClassicalGamepad.Button.RB] ? 1 : 0, // +20° on camera front
+			buttons[ClassicalGamepad.Button.LB] ? -1 : 0, // -20° on camera front
 			0,
 			0,
 			0,

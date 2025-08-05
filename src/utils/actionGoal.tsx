@@ -61,10 +61,11 @@ const actionGoal = (
 					return newStates;
 				});
 
-				if(result.result.error_type == 0) {
-					snackBar("success", system + ": " + result.result.result)
+				console.log(result)
+				if(result.error_type == 0) {
+					snackBar("success", system + ": " + result.result)
 				} else {
-					snackBar("error", system + ": " + result.result.result + "   " + result.result.error_message)
+					snackBar("error", system + ": " + result.result + "  /  " + result.error_message)
 				}
 			},
 			(feedback: any) => {
@@ -73,6 +74,7 @@ const actionGoal = (
 			},
 			(error: string) => {
 				console.log(error)
+				snackBar("error", error)
 			}
 		);
 		updateActions((old: ActionType) => {

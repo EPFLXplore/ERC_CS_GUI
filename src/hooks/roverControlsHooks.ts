@@ -90,13 +90,13 @@ const useRoverControls = (
 	if(ros) {
 		resetMassDrillTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: "/CS/reset_mass_drill",
+			name: "/EL/mass_req_drill",
 			messageType: "custom_msg/MassRequestDrill",
 		})
 
 		resetMassHDTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: "/CS/reset_mass_hd",
+			name: "/EL/mass_req_hd",
 			messageType: "custom_msg/MassRequestHD",
 		})
 	}
@@ -319,22 +319,6 @@ const useRoverControls = (
 		}
 	};
 
-	// ?
-	const triggerDataFocus = (data: string) => {
-		setDataFocus((old) => {
-			const newFocus = [...old];
-			const index = old.indexOf(data);
-
-			if (index === -1) {
-				newFocus.push(data);
-			} else {
-				newFocus.splice(index, 1);
-			}
-
-			return newFocus;
-		});
-	};
-
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
 	// NAV CONTROL FUNCTIONS
@@ -348,7 +332,20 @@ const useRoverControls = (
 		}
 	} 
 
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	// HD CONTROL FUNCTIONS
+
 	// Service that triggers Human verification for selecting a Rock on an image
+
+	// const changeSpeedRover = (speed: number) => {
+	// 	if(ros) {
+	// 		const object = {
+	// 			data: speed
+	// 		}
+	// 		changeSpeedTopic?.publish(object)
+	// 	}
+	// } 
 
 	useEffect(() => {
 		if (ros) {
@@ -432,7 +429,7 @@ const useRoverControls = (
 		if(ros) {
 			const object = {
 				tare: true,
-				scale: 1.0
+				scale: 0.0
 			}
 			switch (sensor) {
 				case Sensors.MASS_HD:
@@ -453,11 +450,19 @@ const useRoverControls = (
 	// ----------------------------------------------------------------------------
 	// AVIONICS CONTROL FUNCTIONS
 
+	const reset_leds = () => {
+		if(ros) {
+			const object = {
+				state: 6
+			}
+			ledCommandsTopic?.publish(object)
+		}
+	}
+
 	const reset_motors = () => {
 		if(ros) {
 			const object = {
-				system: 3,
-				mode: 4
+				state: 4
 			}
 			ledCommandsTopic?.publish(object)
 		}
@@ -466,8 +471,7 @@ const useRoverControls = (
 	const emergency_shutdown = () => {
 		if(ros) {
 			const object = {
-				system: 3,
-				mode: 5
+				state: 5
 			}
 			ledCommandsTopic?.publish(object)
 		}
@@ -499,7 +503,6 @@ const useRoverControls = (
 		startService,
 		changeMode,
 		selectSubMode,
-		triggerDataFocus,
 		point,
 		setPoint,
 		setVolumetric,
@@ -509,6 +512,7 @@ const useRoverControls = (
 		setModalRosNodes,
 		changeSpeedRover,
 		resetSensor,
+		reset_leds,
 		reset_motors,
 		emergency_shutdown,
 		recordSensors, 

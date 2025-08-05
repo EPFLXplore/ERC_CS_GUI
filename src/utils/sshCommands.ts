@@ -150,7 +150,11 @@ const CommandsSSH = {
 let IDConnections: Connection = {}
 
 const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: AlertColor, message: string) => void, 
-            name: string) => {
+            name: string, resetLeds: () => void) => {
+
+    if(name === "Stop Avionics") {
+        resetLeds()
+    }
     
     await axios.post('http://169.254.55.178:5000/ssh', {
         host: command.device.ip, 
