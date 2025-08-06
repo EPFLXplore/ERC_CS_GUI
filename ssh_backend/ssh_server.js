@@ -11,7 +11,7 @@ const record = require('./record.js');
 
 const mass_arm = 'mass_arm';
 const mass_arm_file = `${mass_arm}_data`;
-const mass_arm_format_line = 'timestamp, mass_hd, mass_dr, temperature, humidity, conductivity, ph, pm1_0_std, pm2_5_std, pm10_std, pm1_0_atm, pm2_5_atm, pm10_atm, num_particles_0_3, num_particles_0_5, num_particles_1_0, num_particles_2_5, num_particles_5_0, num_particles_10'
+const mass_arm_format_line = 'timestamp, mass_hd, mass_dr, temperature, humidity, conductivity, ph, pm1_0_std, pm2_5_std, pm10_std, pm1_0_atm, pm2_5_atm, pm10_atm, num_particles_0_3, num_particles_0_5, num_particles_1_0, num_particles_2_5, num_particles_5_0, num_particles_10\n'
 
 record.checkCSVFileExists(homeDir, mass_arm_file, mass_arm_format_line);
 

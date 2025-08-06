@@ -8,6 +8,9 @@ export enum Topics {
     HANDLING_DEVICE_RESET_NODES = "/HD/kinematics/reset_nodes",
     LED_PUBLISHER = "/EL/LedCommands",
     CONFIRMATION_HDS_LAUNCHED = "/HD/kinematics/stackHDLaunched",
+    SCREENSHOT_ALL_CAMERAS = "/CS/ScreenshotAllCameras",
+    MASS_TARE_HD = "/EL/mass_req_hd",
+    MASS_TARE_DRILL = "/EL/mass_req_drill",
 
     // Service
     CHANGE_MODE_CAMERA_SRV = "/CS/ChangeModeCamera",

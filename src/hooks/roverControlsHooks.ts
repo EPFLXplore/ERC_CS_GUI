@@ -59,8 +59,8 @@ const useRoverControls = (
 	let resetMassDrillTopic: ROSLIB.Topic<any>;
 	let resetMassHDTopic: ROSLIB.Topic<any>;
 	let ledCommandsTopic: ROSLIB.Topic<any>;
+	let screenshotTopic: ROSLIB.Topic<any>;
 	let changeSpeedTopic: ROSLIB.Topic<any>;
-	let hdResetNodesTopic: ROSLIB.Topic<any>;
 
 	// Navigation
 	if(ros) {
@@ -69,15 +69,6 @@ const useRoverControls = (
 			name: Topics.CHANGE_SPEED_ROVER,
 			messageType: "std_msgs/Float32",
 		});
-	}
-
-	// Handling Device
-	if(ros) {
-		hdResetNodesTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.HANDLING_DEVICE_RESET_NODES,
-			messageType: "std_msgs/Bool",
-		})
 	}
 
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
@@ -91,14 +82,20 @@ const useRoverControls = (
 	if(ros) {
 		resetMassDrillTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: "/EL/mass_req_drill",
+			name: Topics.MASS_TARE_DRILL,
 			messageType: "custom_msg/MassRequestDrill",
 		})
 
 		resetMassHDTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: "/EL/mass_req_hd",
+			name: Topics.MASS_TARE_HD,
 			messageType: "custom_msg/MassRequestHD",
+		})
+
+		screenshotTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.SCREENSHOT_ALL_CAMERAS,
+			messageType: "std_msgs/Bool",
 		})
 	}
 
@@ -455,6 +452,15 @@ const useRoverControls = (
 		}
 	} 
 
+	const screenshotAllCameras = () => {
+		if(ros) {
+			const object = {
+				data: true
+			}
+			screenshotTopic?.publish(object);
+		}
+	}
+
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
 	// AVIONICS CONTROL FUNCTIONS
@@ -527,7 +533,8 @@ const useRoverControls = (
 		recordSensors, 
 		setRecordSensors,
 		displayGif,
-		setDisplayGif
+		setDisplayGif,
+		screenshotAllCameras
 	] as const;
 };
 

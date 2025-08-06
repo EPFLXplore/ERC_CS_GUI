@@ -14,6 +14,7 @@ import Science from "../../assets/images/icons/microscope.png";
 import Canceled from "../../assets/images/icons/cancelled.png";
 import ResetMotors from "../../assets/images/icons/pitstop.png";
 import Sensor from "../../assets/images/icons/sensor.png";
+import Screenshot from "../../assets/images/icons/screenshot.png";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -129,7 +130,8 @@ const NewControlPage = () => {
 		recordSensors,
 		setRecordSensors,
 		displayGif,
-		setDisplayGif
+		setDisplayGif,
+		screenshotAllCameras
   	] = roverControls;
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
@@ -200,6 +202,9 @@ const NewControlPage = () => {
 				return newModalOpen;
 			} else if (system == "record_sensors") {
 				setRecordSensors(!recordSensors);
+				return newModalOpen;
+			} else if (system == "screenshot") {
+				screenshotAllCameras();
 				return newModalOpen;
 			} else {
 				// @ts-ignore
@@ -618,6 +623,13 @@ const NewControlPage = () => {
 							running={recordSensors ? States.ON : States.OFF}
 							icon={Sensor}
 							tooltip={"Record Sensors"}
+						/>
+						<QuickAction
+							onClick={() => displaySystemModal("screenshot")}
+							selected={false}
+							running={States.OFF}
+							icon={Screenshot}
+							tooltip={"Screenshot all Cameras"}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal("reset_motors")}
