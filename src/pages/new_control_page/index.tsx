@@ -23,6 +23,7 @@ import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
 import NodeModal from "../../components/modals/NodeModal";
 import ImageRockDisplay from "../../components/data/RockImageSelection";
+import GifOverlay from "../../components/data/GifView/GifOverlay";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
@@ -126,7 +127,9 @@ const NewControlPage = () => {
 		reset_motors,
 		emergency_shutdown,
 		recordSensors,
-		setRecordSensors
+		setRecordSensors,
+		displayGif,
+		setDisplayGif
   	] = roverControls;
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
@@ -305,24 +308,35 @@ const NewControlPage = () => {
 					  </div>
 					)}
 
-					{hdConfirmation !== null && (
-						<div className={styles.confirm}>
-						<div className={styles.confirmBox}>
-							<p>Handling Device Confirmation</p>
-							<p>Data: {qrCode}</p>
-							<div className={styles.confirmation}>
-								<button className={styles.confirmBtn} onClick={() => {
-									hdConfirmation(true)
-									setQrCode(null)
-								}}>Confirm</button>
-								<button className={styles.confirmBtn} onClick={() => {
-									hdConfirmation(false)
-									setQrCode(null)
-								}}>Cancel</button>
+					<>
+						{/*TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION*/}
+						{displayGif !== null && (
+							<GifOverlay
+								src={`gif/${qrCode}.gif`}
+								durationMs={5000}
+								onClose={() => setDisplayGif(null)}
+							/>
+						)}
+
+						{hdConfirmation !== null && (
+							<div className={styles.confirm}>
+							<div className={styles.confirmBox}>
+								<p>Handling Device Confirmation</p>
+								<p>Data: {qrCode}</p>
+								<div className={styles.confirmation}>
+									<button className={styles.confirmBtn} onClick={() => {
+										hdConfirmation(true)
+										setQrCode(null)
+									}}>Confirm</button>
+									<button className={styles.confirmBtn} onClick={() => {
+										hdConfirmation(false)
+										setQrCode(null)
+									}}>Cancel</button>
+								</div>
 							</div>
 						</div>
-					</div>
-					)}
+						)}
+					</>
 					<div className={styles.infosLeft}>
 						<ControllerInfoBox
 							title="Driving Currents"

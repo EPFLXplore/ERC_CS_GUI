@@ -83,6 +83,7 @@ const useRoverControls = (
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
 	const [qrCode, setQrCode] = useState<string | null>(null);
+	const [displayGif, setDisplayGif] = useState<boolean | null>(null);
 	const [imageRock, setImageRock] = useState<string | null>(null);
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
@@ -390,6 +391,14 @@ const useRoverControls = (
 				//@ts-ignore
 				const information = request.information
 				setQrCode(information)
+
+				// TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION
+				if(information === "A" || information === "B" || information === "C"
+					|| information === "D" || information === "E" || information === "F"
+				) {
+					setDisplayGif(true);
+				}
+
 				const result = await new Promise<boolean>((resolve, reject) => {
 					setHDConfirmation(() => (confirm: boolean) => {
 						resolve(confirm)
@@ -516,7 +525,9 @@ const useRoverControls = (
 		reset_motors,
 		emergency_shutdown,
 		recordSensors, 
-		setRecordSensors
+		setRecordSensors,
+		displayGif,
+		setDisplayGif
 	] as const;
 };
 

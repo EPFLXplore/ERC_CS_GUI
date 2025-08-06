@@ -1,60 +1,51 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface GifOverlayProps {
   src: string;
-  width?: number;
-  height?: number;
+  durationMs?: number; // default to 5 seconds
+  onClose?: () => void;
 }
 
-const GifOverlay: React.FC<GifOverlayProps> = ({ src, width = 400, height = 300 }) => {
+const GifOverlay: React.FC<GifOverlayProps> = ({ src, durationMs = 5000, onClose }) => {
   const [canDismiss, setCanDismiss] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
-  const gifRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    const img = gifRef.current;
-    if (!img) return;
+    const timer = setTimeout(() => {
+      setCanDismiss(true);
+    }, durationMs);
 
-    const onLoad = () => {
-      const duration = getGifDuration(img);
-      if (duration) {
-        setTimeout(() => setCanDismiss(true), duration);
-      } else {
-        // fallback if duration can't be detected
-        setTimeout(() => setCanDismiss(true), 3000);
-      }
-    };
-
-    img.addEventListener('load', onLoad);
-    return () => img.removeEventListener('load', onLoad);
-  }, []);
-
-  const getGifDuration = (img: HTMLImageElement): number | null => {
-    // GIF duration detection is not reliable in vanilla JS
-    // If you want perfect detection, you need a library like `gifuct-js`
-    return null;
-  };
+    return () => clearTimeout(timer);
+  }, [durationMs]);
 
   const handleClick = () => {
-    if (canDismiss) {
-      setIsVisible(false);
+    if (canDismiss && onClose) {
+      onClose();
     }
   };
-
-  if (!isVisible) return null;
 
   return (
     <div
       onClick={handleClick}
-      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 999999, // always above everything
+        cursor: canDismiss ? 'pointer' : 'default',
+      }}
     >
       <img
-        ref={gifRef}
         src={src}
-        width={width}
-        height={height}
-        alt="Loading animation"
-        className="rounded shadow-lg"
+        alt="GIF Animation"
+        style={{
+          width: '600px',
+          height: 'auto',
+          borderRadius: '10px',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+        }}
       />
     </div>
   );

@@ -65,7 +65,11 @@ const SimulationPage = () => {
 		resetSensors,
 		reset_leds,
 		reset_motors,
-		emergency_shutdown
+		emergency_shutdown,
+		recordSensors,
+		setRecordSensors,
+		displayGif,
+		setDisplayGif
 	] = roverControls;
 
 
