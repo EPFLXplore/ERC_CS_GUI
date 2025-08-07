@@ -52,7 +52,7 @@ function DrillGoalModal({
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 	const [actionSmallTask, setActionSmallTask] = React.useState<DrillGoalModalProps>({
 		task: DrillSmallActions.STEP_DOWN,
-		multiple_increment: 1
+		multiple_increment: 0
 	});
 
 	return (
@@ -98,7 +98,7 @@ function DrillGoalModal({
 								} else {
 									setActionSmallTask({
 										task: _action,
-										multiple_increment: 2
+										multiple_increment: 1
 									});
 								}
 
@@ -107,7 +107,7 @@ function DrillGoalModal({
 								//onSetGoal(SubSystems.DRILL, { action: _action.toLowerCase() });
 							}}
 						>
-							{_action} : {actionSmallTask.task == _action ? actionSmallTask.multiple_increment : 1}
+							{_action} : {actionSmallTask.task == _action ? actionSmallTask.multiple_increment : 0}
 						</button>
 					))}
 					</div>

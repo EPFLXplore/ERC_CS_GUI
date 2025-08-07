@@ -156,7 +156,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
         resetLeds()
     }
     
-    await axios.post('http://169.254.55.178:5000/ssh', {
+    await axios.post('http://169.254.55.251:5000/ssh', {
         host: command.device.ip, 
         username: command.device.hostname,
         password: command.device.password,
@@ -179,7 +179,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
 }
 
 const closeSSH = async (name: string, id: string) => {
-    await axios.get(`http://169.254.55.178:5000/close-connection/${id}`)
+    await axios.get(`http://169.254.55.251:5000/close-connection/${id}`)
     .then(data => {
         if(data.data.status) {
             delete IDConnections[name]

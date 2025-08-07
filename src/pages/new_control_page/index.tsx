@@ -134,7 +134,7 @@ const NewControlPage = () => {
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
     
-		await axios.post('http://169.254.55.178:5000/sensor-record', {
+		await axios.post('http://169.254.55.251:5000/sensor-record', {
 			type_sensor: type_sensor, 
 			timestamp: new Date().toISOString(),
 			values: values
