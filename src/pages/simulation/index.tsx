@@ -69,7 +69,8 @@ const SimulationPage = () => {
 		recordSensors,
 		setRecordSensors,
 		displayGif,
-		setDisplayGif
+		setDisplayGif,
+		screenshotAllCameras
 	] = roverControls;
 
 
