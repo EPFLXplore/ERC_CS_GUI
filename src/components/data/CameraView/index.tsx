@@ -1,19 +1,38 @@
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 
+/*
+Author: Ugo Balducci and Giovanni Ranieri
+Year: 2024-25
+Description: Camera View component for displaying the different cameras. The idea is depending on the number of cameras,
+we display them in a different manner. When you double click on a camera feed, you rotate it by 90° except when we have the 4 cameras,
+where we rotate them by 180° for visibility.
+*/
+
 const CameraView = ({
 	images,
-	rotate = [false],
+	rotate = [0],
 	changeCam,
 	setRotateCams,
 	currentCam,
 }: {
 	images: Array<string>;
-	rotate?: boolean[];
+	rotate?: number[];
 	changeCam: (dir: number) => void;
-	setRotateCams: (rotate: boolean[]) => void;
+	setRotateCams: React.Dispatch<React.SetStateAction<number[]>>;
 	currentCam: Array<string>;
 }) => {
+
+	const next90 = (deg: number) => ((deg ?? 0) + 90) % 360;
+	const ensureLen = (arr: number[], n: number) =>
+  		Array.from({ length: n }, (_, i) => (arr?.[i] ?? 0));
+
+	const bump = (idx: number) => {
+		// make sure we have one rotation entry per image
+		const r = ensureLen(rotate as number[], images.length);
+		r[idx] = next90(r[idx]);
+		setRotateCams(r);
+	};
 
 	if(currentCam.length == 1) {
 
@@ -27,10 +46,8 @@ const CameraView = ({
 					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 					alt="Camera"
 					className={`${styles.Image} ${rotate[0] ? styles.Rotate180 : ""}`}
-					onDoubleClick={() => {
-						const newRotation = !rotate[0];
-						setRotateCams([newRotation]);
-					}}
+					style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+          			onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
 				/>
 			</div>
 		);
@@ -44,20 +61,18 @@ const CameraView = ({
 					<img
 						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 						alt="Camera"
-						className={`${styles.HalfImage} ${rotate[0] ? styles.Rotate180 : ""}`}
-						onDoubleClick={() => {
-							setRotateCams([!rotate[0], rotate[1]]);
-						}}
+						className={`${styles.HalfImage}`}
+						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            			onDoubleClick={() => bump(0)}
 					/>
 				</div>
 				<div className={styles.HalfWrapper}>
 					<img
 						src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
 						alt="Camera"
-						className={`${styles.HalfImage} ${rotate[1] ? styles.Rotate180 : ""}`}
-						onDoubleClick={() => {
-							setRotateCams([rotate[0], !rotate[1]]);
-						}}
+						className={`${styles.HalfImage}`}
+						style={{ transform: `rotate(${rotate[1] ?? 0}deg)`}}
+            			onDoubleClick={() => bump(1)}
 					/>
 				</div>
 			</div>
@@ -72,10 +87,9 @@ const CameraView = ({
 					<img
 						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 						alt="Camera"
-						className={`${styles.FullImage} ${rotate[0] ? styles.Rotate180 : ""}`}
-						onDoubleClick={() => {
-							setRotateCams([!rotate[0], rotate[1], rotate[2]]);
-						}}
+						className={`${styles.FullImage}`}
+						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            			onDoubleClick={() => bump(0)}
 					/>
 				</div>
 
@@ -84,20 +98,18 @@ const CameraView = ({
 						<img
 							src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
 							alt="Camera"
-							className={`${styles.HalfImage} ${rotate[1] ? styles.Rotate180 : ""}`}
-							onDoubleClick={() => {
-								setRotateCams([rotate[0], !rotate[1], rotate[2]]);
-							}}
+							className={`${styles.HalfImage}`}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            				onDoubleClick={() => bump(1)}
 						/>
 					</div>
 					<div className={styles.BottomHalf}>
 						<img
 							src={images[2] && images[2].length > 0 ? images[2] : DefaultImage}
 							alt="Camera"
-							className={`${styles.HalfImage} ${rotate[2] ? styles.Rotate180 : ""}`}
-							onDoubleClick={() => {
-								setRotateCams([rotate[0], rotate[1], !rotate[2]]);
-							}}
+							className={`${styles.HalfImage}`}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            				onDoubleClick={() => bump(2)}
 						/>
 					</div>
 				</div>
@@ -107,46 +119,23 @@ const CameraView = ({
 		return (
 			<div className={styles.Container}>
 				{<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
+				{[0, 1, 2, 3].map((i) => (
 				<img
-					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+					key={i}
+					src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
 					alt="Camera"
-					className={rotate[0] ? styles.RotatedQuarter : styles.Quarter}
+					className={styles.Quarter}
+					style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
 					onDoubleClick={() => {
-						if (setRotateCams) {
-							setRotateCams([!rotate[0], rotate[1], rotate[2], rotate[3]]);
-						}
+						setRotateCams((old: number[]) => {
+							const r = Array.from({ length: 4 }, (_, k) => old?.[k] ?? 0);
+							const next = r.slice();
+							next[i] = ((next[i] ?? 0) + 180) % 360;
+							return next;
+						});
 					}}
 				/>
-				<img
-					src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
-					alt="Camera"
-					className={rotate[1] ? styles.RotatedQuarter : styles.Quarter}
-					onDoubleClick={() => {
-						if (setRotateCams) {
-							setRotateCams([rotate[0], !rotate[1], rotate[2], rotate[3]]);
-						}
-					}}
-				/>
-				<img
-					src={images[2] && images[2].length > 0 ? images[2] : DefaultImage}
-					alt="Camera"
-					className={rotate[2] ? styles.RotatedQuarter : styles.Quarter}
-					onDoubleClick={() => {
-						if (setRotateCams) {
-							setRotateCams([rotate[0], rotate[1], !rotate[2], rotate[3]]);
-						}
-					}}
-				/>
-				<img
-					src={images[3] && images[3].length > 0 ? images[3] : DefaultImage}
-					alt="Camera"
-					className={rotate[3] ? styles.RotatedQuarter : styles.Quarter}
-					onDoubleClick={() => {
-						if (setRotateCams) {
-							setRotateCams([rotate[0], rotate[1], rotate[2], !rotate[3]]);
-						}
-					}}
-				/>
+				))}
 			</div>
 		);
 	} else {
@@ -191,11 +180,3 @@ const CameraSelector = ({
 };
 
 export default CameraView;
-
-/**
- *     -webkit-transform:rotate(90deg)
-    -moz-transform: rotate(90deg)
-    -ms-transform: rotate(90deg)
-    -o-transform: rotate(90deg)
-    transform: rotate(90deg)
- */

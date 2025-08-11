@@ -8,6 +8,7 @@ const CAMERA_CONFIGS = [
 	["Front Cam"],
 	["Gripper Cam"],
 	["ST", "ST", "DR", "BH"],
+	["ST", "ST"],
 	["Front", "ST", "ST"],
 	['LEFT', 'RIGHT'], // Tests for Nav
 	['Other1', 'Other2'], // Astrio-Bio and Deep Sampling

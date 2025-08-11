@@ -1,19 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import GamepadController, { GamepadControllerState } from "../utils/Gamepad";
 import { PublishTo, PublishToType } from "../data/publishTo.type";
 import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../utils/Gamepad/bindings";
 import States from "../data/states.type";
 import { Topics } from "../data/topics.type";
-
-/*
-Author: Ugo Balducci
-Year: 2023
-Description: Hooks responsible of keeping the state of the Gamepad. It uses a gamepad controller that
-manages how the bindings are done depending on the OS, type of gamepad and web browser. Please go to notion
-for detailed explanations
-*/
-
 
 export enum GamepadCommandState {
 	UI,
@@ -26,114 +17,124 @@ function useGamepad(
 	submode: string[],
 	selectorCallback?: () => void
 ) {
+
 	const [gamepad, setGamepad] = useState<GamepadController | null>(null);
 	const [gamepadState, setGamepadState] = useState<GamepadControllerState | null>(null);
 	const [gamepadCommandState, setGamepadCommandState] = useState<GamepadCommandState>(
-		GamepadCommandState.UI
+	GamepadCommandState.UI
 	);
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
-	const [interval, setIntervalCallback] = useState<NodeJS.Timeout | null>(null);
 
-	// Initialize the gamepad states. 
+	// 1) Init gamepad & one-time listeners
 	useEffect(() => {
+		const gp = new GamepadController((state) => setGamepadState(state));
+		setGamepad(gp);
 
-		const gamepad = new GamepadController((state) => {
-			setGamepadState(state);
-		});
-
-		setGamepad(gamepad);
-
+		// START -> selector
 		GamepadController.addGamepadListener(
 			"gamepadButtonPressed",
 			ClassicalGamepad.Button.START,
+			() => selectorCallback?.()
+		);
+
+		// BACK -> toggle UI/CONTROL
+		GamepadController.addGamepadListener(
+			"gamepadButtonPressed",
+			ClassicalGamepad.Button.BACK,
 			() => {
-				selectorCallback?.();
+			setGamepadCommandState((prev) => {
+				if (prev === GamepadCommandState.UI &&
+					(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)) {
+				return GamepadCommandState.CONTROL;
+				}
+				return GamepadCommandState.UI;
+			});
 			}
 		);
-		
+
+	// No remover available for addGamepadListener; ensure this effect runs ONCE.
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
-	GamepadController.addGamepadListener(
-		"gamepadButtonPressed",
-		ClassicalGamepad.Button.BACK,
-		() => {
-			setGamepadCommandState((prev) => {
-				if (
-					prev === GamepadCommandState.UI &&
-					(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)
-				)
-					return GamepadCommandState.CONTROL;
-				else return GamepadCommandState.UI;
-			});
-		}
-	);
-
-	// Create the publisher for Navigation and Handling devices Subsystems
+	// 2) Create/replace publisher when ros or mode changes
 	useEffect(() => {
-		if (ros) {
-			setPublisher(
-				new ROSLIB.Topic<any>({
-					ros: ros,
-					name:
-						mode === PublishTo.NAVIGATION
-							? Topics.NAVIGATION_GAMEPAD_PUBLISHER
-							: Topics.HANDLING_DEVICE_GAMEPAD_PUBLISHER,
-					messageType: "sensor_msgs/Joy",
-				})
-			);
+		if (!ros) {
+			setPublisher(null);
+			return;
 		}
+
+		const topicName =
+			mode === PublishTo.NAVIGATION
+			? Topics.NAVIGATION_GAMEPAD_PUBLISHER
+			: Topics.HANDLING_DEVICE_GAMEPAD_PUBLISHER;
+
+		const t = new ROSLIB.Topic<any>({
+			ros,
+			name: topicName,
+			messageType: "sensor_msgs/Joy",
+		});
+		setPublisher(t);
+		// console.log("MODE:", mode, "TOPIC:", topicName);
 
 		return () => {
-			if (publisher) {
-				publisher.unadvertise();
-			}
+			try { t.unadvertise(); } catch {}
 		};
+
 	}, [ros, mode]);
 
-	// Function sending the commands through ROS. Depending on which subsystem is activated for the 
-	// gamepad, it will publish on the right one.
-	const sendCommand = () => {
+	const sendCommand = useCallback(() => {
+		const s = gamepad?.getState();
+		if (!gamepad?.getGamepad() || !s || !publisher) return;
 
-		const gamepadState = gamepad?.getState();
-		//console.log("mode " + mode)
-		if (gamepad?.getGamepad() && gamepadState && publisher) {
-			if (mode === PublishTo.NAVIGATION) {
-				const message = gamepad.handleNavigation(gamepadState.buttons, gamepadState.axes);
-				console.log(message.buttons)
-				publisher.publish(message);
-			
-			// Handling device
-			} else if (mode == PublishTo.HANDLING_DEVICE) {
-				if (submode[1] == States.MANUAL_DIRECT) {
-					const message = gamepad.handleDirectArm(
-						gamepadState.buttons,
-						gamepadState.axes
-					);
-					//console.log(message.buttons)
-					publisher.publish(message);
-				
-				// Manual Inverse
-				} else {
-					const message = gamepad.handleInverseArm(
-						gamepadState.buttons,
-						gamepadState.axes
-					);
-					publisher.publish(message);
-				}
+		if (mode === PublishTo.NAVIGATION) {
+			const msg = gamepad.handleNavigation(s.buttons, s.axes);
+			publisher.publish(msg);
+
+		} else if (mode === PublishTo.HANDLING_DEVICE) {
+
+			if (submode[1] === States.MANUAL_DIRECT) {
+			const msg = gamepad.handleDirectArm(s.buttons, s.axes);
+			//console.log("DIRECT")
+			publisher.publish(msg);
+
+			} else {
+
+			const msg = gamepad.handleInverseArm(s.buttons, s.axes);
+			//console.log("INVERSE")
+			publisher.publish(msg);
+
 			}
 		}
-	};
 
-	// The function publishes on the topic every 30ms. This value can be changed. 
+	}, [gamepad, publisher, mode, submode]);
+
+	const timerRef = useRef<number | null>(null);
+
 	useEffect(() => {
+		// Only run when actively controlling and a publisher exists
 		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
-			setIntervalCallback(setInterval(sendCommand, 30));
+			// clear any previous interval before starting a new one
+			if (timerRef.current !== null) {
+			clearInterval(timerRef.current);
+			timerRef.current = null;
+			}
+			timerRef.current = window.setInterval(sendCommand, 30);
 		} else {
-			if (interval) {
-				clearInterval(interval);
+			if (timerRef.current !== null) {
+			clearInterval(timerRef.current);
+			timerRef.current = null;
 			}
 		}
-	}, [publisher, gamepadCommandState]);
+
+		// On ANY relevant change, clean up the previous timer
+		return () => {
+			if (timerRef.current !== null) {
+			clearInterval(timerRef.current);
+			timerRef.current = null;
+			}
+		};
+
+  }, [publisher, gamepadCommandState, sendCommand]);
 
 	return [gamepad, gamepadState, gamepadCommandState] as const;
 }

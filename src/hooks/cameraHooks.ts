@@ -10,7 +10,7 @@ get the feeds of the cameras.
 
 function useCamera(ros: ROSLIB.Ros | null) {
 	const [images, setImage] = useState<Array<string>>([]);
-	const [rotateCams, setRotateCams] = useState<Array<boolean>>([false]);
+	const [rotateCams, setRotateCams] = useState<Array<number>>([0]);
 
 	// Topics for the cameras. If you decide to modify them, you need to update also in the 
 	// submodule of the cameras => in the launch files.
@@ -18,6 +18,7 @@ function useCamera(ros: ROSLIB.Ros | null) {
 		["/NAV/feed_camera_nav_0"],
 		["/ROVER/feed_camera_hd_0"],
 		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_3"],
+		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_2"],
 		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_1"],
 		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"],
 		["/ROVER/feed_camera_cs_4", "/ROVER/feed_camera_cs_5"],
