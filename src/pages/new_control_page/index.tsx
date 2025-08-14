@@ -23,7 +23,7 @@ import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
 import NodeModal from "../../components/modals/NodeModal";
-import ImageRockDisplay from "../../components/data/RockImageSelection";
+import imageToSelectDisplay from "../../components/data/RockImageSelection";
 import GifOverlay from "../../components/data/GifView/GifOverlay";
 
 import SubSystems from "../../data/subsystems.type";
@@ -96,9 +96,10 @@ const NewControlPage = () => {
 		setQrCode,
 		hdStackLaunched,
 		hdConfirmation,
-		hdConfirmationRocks,
-		imageRock,
-		setImageRock,
+		hdConfirmationSelectElements,
+		numberElementToSelect,
+		imageToSelect,
+		setImageToSelect,
 		stateServices,
 		stateActions,
 		setStateActions,
@@ -136,7 +137,7 @@ const NewControlPage = () => {
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
     
-		await axios.post('http://169.254.55.251:5000/sensor-record', {
+		await axios.post('http://169.254.55.178:5000/sensor-record', {
 			type_sensor: type_sensor, 
 			timestamp: new Date().toISOString(),
 			values: values
@@ -305,11 +306,15 @@ const NewControlPage = () => {
 					</div>
 					)}
 
-					{hdConfirmationRocks !== null && (
+					{hdConfirmationSelectElements !== null && (
 						<div>
-						{imageRock && <ImageRockDisplay imageData={imageRock} 
-						 setCoordinates={(x: number, y: number) => hdConfirmationRocks(x, y)}
-						 onClose={() => setImageRock(null)} />}
+						{imageToSelect && 
+							<imageToSelectDisplay 
+								imageData={imageToSelect} 
+								number_element_to_select={numberElementToSelect}
+								setCoordinates={(x: number[], y: number[]) => hdConfirmationSelectElements(x, y)}
+								onClose={() => setImageToSelect(null)} 
+							/>}
 					  </div>
 					)}
 

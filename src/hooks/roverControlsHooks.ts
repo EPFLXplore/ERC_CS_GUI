@@ -15,7 +15,7 @@ import { BrokenImageSharp } from "@mui/icons-material";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
-Year: 2024
+Year: 2024-25
 Description: Hooks controlling multiple Hooks for the general control of the Rover. The main things are:
 
 1) Its the only place we use useRoverState to have the roverState. 
@@ -71,11 +71,24 @@ const useRoverControls = (
 		});
 	}
 
+	// HDS can send a requet to confirm something (continue a task for example)
+	// It can also send some string information, like a qr code value. The term qrCode is not write
+	// but its the only information that we send to the CS, but please rename it if you want.
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
-	const [hdConfirmationRocks, setHDConfirmationRocks] = useState<((x: number, y: number) => void) | null>(null);
 	const [qrCode, setQrCode] = useState<string | null>(null);
+
+	// HDS sends a request to select elements on an image.
+	// The numberElementToSelect is also part of the request service RockSelection.srv and sets the number of click on the image
+	// to continue the process..
+	const [hdConfirmationSelectElements, setHDConfirmationSelectElements] = useState<((x: number[], y: number[]) => void) | null>(null);
+	const [numberElementToSelect, setNumberElementToSelect] = useState<number>(0);
+	const [imageToSelect, setImageToSelect] = useState<string | null>(null);
+
+	// PLease remove the displayGif after the ERC 2025, it was a joke for the competition
+	// It is used to display a gif when the user scans a QRCODE on an image.
 	const [displayGif, setDisplayGif] = useState<boolean | null>(null);
-	const [imageRock, setImageRock] = useState<string | null>(null);
+
+	// Confirmation when the HDS stack is launched.
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
 	// Science
@@ -99,6 +112,8 @@ const useRoverControls = (
 		})
 	}
 
+	// When the user clicks on the button to record sensors, it sets the state to true and records the sensors in a csv file
+	// using HTTP requests to the backend ExpressJS server
 	const [recordSensors, setRecordSensors] = useState(false)
 
 	// Avionics
@@ -123,7 +138,7 @@ const useRoverControls = (
 	// Gamepad
 	const [manualMode, setManualMode] = useState<PublishToType>(PublishTo.NAVIGATION);
 
-	// Simulation
+	// Simulation, not really used right now.
 	const [dataFocus, setDataFocus] = useState<string[]>([]);
 	const [point, setPoint] = useState({ x: -10, y: -10 });
 	const [volumetric, setVolumetric] = useState(false);
@@ -234,7 +249,7 @@ const useRoverControls = (
 		});
 	};
 
-	// Launch a service for either a subystem, or the cameras. If isCamera is true, thenb it is used
+	// Launch a service for either a subystem, or the cameras. If isCamera is true, then it is used
 	// to activate or deactivate a camera (with the activatedCamera boolean)
 	const startService = async (system: string, mode: string, isCamera: boolean, activatedCamera: boolean = false) => {
 		
@@ -334,32 +349,27 @@ const useRoverControls = (
 	// ----------------------------------------------------------------------------
 	// HD CONTROL FUNCTIONS
 
-	// Service that triggers Human verification for selecting a Rock on an image
-
-	// const changeSpeedRover = (speed: number) => {
-	// 	if(ros) {
-	// 		const object = {
-	// 			data: speed
-	// 		}
-	// 		changeSpeedTopic?.publish(object)
-	// 	}
-	// } 
-
+	// Service that triggers Human verification for selecting a something on an image that needs to be collected
+	// The name with rocks it not right, please rename it at some point.
 	useEffect(() => {
 		if (ros) {
 			var res = new ROSLIB.Service({
 				ros: ros,
 				name: Topics.REQUEST_SELECTION_ROCK,
-				serviceType: "custom_msg/srv/RockSelection",
+				serviceType: "custom_msg/srv/ControlStationSelection",
 			});
 
 			res.advertiseAsync(async (request: any) => {
-				setImageRock("data:image/jpeg;charset=utf-8;base64," + request.rock_image.data)
+				setImageToSelect("data:image/jpeg;charset=utf-8;base64," + request.rock_image.data)
 
-				const result = await new Promise<{x: number, y: number}>((resolve, reject) => {
-					setHDConfirmationRocks(() => (x: number, y: number) => {
+				setNumberElementToSelect(request.number_element_to_select);
+
+				const result = await new Promise<{x: number[], y: number[]}>((resolve, reject) => {
+					setHDConfirmationSelectElements(() => (x: number[], y: number[]) => {
 						resolve({x, y});
-						setHDConfirmationRocks(null);
+						setHDConfirmationSelectElements(null);
+						setNumberElementToSelect(0);
+						setImageToSelect(null);
 					});
 				});
 
@@ -499,9 +509,10 @@ const useRoverControls = (
 		setQrCode,
 		hdStackLaunched,
 		hdConfirmation,
-		hdConfirmationRocks,
-		imageRock,
-		setImageRock,
+		hdConfirmationSelectElements,
+		numberElementToSelect,
+		imageToSelect,
+		setImageToSelect,
 		stateServices,
 		stateActions,
 		setStateActions,

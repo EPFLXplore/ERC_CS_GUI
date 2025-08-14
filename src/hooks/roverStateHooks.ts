@@ -17,8 +17,8 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 				ros: ros,
 				name: "/Rover/RoverState",
 				messageType: "std_msgs/String",
-				queue_length: 10,
-				queue_size: 10
+				queue_length: 1,
+				queue_size: 1
 			});
 
 			listener.subscribe((message) => {

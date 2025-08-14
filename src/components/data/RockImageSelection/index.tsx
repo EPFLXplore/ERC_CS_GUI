@@ -3,12 +3,15 @@ import styles from "./style.module.sass";
 
 interface ImageDisplayProps {
   imageData: string; // Base64 encoded image data
-  setCoordinates: (x: number, y: number) => void;
+  number_element_to_select: number; // Number of elements to select
+  setCoordinates: (x: number[], y: number[]) => void;
   onClose: () => void;
 }
 
-const ImageRockDisplay: React.FC<ImageDisplayProps> = ({ imageData, setCoordinates, onClose }) => {
+const imageToSelectDisplay: React.FC<ImageDisplayProps> = ({ imageData, number_element_to_select, setCoordinates, onClose }) => {
     const imgRef = useRef<HTMLImageElement>(null);
+
+    const [coordinates, setCoordinatesState] = useState<{ x: number[], y: number[] }>({ x: [], y: [] });
 
     const handleClick = (event: React.MouseEvent<HTMLImageElement, MouseEvent>) => {
       if (!imgRef.current) return;
@@ -24,9 +27,17 @@ const ImageRockDisplay: React.FC<ImageDisplayProps> = ({ imageData, setCoordinat
     
       const x = Math.round((event.clientX - rect.left) * scaleX);
       const y = Math.round((event.clientY - rect.top) * scaleY);
-    
-      setCoordinates(x, y);
-      onClose();
+
+      // Add a new clicked coordinate in the state. If we have the right number, we stop and send back the information to HDS
+      if (coordinates.x.length < number_element_to_select) {
+        setCoordinatesState(prev => ({
+          x: [...prev.x, x],
+          y: [...prev.y, y]
+        }));
+      } else {
+        setCoordinates(coordinates.x, coordinates.y);
+        onClose();
+      }
     };
   
     return (
@@ -44,4 +55,4 @@ const ImageRockDisplay: React.FC<ImageDisplayProps> = ({ imageData, setCoordinat
     );
   };
 
-export default ImageRockDisplay
+export default imageToSelectDisplay
