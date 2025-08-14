@@ -8,7 +8,7 @@ interface ImageDisplayProps {
   onClose: () => void;
 }
 
-const imageToSelectDisplay: React.FC<ImageDisplayProps> = ({ imageData, number_element_to_select, setCoordinates, onClose }) => {
+const ImageSelection: React.FC<ImageDisplayProps> = ({ imageData, number_element_to_select, setCoordinates, onClose }) => {
     const imgRef = useRef<HTMLImageElement>(null);
 
     const [coordinates, setCoordinatesState] = useState<{ x: number[], y: number[] }>({ x: [], y: [] });
@@ -55,4 +55,4 @@ const imageToSelectDisplay: React.FC<ImageDisplayProps> = ({ imageData, number_e
     );
   };
 
-export default imageToSelectDisplay
+export default ImageSelection

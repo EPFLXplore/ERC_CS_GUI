@@ -23,7 +23,7 @@ import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
 import NodeModal from "../../components/modals/NodeModal";
-import imageToSelectDisplay from "../../components/data/RockImageSelection";
+import ImageSelection from "../../components/data/ImageSelection";
 import GifOverlay from "../../components/data/GifView/GifOverlay";
 
 import SubSystems from "../../data/subsystems.type";
@@ -309,7 +309,7 @@ const NewControlPage = () => {
 					{hdConfirmationSelectElements !== null && (
 						<div>
 						{imageToSelect && 
-							<imageToSelectDisplay 
+							<ImageSelection 
 								imageData={imageToSelect} 
 								number_element_to_select={numberElementToSelect}
 								setCoordinates={(x: number[], y: number[]) => hdConfirmationSelectElements(x, y)}
