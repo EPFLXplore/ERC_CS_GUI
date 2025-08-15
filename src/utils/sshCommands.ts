@@ -87,13 +87,13 @@ const StopHdStack: SSHCommands = {
 
 const ActivateElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['cd /home/xplore-avionics/Documents/ERC_EL_BroCo/src/docker_humble_jetson', './start_elec_stack.sh']
+    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/src/docker_humble_jetson', './start_elec_stack.sh']
 };
 
 // Stops the FSM and other stuff. 
 const StopElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['cd /home/xplore-avionics/Documents/ERC_EL_BroCo/src/docker_humble_jetson', './stop_elec_stack.sh']
+    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/src/docker_humble_jetson', './stop_elec_stack.sh']
 };
 
 const CommandsSSH = {
@@ -156,7 +156,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
         resetLeds()
     }
     
-    await axios.post('http://169.254.55.178:5000/ssh', {
+    await axios.post('http://169.254.55.251:5000/ssh', {
         host: command.device.ip, 
         username: command.device.hostname,
         password: command.device.password,
@@ -179,7 +179,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
 }
 
 const closeSSH = async (name: string, id: string) => {
-    await axios.get(`http://169.254.55.178:5000/close-connection/${id}`)
+    await axios.get(`http://169.254.55.251:5000/close-connection/${id}`)
     .then(data => {
         if(data.data.status) {
             delete IDConnections[name]

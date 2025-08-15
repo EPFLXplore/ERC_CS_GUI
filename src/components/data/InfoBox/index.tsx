@@ -24,11 +24,13 @@ export interface Info {
 }
 
 interface InfoBoxProps {
-  title: string
-  infos: Info[]
-  unit?: string
-  color?: boolean,
-  usages?: number[] // Optional, for CPU usage circles
+  title: string;
+  infos: Info[];
+  unit?: string;
+  color?: boolean;
+  usages?: number[]; // Optional, for CPU usage circles
+  warning?: boolean; // Optional, for warning state
+  triggerWarning?: (x: any) => boolean; // Optional, for triggering the warning based on some condition for the info.value
 }
 
 export interface WheelsInfo {
@@ -47,7 +49,9 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   infos,
   unit,
   color = false,
-  usages
+  usages,
+  warning = false,
+  triggerWarning
 }) => {
 	return (
 		<div className={styles.infos}>
@@ -63,7 +67,10 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 							<div className={styles.info} key={index}>
 								<p className={styles.infoName}>{info.name}</p>
 								{info.value === "NO DATA" ? 
-								<p className={styles.infoValue}>{`${info.value}`}</p> :
+								<p className={styles.infoValue}
+									style={{color: !warning ? "" : (triggerWarning && triggerWarning(info.value) ? "#6fe6ccff" : "white")}}
+									>{`${info.value}`}
+								</p> :
 								<p className={styles.infoValue} 
 								style={{color: !color ? "" : (info.value == "Connected" ? "#00d009" : "red")}}>
 									{`${info.value} ${unit ?? (info.unit ?? "")}`}</p>}

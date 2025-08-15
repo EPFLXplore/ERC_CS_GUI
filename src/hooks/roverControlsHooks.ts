@@ -355,12 +355,12 @@ const useRoverControls = (
 		if (ros) {
 			var res = new ROSLIB.Service({
 				ros: ros,
-				name: Topics.REQUEST_SELECTION_ROCK,
+				name: Topics.REQUEST_SELECTION_IMAGE,
 				serviceType: "custom_msg/srv/ControlStationSelection",
 			});
 
 			res.advertiseAsync(async (request: any) => {
-				setImageToSelect("data:image/jpeg;charset=utf-8;base64," + request.rock_image.data)
+				setImageToSelect("data:image/jpeg;charset=utf-8;base64," + request.image.data)
 
 				setNumberElementToSelect(request.number_element_to_select);
 

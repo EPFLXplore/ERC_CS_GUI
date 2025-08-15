@@ -29,14 +29,20 @@ const ImageSelection: React.FC<ImageDisplayProps> = ({ imageData, number_element
       const y = Math.round((event.clientY - rect.top) * scaleY);
 
       // Add a new clicked coordinate in the state. If we have the right number, we stop and send back the information to HDS
-      if (coordinates.x.length < number_element_to_select) {
+
+      if(number_element_to_select === 1) {
+        setCoordinates([x], [y]);
+        onClose();
+      } else {
         setCoordinatesState(prev => ({
           x: [...prev.x, x],
           y: [...prev.y, y]
         }));
-      } else {
-        setCoordinates(coordinates.x, coordinates.y);
-        onClose();
+      
+        if(coordinates.x.length + 1 === number_element_to_select) {
+          setCoordinates(coordinates.x, coordinates.y);
+          onClose();
+        }
       }
     };
   

@@ -47,10 +47,8 @@ function ArmGoalModal({
 		  { name: "Switch 12", msg: "switch_12" },
 		  { name: "Switch 13", msg: "switch_13" },
 		]},
-		{ category: "Objects and Sockets", items: [
+		{ category: "Objects", items: [
 		  { name: "Electromagnet", msg: "electromagnet" },
-		  { name: "Socket 1", msg: "socket_1" },
-		  { name: "Socket 2", msg: "socket_2" },
 		]},
 		{ category: "Control and Power Switches", items: [
 		  { name: "Control Switch 1", msg: "small_rotation_switch_1" },
@@ -81,14 +79,9 @@ function ArmGoalModal({
 		  { name: "Turn J6 45° NEG", msg: "turn_j6_45_neg"},
 		  { name: "Turn J6 90° NEG", msg: "turn_j6_90_neg"}
 		]},
-		{ category: "Only Models", items: [
-		  { name: "Control Switch 1", msg: "model_small_rotation_switch_1" },
-		  { name: "Control Switch 2", msg: "model_small_rotation_switch_2" },
-		  { name: "Control Switch 3", msg: "model_small_rotation_switch_3" },
-		  { name: "Control Switch 4", msg: "model_small_rotation_switch_4" },
-		  { name: "Control Switch 5", msg: "model_small_rotation_switch_5" },
-		  { name: "Power Switch 1", msg: "model_big_rotation_switch_1" },
-		  { name: "Power Switch 2", msg: "model_big_rotation_switch_2" },
+		{ category: "SAM Approach", items: [
+		  { name: "Control Switch", msg: "model_small_rotation_switch" },
+		  { name: "Power Switch", msg: "model_big_rotation_switch" }
 		]}
 	  ];
 	  
@@ -116,7 +109,6 @@ function ArmGoalModal({
 								onClick={() => setTasks((old: ArmTask[] | null) => {
 									if(old === null) {
 										const t = [{ name: item.name, msg: item.msg }]
-										console.log("Setting taskssss:", t);
 										return [{ name: item.name, msg: item.msg }];
 									}
 
@@ -126,7 +118,6 @@ function ArmGoalModal({
 
 									const newTasks = [...old];
 									newTasks.push({ name: item.name, msg: item.msg});
-									console.log(newTasks);
 									return newTasks;
 								})}
 								>

@@ -137,7 +137,7 @@ const NewControlPage = () => {
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
     
-		await axios.post('http://169.254.55.178:5000/sensor-record', {
+		await axios.post('http://169.254.55.251:5000/sensor-record', {
 			type_sensor: type_sensor, 
 			timestamp: new Date().toISOString(),
 			values: values
@@ -424,6 +424,8 @@ const NewControlPage = () => {
 								{ name: "Joint 6", value: getJointsPositions(roverState)[5], unit:"°" },
 								{ name: "Gripper", value: getTorqueGripper(roverState), unit: "Nm"},
 							]}
+							warning={true}
+							triggerWarning={(x: number) => x > 300 || x < -300} 
 						/>
 					</div>
 					<div className={styles.infosMidLeft2}>
