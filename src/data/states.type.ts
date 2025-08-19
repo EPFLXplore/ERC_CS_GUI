@@ -8,7 +8,7 @@ enum States {
 	ON = "On",
 	OFF = "Off",
 	ACKERMANN = "Ackermann",
-	OMNI_DIRECTIONAL = "Omni Directional",
+	OMNI_DIRECTIONAL = "Omni",
 	MANUAL_INVERSE = "Manual Inverse",
 	MANUAL_DIRECT = "Manual Direct",
 	AUTO = "Auto"

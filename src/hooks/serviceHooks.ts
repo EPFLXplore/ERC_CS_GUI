@@ -56,8 +56,7 @@ function useService(
 					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"],
 				[],
-				false,
-				[States.AUTO]
+				false
 			),
 		},
 		[SubSystems.HANDLING_DEVICE]: {
@@ -69,8 +68,7 @@ function useService(
 							"status"
 					  ],
 				[],
-				false,
-				[States.AUTO]
+				false
 			),
 		},
 		[SubSystems.DRILL]: {
@@ -80,8 +78,7 @@ function useService(
 					? "Off"
 					: roverState["rover"]["status"]["systems"][SubSystems.DRILL]["status"],
 				[],
-				false,
-				[]
+				false
 			),
 		},
 	});

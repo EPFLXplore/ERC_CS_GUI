@@ -66,6 +66,7 @@ function ArmGoalModal({
 		  { name: "Sad Arm", msg: "above_ground" },
 		  { name: "Rangement", msg: "rangement" },
 		  { name: "Front Panel", msg: "front_panel" },
+		  { name: "Align Metal Bar", msg: "align_metal_bar" },
 		]},
 		{ category: "Tasks", items: [
 		  { name: "Pick Rock", msg: "rocks" },
