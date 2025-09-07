@@ -26,6 +26,19 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 				const data = JSON.parse(message.data);
 				startTransition(() => setRoverState(data));
 			});
+
+			// HERE NEW FEATURE: USE the functions of roslibjs to retrieve the list of nodes running. 
+			// You can then delete the active_node_checker node in the rover_pkg 
+
+			// The problem with that option is that with the rover_pkg, we could reset the information of the
+			// rover state directly before sending it. Here, if you check the status of the nodes, you still send
+			// the data of the nodes without a reset. So the solution would be to leave the rover send wrong dsta
+			// and reset locally here... to think about
+
+			// ros.getNodes((nodes: string[]) => {
+
+			// })
+
 		}
 	}, [ros]);
 

@@ -78,7 +78,13 @@ function ArmGoalModal({
 		  { name: "Turn J6 90° POS", msg: "turn_j6_90_pos"},
 		  { name: "Turn J6 30° NEG", msg: "turn_j6_30_neg"},
 		  { name: "Turn J6 45° NEG", msg: "turn_j6_45_neg"},
-		  { name: "Turn J6 90° NEG", msg: "turn_j6_90_neg"}
+		  { name: "Turn J6 90° NEG", msg: "turn_j6_90_neg"},
+		  { name: "Probe 1 UP", msg: "probe_u_1"},
+		  { name: "Probe 2 UP", msg: "probe_u_2"},
+		  { name: "Probe 3 UP", msg: "probe_u_3"},
+		  { name: "Probe 1 SIDE", msg: "probe_s_1"},
+		  { name: "Probe 2 SIDE", msg: "probe_s_2"},
+		  { name: "Probe 3 SIDE", msg: "probe_s_3"}
 		]},
 		{ category: "SAM Approach", items: [
 		  { name: "Control Switch", msg: "model_small_rotation_switch" },

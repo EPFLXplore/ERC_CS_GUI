@@ -72,9 +72,11 @@ function useGamepad(
 			ros,
 			name: topicName,
 			messageType: "sensor_msgs/Joy",
+			queue_length: 1,
+			queue_size: 1
 		});
+		
 		setPublisher(t);
-		// console.log("MODE:", mode, "TOPIC:", topicName);
 
 		return () => {
 			try { t.unadvertise(); } catch {}
