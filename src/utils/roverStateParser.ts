@@ -1,68 +1,106 @@
 import { CameraType } from "../data/cameras.type";
 
 /**
- * This file contains functions that parse the rover state data and return the
- * values contained in the data.
+ * This file contains functions that parse the subsystem state data gotten from publishers in 
+ * roverStateHooks.ts
+ * With direct subsystem interface nodes, the data structure becomes:
  *
- * @author Ugo Balducci, Giovanni Ranieri
+ *	roverState = {
+ *		navigation: { ... },        // From /NAV/State (1 Hz)
+ *		handling_device: { ... },   // From /HD/State (1 Hz)
+ *		drill: { ... },            // From /DRILL/State (1 Hz)
+ *		electronics: { ... },      // From /EL/State (1 Hz)
+ *		rover: { ... }             // Optional: from aggregator
+ *	}
+ * 
+ * 
+ * @author Arno Laurie
  * @version 1.0
  */
 
 import SubSystems from "../data/subsystems.type";
 
+
+//////////////////////// HELPER: Graceful Access ////////////////////////
+
+/**
+ * Safely access subsystem data with fallback for old structure
+ */
+const getSubsystemData = (data: any, subsystem: string) => {
+    // New structure: direct access
+    if (data && data[subsystem]) {
+        return data[subsystem];
+    }
+    
+    // Old structure: wrapped in 'rover'
+    if (data && data['rover'] && data['rover'][subsystem]) {
+        return data['rover'][subsystem];
+    }
+    
+    return null;
+};
+
 //////////////////////// GENERAL ////////////////////////
 
 const getJetsonStatsHD = (data: any) => {
-	if (!data || !data['rover']) {
-		return {
-			ram: 0,
-			load_gpu: 0,
-			fan_rpm: 0,
-			power_tot: 0,
-			temp_cpu: 0,
-			temp_gpu: 0,
-			cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
-		}
-	}
+    // Try new structure first
+    const roverData = data?.rover || data;
+    
+    if (!roverData || !roverData['hardware']) {
+        return {
+            ram: 0,
+            load_gpu: 0,
+            fan_rpm: 0,
+            power_tot: 0,
+            temp_cpu: 0,
+            temp_gpu: 0,
+            cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
+        }
+    }
 
-	const stats = data['rover']['hardware']['stats_hd']
+    const stats = roverData['hardware']['stats_hd']
 
-	return {
-		ram: stats['ram'] === undefined ? 0 : stats['ram'],
-		load_gpu: stats['load_gpu'] === undefined ? 0 : stats['load_gpu'],
-		fan_rpm: stats['fan_rpm'] === undefined ? 0 : stats['fan_rpm'],
-		power_tot: stats['power_tot'] === undefined ? 0 : stats['power_tot'],
-		temp_cpu: stats['temp_cpu'] === undefined ? 0 : stats['temp_cpu'],
-		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu'],
-		cpu_usage: stats['utilization_cpus'] === undefined ? [0, 0, 0, 0, 0, 0, 0, 0] : stats['utilization_cpus'],
-	}
+    return {
+        ram: stats['ram'] ?? 0,
+        load_gpu: stats['load_gpu'] ?? 0,
+        fan_rpm: stats['fan_rpm'] ?? 0,
+        power_tot: stats['power_tot'] ?? 0,
+        temp_cpu: stats['temp_cpu'] ?? 0,
+        temp_gpu: stats['temp_gpu'] ?? 0,
+        cpu_usage: stats['utilization_cpus'] ?? [0, 0, 0, 0, 0, 0, 0, 0],
+    }
 }
+
 
 const getJetsonStatsNAV = (data: any) => {
-	if (!data || !data['rover']) {
-		return {
-			ram: 0,
-			load_gpu: 0,
-			fan_rpm: 0,
-			power_tot: 0,
-			temp_cpu: 0,
-			temp_gpu: 0,
-			cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
-		}
-	}
+    // Try new structure first
+    const roverData = data?.rover || data;
+    
+    if (!roverData || !roverData['hardware']) {
+        return {
+            ram: 0,
+            load_gpu: 0,
+            fan_rpm: 0,
+            power_tot: 0,
+            temp_cpu: 0,
+            temp_gpu: 0,
+            cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
+        }
+    }
 
-	const stats = data['rover']['hardware']['stats_nav']
+    const stats = roverData['hardware']['stats_nav']
 
-	return {
-		ram: stats['ram'] === undefined ? 0 : stats['ram'],
-		load_gpu: stats['load_gpu'] === undefined ? 0 : stats['load_gpu'],
-		fan_rpm: stats['fan_rpm'] === undefined ? 0 : stats['fan_rpm'],
-		power_tot: stats['power_tot'] === undefined ? 0 : stats['power_tot'],
-		temp_cpu: stats['temp_cpu'] === undefined ? 0 : stats['temp_cpu'],
-		temp_gpu: stats['temp_gpu'] === undefined ? 0 : stats['temp_gpu'],
-		cpu_usage: stats['utilization_cpus'] === undefined ? [0, 0, 0, 0, 0, 0, 0, 0] : stats['utilization_cpus'],
-	}
+    return {
+        ram: stats['ram'] ?? 0,
+        load_gpu: stats['load_gpu'] ?? 0,
+        fan_rpm: stats['fan_rpm'] ?? 0,
+        power_tot: stats['power_tot'] ?? 0,
+        temp_cpu: stats['temp_cpu'] ?? 0,
+        temp_gpu: stats['temp_gpu'] ?? 0,
+        cpu_usage: stats['utilization_cpus'] ?? [0, 0, 0, 0, 0, 0, 0, 0],
+    }
 }
+
 
 const getNodes = (data: any) => {
 	if (!data || !data['rover']) {
@@ -84,22 +122,17 @@ const getNodes = (data: any) => {
 
 
 const getNetworkData = (data: any) => {
-	if (!data || !data['rover']) {
+	const roverData = data?.rover || data;
+
+	if (!roverData || !roverData['network']) {
 		return "NO DATA";
 	}
 
-	/*
-	let devices_connected = ["No device connected"]
-	if (data['rover']["network"]["connected_devices"].length != 0) {
-		devices_connected = data['rover']["network"]["connected_devices"]
-	}
-	*/
+    if (Number(roverData['network']['signal_strength']) == 0.0) {
+        return -40
+    }
 
-	if(Number(data['rover']["network"]["signal_strength"]) == 0.0) {
-		return -40
-	}
-
-	return Number(data['rover']["network"]["signal_strength"])
+    return Number(roverData['network']['signal_strength'])
 	
 }
 
@@ -120,42 +153,46 @@ const getLogs = (data: any) => {
 	return data['rover']['network']['logs']
 }
 
+
 const getCameraStates = (data: any) => {
-	let result: CameraType = {}
-	if (!data || !data['rover']) {
-		result[SubSystems.ROVER] = null
-		result[SubSystems.HANDLING_DEVICE] = null
-		result[SubSystems.NAGIVATION] = null
-		return result
-	}
+    let result: CameraType = {}
+    
+    // Try new structure
+    const cameras = data?.cameras || data?.rover?.cameras;
+    
+    if (!cameras) {
+        result[SubSystems.ROVER] = null
+        result[SubSystems.HANDLING_DEVICE] = null
+        result[SubSystems.NAGIVATION] = null
+        return result
+    }
 
-	result[SubSystems.ROVER] = data["cameras"][SubSystems.ROVER]
-	result[SubSystems.HANDLING_DEVICE] = data["cameras"][SubSystems.HANDLING_DEVICE]
-	result[SubSystems.NAGIVATION] = data["cameras"][SubSystems.NAGIVATION]
+    result[SubSystems.ROVER] = cameras[SubSystems.ROVER]
+    result[SubSystems.HANDLING_DEVICE] = cameras[SubSystems.HANDLING_DEVICE]
+    result[SubSystems.NAGIVATION] = cameras[SubSystems.NAGIVATION]
 
-	return result
+    return result
 }
 
 //////////////////////// NAVIGATION ////////////////////////
 
 const getLinearVelocity = (data: any) => {
-	if(!data || !data['rover']) {
-		return {
-			x: "NO DATA",
-			y: "NO DATA",
-			z: "NO DATA"
-		}
-	}
+    const navData = getSubsystemData(data, 'navigation');
+    
+    if (!navData || !navData['localization']) {
+        return { x: "NO DATA", y: "NO DATA", z: "NO DATA" }
+    }
 
-	return {
-		x: Number(data['navigation']['localization']['linear_velocity']['x']),
-		y: Number(data['navigation']['localization']['linear_velocity']['y']),
-		z: Number(data['navigation']['localization']['linear_velocity']['z']),
-	}
+    return {
+        x: Number(navData['localization']['linear_velocity']['x']),
+        y: Number(navData['localization']['linear_velocity']['y']),
+        z: Number(navData['localization']['linear_velocity']['z']),
+    }
 }
-
 const getAngularVelocity = (data: any) => {
-	if(!data || !data['rover']) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['localization']) {
 		return {
 			x: "NO DATA",
 			y: "NO DATA",
@@ -164,51 +201,39 @@ const getAngularVelocity = (data: any) => {
 	}
 
 	return {
-		x: Number(data['navigation']['localization']['angular_velocity']['x']),
-		y: Number(data['navigation']['localization']['angular_velocity']['y']),
-		z: Number(data['navigation']['localization']['angular_velocity']['z']),
+		x: Number(navData['localization']['angular_velocity']['x']),
+		y: Number(navData['localization']['angular_velocity']['y']),
+		z: Number(navData['localization']['angular_velocity']['z']),
 	}
 };
 
 const getCurrentDriving = (data: any) => {
-	if(!data || !data['rover']) {
-		return [0, 0, 0, 0]
-	}
+    const navData = getSubsystemData(data, 'navigation');
+    
+    if (!navData || !navData['wheels']) {
+        return [0, 0, 0, 0]
+    }
 
-	const wheels = data["navigation"]["wheels"];
-	const current = [];
+    const wheels = navData['wheels'];
+    const current = [];
 
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		current.push(Number(wheels[wheel]["current_driving"]));
-	}
+    for (const wheel in wheels) {
+        if (wheel === "pivot") continue;
+        current.push(Number(wheels[wheel]["current_driving"]));
+    }
 
-	return current;
+    return current;
 }
 
-// NOT USED RN
-const getCurrentDrivingAveraged = (data: any) => {
-	if(!data || !data['rover']) {
-		return [0, 0, 0, 0]
-	}
-
-	const wheels = data["navigation"]["wheels"];
-	const current = [];
-
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		current.push(Number(wheels[wheel]["average_current_driving"]));
-	}
-
-	return current;
-}
 
 const getCurrentSteering = (data: any) => {
-	if(!data || !data['rover']) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['wheels']) {
 		return [0, 0, 0, 0]
 	}
 
-	const wheels = data["navigation"]["wheels"];
+	const wheels = navData["wheels"];
 	const current = [];
 
 	for (const wheel in wheels) {
@@ -219,29 +244,15 @@ const getCurrentSteering = (data: any) => {
 	return current;
 }
 
-// not use RN
-const getCurrentSteeringAveraged = (data: any) => {
-	if(!data || !data['rover']) {
-		return [0, 0, 0, 0]
-	}
-
-	const wheels = data["navigation"]["wheels"];
-	const current = [];
-
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		current.push(Number(wheels[wheel]["average_current_steering"]));
-	}
-
-	return current;
-}
 
 const getSteeringState = (data: any) => {
-	if(!data || !data['rover']) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['wheels']) {
 		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
 	}
 
-	const wheels = data["navigation"]["wheels"];
+	const wheels = navData["wheels"];
 	const states = [];
 
 	for (const wheel in wheels) {
@@ -257,11 +268,13 @@ const getSteeringState = (data: any) => {
 }
 
 const getDrivingState = (data: any) => {
-	if(!data || !data['rover']) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['wheels']) {
 		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA"]
 	}
 
-	const wheels = data["navigation"]["wheels"];
+	const wheels = navData["wheels"];
 	const states = [];
 
 	for (const wheel in wheels) {
@@ -281,37 +294,39 @@ const getDrivingState = (data: any) => {
  * @param data The rover state data.
  * @returns The steering angles of the wheels in degrees.
  * 
- * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
  */
 const getSteeringAngles = (data: any) => {
-	if (!data || !data["navigation"]) {
-		return [0, 0, 0, 0];
-	}
+    const navData = getSubsystemData(data, 'navigation');
+    
+    if (!navData || !navData['wheels']) {
+        return [0, 0, 0, 0];
+    }
 
-	const wheels = data["navigation"]["wheels"];
-	const angles = [];
+    const wheels = navData['wheels'];
+    const angles = [];
 
-	for (const wheel in wheels) {
-		if (wheel === "pivot") continue;
-		angles.push(Number(Number(wheels[wheel]["steering_angle"]).toFixed(2)));
-	}
+    for (const wheel in wheels) {
+        if (wheel === "pivot") continue;
+        angles.push(Number(Number(wheels[wheel]["steering_angle"]).toFixed(2)));
+    }
 
-	return angles;
-};
+    return angles;
+}
 
 /**
  * Get the speeds of the wheels of the rover.
  * @param data The rover state data.
  * @returns The speeds of the wheels in m/s.
  * 
- * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
  */
 const getWheelsDrivingValue = (data: any) => {
-	if (!data || !data["navigation"]) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['wheels']) {
 		return [0, 0, 0, 0];
 	}
 
-	const wheels = data["navigation"]["wheels"];
+	const wheels = navData["wheels"];
 	const values = [];
 
 	for (const wheel in wheels) {
@@ -322,7 +337,6 @@ const getWheelsDrivingValue = (data: any) => {
 	return values;
 };
 
-// TODO GET OBSTACLES
 
 /**
  * Return the current position goal
@@ -330,13 +344,15 @@ const getWheelsDrivingValue = (data: any) => {
  * @returns the current position goal, only x and y coordinates
  */
 const getCurrentGoal = (data: any) => {
-	if (!data || !data["navigation"]) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['state']) {
 		return { x: 0, y: 0 };
 	}
 
 	return {
-		x: Number(data["navigation"]["state"]["current_goal"]["position"]["x"]),
-		y: Number(data["navigation"]["state"]["current_goal"]["position"]["y"]),
+		x: Number(navData["state"]["current_goal"]["position"]["x"]),
+		y: Number(navData["state"]["current_goal"]["position"]["y"]),
 	};
 };
 
@@ -346,11 +362,13 @@ const getCurrentGoal = (data: any) => {
  * @returns array of object representing points. Only x and y coordinates
  */
 const getTrajectory = (data: any) => {
-	if (!data || !data["navigation"] || data["navigation"]["state"]["points"].length === 0) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['state'] || navData["state"]["points"].length === 0) {
 		return [{ x: 0, y: 0 }];
 	}
 
-	return data["navigation"]["state"]["points"].map(
+	return navData["state"]["points"].map(
 		({ x, y, z }: { x: number; y: number; z: number }) => ({
 			x,
 			y,
@@ -367,16 +385,17 @@ const getTrajectory = (data: any) => {
  * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
  */
 const getCurrentPosition = (data: any) => {
-	if (!data || !data["navigation"]) {
-		return { x: 0, y: 0 };
-	}
+    const navData = getSubsystemData(data, 'navigation');
+    
+    if (!navData || !navData['localization']) {
+        return { x: 0, y: 0 };
+    }
 
-	return {
-		x: Number(data["navigation"]["localization"]["position"]["x"]),
-		y: Number(data["navigation"]["localization"]["position"]["y"]),
-	};
-};
-
+    return {
+        x: Number(navData['localization']['position']['x']),
+        y: Number(navData['localization']['position']['y']),
+    };
+}
 /**
  * Get the current orientation of the rover.
  * @param data The rover state data.
@@ -385,14 +404,16 @@ const getCurrentPosition = (data: any) => {
  * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
  */
 const getCurrentOrientation = (data: any) => {
-	if (!data || !data["navigation"]) {
+	const navData = getSubsystemData(data, 'navigation');
+	
+	if (!navData || !navData['localization']) {
 		return {x: 0, y: 0, z: 0}
 	}
 
 	return {
-		x: Number(data["navigation"]["localization"]["orientation"]["x"]),
-		y: Number(data["navigation"]["localization"]["orientation"]["y"]),
-		z: Number(data["navigation"]["localization"]["orientation"]["z"])
+		x: Number(navData["localization"]["orientation"]["x"]),
+		y: Number(navData["localization"]["orientation"]["y"]),
+		z: Number(navData["localization"]["orientation"]["z"])
 	};
 
 };
@@ -408,11 +429,13 @@ const getCurrentOrientation = (data: any) => {
  * THIS ONE RETURN NO "NO DATA" BECAUSE OF THE SIMULATION
  */
 const getJointsPositions = (data: any) => {
-	if (!data || !data["handling_device"]) {
+	const hdData = getSubsystemData(data, 'handling_device');
+	
+	if (!hdData || !hdData['joints']) {
 		return [0, 0, 0, 0, 0, 0];
 	}
 
-	const joints = data["handling_device"]["joints"];
+	const joints = hdData["joints"];
 	const positions = [];
 
 	for (const joint in joints) {
@@ -423,11 +446,13 @@ const getJointsPositions = (data: any) => {
 };
 
 const getJointsCurrent = (data: any) => {
-	if (!data || !data["handling_device"]) {
+	const hdData = getSubsystemData(data, 'handling_device');
+	
+	if (!hdData || !hdData['joints']) {
 		return [0, 0, 0, 0, 0, 0, 0];
 	}
 
-	const joints = data["handling_device"]["joints"];
+	const joints = hdData["joints"];
 	const currents = [];
 
 	for (const joint in joints) {
@@ -442,11 +467,13 @@ const getTotalJointsCurrent = (data: any) => {
 };
 
 const getJointsStates = (data: any) => {
-	if (!data || !data["handling_device"]) {
+	const hdData = getSubsystemData(data, 'handling_device');
+	
+	if (!hdData || !hdData['joints']) {
 		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
 	}
 
-	const joints = data["handling_device"]["joints"];
+	const joints = hdData["joints"];
 	const states = [];
 
 	for (const joint in joints) {
@@ -463,7 +490,9 @@ const getJointsStates = (data: any) => {
 };
 
 const getTorqueGripper = (data: any) => {
-	if(!data || !data['rover']) {
+	const hdData = getSubsystemData(data, 'handling_device');
+	
+	if (!hdData || !hdData['joints']) {
 		return "0"
 	}
 
@@ -474,23 +503,27 @@ const getTorqueGripper = (data: any) => {
 	// More accurate value for the torque of the gripper
 	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
 
-	return (Number(data["handling_device"]["joints"]["joint_7"]["current"]) * factor_conversion_to_torque).toFixed(2)
+	return (Number(hdData["joints"]["joint_7"]["current"]) * factor_conversion_to_torque).toFixed(2)
 }
 
 const getCurrentHDTask = (data: any) => {
-	if(!data || !data['rover']) {
+	const hdData = getSubsystemData(data, 'handling_device');
+	
+	if (!hdData || !hdData['state']) {
 		return "NO DATA"
 	}
 
-	return data['handling_device']['state']['task']
+	return hdData['state']['task']
 }
 
 const getCurrentHDCommand = (data: any) => {
-	if(!data || !data['rover']) {
+	const hdData = getSubsystemData(data, 'handling_device');
+	
+	if (!hdData || !hdData['state']) {
 		return "NO DATA"
 	}
 
-	return data['handling_device']['state']['current_command']
+	return hdData['state']['current_command']
 }
 
 //////////////////////// ELECTRONICS ////////////////////////
@@ -499,11 +532,13 @@ const BATTERY_MAX_VOLTAGE = 27.8;
 const BATTERY_MIN_VOLTAGE = 23;
 
 const getBatteryState = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['power']) {
 		return "NO DATA";
 	}
 
-	return data["electronics"]["power"]["state"]
+	return elData["power"]["state"]
 }
 
 /**
@@ -512,12 +547,14 @@ const getBatteryState = (data: any) => {
  * @returns The battery level of the rover in percentage.
  */
 const getBatteryLevel = (data: any) => {
-	if (!data || !data["electronics"] || Number(data["electronics"]["power"]["voltage"]) == 0) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['power'] || Number(elData["power"]["voltage"]) == 0) {
 		return "NO DATA";
 	}
 
 	return (
-		Math.round((Number(data["electronics"]["power"]["voltage"]) -
+		Math.round((Number(elData["power"]["voltage"]) -
 			BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) *
 		100)
 	);
@@ -529,38 +566,48 @@ const getBatteryLevel = (data: any) => {
  * @returns The battery level of the rover in percentage.
  */
 const getBatteryVoltage = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['power']) {
 		return "NO DATA";
 	}
 
-	return (Number(data["electronics"]["power"]["voltage"])).toFixed(2)
+	return (Number(elData["power"]["voltage"])).toFixed(2)
 };
 
 const getCurrentOutput = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['power']) {
 		return 0;
 	}
 
-	return (Number(data["electronics"]["power"]["current"])).toFixed(2)
+	return (Number(elData["power"]["current"])).toFixed(2)
 };
 
 const getMassArmSensor = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['sensors']) {
 		return "NO DATA"
 	}
 
-	return Number(data['electronics']['sensors']['mass_sensors']["mass_container"])
+	return Number(elData['sensors']['mass_sensors']["mass_container"])
 }
 
 const getMassDrillSensor = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['sensors']) {
 		return "NO DATA"
 	}
-	return Number(data['electronics']['sensors']['mass_sensors']["mass_drill"])
+	return Number(elData['sensors']['mass_sensors']["mass_drill"])
 }
 
 const getForInOneSensor = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['sensors']) {
 		return {
 			temperature: "NO DATA",
 			humidity: "NO DATA",
@@ -570,15 +617,17 @@ const getForInOneSensor = (data: any) => {
 	}
 
 	return {
-		temperature: Number(data['electronics']['sensors']['four_in_one']['temperature']),
-        humidity: Number(data['electronics']['sensors']['four_in_one']['humidity']),
-        conductivity: Number(data['electronics']['sensors']['four_in_one']['conductivity']),
-        ph: Number(data['electronics']['sensors']['four_in_one']['ph'])
+		temperature: Number(elData['sensors']['four_in_one']['temperature']),
+        humidity: Number(elData['sensors']['four_in_one']['humidity']),
+        conductivity: Number(elData['sensors']['four_in_one']['conductivity']),
+        ph: Number(elData['sensors']['four_in_one']['ph'])
 	}
 }
 
 const getDustSensor = (data: any) => {
-	if (!data || !data["electronics"]) {
+	const elData = getSubsystemData(data, 'electronics');
+	
+	if (!elData || !elData['sensors']) {
 		return {
 			pm1_0_std: "NO DATA",
 			pm2_5_std: "NO DATA",
@@ -596,25 +645,27 @@ const getDustSensor = (data: any) => {
 	}
 
 	return {
-		pm1_0_std: Number(data['electronics']['sensors']['dust_sensor']['pm1_0_std']),
-		pm2_5_std: Number(data['electronics']['sensors']['dust_sensor']['pm2_5_std']),
-		pm10_std: Number(data['electronics']['sensors']['dust_sensor']['pm10_std']),
-		pm1_0_atm: Number(data['electronics']['sensors']['dust_sensor']['pm1_0_atm']),
-		pm2_5_atm: Number(data['electronics']['sensors']['dust_sensor']['pm2_5_atm']),
-		pm10_atm: Number(data['electronics']['sensors']['dust_sensor']['pm10_atm']),
-		num_particles_0_3: Number(data['electronics']['sensors']['dust_sensor']['num_particles_0_3']),
-		num_particles_0_5: Number(data['electronics']['sensors']['dust_sensor']['num_particles_0_5']),
-		num_particles_1_0: Number(data['electronics']['sensors']['dust_sensor']['num_particles_1_0']),
-		num_particles_2_5: Number(data['electronics']['sensors']['dust_sensor']['num_particles_2_5']),
-		num_particles_5_0: Number(data['electronics']['sensors']['dust_sensor']['num_particles_5_0']),
-		num_particles_10: Number(data['electronics']['sensors']['dust_sensor']['num_particles_10'])
+		pm1_0_std: Number(elData['sensors']['dust_sensor']['pm1_0_std']),
+		pm2_5_std: Number(elData['sensors']['dust_sensor']['pm2_5_std']),
+		pm10_std: Number(elData['sensors']['dust_sensor']['pm10_std']),
+		pm1_0_atm: Number(elData['sensors']['dust_sensor']['pm1_0_atm']),
+		pm2_5_atm: Number(elData['sensors']['dust_sensor']['pm2_5_atm']),
+		pm10_atm: Number(elData['sensors']['dust_sensor']['pm10_atm']),
+		num_particles_0_3: Number(elData['sensors']['dust_sensor']['num_particles_0_3']),
+		num_particles_0_5: Number(elData['sensors']['dust_sensor']['num_particles_0_5']),
+		num_particles_1_0: Number(elData['sensors']['dust_sensor']['num_particles_1_0']),
+		num_particles_2_5: Number(elData['sensors']['dust_sensor']['num_particles_2_5']),
+		num_particles_5_0: Number(elData['sensors']['dust_sensor']['num_particles_5_0']),
+		num_particles_10: Number(elData['sensors']['dust_sensor']['num_particles_10'])
 	}
 }
 
 //////////////////////// DRILL ////////////////////////
 
 const getMotorModule = (data: any) => {
-	if(!data || !data['rover']) {
+	const drillData = getSubsystemData(data, 'drill');
+	
+	if (!drillData || !drillData['motors']) {
 		return {
 			position: 0,
 			current: 0,
@@ -623,14 +674,16 @@ const getMotorModule = (data: any) => {
 	}
 
 	return {
-		position: Number(Number(data['drill']['motors']['motor_module']['position']).toFixed(2)),
-		current: Number(data['drill']['motors']['motor_module']['current']),
-		state: data['drill']['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
+		position: Number(Number(drillData['motors']['motor_module']['position']).toFixed(2)),
+		current: Number(drillData['motors']['motor_module']['current']),
+		state: drillData['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
 	}
 }
 
 const getMotorDrill = (data: any) => {
-	if(!data || !data['rover']) {
+	const drillData = getSubsystemData(data, 'drill');
+	
+	if (!drillData || !drillData['motors']) {
 		return {
 			speed: 0,
 			current: 0,
@@ -639,18 +692,20 @@ const getMotorDrill = (data: any) => {
 	}
 
 	return {
-		speed: Number(data['drill']['motors']['motor_drill']['speed']),
-		current: Number(data['drill']['motors']['motor_drill']['current']),
-		state: data['drill']['motors']['motor_drill']['state'] ? "Connected" : "Disconnected"
+		speed: Number(drillData['motors']['motor_drill']['speed']),
+		current: Number(drillData['motors']['motor_drill']['current']),
+		state: drillData['motors']['motor_drill']['state'] ? "Connected" : "Disconnected"
 	}
 }
 
 const getStateFSM = (data: any) => {
-	if(!data || !data['rover']) {
+	const drillData = getSubsystemData(data, 'drill');
+	
+	if (!drillData || !drillData['state']) {
 		return "NO DATA"
 	}
 
-	return data['drill']['state']['state_fsm']
+	return drillData['state']['state_fsm']
 }
 
 export {
@@ -666,31 +721,29 @@ export {
 	getLogs,
 	getNetworkData,
 	getCurrentDriving,
-	getCurrentDrivingAveraged,
 	getCurrentSteering,
-	getCurrentSteeringAveraged,
-getMotorDrill,
-getCurrentOutput,
-getDrivingState,
-getSteeringState,
-getJointsStates,
-getJointsCurrent,
-getMotorModule,
-getNodes,
-getJetsonStatsHD,
-getJetsonStatsNAV,
-getLinearVelocity,
-getAngularVelocity,
-getStateFSM,
-getMassArmSensor,
-getMassDrillSensor,
-getDustSensor,
-getForInOneSensor,
-getCurrentHDCommand,
-getCurrentHDTask,
-getTotalJointsCurrent,
-getBatteryState,
-getTorqueGripper,
-getBatteryVoltage,
-getCameraStates
+	getMotorDrill,
+	getCurrentOutput,
+	getDrivingState,
+	getSteeringState,
+	getJointsStates,
+	getJointsCurrent,
+	getMotorModule,
+	getNodes,
+	getJetsonStatsHD,
+	getJetsonStatsNAV,
+	getLinearVelocity,
+	getAngularVelocity,
+	getStateFSM,
+	getMassArmSensor,
+	getMassDrillSensor,
+	getDustSensor,
+	getForInOneSensor,
+	getCurrentHDCommand,
+	getCurrentHDTask,
+	getTotalJointsCurrent,
+	getBatteryState,
+	getTorqueGripper,
+	getBatteryVoltage,
+	getCameraStates
 };
