@@ -1,94 +1,83 @@
+import ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
-import SubSystems from "../data/subsystems.type"
-import * as ROSLIB from "roslib";
+import { SubSystems } from "../data/subsystems.type";
 import { Topics } from "../data/topics.type";
 
 /*
-Author: Giovanni Ranieri
-ERC: 2024-25
+Author: Giovanni Ranieri, modified by Arno Laurie
+ERC: 2025
 Description: Functions for reseting the fault states of motors and setting the current place as home
 position for the wheels. They bypass the Orchestrator for simplicity (they communicate directly 
 with the motor lifecycle node of NAV)
 */
 
-const resetFaults = (ros: ROSLIB.Ros | null, subsystem: string,
+
+const resetFaults = (
+    ros: ROSLIB.Ros | null,
+    subsystem: string,
     snackBar: (severity: AlertColor, message: string) => void,
 ) => {
-    switch(subsystem) {
-        case SubSystems.NAGIVATION:
-            if(ros) {
-                const reset = new ROSLIB.Service({
-                    ros: ros,
-                    name: Topics.RESET_NAVIGATION_MOTORS,
-                    serviceType: "std_srvs/srv/SetBool",
-                });
-
-                let request = {
-                    data: true
-                }
-
-                reset.callService(
-                    request,
-                    (res) => {
-                        // @ts-ignore
-                        if (!res["success"]) {
-                            snackBar("error","Error from request (NOT ROS): " + 
-                                // @ts-ignore
-                                res["message"]);
-                            } else {
-                                // @ts-ignore
-                                snackBar("success", 
-                                // @ts-ignore
-                                res["message"]);
-                            }
-                    },
-                    (err) => {
-                        snackBar("error", "Error from ROS while request service: " + err);
-                    }
-                );
-            }
-            break
+    if (!ros) {
+        snackBar("error", "ROS connection not available");
+        return;
     }
-}
 
-const resetHome = (ros: ROSLIB.Ros | null, subsystem: string,
+    // Only NAV subsystem has reset motors for now
+    if (subsystem === SubSystems.NAGIVATION) {
+        const reset = new ROSLIB.Service({
+            ros: ros,
+            name: Topics.NAV_RESET_MOTORS,
+            serviceType: "std_srvs/srv/SetBool",
+        });
+
+        reset.callService(
+            { data: true },
+            (res) => {
+                if ((res as any)["success"]) {
+                    snackBar("success", (res as any)["message"]);
+                } else {
+                    snackBar("error", (res as any)["message"]);
+                }
+            },
+            (err) => {
+                snackBar("error", "Error: " + err);
+            }
+        );
+    }
+};
+
+const resetHome = (
+    ros: ROSLIB.Ros | null,
+    subsystem: string,
     snackBar: (severity: AlertColor, message: string) => void,
 ) => {
-    switch(subsystem) {
-        case SubSystems.NAGIVATION:
-            if(ros) {
-                const reset = new ROSLIB.Service({
-                    ros: ros,
-                    name: Topics.RESET_HOME_NAVIGATION_MOTORS,
-                    serviceType: "std_srvs/srv/SetBool",
-                });
-
-                let request = {
-                    data: true
-                }
-
-                reset.callService(
-                    request,
-                    (res) => {
-                        // @ts-ignore
-                        if (!res["success"]) {
-                            snackBar("error","Error from request (NOT ROS): " + 
-                                // @ts-ignore
-                                res["message"]);
-                            } else {
-                                // @ts-ignore
-                                snackBar("success", 
-                                    // @ts-ignore
-                                    res["message"]);
-                            }
-                    },
-                    (err) => {
-                        snackBar("error", "Error from ROS while request service: " + err);
-                    }
-                );
-            }
-            break
+    if (!ros) {
+        snackBar("error", "ROS connection not available");
+        return;
     }
-}
 
-export {resetFaults, resetHome}
+    // Only NAV subsystem has reset home for now
+    if (subsystem === SubSystems.NAGIVATION) {
+        const reset = new ROSLIB.Service({
+            ros: ros,
+            name: Topics.NAV_RESET_HOME,
+            serviceType: "std_srvs/srv/SetBool",
+        });
+
+        reset.callService(
+            { data: true },
+            (res) => {
+                if ((res as any)["success"]) {
+                    snackBar("success", (res as any)["message"]);
+                } else {
+                    snackBar("error", (res as any)["message"]);
+                }
+            },
+            (err) => {
+                snackBar("error", "Error: " + err);
+            }
+        );
+    }
+};
+
+export { resetFaults, resetHome };

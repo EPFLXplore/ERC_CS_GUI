@@ -1,116 +1,82 @@
-import * as ROSLIB from "roslib";
-import SubSystems from "../data/subsystems.type";
-import States from "../data/states.type";
+import ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
+import { SubSystems } from "../data/subsystems.type";
 import { Topics } from "../data/topics.type";
 
+// Map subsystems to their service topics
+const SUBSYSTEM_MODE_SERVICES: Record<string, { topic: string; type: string }> = {
+  [SubSystems.NAGIVATION]: {
+    topic: Topics.NAV_CHANGE_MODE,
+    type: "custom_msg/srv/ChangeModeSystem",
+  },
+  [SubSystems.HANDLING_DEVICE]: {
+    topic: Topics.HD_CHANGE_MODE,
+    type: "custom_msg/srv/ChangeModeSystem",
+  },
+  [SubSystems.DRILL]: {
+    topic: Topics.DRILL_CHANGE_MODE,
+    type: "custom_msg/srv/ChangeModeSystem",
+  },
+};
+
 const requestChangeMode = (
-	ros: ROSLIB.Ros | null,
-	isCamera: boolean,
-	request_mode: any,
-	snackBar: (severity: AlertColor, message: string) => void,
+  ros: ROSLIB.Ros | null,
+  isCamera: boolean,
+  request_mode: any,
+  snackBar: (severity: AlertColor, message: string) => void
 ) => {
+  if (!ros) {
+    snackBar("error", "ROS connection not available");
+    return;
+  }
 
-	let request;
+  let serviceName: string;
+  let serviceType: string;
+  let request: any = {};
 
-	if(!isCamera) {
-		let system = request_mode.system;
-		let mode = request_mode.mode;
+  if (isCamera) {
+    // Camera mode changes
+    serviceName = Topics.NAV_CHANGE_CAMERA_MODE;
+    serviceType = "custom_msg/srv/ChangeModeCamera";
+    request = {
+      camera_name: request_mode.index,
+      activate: request_mode.activate,
+    };
+  } else {
+    // Subsystem mode changes
+    const serviceConfig = SUBSYSTEM_MODE_SERVICES[request_mode.system];
 
-		if (system === SubSystems.NAGIVATION) {
-			request = {
-				system: 0,
-				mode: mode === States.OFF ? 0 : mode === States.ACKERMANN ? 
-				1 : mode === States.OMNI_DIRECTIONAL ? 2 : 3,
-			};
-		} else if (system === SubSystems.HANDLING_DEVICE) {
-			request = {
-				system: 1,
-				mode:
-					mode === States.OFF
-						? 0
-						: mode === States.MANUAL_DIRECT
-						? 1
-						: mode === States.MANUAL_INVERSE
-						? 2 // compliance mode, will be changed afterwards!!
-						: 3,
-			};
-		} else if (system === SubSystems.DRILL) {
-			request = {
-				system: 2,
-				mode: mode === States.OFF ? 0 : 1,
-			};
-		}
-	} else {
+    if (!serviceConfig) {
+      snackBar("error", `Unknown subsystem: ${request_mode.system}`);
+      return;
+    }
 
-		let subsystem = request_mode.subsystem;
-		let mode = request_mode.index
+    serviceName = serviceConfig.topic;
+    serviceType = serviceConfig.type;
+    request = {
+      mode: request_mode.mode,
+    };
+  }
 
-		if(subsystem == SubSystems.ROVER) {
-			request = {
-				subsystem: subsystem,
-				camera_name: mode,
-				activate: request_mode.activate
-			};
+  const changeModeService = new ROSLIB.Service({
+    ros: ros,
+    name: serviceName,
+    serviceType: serviceType,
+  });
 
-		} else if(subsystem == SubSystems.HANDLING_DEVICE) {
-			request = {
-				subsystem: subsystem,
-				camera_name: mode,
-				activate: request_mode.activate
-			};
-		} else if(subsystem == SubSystems.NAGIVATION) {
-			request = {
-				subsystem: subsystem,
-				camera_name: mode, 
-				activate: request_mode.activate
-			};
-		} else if(subsystem == SubSystems.SCIENCE) {
-			request = {
-				subsystem: subsystem,
-				camera_name: mode,
-				activate: request_mode.activate
-			};
-		}
-	}
-
-	if (ros) {
-		let changeModeSystem = null
-		if(isCamera) {
-
-			changeModeSystem = new ROSLIB.Service({
-				ros: ros,
-				name: Topics.CHANGE_MODE_CAMERA_SRV,
-				serviceType: "custom_msg/srv/ChangeModeCamera",
-			});
-		} else {
-
-			changeModeSystem = new ROSLIB.Service({
-				ros: ros,
-				name: Topics.CHANGE_MODE_SUBSYSTEM,
-				serviceType: "custom_msg/srv/ChangeModeSystem",
-			});
-		}
-
-		changeModeSystem.callService(
-			request,
-			(res) => {
-				// @ts-ignore
-				if (res["error_type"] != 0) {
-					snackBar("error","Error from request (NOT ROS): " + 
-						// @ts-ignore
-						res["error_message"]);
-					} else {
-						// @ts-ignore
-						console.log(res["error_message"])
-					}
-			},
-			(err) => {
-				snackBar("error", "Error from ROS while request service: " + err);
-			}
-		);
-		
-	}
+  changeModeService.callService(
+    request,
+    (res) => {
+      if ((res as any)["error_type"] != 0) {
+        snackBar("error", "Error: " + (res as any)["error_message"]);
+      } else {
+        console.log((res as any)["error_message"]);
+      }
+    },
+    (err) => {
+      snackBar("error", "ROS service error: " + err);
+    }
+  );
 };
 
 export default requestChangeMode;
