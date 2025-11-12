@@ -62,11 +62,11 @@ const useRoverControls = (
 	let screenshotTopic: ROSLIB.Topic<any>;
 	let changeSpeedTopic: ROSLIB.Topic<any>;
 
-	// Navigation
+	// Navigation - Direct to NAV subsystem
 	if(ros) {
 		changeSpeedTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.CHANGE_SPEED_ROVER,
+			name: Topics.NAV_CHANGE_SPEED,  // Direct to NAV subsystem
 			messageType: "std_msgs/Float32",
 		});
 	}
@@ -91,23 +91,24 @@ const useRoverControls = (
 	// Confirmation when the HDS stack is launched.
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
-	// Science
+	// Science - Direct to EL (Electronics) subsystem for sensors
 	if(ros) {
 		resetMassDrillTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.MASS_TARE_DRILL,
+			name: Topics.EL_MASS_TARE_DRILL,  // Direct to EL subsystem
 			messageType: "custom_msg/MassRequestDrill",
 		})
 
 		resetMassHDTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.MASS_TARE_HD,
+			name: Topics.EL_MASS_TARE_HD,  // Direct to EL subsystem
 			messageType: "custom_msg/MassRequestHD",
 		})
 
+		// Screenshot - which subsystem manages cameras? Using NAV for now
 		screenshotTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.SCREENSHOT_ALL_CAMERAS,
+			name: Topics.NAV_SCREENSHOT_ALL,  // Or separate camera manager?
 			messageType: "std_msgs/Bool",
 		})
 	}
@@ -116,11 +117,11 @@ const useRoverControls = (
 	// using HTTP requests to the backend ExpressJS server
 	const [recordSensors, setRecordSensors] = useState(false)
 
-	// Avionics
+	// Avionics - Direct to EL (Electronics) subsystem
 	if(ros) {
 		ledCommandsTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.LED_PUBLISHER,
+			name: Topics.EL_LED_COMMANDS,  // Direct to EL subsystem
 			messageType: "custom_msg/LEDMessage",
 		})
 	}

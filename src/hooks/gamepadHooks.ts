@@ -63,10 +63,11 @@ function useGamepad(
 			return;
 		}
 
+		// Direct subsystem topic names
 		const topicName =
 			mode === PublishTo.NAVIGATION
-			? Topics.NAVIGATION_GAMEPAD_PUBLISHER
-			: Topics.HANDLING_DEVICE_GAMEPAD_PUBLISHER;
+			? Topics.NAV_GAMEPAD_CMDS  // Direct to NAV subsystem
+			: Topics.HD_GAMEPAD_CMDS;  // Direct to HD subsystem
 
 		const t = new ROSLIB.Topic<any>({
 			ros,

@@ -44,4 +44,34 @@ export enum Topics {
     // Control Station (CS) Internal
     // ============================================
     CS_CHANGE_FRONT_CAMERA_ANGLE = "/CS/ChangeAngleFrontCamera",  // CS-specific
+
+    // ============================================
+    // Missing Topic Definitions (need to assign to correct subsystem)
+    // ============================================
+    
+    // Gamepad publishers - TODO: Verify these are in Topics enum or if they're legacy
+    NAVIGATION_GAMEPAD_PUBLISHER = "/NAV/GamepadCmds",  // Same as NAV_GAMEPAD_CMDS
+    HANDLING_DEVICE_GAMEPAD_PUBLISHER = "/HD/GamepadCmds",  // Same as HD_GAMEPAD_CMDS
+    
+    // Camera RGB mode services - Which subsystem manages these?
+    CHANGE_MODE_RGB_HD = "/HD/ChangeModeRGB",  // RGB camera mode for HD
+    CHANGE_MODE_RGB_NAV = "/NAV/ChangeModeRGB",  // RGB camera mode for NAV
+    
+    // Navigation speed change - Already defined as NAV_CHANGE_SPEED but used differently
+    CHANGE_SPEED_ROVER = "/NAV/ChangeSpeed",  // Speed adjustment topic
+    
+    // Mass sensor services - Assigned to EL (Electronics)
+    MASS_TARE_DRILL = "/EL/mass_req_drill",  // Already defined
+    MASS_TARE_HD = "/EL/mass_req_hd",  // Already defined
+    
+    // Screenshot service - Which subsystem handles cameras?
+    SCREENSHOT_ALL_CAMERAS = "/NAV/ScreenshotAllCameras",  // Or should this be separate?
+    
+    // LED control - Assigned to EL (Electronics)  
+    LED_PUBLISHER = "/EL/LedCommands",  // Already defined
+    
+    // HD Services - Control station interaction
+    REQUEST_SELECTION_IMAGE = "/HD/ControlStationSelection",  // Same as HD_IMAGE_SELECTION
+    REQUEST_HUMAIN_VERIFICATION_HD = "/HD/HumanVerification",  // Same as HD_HUMAN_VERIFICATION
+    CONFIRMATION_HDS_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Same as HD_STACK_LAUNCHED
 }

@@ -46,37 +46,53 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	}, []);
 	
 
-	// Check if the Rover Node is connected. This is important because if it is not activated,
-	// then we can't recieve any data
+	// Check if subsystem interface nodes are connected
+	// With direct subsystem communication, we check for NAV, HD, DRILL, EL nodes instead of ROVER
 	React.useEffect(() => {
 		if (ros) {
 			let num_checks = 0;
 			const check = setInterval(() => {
 				ros.getNodes(
 					(nodes) => {
-						if (nodes.includes("/ROVER")) {
+						// Check if essential subsystem nodes are running
+						const hasNAV = nodes.some(n => n.includes("/NAV"));
+						const hasHD = nodes.some(n => n.includes("/HD"));
+						const hasDRILL = nodes.some(n => n.includes("/DRILL"));
+						const hasEL = nodes.some(n => n.includes("/EL"));
+
+						// Consider connected if at least one subsystem is online
+						if (hasNAV || hasHD || hasDRILL || hasEL) {
 							setConnected(true);
+							
+							// Log which subsystems are available
+							console.log("Subsystems online:", {
+								NAV: hasNAV,
+								HD: hasHD,
+								DRILL: hasDRILL,
+								EL: hasEL
+							});
+							
 							clearInterval(check);
 						} else {
 							num_checks++;
-
 							setConnected(false);
 
 							if (num_checks % 20 === 0) {
-								// Show a snackbar
-								setConnected(false);
+								snackBar("warning", "No subsystem nodes detected. Waiting for NAV/HD/DRILL/EL...");
 							}
 						}
 					},
 					(error) => {
-						// Show a snackbar
-						console.error(error);
+						console.error("Error checking ROS nodes:", error);
+						snackBar("error", "Failed to check ROS nodes");
 						clearInterval(check);
 					}
 				);
 			}, 4000);
+
+			return () => clearInterval(check);
 		}
-	}, [ros]);
+	}, [ros, snackBar]);
 
 	// useEffect(() => {
 	// 	if (!ros) return;
