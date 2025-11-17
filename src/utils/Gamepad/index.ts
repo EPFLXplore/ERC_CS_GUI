@@ -205,7 +205,9 @@ class GamepadController {
 							? axes[axisProfile.axis] - axisProfile.zeroAxisRange / axisProfile.maxAxisRange
 							: axes[axisProfile.axis]  - axisProfile.zeroAxisRange / -axisProfile.minAxisRange;
 					*/
-					normalizedAxis = Math.abs(normalizedAxis) < 0.1 ? 0.0 : normalizedAxis 	
+					//Deadzone handling
+					const DEADZONE = 0.02;
+					normalizedAxis = Math.abs(normalizedAxis) < DEADZONE ? 0.0 : normalizedAxis 	
 					
 					//if (axisProfile.axis == 3) console.log(normalizedAxis)
 					return normalizedAxis;
