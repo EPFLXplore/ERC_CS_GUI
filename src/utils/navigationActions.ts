@@ -1,6 +1,6 @@
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
-import { SubSystems } from "../data/subsystems.type";
+import SubSystems from "../data/subsystems.type";
 import { Topics } from "../data/topics.type";
 
 /*

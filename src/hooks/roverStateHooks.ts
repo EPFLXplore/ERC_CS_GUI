@@ -1,5 +1,5 @@
 import { useEffect, useState, startTransition } from "react";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri, modified by Arno Laurie

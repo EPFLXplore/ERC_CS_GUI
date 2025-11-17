@@ -1,5 +1,5 @@
 import styles from "./style.module.sass";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
 import { Sensors } from "../../../data/sensors.types";
 import React from "react";

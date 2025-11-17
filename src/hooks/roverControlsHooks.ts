@@ -108,7 +108,7 @@ const useRoverControls = (
 		// Screenshot - which subsystem manages cameras? Using NAV for now
 		screenshotTopic = new ROSLIB.Topic<any>({
 			ros: ros,
-			name: Topics.NAV_SCREENSHOT_ALL,  // Or separate camera manager?
+			name: Topics.SCREENSHOT_ALL_CAMS,  // Or separate camera manager?
 			messageType: "std_msgs/Bool",
 		})
 	}

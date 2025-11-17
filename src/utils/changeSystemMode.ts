@@ -1,6 +1,6 @@
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
-import { SubSystems } from "../data/subsystems.type";
+import SubSystems from "../data/subsystems.type";
 import { Topics } from "../data/topics.type";
 
 // Map subsystems to their service topics
@@ -67,7 +67,7 @@ const requestChangeMode = (
   changeModeService.callService(
     request,
     (res) => {
-      if ((res as any)["error_type"] != 0) {
+      if ((res as any)["error_type"] !== 0) {
         snackBar("error", "Error: " + (res as any)["error_message"]);
       } else {
         console.log((res as any)["error_message"]);

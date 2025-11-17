@@ -1,6 +1,6 @@
 import styles from "./style.module.sass";
 import { depth_cameras, allCameras} from "../../../data/cameras.type";
-import ROSLIB from "roslib";
+import * as ROSLIB from "roslib";
 import React from "react";
 import { CameraType } from "../../../data/cameras.type";
 

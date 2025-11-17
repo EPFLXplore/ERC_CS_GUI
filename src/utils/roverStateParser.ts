@@ -1,4 +1,5 @@
 import { CameraType } from "../data/cameras.type";
+import States from "../data/states.type";
 
 /**
  * This file contains functions that parse the subsystem state data gotten from publishers in 
@@ -103,21 +104,44 @@ const getJetsonStatsNAV = (data: any) => {
 
 
 const getNodes = (data: any) => {
-	if (!data || !data['rover']) {
-		return "NO DATA"
+	// In new architecture, each subsystem reports its own nodes
+	// Aggregate nodes from all subsystems
+	if (!data) {
+		return "NO DATA";
 	}
 
-	const nodes = data['rover']["software"]["nodes"];
-	const result = [];
+	const result: any[] = [];
 
-	for (const node in nodes) {
-		result.push({
-			name: nodes[node]["name"],
-			status: nodes[node]['status'] ? "Connected" : "Disconnected"
-		});
+	// Collect nodes from each subsystem
+	const subsystems = ['navigation', 'handling_device', 'drill', 'electronics', 'rover'];
+	
+	for (const subsystem of subsystems) {
+		if (data[subsystem]?.software?.nodes) {
+			const nodes = data[subsystem].software.nodes;
+			for (const nodeKey in nodes) {
+				if (nodes.hasOwnProperty(nodeKey)) {
+					result.push({
+						name: nodes[nodeKey].name || nodeKey,
+						status: nodes[nodeKey].status ? "Connected" : "Disconnected",
+						subsystem: subsystem
+					});
+				}
+			}
+		}
 	}
 
-	return result
+	// If no nodes found in new structure, check old structure for backwards compatibility
+	if (result.length === 0 && data['rover']?.software?.nodes) {
+		const nodes = data['rover'].software.nodes;
+		for (const node in nodes) {
+			result.push({
+				name: nodes[node].name,
+				status: nodes[node].status ? "Connected" : "Disconnected"
+			});
+		}
+	}
+
+	return result.length > 0 ? result : "NO DATA";
 }
 
 
@@ -139,7 +163,7 @@ const getNetworkData = (data: any) => {
 
 const getStateSystem = (data: any, system: SubSystems) => {
 	if (!data || !data[system]) {
-		return "OFF";
+		return States.OFF; // Use States enum value: "Off"
 	}
 
 	return data[system]["state"]["mode"];

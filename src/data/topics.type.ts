@@ -1,23 +1,25 @@
+
 export enum Topics {
 
     // ============================================
     // NAVIGATION (NAV) Subsystem Interface
     // ============================================
-    NAV_STATE = "/NAV/State",                    // 1Hz state summary (subscribe)
-    NAV_GAMEPAD_CMDS = "/NAV/GamepadCmds",      // Gamepad commands (publish)
-    NAV_CHANGE_SPEED = "/NAV/ChangeSpeed",      // Speed adjustment (publish)
-    NAV_RESET_MOTORS = "/NAV/ResetMotors",      // Service: reset motors
-    NAV_RESET_HOME = "/NAV/ResetHome",          // Service: reset to home
-    NAV_REACH_GOAL = "/NAV/ReachGoal",          // Action: autonomous navigation
-    NAV_CHANGE_MODE = "/NAV/ChangeModeSystem",  // Service: change mode
-    NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera",  // Service: camera mode
-    NAV_SCREENSHOT_ALL = "/NAV/ScreenshotAllCameras",  // Service: screenshots
+    NAV_STATE = "/NAV/State",                         // 1Hz state summary (subscribe)
+    NAV_GAMEPAD_CMDS = "/ROVER/NAV_gamepad",          // Gamepad commands (publish)
+    NAV_CHANGE_SPEED = "/ROVER/change_NAV_speed",     // Speed adjustment (publish)
+    NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
+    NAV_RESET_HOME = "/NCS/ResetHomeNavMotors",       // Service: reset to home
+    NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
+    NAV_CHANGE_MODE = "/NAV/NAV_mode",                // publisher for nav mode (Auto, Ackermann or Omni)
+    NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera", // Service: camera mode
+    NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
+    SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
 
     // ============================================
     // HANDLING DEVICE (HD) Subsystem Interface
     // ============================================
     HD_STATE = "/HD/State",                      // 1Hz state summary (subscribe)
-    HD_GAMEPAD_CMDS = "/HD/GamepadCmds",        // Gamepad commands (publish)
+    HD_GAMEPAD_CMDS = "/CS/GamepadCmdsHandlingDevice",        // Gamepad commands (publish)
     HD_MANIPULATION = "/HD/Manipulation",        // Action: manipulation tasks
     HD_CHANGE_MODE = "/HD/ChangeModeSystem",    // Service: change mode
     HD_RESET_NODES = "/HD/kinematics/reset_nodes",  // Service: reset kinematics
@@ -29,7 +31,7 @@ export enum Topics {
     // DRILL Subsystem Interface
     // ============================================
     DRILL_STATE = "/DRILL/State",                // 1Hz state summary (subscribe)
-    DRILL_CMD = "/DRILL/DrillCmd",              // Action: drill commands
+    DRILL_CMD = "/CS/DrillTerrain",              // Action: drill commands
     DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode
 
     // ============================================
@@ -64,8 +66,8 @@ export enum Topics {
     MASS_TARE_DRILL = "/EL/mass_req_drill",  // Already defined
     MASS_TARE_HD = "/EL/mass_req_hd",  // Already defined
     
-    // Screenshot service - Which subsystem handles cameras?
-    SCREENSHOT_ALL_CAMERAS = "/NAV/ScreenshotAllCameras",  // Or should this be separate?
+    // Screenshot topic
+    SCREENSHOT_ALL_CAMERAS = "/CS/ScreenshotAllCameras",
     
     // LED control - Assigned to EL (Electronics)  
     LED_PUBLISHER = "/EL/LedCommands",  // Already defined

@@ -48,13 +48,20 @@ function useService(
 ) {
 	const [init, setInit] = useState(true);
 
+	// Helper function to get subsystem state from new structure
+	const getSubsystemState = (subsystemKey: string) => {
+		if (!roverState || !roverState[subsystemKey]) {
+			return States.OFF; // Use States enum value: "Off"
+		}
+		// Each subsystem publishes state.mode in their 1Hz message
+		return roverState[subsystemKey]?.state?.mode || States.OFF;
+	};
+
 	const [stateServices, setStateServices] = useState<ServiceType>({
 		[SubSystems.NAGIVATION]: {
 			service: new Service(
 				SubSystems.NAGIVATION,
-				!roverState["rover"]
-					? "Off"
-					: roverState["rover"]["status"]["systems"][SubSystems.NAGIVATION]["status"],
+				getSubsystemState("navigation"),
 				[],
 				false
 			),
@@ -62,11 +69,7 @@ function useService(
 		[SubSystems.HANDLING_DEVICE]: {
 			service: new Service(
 				SubSystems.HANDLING_DEVICE,
-				!roverState["rover"]
-					? "Off"
-					: roverState["rover"]["status"]["systems"][SubSystems.HANDLING_DEVICE][
-							"status"
-					  ],
+				getSubsystemState("handling_device"),
 				[],
 				false
 			),
@@ -74,9 +77,7 @@ function useService(
 		[SubSystems.DRILL]: {
 			service: new Service(
 				SubSystems.DRILL,
-				!roverState["rover"]
-					? "Off"
-					: roverState["rover"]["status"]["systems"][SubSystems.DRILL]["status"],
+				getSubsystemState("drill"),
 				[],
 				false
 			),
@@ -90,25 +91,29 @@ function useService(
 			let newStates = { ...old };
 			let change: string[] = [];
 
-			if (roverState === undefined || roverState["rover"] === undefined) {
+			if (roverState === undefined) {
 				return newStates;
 			}
+
+			// Map subsystem names to their keys in roverState
+			const subsystemKeyMap: { [key: string]: string } = {
+				[SubSystems.NAGIVATION]: "navigation",
+				[SubSystems.HANDLING_DEVICE]: "handling_device",
+				[SubSystems.DRILL]: "drill",
+			};
 
 			for (const key in newStates) {
 				if (newStates.hasOwnProperty(key)) {
 					let service = newStates[key];
+					const subsystemKey = subsystemKeyMap[key];
+					
+					// Get current state from per-subsystem state topic
+					const currentState = roverState[subsystemKey]?.state?.mode || States.OFF;
+					
 					// detect if rover state is different than client
-					if (
-						service.service.state !==
-						roverState["rover"]["status"]["systems"][
-							stateServices[key].service.name
-						]["status"]
-					) {
+					if (service.service.state !== currentState) {
 						// yes it is, pop up something
-						service.service.state =
-							roverState["rover"]["status"]["systems"][
-								stateServices[key].service.name
-							]["status"];
+						service.service.state = currentState;
 						if (!init) {
 							change.push(
 								`${stateServices[key].service.name} -> ${service.service.state}`
