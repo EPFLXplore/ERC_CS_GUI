@@ -1,21 +1,33 @@
 import * as ROSLIB from "roslib";
 import { AlertColor } from "@mui/material";
 import SubSystems from "../data/subsystems.type";
+import States from "../data/states.type";
 import { Topics } from "../data/topics.type";
 
-// Map subsystems to their service topics
+// Map state strings to integers for backend (matching NAV interface node)
+const STATE_TO_MODE_INT: Record<string, number> = {
+  [States.OFF]: 0,           // "Off" -> 0
+  [States.ACKERMANN]: 1,     // "Ackermann" -> 1
+  [States.OMNI_DIRECTIONAL]: 2,  // "Omni" -> 2
+  [States.AUTO]: 3,          // "Auto" -> 3
+  [States.MANUAL_DIRECT]: 1, // HD: Manual Direct -> 1
+  [States.MANUAL_INVERSE]: 2, // HD: Manual Inverse -> 2
+  [States.ON]: 1,            // Drill: On -> 1
+};
+
+// Map subsystems to their service topics (from ROVER middleman)
 const SUBSYSTEM_MODE_SERVICES: Record<string, { topic: string; type: string }> = {
   [SubSystems.NAGIVATION]: {
-    topic: Topics.NAV_CHANGE_MODE,
+    topic: "/ROVER/change_NAV_mode",  // Service exposed by NAV interface node
     type: "custom_msg/srv/ChangeModeSystem",
   },
   [SubSystems.HANDLING_DEVICE]: {
-    topic: Topics.HD_CHANGE_MODE,
+    topic: "/ROVER/change_HD_mode",   // Service exposed by HD interface node
     type: "custom_msg/srv/ChangeModeSystem",
   },
   [SubSystems.DRILL]: {
-    topic: Topics.DRILL_CHANGE_MODE,
-    type: "custom_msg/srv/ChangeModeSystem",
+    topic: "/DRILL/ChangeModeSystem",  // Direct to drill (or update as needed)
+    type: "custom_msg/srv/DrillMode",
   },
 };
 
@@ -51,10 +63,17 @@ const requestChangeMode = (
       return;
     }
 
+    // Convert state string to integer mode for backend
+    const modeInt = STATE_TO_MODE_INT[request_mode.mode];
+    if (modeInt === undefined) {
+      snackBar("error", `Unknown mode: ${request_mode.mode}`);
+      return;
+    }
+
     serviceName = serviceConfig.topic;
     serviceType = serviceConfig.type;
     request = {
-      mode: request_mode.mode,
+      mode: modeInt,  // Send integer (0, 1, 2, 3) to backend
     };
   }
 
@@ -70,7 +89,8 @@ const requestChangeMode = (
       if ((res as any)["error_type"] !== 0) {
         snackBar("error", "Error: " + (res as any)["error_message"]);
       } else {
-        console.log((res as any)["error_message"]);
+        // Success
+        snackBar("success", (res as any)["error_message"] || "Mode changed successfully");
       }
     },
     (err) => {

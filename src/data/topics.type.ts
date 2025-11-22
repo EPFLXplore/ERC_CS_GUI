@@ -10,7 +10,7 @@ export enum Topics {
     NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
     NAV_RESET_HOME = "/NCS/ResetHomeNavMotors",       // Service: reset to home
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
-    NAV_CHANGE_MODE = "/NAV/NAV_mode",                // publisher for nav mode (Auto, Ackermann or Omni)
+    NAV_CHANGE_MODE = "/ROVER/change_NAV_mode",       // Service: NAV mode change (calls NAV interface node)
     NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera", // Service: camera mode
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
