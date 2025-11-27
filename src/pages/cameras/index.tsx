@@ -21,7 +21,7 @@ const CamerasPage = () => {
 	const [snackbar, showSnackbar] = useAlert();
   	const [ros, active] = useRosBridge(showSnackbar);
 
-	const [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo] = useCamera(ros);
+	const [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo, TOPIC_CONFIGS] = useCamera(ros);
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -32,6 +32,7 @@ const CamerasPage = () => {
 						rotate={rotateCams}
 						setRotateCams={setRotateCams}
 						currentCam={CAMERA_CONFIGS[currentVideo]}
+						topicNames={TOPIC_CONFIGS[currentVideo]}
 						changeCam={(dir) => {
 							setCurrentVideo((old: number) => {
 								if (dir === 1) {

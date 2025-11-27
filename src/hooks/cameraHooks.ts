@@ -120,7 +120,7 @@ function useCamera(ros: ROSLIB.Ros | null) {
 	// 	return () => window.removeEventListener("storage", handleStorage);
 	// }, []);
 
-	return [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo
+	return [rotateCams, setRotateCams, images, currentVideo, setCurrentVideo, CAMERA_CONFIGS
 	] as const;
 }
 

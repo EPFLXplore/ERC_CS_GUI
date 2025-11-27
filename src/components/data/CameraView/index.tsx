@@ -15,12 +15,14 @@ const CameraView = ({
 	changeCam,
 	setRotateCams,
 	currentCam,
+	topicNames = [],
 }: {
 	images: Array<string>;
 	rotate?: number[];
 	changeCam: (dir: number) => void;
 	setRotateCams: React.Dispatch<React.SetStateAction<number[]>>;
 	currentCam: Array<string>;
+	topicNames?: Array<string>;
 }) => {
 
 	const next90 = (deg: number) => ((deg ?? 0) + 90) % 360;
@@ -42,13 +44,16 @@ const CameraView = ({
 					currentCam={currentCam[0] ?? "No Camera"}
 					changeCam={changeCam}
 				/>
-				<img
-					src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
-					alt="Camera"
-					className={`${styles.Image} ${rotate[0] ? styles.Rotate180 : ""}`}
-					style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
-          			onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
-				/>
+				<div className={styles.ImageWrapper}>
+					<img
+						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+						alt="Camera"
+						className={`${styles.Image} ${rotate[0] ? styles.Rotate180 : ""}`}
+						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+          				onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
+					/>
+					{topicNames[0] && <div className={styles.TopicName}>{topicNames[0]}</div>}
+				</div>
 			</div>
 		);
 
@@ -65,6 +70,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             			onDoubleClick={() => bump(0)}
 					/>
+					{topicNames[0] && <div className={styles.TopicName}>{topicNames[0]}</div>}
 				</div>
 				<div className={styles.HalfWrapper}>
 					<img
@@ -74,6 +80,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[1] ?? 0}deg)`}}
             			onDoubleClick={() => bump(1)}
 					/>
+					{topicNames[1] && <div className={styles.TopicName}>{topicNames[1]}</div>}
 				</div>
 			</div>
 		);
@@ -91,6 +98,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             			onDoubleClick={() => bump(0)}
 					/>
+					{topicNames[0] && <div className={styles.TopicName}>{topicNames[0]}</div>}
 				</div>
 
 				<div className={styles.RightHalf}>
@@ -102,6 +110,7 @@ const CameraView = ({
 							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             				onDoubleClick={() => bump(1)}
 						/>
+						{topicNames[1] && <div className={styles.TopicName}>{topicNames[1]}</div>}
 					</div>
 					<div className={styles.BottomHalf}>
 						<img
@@ -111,6 +120,7 @@ const CameraView = ({
 							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             				onDoubleClick={() => bump(2)}
 						/>
+						{topicNames[2] && <div className={styles.TopicName}>{topicNames[2]}</div>}
 					</div>
 				</div>
 			</div>
@@ -120,21 +130,23 @@ const CameraView = ({
 			<div className={styles.Container}>
 				{<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
 				{[0, 1, 2, 3].map((i) => (
-				<img
-					key={i}
-					src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
-					alt="Camera"
-					className={styles.Quarter}
-					style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
-					onDoubleClick={() => {
-						setRotateCams((old: number[]) => {
-							const r = Array.from({ length: 4 }, (_, k) => old?.[k] ?? 0);
-							const next = r.slice();
-							next[i] = ((next[i] ?? 0) + 180) % 360;
-							return next;
-						});
-					}}
-				/>
+				<div key={i} className={styles.QuarterWrapper}>
+					<img
+						src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+						alt="Camera"
+						className={styles.Quarter}
+						style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+						onDoubleClick={() => {
+							setRotateCams((old: number[]) => {
+								const r = Array.from({ length: 4 }, (_, k) => old?.[k] ?? 0);
+								const next = r.slice();
+								next[i] = ((next[i] ?? 0) + 180) % 360;
+								return next;
+							});
+						}}
+					/>
+					{topicNames[i] && <div className={styles.TopicName}>{topicNames[i]}</div>}
+				</div>
 				))}
 			</div>
 		);

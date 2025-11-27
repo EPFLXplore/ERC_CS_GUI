@@ -181,19 +181,43 @@ const getLogs = (data: any) => {
 const getCameraStates = (data: any) => {
     let result: CameraType = {}
     
-    // Try new structure
-    const cameras = data?.cameras || data?.rover?.cameras;
+    // Helper function to transform camera data if needed
+    const transformCameraData = (cameras: any) => {
+        if (!cameras) return null;
+        
+        // If cameras is already an object with camera names as keys containing status/data_rate, return as-is
+        // Otherwise, create the expected structure
+        const transformed: any = {};
+        
+        for (const key in cameras) {
+            if (cameras[key] && typeof cameras[key] === 'object') {
+                // If it already has the expected structure
+                if ('status' in cameras[key] || 'node' in cameras[key]) {
+                    transformed[key] = cameras[key];
+                } else {
+                    // Transform if needed - provide defaults
+                    transformed[key] = {
+                        name: cameras[key].name || key,
+                        status: cameras[key].status || false,
+                        node: cameras[key].node || false,
+                        data_rate: cameras[key].data_rate || "0"
+                    };
+                }
+            }
+        }
+        
+        return Object.keys(transformed).length > 0 ? transformed : null;
+    };
     
-    if (!cameras) {
-        result[SubSystems.ROVER] = null
-        result[SubSystems.HANDLING_DEVICE] = null
-        result[SubSystems.NAGIVATION] = null
-        return result
-    }
-
-    result[SubSystems.ROVER] = cameras[SubSystems.ROVER]
-    result[SubSystems.HANDLING_DEVICE] = cameras[SubSystems.HANDLING_DEVICE]
-    result[SubSystems.NAGIVATION] = cameras[SubSystems.NAGIVATION]
+    // Extract camera data from each subsystem's state
+    // Navigation cameras
+    result[SubSystems.NAGIVATION] = transformCameraData(data?.navigation?.cameras);
+    
+    // Handling Device cameras
+    result[SubSystems.HANDLING_DEVICE] = transformCameraData(data?.handling_device?.cameras);
+    
+    // ROVER cameras (from electronics or rover subsystem if it exists)
+    result[SubSystems.ROVER] = transformCameraData(data?.electronics?.cameras || data?.rover?.cameras);
 
     return result
 }
