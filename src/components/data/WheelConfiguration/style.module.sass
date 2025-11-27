@@ -1,0 +1,55 @@
+.Container
+    width: 100%
+    height: 100%
+    display: flex
+    align-items: center
+    justify-content: center
+    background-color: #f5f5f5
+    border-radius: 8px
+    padding: 10px
+    box-sizing: border-box
+
+.Svg
+    width: 100%
+    height: 100%
+    max-height: 250px
+
+.RoverBody
+    fill: #424242
+    stroke: #212121
+    stroke-width: 2
+    opacity: 0.8
+
+.Wheel
+    fill: #333
+    stroke: #000
+    stroke-width: 1
+    transition: fill 0.3s ease
+
+.WheelActive
+    fill: #4CAF50
+    animation: pulse 1s infinite
+
+.Direction
+    stroke: #4CAF50
+    stroke-width: 2
+
+.Label
+    fill: #000
+    font-size: 12px
+    font-weight: bold
+    font-family: Arial, sans-serif
+
+.WheelLabel
+    fill: #000
+    font-size: 10px
+    font-weight: 500
+    font-family: Arial, sans-serif
+
+@keyframes pulse
+    0%
+        opacity: 1
+    50%
+        opacity: 0.6
+    100%
+        opacity: 1

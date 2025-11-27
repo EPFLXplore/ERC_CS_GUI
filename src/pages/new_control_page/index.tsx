@@ -77,6 +77,7 @@ import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
+import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
 import { useRoverContext } from "../../roverControlsContext";
@@ -427,6 +428,12 @@ const NewControlPage = () => {
 							warning={true}
 							triggerWarning={(x: number) => x > 300 || x < -300} 
 						/>
+						<div className={styles.WheelConfigBox}>
+							<WheelConfiguration 
+								steeringAngles={getSteeringAngles(roverState)}
+								wheelSpeeds={getWheelsDrivingValue(roverState)}
+							/>
+						</div>
 					</div>
 					<div className={styles.infosMidLeft2}>
 						<InfoBox
