@@ -2,7 +2,7 @@ import React from "react";
 import styles from "./style.module.sass";
 
 /*
-Author: GitHub Copilot
+Author: Arno Laurie
 Year: 2025
 Description: Top-down view visualization of rover wheel configuration showing wheel orientations
 */
@@ -58,9 +58,6 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                         markerEnd="url(#arrowhead)"
                     />
                 </g>
-                <text x="40" y="125" className={styles.WheelLabel} textAnchor="middle">
-                    FL
-                </text>
 
                 {/* Front Right Wheel */}
                 <g transform={`translate(120, 100) rotate(${steeringAngles[1] - 90}, 0, 0)`}>
@@ -82,9 +79,6 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                         markerEnd="url(#arrowhead)"
                     />
                 </g>
-                <text x="120" y="125" className={styles.WheelLabel} textAnchor="middle">
-                    FR
-                </text>
 
                 {/* Rear Right Wheel */}
                 <g transform={`translate(120, 200) rotate(${steeringAngles[2]- 90}, 0, 0)`}>
@@ -106,9 +100,6 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                         markerEnd="url(#arrowhead)"
                     />
                 </g>
-                <text x="120" y="225" className={styles.WheelLabel} textAnchor="middle">
-                    RR
-                </text>
 
                 {/* Rear Left Wheel */}
                 <g transform={`translate(40, 200) rotate(${steeringAngles[3]- 90}, 0, 0)`}>
@@ -130,9 +121,6 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                         markerEnd="url(#arrowhead)"
                     />
                 </g>
-                <text x="40" y="225" className={styles.WheelLabel} textAnchor="middle">
-                    RL
-                </text>
 
                 {/* Arrow marker definition */}
                 <defs>
