@@ -15,10 +15,22 @@
     width: 100%
     padding: 20px 20px 0px 20px
     align-items: flex-end
+    
+    @media (max-width: 1200px)
+        padding: 15px 15px 0px 15px
+    
+    @media (max-width: 900px)
+        padding: 10px 10px 0px 10px
 
 .logo
     object-fit: contain
     height: 60px
+    
+    @media (max-width: 1200px)
+        height: 50px
+    
+    @media (max-width: 900px)
+        height: 40px
 
 .systems
     flex: 1
@@ -29,6 +41,15 @@
     width: 100%
     align-items: flex-end
     margin-left: auto
+    
+    @media (max-width: 1400px)
+        gap: 40px
+    
+    @media (max-width: 1200px)
+        gap: 20px
+    
+    @media (max-width: 900px)
+        gap: 10px
 
 .control
     flex: 1
@@ -57,6 +78,14 @@
     margin: 20px
     position: relative
     overflow: hidden
+    
+    @media (max-width: 1200px)
+        margin: 15px
+        border-radius: 20px
+    
+    @media (max-width: 900px)
+        margin: 10px
+        border-radius: 15px
 
 .previews
     position: absolute
@@ -76,6 +105,18 @@
     z-index: 20
     overflow: hidden
     cursor: pointer
+    
+    @media (max-width: 1400px)
+        width: 240px
+        height: 160px
+    
+    @media (max-width: 1200px)
+        width: 200px
+        height: 133px
+    
+    @media (max-width: 900px)
+        width: 150px
+        height: 100px
 
 .infosRight
     position: absolute
@@ -86,61 +127,180 @@
     justify-content: center
     gap: 10px
     border: 2px solid black
+    width: auto
+    font-size: 1rem
+    
+    @media (max-width: 1400px)
+        top: 10px
+        right: 10px
+        gap: 8px
+        font-size: 0.9rem
+    
+    @media (max-width: 1200px)
+        gap: 6px
+        font-size: 0.85rem
+    
+    @media (max-width: 900px)
+        gap: 4px
+        font-size: 0.75rem
+        top: 5px
+        right: 5px
 
 .infosLeft
     position: absolute
     top: 20px
     left: 20px
     display: flex
-    width: 350px
+    width: 18%
+    min-width: 180px
+    max-width: 350px
     flex-direction: column
     justify-content: center
     gap: 10px
     border: 2px solid black
+    font-size: 1rem
+    
+    @media (max-width: 1400px)
+        top: 10px
+        left: 10px
+        gap: 8px
+        font-size: 0.9rem
+    
+    @media (max-width: 1200px)
+        gap: 6px
+        font-size: 0.85rem
+        min-width: 150px
+    
+    @media (max-width: 900px)
+        gap: 4px
+        font-size: 0.75rem
+        min-width: 130px
+        top: 5px
+        left: 5px
 
 .infosMidLeft
     position: absolute
-    left: 400px
+    left: 20%
     top: 20px
-    width: 250px
+    width: 13%
+    min-width: 160px
+    max-width: 250px
     display: flex
     flex-direction: column
     justify-content: center
     gap: 10px
     border: 2px solid black
+    font-size: 1rem
+    
+    @media (max-width: 1400px)
+        top: 10px
+        gap: 8px
+        font-size: 0.9rem
+        min-width: 140px
+    
+    @media (max-width: 1200px)
+        gap: 6px
+        font-size: 0.85rem
+        min-width: 120px
+    
+    @media (max-width: 900px)
+        gap: 4px
+        font-size: 0.75rem
+        min-width: 100px
+        top: 5px
 
 .infosMidLeft2
     position: absolute
-    left: 680px
+    left: 35%
     top: 20px
-    width: 300px
+    width: 15%
+    min-width: 180px
+    max-width: 300px
     display: flex
     flex-direction: column
     justify-content: center
     gap: 10px
     border: 2px solid black
+    font-size: 1rem
+    
+    @media (max-width: 1400px)
+        top: 10px
+        gap: 8px
+        font-size: 0.9rem
+        min-width: 160px
+    
+    @media (max-width: 1200px)
+        gap: 6px
+        font-size: 0.85rem
+        min-width: 130px
+    
+    @media (max-width: 900px)
+        gap: 4px
+        font-size: 0.75rem
+        min-width: 110px
+        top: 5px
 
 .infosMidRight2
     position: absolute
-    right: 560px
-    width: 250px
+    right: 29%
+    width: 13%
+    min-width: 160px
+    max-width: 250px
     top: 20px
     display: flex
     flex-direction: column
     justify-content: center
     gap: 10px
     border: 2px solid black
+    font-size: 1rem
+    
+    @media (max-width: 1400px)
+        top: 10px
+        gap: 8px
+        font-size: 0.9rem
+        min-width: 140px
+    
+    @media (max-width: 1200px)
+        gap: 6px
+        font-size: 0.85rem
+        min-width: 120px
+    
+    @media (max-width: 900px)
+        gap: 4px
+        font-size: 0.75rem
+        min-width: 100px
+        top: 5px
 
 .infosMidRight
     position: absolute
-    right: 300px
-    width: 250px
+    right: 15%
+    width: 13%
+    min-width: 160px
+    max-width: 250px
     top: 20px
     display: flex
     flex-direction: column
     justify-content: center
     gap: 10px
     border: 2px solid black
+    font-size: 1rem
+    
+    @media (max-width: 1400px)
+        top: 10px
+        gap: 8px
+        font-size: 0.9rem
+        min-width: 140px
+    
+    @media (max-width: 1200px)
+        gap: 6px
+        font-size: 0.85rem
+        min-width: 120px
+    
+    @media (max-width: 900px)
+        gap: 4px
+        font-size: 0.75rem
+        min-width: 100px
+        top: 5px
 
 .actions
     position: absolute
