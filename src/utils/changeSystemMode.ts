@@ -15,18 +15,18 @@ const STATE_TO_MODE_INT: Record<string, number> = {
   [States.ON]: 1,            // Drill: On -> 1
 };
 
-// Map subsystems to their service topics (from ROVER middleman)
+// Map subsystems to their direct service topics (no ROVER middleman)
 const SUBSYSTEM_MODE_SERVICES: Record<string, { topic: string; type: string }> = {
   [SubSystems.NAGIVATION]: {
-    topic: "/ROVER/change_NAV_mode",  // Service exposed by NAV interface node
+    topic: Topics.NAV_CHANGE_MODE,  // Direct to NAV interface: /NAV/ChangeModeSystem
     type: "custom_msg/srv/ChangeModeSystem",
   },
   [SubSystems.HANDLING_DEVICE]: {
-    topic: "/ROVER/change_HD_mode",   // Service exposed by HD interface node
+    topic: Topics.HD_CHANGE_MODE,   // Direct to HD interface: /HD/ChangeModeSystem
     type: "custom_msg/srv/ChangeModeSystem",
   },
   [SubSystems.DRILL]: {
-    topic: "/DRILL/ChangeModeSystem",  // Direct to drill (or update as needed)
+    topic: Topics.DRILL_CHANGE_MODE,  // Direct to DRILL: /DRILL/ChangeModeSystem
     type: "custom_msg/srv/DrillMode",
   },
 };

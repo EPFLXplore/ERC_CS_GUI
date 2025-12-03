@@ -12,16 +12,16 @@ function useCamera(ros: ROSLIB.Ros | null) {
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCams] = useState<Array<number>>([0]);
 
-	// Topics for the cameras. If you decide to modify them, you need to update also in the 
-	// submodule of the cameras => in the launch files.
+	// Topics for the cameras - Direct from subsystem interfaces (NAV, HD)
+	// Control station cameras (CS) may still be published to /ROVER or moved to /CS namespace
 	const CAMERA_CONFIGS = [
 		["/NAV/feed_camera_nav_0"],
-		["/ROVER/feed_camera_hd_0"],
-		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_1", "/ROVER/feed_camera_cs_2", "/ROVER/feed_camera_cs_3"],
-		["/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_2"],
-		["/NAV/feed_camera_nav_0", "/ROVER/feed_camera_cs_0", "/ROVER/feed_camera_cs_2"],
+		["/HD/feed_camera_hd_0"],
+		["/CS/feed_camera_cs_0", "/CS/feed_camera_cs_1", "/CS/feed_camera_cs_2", "/CS/feed_camera_cs_3"],
+		["/CS/feed_camera_cs_0", "/CS/feed_camera_cs_2"],
+		["/NAV/feed_camera_nav_0", "/CS/feed_camera_cs_0", "/CS/feed_camera_cs_2"],
 		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"],
-		["/ROVER/feed_camera_cs_4", "/ROVER/feed_camera_cs_5"],
+		["/CS/feed_camera_cs_4", "/CS/feed_camera_cs_5"],
 	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);

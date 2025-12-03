@@ -5,12 +5,12 @@ export enum Topics {
     // NAVIGATION (NAV) Subsystem Interface
     // ============================================
     NAV_STATE = "/NAV/State",                         // 1Hz state summary (subscribe)
-    NAV_GAMEPAD_CMDS = "/ROVER/NAV_gamepad",          // Gamepad commands (publish)
-    NAV_CHANGE_SPEED = "/ROVER/change_NAV_speed",     // Speed adjustment (publish)
+    NAV_GAMEPAD_CMDS = "/CS/GamepadCmdsNav",          // Gamepad commands (publish) - Direct to NAV interface
+    NAV_CHANGE_SPEED = "/NAV/ChangeSpeed",            // Speed adjustment (publish)
     NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
     NAV_RESET_HOME = "/NCS/ResetHomeNavMotors",       // Service: reset to home
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
-    NAV_CHANGE_MODE = "/ROVER/change_NAV_mode",       // Service: NAV mode change (calls NAV interface node)
+    NAV_CHANGE_MODE = "/NAV/ChangeModeSystem",        // Service: NAV mode change - Direct to NAV interface
     NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera", // Service: camera mode
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
@@ -22,6 +22,7 @@ export enum Topics {
     HD_GAMEPAD_CMDS = "/CS/GamepadCmdsHandlingDevice",        // Gamepad commands (publish)
     HD_MANIPULATION = "/HD/Manipulation",        // Action: manipulation tasks
     HD_CHANGE_MODE = "/HD/ChangeModeSystem",    // Service: change mode
+    HD_CHANGE_CAMERA_MODE = "/HD/ChangeModeCamera", // Service: camera mode for HD
     HD_RESET_NODES = "/HD/kinematics/reset_nodes",  // Service: reset kinematics
     HD_HUMAN_VERIFICATION = "/HD/HumanVerification",  // Service: human verify
     HD_IMAGE_SELECTION = "/HD/ControlStationSelection",  // Service: image select

@@ -32,16 +32,14 @@ export const NODE_FILTERS = {
 	HD: ["HDCSInterfacing", "MotorController", "kinematics_task_executor"],
 	NAV: [
 		"NAV_cmd_vel_manager",
-		"NAV_displacement_cmds",
-		"NAV_gamepad_interface",
-		"NAV_motor_cmds",
-		"NavCSInterfacing",
+	"NAV_displacement_cmds",
+	"NAV_gamepad_interface",
+	"NAV_motor_cmds",
+	"NavCSInterfacing",
 	],
 	SC: ["drill_fsm_node", "SC_motor_cmds"],
-	CS: ["/ROVER/camera_cs_0"],
-};
-
-const getType = (type: number): string => {
+	CS: ["/CS/camera_cs_0"],
+};const getType = (type: number): string => {
 	switch (type) {
 		case 10:
 			return LogLevel.DATA;
