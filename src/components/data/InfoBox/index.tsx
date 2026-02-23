@@ -73,7 +73,7 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 								</p> :
 								<p className={styles.infoValue} 
 								style={{color: !color ? "" : (info.value == "Connected" ? "#00d009" : "red")}}>
-									{`${info.value} ${unit ?? (info.unit ?? "")}`}</p>}
+									{`${value} ${unit ?? (info.unit ?? "")}`}</p>}
 							</div>
 						);
 					})}

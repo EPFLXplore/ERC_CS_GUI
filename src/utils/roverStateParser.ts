@@ -487,7 +487,7 @@ const getJointsPositions = (data: any) => {
 	const positions = [];
 
 	for (const joint in joints) {
-		positions.push(Number(joints[joint]["angle"]));
+		positions.push(Number(joints[joint]?.["angle"] ?? 0));
 	}
 
 	return positions;
@@ -504,7 +504,7 @@ const getJointsCurrent = (data: any) => {
 	const currents = [];
 
 	for (const joint in joints) {
-		currents.push(Number(joints[joint]["current"]));
+		currents.push(Number(joints[joint]?.["current"] ?? 0));
 	}
 
 	return currents;
@@ -525,12 +525,15 @@ const getJointsStates = (data: any) => {
 	const states = [];
 
 	for (const joint in joints) {
-		if(joints[joint]["mode_motor"] === "NotReadyToSwitchOn") {
+		const motorState = joints[joint]?.["mode_motor"];
+		if (!motorState) {
+			states.push("Disconnected");
+		} else if (motorState === "NotReadyToSwitchOn") {
 			states.push("Disconnected");	
-		} else if(joints[joint]["mode_motor"] === "OperationEnabled") {
+		} else if (motorState === "OperationEnabled") {
 			states.push("Connected");
 		} else {
-			states.push(joints[joint]["mode_motor"]);
+			states.push(motorState);
 		}
 	}
 
@@ -540,7 +543,8 @@ const getJointsStates = (data: any) => {
 const getTorqueGripper = (data: any) => {
 	const hdData = getSubsystemData(data, 'handling_device');
 	
-	if (!hdData || !hdData['joints']) {
+	const gripperJoint = hdData?.['joints']?.['joint_7'] ?? hdData?.['joints']?.['gripper'];
+	if (!hdData || !hdData['joints'] || !gripperJoint) {
 		return "0"
 	}
 
@@ -551,7 +555,7 @@ const getTorqueGripper = (data: any) => {
 	// More accurate value for the torque of the gripper
 	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
 
-	return (Number(hdData["joints"]["joint_7"]["current"]) * factor_conversion_to_torque).toFixed(2)
+	return (Number(gripperJoint["current"] ?? 0) * factor_conversion_to_torque).toFixed(2)
 }
 
 const getCurrentHDTask = (data: any) => {
@@ -576,8 +580,8 @@ const getCurrentHDCommand = (data: any) => {
 
 //////////////////////// ELECTRONICS ////////////////////////
 
-const BATTERY_MAX_VOLTAGE = 27.8;
-const BATTERY_MIN_VOLTAGE = 23;
+const BATTERY_MAX_VOLTAGE = 28.5;
+const BATTERY_MIN_VOLTAGE = 24.0;
 
 const getBatteryState = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');

@@ -8,7 +8,7 @@ export enum Topics {
     NAV_GAMEPAD_CMDS = "/CS/GamepadCmdsNav",          // Gamepad commands (publish) - Direct to NAV interface
     NAV_CHANGE_SPEED = "/NAV/ChangeSpeed",            // Speed adjustment (publish)
     NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
-    NAV_RESET_HOME = "/NCS/ResetHomeNavMotors",       // Service: reset to home
+    NAV_RESET_HOME = "/CS/ResetHomeNavMotors",       // Service: reset to home
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
     NAV_CHANGE_MODE = "/NAV/ChangeModeSystem",        // Service: NAV mode change - Direct to NAV interface
     NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera", // Service: camera mode
