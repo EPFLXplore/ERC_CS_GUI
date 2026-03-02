@@ -61,6 +61,7 @@ const useRoverControls = (
 	let ledCommandsTopic: ROSLIB.Topic<any>;
 	let screenshotTopic: ROSLIB.Topic<any>;
 	let changeSpeedTopic: ROSLIB.Topic<any>;
+	let namedJointTargetTopic: ROSLIB.Topic<any>;
 
 	// Navigation - Direct to NAV subsystem
 	if(ros) {
@@ -68,6 +69,15 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.NAV_CHANGE_SPEED,  // Direct to NAV subsystem
 			messageType: "std_msgs/Float32",
+		});
+	}
+
+	// HD - Named joint target for predefined poses (direct to kinematics planner)
+	if(ros) {
+		namedJointTargetTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.HD_NAMED_JOINT_TARGET,
+			messageType: "std_msgs/String",
 		});
 	}
 
@@ -344,7 +354,22 @@ const useRoverControls = (
 			}
 			changeSpeedTopic?.publish(object)
 		}
-	} 
+	}
+
+	// Publish a predefined named pose directly to the kinematics planner.
+	// HD must be in Auto mode for the planner to process it.
+	const sendHdNamedPose = (poseName: string) => {
+		if (!ros) {
+			showSnackbar("error", "ROS connection not available");
+			return;
+		}
+		if (stateServices[SubSystems.HANDLING_DEVICE].service.state !== States.AUTO) {
+			showSnackbar("error", "HD must be in Auto mode to send a predefined pose");
+			return;
+		}
+		namedJointTargetTopic?.publish({ data: poseName });
+		showSnackbar("info", `Sending HD to: ${poseName}`);
+	};
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
@@ -546,6 +571,7 @@ const useRoverControls = (
 		setRecordSensors,
 		displayGif,
 		setDisplayGif,
+		sendHdNamedPose,
 		screenshotAllCameras
 	] as const;
 };

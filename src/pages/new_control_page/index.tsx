@@ -133,6 +133,7 @@ const NewControlPage = () => {
 		setRecordSensors,
 		displayGif,
 		setDisplayGif,
+		sendHdNamedPose,
 		screenshotAllCameras
   	] = roverControls;
 
@@ -226,6 +227,7 @@ const NewControlPage = () => {
 						changeSpeedRover,
 						resetSensors,
 						reset_leds,
+						sendHdNamedPose,
 						ros
 					)
 				);
@@ -703,6 +705,7 @@ const selectModal = (
 	changeSpeedRover: (value: number) => void,
 	resetSensors: (name: Sensors) => void,
 	reset_leds: () => void,
+	sendHdNamedPose: (poseName: string) => void,
 	ros: ROSLIB.Ros | null
 ) => {
 	switch (system) {
@@ -775,6 +778,7 @@ const selectModal = (
 					onCancelGoal={cancelAction}
 					snackBar={showSnackbar}
 					resetHdConfirmation={resetHdConfirmation}
+					onSendNamedPose={sendHdNamedPose}
 				/>
 			);
 		case SubSystems.DRILL:

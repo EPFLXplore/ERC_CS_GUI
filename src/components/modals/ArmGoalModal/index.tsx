@@ -21,12 +21,14 @@ function ArmGoalModal({
 	onCancelGoal,
 	snackBar,
 	resetHdConfirmation,
+	onSendNamedPose,
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
 	snackBar: (sev: AlertColor, mes: string) => void;
 	resetHdConfirmation: ((confirm: boolean) => void) | null;
+	onSendNamedPose: (poseName: string) => void;
 }) {
 	const [tasks, setTasks] = React.useState<ArmTask[] | null>(null);
 
@@ -59,7 +61,7 @@ function ArmGoalModal({
 		  { name: "Power Switch 1", msg: "big_rotation_switch_1" },
 		  { name: "Power Switch 2", msg: "big_rotation_switch_2" },
 		]},
-		{ category: "Predefined Positions", items: [
+		{ category: "Predefined Positions", isPredefined: true, items: [
 		  { name: "Home Position", msg: "home" },
 		  { name: "Zero", msg: "zero" },
 		  { name: "Cobra", msg: "cobra" },
@@ -112,21 +114,25 @@ function ArmGoalModal({
 							{group.items.map((item) => (
 								<button
 								key={item.name}
-								className={`${styles.Choice} ${tasks?.some(t => t.name === item.name) ? styles.Selected : ""}`}
-								onClick={() => setTasks((old: ArmTask[] | null) => {
-									if(old === null) {
-										const t = [{ name: item.name, msg: item.msg }]
-										return [{ name: item.name, msg: item.msg }];
+								className={`${styles.Choice} ${!group.isPredefined && tasks?.some(t => t.name === item.name) ? styles.Selected : ""}`}
+								onClick={() => {
+									if (group.isPredefined) {
+										onSendNamedPose(item.msg);
+										onClose();
+									} else {
+										setTasks((old: ArmTask[] | null) => {
+											if(old === null) {
+												return [{ name: item.name, msg: item.msg }];
+											}
+											if (old.some(t => t.name === item.name)) {
+												return old.filter(t => t.name !== item.name);
+											}
+											const newTasks = [...old];
+											newTasks.push({ name: item.name, msg: item.msg});
+											return newTasks;
+										});
 									}
-
-									if (old.some(t => t.name === item.name)) {
-										return old.filter(t => t.name !== item.name);
-									}
-
-									const newTasks = [...old];
-									newTasks.push({ name: item.name, msg: item.msg});
-									return newTasks;
-								})}
+								}}
 								>
 								{item.name}
 								</button>

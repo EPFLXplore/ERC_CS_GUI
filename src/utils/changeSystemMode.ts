@@ -48,7 +48,9 @@ const requestChangeMode = (
 
   if (isCamera) {
     // Camera mode changes
-    serviceName = Topics.NAV_CHANGE_CAMERA_MODE;
+    serviceName = request_mode.subsystem === SubSystems.HANDLING_DEVICE
+        ? Topics.HD_CHANGE_CAMERA_MODE    // "/HD/ChangeModeCamera"
+        : Topics.NAV_CHANGE_CAMERA_MODE;  // "/NAV/ChangeModeCamera"
     serviceType = "custom_msg/srv/ChangeModeCamera";
     request = {
       camera_name: request_mode.index,
