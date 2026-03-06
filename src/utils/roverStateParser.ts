@@ -487,7 +487,8 @@ const getJointsPositions = (data: any) => {
 	const positions = [];
 
 	for (const joint in joints) {
-		positions.push(Number(joints[joint]?.["angle"] ?? 0));
+		// HDS publishes position in radians (sensor_msgs/JointState); convert to degrees for display
+		positions.push(Number(joints[joint]?.["position"] ?? 0) * (180 / Math.PI));
 	}
 
 	return positions;
@@ -504,7 +505,8 @@ const getJointsCurrent = (data: any) => {
 	const currents = [];
 
 	for (const joint in joints) {
-		currents.push(Number(joints[joint]?.["current"] ?? 0));
+		// HDS interface no longer provides current; velocity (rad/s) is shown instead
+		currents.push(Number(joints[joint]?.["velocity"] ?? 0));
 	}
 
 	return currents;
@@ -525,16 +527,10 @@ const getJointsStates = (data: any) => {
 	const states = [];
 
 	for (const joint in joints) {
-		const motorState = joints[joint]?.["mode_motor"];
-		if (!motorState) {
-			states.push("Disconnected");
-		} else if (motorState === "NotReadyToSwitchOn") {
-			states.push("Disconnected");	
-		} else if (motorState === "OperationEnabled") {
-			states.push("Connected");
-		} else {
-			states.push(motorState);
-		}
+		// HDS interface (sensor_msgs/JointState) no longer provides mode_motor.
+		// A joint entry with a position field means the motor is reporting telemetry.
+		const hasData = joints[joint] != null && "position" in joints[joint];
+		states.push(hasData ? "Connected" : "Disconnected");
 	}
 
 	return states;
@@ -555,6 +551,7 @@ const getTorqueGripper = (data: any) => {
 	// More accurate value for the torque of the gripper
 	const factor_conversion_to_torque = 0.00416 * 243 * 0.65 * 0.5
 
+	// HDS interface no longer provides current; torque estimate unavailable
 	return (Number(gripperJoint["current"] ?? 0) * factor_conversion_to_torque).toFixed(2)
 }
 

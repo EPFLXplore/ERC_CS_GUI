@@ -374,7 +374,7 @@ const NewControlPage = () => {
 						/>
 
 						<ControllerInfoBox
-							title="Joints Currents"
+							title="Joints HD Velocity"
 							infos={[
 								{ info: { name: "Joint 1", value: getJointsCurrent(roverState)[0] }, connected: getJointsStates(roverState)[0] },
 								{ info: { name: "Joint 2", value: getJointsCurrent(roverState)[1] }, connected: getJointsStates(roverState)[1] },
@@ -382,9 +382,9 @@ const NewControlPage = () => {
 								{ info: { name: "Joint 4", value: getJointsCurrent(roverState)[3] }, connected: getJointsStates(roverState)[3] },
 								{ info: { name: "Joint 5", value: getJointsCurrent(roverState)[4] }, connected: getJointsStates(roverState)[4] },
 								{ info: { name: "Joint 6", value: getJointsCurrent(roverState)[5] }, connected: getJointsStates(roverState)[5] },
-								{ info: { name: "Total", value: getTotalJointsCurrent(roverState) }, connected: null },
+								{ info: { name: "Gripper", value: getJointsCurrent(roverState)[6] }, connected: getJointsStates(roverState)[6] },
 							]}
-							unit="A"
+							unit="rad/s"
 						/>
 						<ControllerInfoBox
 							title="Drill Currents"

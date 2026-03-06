@@ -77,7 +77,7 @@ const useRoverControls = (
 		namedJointTargetTopic = new ROSLIB.Topic<any>({
 			ros: ros,
 			name: Topics.HD_NAMED_JOINT_TARGET,
-			messageType: "std_msgs/String",
+			messageType: "custom_msg/NamedPose",
 		});
 	}
 
@@ -367,7 +367,7 @@ const useRoverControls = (
 			showSnackbar("error", "HD must be in Auto mode to send a predefined pose");
 			return;
 		}
-		namedJointTargetTopic?.publish({ data: poseName });
+		namedJointTargetTopic?.publish({ data: poseName, vel: 1.0 });
 		showSnackbar("info", `Sending HD to: ${poseName}`);
 	};
 

@@ -9,6 +9,7 @@
     webkit-backdrop-filter: blur(6px)
     border-radius: 15px
     padding: 20px 20px
+    box-sizing: border-box
 
 .infos_big
     display: flex
@@ -19,11 +20,24 @@
     webkit-backdrop-filter: blur(6px)
     border-radius: 15px
     padding: 20px 20px
+    box-sizing: border-box
+    
+    @media (max-width: 1400px)
+        padding: 14px 14px
+    
+    @media (max-width: 1200px)
+        padding: 10px 10px
+    
+    @media (max-width: 900px)
+        padding: 6px 6px
 
 .infosTitle
     font-size: 1.5em
     font-weight: 600
     margin: 0
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
 
 .infoArrangement
     #display: flex
@@ -40,6 +54,13 @@
     #flex-direction: column
     gap: 10px
     margin-top: 10px
+    overflow: hidden
+    
+    @media (max-width: 1200px)
+        gap: 6px
+    
+    @media (max-width: 900px)
+        gap: 3px
 
 .info
     display: contents
