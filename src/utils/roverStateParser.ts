@@ -209,15 +209,27 @@ const getCameraStates = (data: any) => {
         return Object.keys(transformed).length > 0 ? transformed : null;
     };
     
-    // Extract camera data from each subsystem's state
-    // Navigation cameras
-    result[SubSystems.NAGIVATION] = transformCameraData(data?.navigation?.cameras);
-    
-    // Handling Device cameras
-    result[SubSystems.HANDLING_DEVICE] = transformCameraData(data?.handling_device?.cameras);
-    
-    // ROVER cameras (from electronics or rover subsystem if it exists)
-    result[SubSystems.ROVER] = transformCameraData(data?.electronics?.cameras || data?.rover?.cameras);
+    // Accept both new subsystem state shape and legacy aggregated camera maps.
+    const getCameraSource = (subsystem: string) => {
+        const subsystemState = data?.[subsystem];
+        const legacyCameras = data?.cameras;
+
+        return (
+            subsystemState?.cameras ||
+            subsystemState?.state?.cameras ||
+            data?.rover?.cameras?.[subsystem] ||
+            legacyCameras?.[subsystem] ||
+            null
+        );
+    };
+
+    result[SubSystems.NAGIVATION] = transformCameraData(getCameraSource(SubSystems.NAGIVATION));
+    result[SubSystems.HANDLING_DEVICE] = transformCameraData(getCameraSource(SubSystems.HANDLING_DEVICE));
+    result[SubSystems.ROVER] = transformCameraData(
+        getCameraSource(SubSystems.ROVER) ||
+        data?.electronics?.cameras ||
+        data?.rover?.cameras
+    );
 
     return result
 }

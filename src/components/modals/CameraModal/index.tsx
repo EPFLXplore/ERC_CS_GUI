@@ -67,40 +67,39 @@ function CameraModal({
 								<h2>{cameraGroup}</h2>
 							</div>
 							
-							{cameraStates[allCameras[cameraGroup].subsystem_to_check] != null ?
-								<React.Fragment>
-									{Object.values(allCameras[cameraGroup].enum).map((camera: string) => {
-										const subsystem = allCameras[cameraGroup].subsystem_to_check;
-										const subsystemCameras = cameraStates[subsystem] as any;
-										const cameraData = subsystemCameras?.[camera];
-										
-										// Skip if this camera doesn't exist in the data
-										if (!cameraData) return null;
-										
-										return (
-										<React.Fragment key={camera}>
-											<div className={styles.ChoiceWrapper}>
-											<button
-											className={`${styles.Choice} ${
-												cameraData['status'] ? styles.Selected : ""
-												}`}
-											onClick={() => {
-												if (!cameraData['status']) {
-													onClick(subsystem, camera, true)
-												} else {
-													onClick(subsystem, camera, false)
-												}
-												clickedCamera(camera)
-											}}
-											>
-												{camera}
-											</button>
-										{dataRateDiv(subsystemCameras, camera)}
-											</div>
-										</React.Fragment>
-										);
-									})}
-								</React.Fragment> : <p>NO DATA</p>}
+							<React.Fragment>
+								{Object.values(allCameras[cameraGroup].enum).map((camera: string) => {
+									const subsystem = allCameras[cameraGroup].subsystem_to_check;
+									const subsystemCameras = cameraStates[subsystem] as any;
+									const cameraData = subsystemCameras?.[camera] ?? {
+										status: false,
+										data_rate: "0",
+									};
+
+									return (
+									<React.Fragment key={camera}>
+										<div className={styles.ChoiceWrapper}>
+										<button
+										className={`${styles.Choice} ${
+											cameraData['status'] ? styles.Selected : ""
+											}`}
+										onClick={() => {
+											if (!cameraData['status']) {
+												onClick(subsystem, camera, true)
+											} else {
+												onClick(subsystem, camera, false)
+											}
+											clickedCamera(camera)
+										}}
+										>
+											{camera}
+										</button>
+									{dataRateDiv(subsystemCameras ?? {}, camera)}
+										</div>
+									</React.Fragment>
+									);
+								})}
+							</React.Fragment>
 						</React.Fragment>
 						))}
 					</div>
@@ -112,38 +111,33 @@ function CameraModal({
 								<h2>{cameraGroup}</h2>
 							</div>
 							
-							{cameraStates[depth_cameras[cameraGroup].subsystem_to_check] != null ?
-								(() => {
-									const subsystem = depth_cameras[cameraGroup].subsystem_to_check;
-									const cameraName = depth_cameras[cameraGroup].camera;
-									const subsystemCameras = cameraStates[subsystem] as any;
-									const cameraData = subsystemCameras?.[cameraName];
-									
-									// Skip if this camera doesn't exist in the data
-									if (!cameraData) return <p>NO DATA</p>;
-									
-									return (
-									<React.Fragment key={cameraGroup}>
-										<div className={styles.ChoiceWrapper}>
-										<button
-										className={`${styles.Choice} ${
-											cameraData['depth'] ? styles.Selected : ""
-											}`}
-										onClick={() => {
-											if (!cameraData['depth']) {
-												rgbOnClick(subsystem, true)
-											} else {
-												rgbOnClick(subsystem, false)
-											}
-										}}
-										>
-											{depth_cameras[cameraGroup].name}
-										</button>
-										</div>
-									</React.Fragment>
-									);
-								})()
-							: <p>NO DATA</p>}
+							{(() => {
+								const subsystem = depth_cameras[cameraGroup].subsystem_to_check;
+								const cameraName = depth_cameras[cameraGroup].camera;
+								const subsystemCameras = cameraStates[subsystem] as any;
+								const cameraData = subsystemCameras?.[cameraName] ?? { depth: false };
+								
+								return (
+								<React.Fragment key={cameraGroup}>
+									<div className={styles.ChoiceWrapper}>
+									<button
+									className={`${styles.Choice} ${
+										cameraData['depth'] ? styles.Selected : ""
+										}`}
+									onClick={() => {
+										if (!cameraData['depth']) {
+											rgbOnClick(subsystem, true)
+										} else {
+											rgbOnClick(subsystem, false)
+										}
+									}}
+									>
+										{depth_cameras[cameraGroup].name}
+									</button>
+									</div>
+								</React.Fragment>
+								);
+							})()}
 						</React.Fragment>
 						))}
 					</div>
