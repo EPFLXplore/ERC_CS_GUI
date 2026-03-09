@@ -15,6 +15,66 @@ type ArmTask = {
 	msg: string;
 };
 
+const toHdGoal = (task: string) => {
+	const baseGoal = {
+		target: task,
+		maintenance_objects: [] as string[],
+		model_element: "",
+		rotation_degree: 0,
+		clockwise_or_not: "",
+		probe_number: 0,
+		probe_orientation: "",
+		predefined_pose: "",
+	};
+
+	// Maintenance panel elements are now passed through ALIGN_OBJECT_WITH_ARUCO.
+	if (
+		task.startsWith("switch_") ||
+		task === "electromagnet" ||
+		task.startsWith("small_rotation_switch_") ||
+		task.startsWith("big_rotation_switch_")
+	) {
+		return {
+			...baseGoal,
+			target: "align_object_with_aruco",
+			maintenance_objects: [task],
+		};
+	}
+
+	// SAM-based alignment: send model name in model_element.
+	if (task.startsWith("model_")) {
+		return {
+			...baseGoal,
+			target: "align_object_with_sam",
+			model_element: task,
+		};
+	}
+
+	// Turn J6 helpers.
+	const turnMatch = task.match(/^turn_j6_(30|45|90)_(pos|neg)$/);
+	if (turnMatch) {
+		return {
+			...baseGoal,
+			target: "turn_j6",
+			rotation_degree: Number(turnMatch[1]),
+			clockwise_or_not: turnMatch[2],
+		};
+	}
+
+	// Probe helpers.
+	const probeMatch = task.match(/^probe_(u|s)_(1|2|3)$/);
+	if (probeMatch) {
+		return {
+			...baseGoal,
+			target: "probe_deposit",
+			probe_orientation: probeMatch[1] === "u" ? "up" : "side",
+			probe_number: Number(probeMatch[2]),
+		};
+	}
+
+	return baseGoal;
+};
+
 function ArmGoalModal({
 	onSetGoal,
 	onClose,
@@ -146,9 +206,9 @@ function ArmGoalModal({
 					<button
 						onClick={() => {
 							if (tasks) {
-								const _tasks = tasks?.map(t => t.msg)
+								const goals = tasks.map((t) => toHdGoal(t.msg));
 								onSetGoal(SubSystems.HANDLING_DEVICE, {
-									actions: _tasks
+									goals,
 								});
 								
 								onClose();

@@ -15,9 +15,10 @@ necessarily running. Check instead on the ROS panel. The data rate is also shown
 function dataRateDiv(cameraStates: any, camera: string) {
 
 	let rate = 0
-	
-	if(cameraStates[camera]['status']) {
-		rate = Math.round(Number(cameraStates[camera]['data_rate']))
+
+	const cameraState = cameraStates?.[camera];
+	if(cameraState?.status) {
+		rate = Math.round(Number(cameraState?.data_rate ?? 0))
 	} else {
 		rate = 0.0
 	}

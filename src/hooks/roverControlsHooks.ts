@@ -254,6 +254,17 @@ const useRoverControls = (
 				return newStates;
 			}
 
+			if (
+				system === SubSystems.HANDLING_DEVICE &&
+				stateServices[SubSystems.HANDLING_DEVICE].service.state !== States.AUTO
+			) {
+				showSnackbar(
+					"error",
+					"Handling Device must be in Auto mode to launch this task"
+				);
+				return newStates;
+			}
+
 			if (newStates[system].action.state !== States.OFF) {
 				showSnackbar("error", "An action is already running for the system " + system);
 				return newStates;

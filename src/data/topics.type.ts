@@ -20,15 +20,15 @@ export enum Topics {
     // ============================================
     HD_STATE = "/HD/State",                      // 1Hz state summary (subscribe)
     HD_GAMEPAD_CMDS = "/CS/GamepadCmdsHandlingDevice",        // Gamepad commands (publish)
-    HD_MANIPULATION = "/HD/Manipulation",        // Action: manipulation tasks
+    HD_MANIPULATION = "/ROVER/HandlingDeviceManipulation",        // Action: manipulation tasks (task_executor)
     HD_CHANGE_MODE = "/HD/ChangeModeSystem",    // Service: change mode
     HD_CHANGE_CAMERA_MODE = "/HD/ChangeModeCamera", // Service: camera mode for HD
     HD_NAMED_JOINT_TARGET = "/HD/kinematics/named_joint_target", // Topic: publish named pose (custom_msg/NamedPose)
     HD_POSE_GOAL = "/HD/kinematics/pose_goal",          // Topic: Cartesian goal (geometry_msgs/Pose)
     HD_JOINT_GOAL = "/HD/kinematics/joint_goal",        // Topic: explicit joint goal (std_msgs/Float64MultiArray)
     HD_RESET_NODES = "/HD/kinematics/reset_nodes",  // Service: reset kinematics
-    HD_HUMAN_VERIFICATION = "/HD/HumanVerification",  // Service: human verify
-    HD_IMAGE_SELECTION = "/HD/ControlStationSelection",  // Service: image select
+    HD_HUMAN_VERIFICATION = "/Rover/HD/human_verification",  // Service: human verify
+    HD_IMAGE_SELECTION = "/HD/ImageSelection",  // Service: image select
     HD_STACK_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Topic: confirmation
     // ============================================
     // DRILL Subsystem Interface
@@ -76,7 +76,7 @@ export enum Topics {
     LED_PUBLISHER = "/EL/LedCommands",  // Already defined
     
     // HD Services - Control station interaction
-    REQUEST_SELECTION_IMAGE = "/HD/ControlStationSelection",  // Same as HD_IMAGE_SELECTION
-    REQUEST_HUMAIN_VERIFICATION_HD = "/HD/HumanVerification",  // Same as HD_HUMAN_VERIFICATION
+    REQUEST_SELECTION_IMAGE = "/HD/ImageSelection",  // Same as HD_IMAGE_SELECTION
+    REQUEST_HUMAIN_VERIFICATION_HD = "/Rover/HD/human_verification",  // Same as HD_HUMAN_VERIFICATION
     CONFIRMATION_HDS_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Same as HD_STACK_LAUNCHED
 }

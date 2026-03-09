@@ -47,7 +47,7 @@ function useActions(
                 SubSystems.HANDLING_DEVICE,
                 States.OFF,
                 Topics.HD_MANIPULATION,  // Use enum for clarity
-                "HDManipulation"
+                "NewHDGoal"
             ),
             goal_params: null,
             goal_object: undefined,
