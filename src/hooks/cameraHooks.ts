@@ -67,6 +67,12 @@ function useCamera(ros: ROSLIB.Ros | null) {
 
 				_listeners = [..._listeners, listener]
 			});
+
+			return () => {
+				_listeners.forEach((listener) => {
+					listener.unsubscribe();
+				});
+			};
 		}
 
 	}, [ros, currentVideo]);

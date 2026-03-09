@@ -69,6 +69,8 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.NAV_CHANGE_SPEED,  // Direct to NAV subsystem
 			messageType: "std_msgs/Float32",
+			queue_length: 1,
+			queue_size: 1,
 		});
 	}
 
@@ -78,6 +80,8 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.HD_NAMED_JOINT_TARGET,
 			messageType: "custom_msg/NamedPose",
+			queue_length: 1,
+			queue_size: 1,
 		});
 	}
 
@@ -107,12 +111,16 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.EL_MASS_TARE_DRILL,  // Direct to EL subsystem
 			messageType: "custom_msg/MassRequestDrill",
+			queue_length: 1,
+			queue_size: 1,
 		})
 
 		resetMassHDTopic = new ROSLIB.Topic<any>({
 			ros: ros,
 			name: Topics.EL_MASS_TARE_HD,  // Direct to EL subsystem
 			messageType: "custom_msg/MassRequestHD",
+			queue_length: 1,
+			queue_size: 1,
 		})
 
 		// Screenshot - which subsystem manages cameras? Using NAV for now
@@ -120,6 +128,8 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.SCREENSHOT_ALL_CAMS,  // Or separate camera manager?
 			messageType: "std_msgs/Bool",
+			queue_length: 1,
+			queue_size: 1,
 		})
 	}
 
@@ -133,6 +143,8 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.EL_LED_COMMANDS,  // Direct to EL subsystem
 			messageType: "custom_msg/LEDMessage",
+			queue_length: 1,
+			queue_size: 1,
 		})
 	}
 
@@ -450,6 +462,8 @@ const useRoverControls = (
 				ros: ros,
 				name: Topics.CONFIRMATION_HDS_LAUNCHED,
 				messageType: "std_msgs/Bool",
+				queue_length: 1,
+				queue_size: 1,
 			});
 
 			hdStackLaunched.subscribe(async (message) => {

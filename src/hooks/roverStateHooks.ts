@@ -35,6 +35,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             name: "/NAV/State",
             messageType: "std_msgs/String",  // or your custom message type
             queue_length: 1,
+            queue_size: 1,
         });
 
         const hdStateListener = new ROSLIB.Topic({
@@ -42,6 +43,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             name: "/HD/State",
             messageType: "std_msgs/String",
             queue_length: 1,
+            queue_size: 1,
         });
 
         const drillStateListener = new ROSLIB.Topic({
@@ -49,6 +51,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             name: "/DRILL/State",
             messageType: "std_msgs/String",
             queue_length: 1,
+            queue_size: 1,
         });
 
         const elecStateListener = new ROSLIB.Topic({
@@ -56,6 +59,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             name: "/EL/State",
             messageType: "std_msgs/String",
             queue_length: 1,
+            queue_size: 1,
         });
 
         // Navigation state updates

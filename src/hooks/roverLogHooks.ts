@@ -75,6 +75,8 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 				ros: ros,
 				name: "/rosout",
 				messageType: "rcl_interfaces/msg/Log",
+				queue_length: 1,
+				queue_size: 1,
 			});
 
 			listener.subscribe((message) => {
