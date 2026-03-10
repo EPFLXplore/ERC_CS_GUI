@@ -2,8 +2,8 @@
 
 .system
     display: flex
-    flex-direction: row
-    gap: 10px
+    flex-direction: column
+    gap: 6px
     align-items: center
 
 .name
@@ -12,16 +12,44 @@
     color: white
     margin: 0
     line-height: 1.2em
+    text-align: center
+
+.selectWrapper
+    position: relative
+    display: inline-flex
+    align-items: center
+    justify-content: center
+    border-radius: 12px
+    overflow: hidden
+    transition: transform 0.22s ease, box-shadow 0.22s ease
+
+.selectWrapper:focus-within
+    transform: translateY(-1px) scale(1.02)
+    box-shadow: 0 8px 20px rgba(56, 106, 186, 0.35)
+
+.chevron
+    position: absolute
+    right: 10px
+    width: 8px
+    height: 8px
+    border-right: 2px solid rgba(255, 255, 255, 0.9)
+    border-bottom: 2px solid rgba(255, 255, 255, 0.9)
+    transform: rotate(45deg)
+    transition: transform 0.22s ease
+    pointer-events: none
+
+.selectWrapper:focus-within .chevron
+    transform: rotate(-135deg)
 
 // custom html select without icon
 .select
     position: relative
     display: inline-block
-    border-radius: 5px
-    background-color: $primaryColor
+    border-radius: 12px
+    background-color: #386aba
     border: none
     color: white
-    width: 100px
+    width: 108px
     text-align: center
     font-family: 'Poppins', sans-serif
     font-size: 16px
@@ -38,5 +66,12 @@
     white-space: nowrap
     overflow: hidden
     outline: none
-    padding: 3px 0
+    padding: 5px 24px 5px 8px
+    transition: background-color 0.2s ease, border-radius 0.2s ease
+
+.select:hover
+    background-color: #4477c6
+
+.select:focus
+    background-color: #4a80d2
     

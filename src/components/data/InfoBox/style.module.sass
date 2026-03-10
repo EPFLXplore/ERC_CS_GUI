@@ -4,23 +4,29 @@
     display: flex
     flex-direction: column
     justify-content: center
-    background: rgba($backgroundColor, 0.7)
-    backdrop-filter: blur(6px)
-    webkit-backdrop-filter: blur(6px)
+    background: rgba(255, 255, 255, 0.1)
+    backdrop-filter: blur(12px)
+    webkit-backdrop-filter: blur(12px)
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25)
     border-radius: 15px
     padding: 20px 20px
     box-sizing: border-box
+    font-weight: 300
 
 .infos_big
     display: flex
     flex-direction: column
     justify-content: center
-    background: rgba($backgroundColor, 0.7)
-    backdrop-filter: blur(6px)
-    webkit-backdrop-filter: blur(6px)
+    background: rgba(255, 255, 255, 0.1)
+    backdrop-filter: blur(12px)
+    webkit-backdrop-filter: blur(12px)
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25)
     border-radius: 15px
     padding: 20px 20px
     box-sizing: border-box
+    font-weight: 300
     
     @media (max-width: 1400px)
         padding: 14px 14px
@@ -33,11 +39,30 @@
 
 .infosTitle
     font-size: 1.5em
-    font-weight: 600
+    font-weight: 400
     margin: 0
     white-space: nowrap
     overflow: hidden
     text-overflow: ellipsis
+
+.headerRow
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+.collapseButton
+    border: 1px solid rgba(255, 255, 255, 0.35)
+    background: rgba(255, 255, 255, 0.12)
+    color: white
+    border-radius: 999px
+    padding: 0.2rem 0.8rem
+    cursor: pointer
+    font-size: 0.85rem
+    transition: all 0.2s ease-out
+
+.collapseButton:hover
+    background: rgba(255, 255, 255, 0.2)
 
 .infoArrangement
     #display: flex
@@ -73,41 +98,41 @@
 .infoName
     grid-column: 1
     font-size: 1em
-    font-weight: 500
+    font-weight: 300
     margin: 0
 
 .infoNameColoredGreen
     grid-column: 2
     font-size: 1em
-    font-weight: 500
+    font-weight: 300
     margin: 0
     color: green
 
 .infoNameColoredRed
     grid-column: 2
     font-size: 1em
-    font-weight: 500
+    font-weight: 300
     margin: 0
     color: red
 
 .infoNameFault
     grid-column: 2
     font-size: 1em
-    font-weight: 800
+    font-weight: 600
     margin: 0
     color: #8c0118
 
 .infoNameWeirdState
     grid-column: 2
     font-size: 1em
-    font-weight: 800
+    font-weight: 600
     margin: 0
     color: #e76816
 
 .infoValue
     grid-column: 2
     font-size: 1em
-    font-weight: normal
+    font-weight: 300
     color: white
     text-align: right
     margin: 0
@@ -115,7 +140,7 @@
 .infoValueController
     grid-column: 3
     font-size: 1em
-    font-weight: normal
+    font-weight: 300
     color: white
     text-align: right
     margin: 0
@@ -124,27 +149,36 @@
 .cpuSectionTitle
   margin: 16px 0 8px
   font-size: 1em
-  font-weight: 600
+    font-weight: 400
   color: white
 
-/* grid of 8 */
-.cpuCircles
+/* compact grid with core labels and percentages */
+.cpuCoreList
   display: grid
-  grid-template-columns: repeat(8, 1fr)
+    grid-template-columns: repeat(4, minmax(0, 1fr))
   gap: 6px
 
-/* each dot */
-.circle
-  width: 14px
-  height: 14px
-  border-radius: 50%
-  background-color: gray  // fallback
+.cpuCore
+    display: flex
+    justify-content: space-between
+    align-items: center
+    gap: 6px
+    border-radius: 8px
+    padding: 0.2rem 0.4rem
+    font-size: 0.78rem
+    background: rgba(255, 255, 255, 0.08)
+
+.cpuCoreLabel
+    opacity: 0.9
+
+.cpuCoreValue
+    font-weight: 500
 
 .green
-  background-color: #4caf50
+    color: #6fdc73
 
 .orange
-  background-color: #ff9800
+    color: #ffb347
 
 .red
-  background-color: #f44336
+    color: #ff7a7a

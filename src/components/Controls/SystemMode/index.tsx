@@ -28,13 +28,16 @@ function SystemMode({
 	return (
 		<div className={`${styles.system}`}>
 			<h2 className={`${styles.name}`}>{system}</h2>
-			<select name="mode" id="mode" onChange={handleChange} value={currentMode} className={styles.select}>
-				{modes.map((mode) => (
-					<option value={mode}>
-						{mode}
-					</option>
-				))}
-			</select>
+			<div className={styles.selectWrapper}>
+				<select name="mode" id="mode" onChange={handleChange} value={currentMode} className={styles.select}>
+					{modes.map((mode) => (
+						<option value={mode}>
+							{mode}
+						</option>
+					))}
+				</select>
+				<span className={styles.chevron} aria-hidden="true" />
+			</div>
 		</div>
 	);
 }

@@ -77,13 +77,6 @@ const Home = () => {
 						Drive
 					</a>
 				</div>
-				<div className={styles.state}>
-					<div
-						className={styles.indicator}
-						style={{ background: true ? "#5CCE7C" : "#FF4444" }}
-					/>
-					<div className={styles.text}>Rover {true ? "Connected" : "Off"}</div>
-				</div>
 			</div>
 			<AlertSnackbar alertMessage={snackbar} />
 		</div>

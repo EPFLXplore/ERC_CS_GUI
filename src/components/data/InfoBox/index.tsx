@@ -2,7 +2,7 @@ import { roundToTwoDecimals } from "../../../utils/maths";
 import styles from "./style.module.sass";
 import RosNodesButton from "../../Controls/RosNodesButton";
 import HDMotorStates from "../../../data/HDMotorStates.types";
-import { Hd } from "@mui/icons-material";
+import { useState } from "react";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -53,11 +53,22 @@ const InfoBox: React.FC<InfoBoxProps> = ({
   warning = false,
   triggerWarning
 }) => {
+	const [isCollapsed, setIsCollapsed] = useState(false);
+
 	return (
 		<div className={styles.infos}>
 			<div>
-				<h3 className={styles.infosTitle}>{title}</h3>
-				<div className={styles.infoArrangement}>
+				<div className={styles.headerRow}>
+					<h3 className={styles.infosTitle}>{title}</h3>
+					<button
+						type="button"
+						className={styles.collapseButton}
+						onClick={() => setIsCollapsed((prev) => !prev)}
+					>
+						{isCollapsed ? "Show" : "Hide"}
+					</button>
+				</div>
+				{!isCollapsed && <div className={styles.infoArrangement}>
 					{infos.map((info, index) => {
 						const value =
 							typeof info.value === "number"
@@ -77,13 +88,13 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 							</div>
 						);
 					})}
-				</div>
+				</div>}
 
-				{/* --- NEW: CPU cores section, still INSIDE the dark box --- */}
-				{usages && usages.length === 8 && (
+				{/* CPU cores section for Jetson cards */}
+				{!isCollapsed && usages && usages.length > 0 && (
 					<div className={styles.cpuSection}>
 					<p className={styles.cpuSectionTitle}>CPU cores</p>
-					<div className={styles.cpuCircles}>
+					<div className={styles.cpuCoreList}>
 						{usages.map((u, i) => {
 						const cls =
 							u >= RED_THRESHOLD
@@ -93,11 +104,14 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 							: styles.green
 
 						return (
-							<span
+							<div
 							key={i}
-							className={`${styles.circle} ${cls}`}
+							className={`${styles.cpuCore} ${cls}`}
 							title={`CPU ${i}: ${u}%`}
-							/>
+							>
+								<span className={styles.cpuCoreLabel}>{`C${i + 1}`}</span>
+								<span className={styles.cpuCoreValue}>{`${Math.round(u)}%`}</span>
+							</div>
 						)
 						})}
 					</div>
@@ -110,11 +124,22 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 };
 
 const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: WheelsInfo[]; unit?: string }) => {
+	const [isCollapsed, setIsCollapsed] = useState(false);
+
 	return (
 		<div className={styles.infos_big}>
 			<div>
-				<h3 className={styles.infosTitle}>{title}</h3>
-				<div className={styles.infoArrangementController}>
+				<div className={styles.headerRow}>
+					<h3 className={styles.infosTitle}>{title}</h3>
+					<button
+						type="button"
+						className={styles.collapseButton}
+						onClick={() => setIsCollapsed((prev) => !prev)}
+					>
+						{isCollapsed ? "Show" : "Hide"}
+					</button>
+				</div>
+				{!isCollapsed && <div className={styles.infoArrangementController}>
 					{infos.map((info, index) => {
 						return (
 							<div className={styles.info} key={index}>
@@ -135,18 +160,29 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 							</div>
 						);
 					})}
-				</div>
+				</div>}
 			</div>
 		</div>
 	);
 };
 
 const InfoBoxButton = ({ title, infos }: { title: string; infos: RosNodesInfo[] }) => {
+	const [isCollapsed, setIsCollapsed] = useState(false);
+
 	return (
 		<div className={styles.infos}>
 			<div>
-				<h3 className={styles.infosTitle}>{title}</h3>
-				<div className={styles.infoArrangement}>
+				<div className={styles.headerRow}>
+					<h3 className={styles.infosTitle}>{title}</h3>
+					<button
+						type="button"
+						className={styles.collapseButton}
+						onClick={() => setIsCollapsed((prev) => !prev)}
+					>
+						{isCollapsed ? "Show" : "Hide"}
+					</button>
+				</div>
+				{!isCollapsed && <div className={styles.infoArrangement}>
 					{infos.map((info, index) => {
 						return (
 							<div className={styles.info} key={index}>
@@ -156,7 +192,7 @@ const InfoBoxButton = ({ title, infos }: { title: string; infos: RosNodesInfo[] 
 							</div>
 						);
 					})}
-				</div>
+				</div>}
 			</div>
 		</div>
 	);

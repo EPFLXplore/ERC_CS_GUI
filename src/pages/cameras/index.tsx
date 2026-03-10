@@ -1,5 +1,6 @@
 import styles from "./styles.module.sass";
 import CameraView from "../../components/data/CameraView";
+import Background from "../../components/ui/Background";
 import useCamera from "../../hooks/cameraHooks";
 import useAlert from "../../hooks/alertHooks";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -25,6 +26,7 @@ const CamerasPage = () => {
 
 	return (
 		<div className={"page " + styles.mainPage}>
+			<Background />
 			<div className={styles.control}>
 				<div className={styles.visualization}>
 					<CameraView

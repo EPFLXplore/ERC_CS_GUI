@@ -6,7 +6,8 @@
     height: 100vh
     max-height: 100vh
     width: 100vw
-    overflow: hidden
+    overflow-y: auto
+    overflow-x: hidden
 
 .header
     display: flex
@@ -51,6 +52,23 @@
     @media (max-width: 900px)
         gap: 10px
 
+.powerHeader
+    display: flex
+    align-items: center
+    gap: 8px
+    margin: 0 10px 6px 0
+
+.powerItem
+    color: white
+    font-size: 0.82rem
+    font-weight: 300
+    padding: 0.25rem 0.6rem
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    background: rgba(255, 255, 255, 0.1)
+    border-radius: 999px
+    backdrop-filter: blur(10px)
+    webkit-backdrop-filter: blur(10px)
+
 .control
     flex: 1
     height: auto
@@ -86,6 +104,139 @@
     @media (max-width: 900px)
         margin: 10px
         border-radius: 15px
+
+.widgetSidebar
+    position: absolute
+    top: 20px
+    left: 20px
+    z-index: 30
+    display: flex
+    flex-direction: column
+    gap: 10px
+    transition: width 0.28s ease, transform 0.28s ease
+
+.widgetSidebarExpanded
+    width: 260px
+
+.widgetSidebarCollapsed
+    width: 108px
+
+.widgetSidebarToggle
+    border: 1px solid rgba(255, 255, 255, 0.35)
+    background: rgba(255, 255, 255, 0.12)
+    color: white
+    backdrop-filter: blur(10px)
+    webkit-backdrop-filter: blur(10px)
+    border-radius: 999px
+    padding: 0.4rem 0.9rem
+    cursor: pointer
+    width: fit-content
+
+.widgetSidebarPanel
+    max-height: 65vh
+    overflow-y: auto
+    display: flex
+    flex-direction: column
+    gap: 0.45rem
+    padding: 0.8rem
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    background: rgba(255, 255, 255, 0.1)
+    border-radius: 14px
+    backdrop-filter: blur(12px)
+    webkit-backdrop-filter: blur(12px)
+    transform-origin: top left
+    transition: max-height 0.28s ease, opacity 0.22s ease, transform 0.28s ease, padding 0.28s ease, border-color 0.28s ease, margin 0.28s ease
+
+.widgetSidebarPanelOpen
+    opacity: 1
+    transform: scale(1)
+    pointer-events: auto
+    margin-top: 0
+
+.widgetSidebarPanelClosed
+    max-height: 0
+    opacity: 0
+    transform: scale(0.96)
+    pointer-events: none
+    padding-top: 0
+    padding-bottom: 0
+    border-color: transparent
+    margin-top: -6px
+
+.widgetOption
+    display: flex
+    align-items: center
+    gap: 0.5rem
+    color: white
+    font-size: 0.9rem
+
+.presetHeader
+    color: rgba(255, 255, 255, 0.9)
+    font-size: 0.78rem
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    margin: 0.2rem 0 0.1rem
+
+.presetGrid
+    display: grid
+    grid-template-columns: repeat(2, minmax(0, 1fr))
+    gap: 0.4rem
+    margin-bottom: 0.35rem
+
+.presetButton
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    background: rgba(255, 255, 255, 0.08)
+    color: white
+    border-radius: 10px
+    padding: 0.35rem 0.45rem
+    font-size: 0.78rem
+    cursor: pointer
+    text-align: left
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease
+
+.presetButton:hover
+    transform: translateY(-1px)
+
+.presetButtonActive
+    background: rgba(255, 255, 255, 0.22)
+    border-color: rgba(255, 255, 255, 0.45)
+
+.widgetsGrid
+    position: absolute
+    inset: 20px 20px 120px 20px
+    column-width: 320px
+    column-gap: 12px
+    overflow-y: auto
+    padding-top: 56px
+
+.widgetsGridShifted
+    padding-left: 280px
+    transition: padding-left 0.28s ease
+
+.widgetItem
+    display: inline-block
+    width: 100%
+    margin: 0 0 12px
+    break-inside: avoid
+    -webkit-column-break-inside: avoid
+    overflow: hidden
+    transition: opacity 0.22s ease, transform 0.24s ease, max-height 0.3s ease, margin 0.24s ease, filter 0.24s ease
+
+.widgetItemVisible
+    opacity: 1
+    transform: scale(1)
+    max-height: 1400px
+    margin: 0 0 12px
+    filter: blur(0)
+    pointer-events: auto
+
+.widgetItemHidden
+    opacity: 0
+    transform: scale(0.96)
+    max-height: 0
+    margin: 0
+    filter: blur(2px)
+    pointer-events: none
 
 .previews
     position: absolute
@@ -126,11 +277,10 @@
     flex-direction: column
     justify-content: center
     gap: 10px
-    border: 2px solid black
     width: 13%
     max-width: 250px
     font-size: 1rem
-    overflow: hidden
+    overflow: visible
     
     @media (max-width: 1400px)
         top: 10px
@@ -156,9 +306,8 @@
     flex-direction: column
     justify-content: center
     gap: 10px
-    border: 2px solid black
     font-size: 1rem
-    overflow: hidden
+    overflow: visible
     
     @media (max-width: 1400px)
         top: 10px
@@ -186,9 +335,8 @@
     flex-direction: column
     justify-content: center
     gap: 10px
-    border: 2px solid black
     font-size: 1rem
-    overflow: hidden
+    overflow: visible
     
     @media (max-width: 1400px)
         top: 10px
@@ -214,9 +362,8 @@
     flex-direction: column
     justify-content: center
     gap: 10px
-    border: 2px solid black
     font-size: 1rem
-    overflow: hidden
+    overflow: visible
     
     @media (max-width: 1400px)
         top: 10px
@@ -242,9 +389,8 @@
     flex-direction: column
     justify-content: center
     gap: 10px
-    border: 2px solid black
     font-size: 1rem
-    overflow: hidden
+    overflow: visible
     
     @media (max-width: 1400px)
         top: 10px
@@ -270,9 +416,8 @@
     flex-direction: column
     justify-content: center
     gap: 10px
-    border: 2px solid black
     font-size: 1rem
-    overflow: hidden
+    overflow: visible
     
     @media (max-width: 1400px)
         top: 10px
@@ -295,7 +440,8 @@
     backdrop-filter: blur(6px)
     webkit-backdrop-filter: blur(6px)
     border-radius: 15px
-    border: 2px solid black
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25)
     padding: 10px
     box-sizing: border-box
     margin-top: 10px
@@ -323,7 +469,16 @@
     display: flex
     flex-direction: row
     justify-content: center
-    gap: 20px
+    gap: 8px
+    width: fit-content
+    margin: 0 auto
+    padding: 10px 12px
+    border-radius: 18px
+    border: 1px solid rgba(255, 255, 255, 0.28)
+    background: rgba(255, 255, 255, 0.1)
+    backdrop-filter: blur(12px)
+    webkit-backdrop-filter: blur(12px)
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22)
 
 .confirm 
     position: fixed
