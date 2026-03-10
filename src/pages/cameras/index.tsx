@@ -13,6 +13,7 @@ const CAMERA_CONFIGS = [
 	["Front", "ST", "ST"],
 	['LEFT', 'RIGHT'], // Tests for Nav
 	['Other1', 'Other2'], // Astrio-Bio and Deep Sampling
+	["All Cams"],
 ];
 
 const MAX_IMAGES = CAMERA_CONFIGS.length;

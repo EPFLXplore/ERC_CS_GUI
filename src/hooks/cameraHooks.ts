@@ -11,6 +11,18 @@ get the feeds of the cameras.
 function useCamera(ros: ROSLIB.Ros | null) {
 	const [images, setImage] = useState<Array<string>>([]);
 	const [rotateCams, setRotateCams] = useState<Array<number>>([0]);
+	const ALL_CAMERA_TOPICS = [
+		"/NAV/feed_camera_nav_0",
+		"/NAV/feed_camera_nav_1",
+		"/NAV/feed_camera_nav_2",
+		"/HD/feed_camera_hd_0",
+		"/CS/feed_camera_cs_0",
+		"/CS/feed_camera_cs_1",
+		"/CS/feed_camera_cs_2",
+		"/CS/feed_camera_cs_3",
+		"/CS/feed_camera_cs_4",
+		"/CS/feed_camera_cs_5",
+	];
 
 	// Topics for the cameras - Direct from subsystem interfaces (NAV, HD)
 	// Control station cameras (CS) may still be published to /ROVER or moved to /CS namespace
@@ -22,6 +34,7 @@ function useCamera(ros: ROSLIB.Ros | null) {
 		["/NAV/feed_camera_nav_0", "/CS/feed_camera_cs_0", "/CS/feed_camera_cs_2"],
 		["/NAV/feed_camera_nav_1", "/NAV/feed_camera_nav_2"],
 		["/CS/feed_camera_cs_4", "/CS/feed_camera_cs_5"],
+		ALL_CAMERA_TOPICS,
 	]; 
 	
 	const [currentVideo, setCurrentVideo] = useState(0);
@@ -32,7 +45,7 @@ function useCamera(ros: ROSLIB.Ros | null) {
 
 			const cameras = CAMERA_CONFIGS[currentVideo];
 			let _listeners: ROSLIB.Topic<any>[] = []
-			setImage(Array(CAMERA_CONFIGS.length).fill(""));
+			setImage(Array(cameras.length).fill(""));
 
 			setListeners(old => {
 				old.forEach((listener) => {

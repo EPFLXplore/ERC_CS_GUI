@@ -28,6 +28,8 @@ const CameraView = ({
 	const next90 = (deg: number) => ((deg ?? 0) + 90) % 360;
 	const ensureLen = (arr: number[], n: number) =>
   		Array.from({ length: n }, (_, i) => (arr?.[i] ?? 0));
+	const cameraCount = Math.max(images.length, topicNames.length, currentCam.length);
+	const selectorLabel = currentCam.length === 1 ? currentCam[0] ?? "No Camera" : "Multi Cam";
 
 	const bump = (idx: number) => {
 		// make sure we have one rotation entry per image
@@ -36,12 +38,12 @@ const CameraView = ({
 		setRotateCams(r);
 	};
 
-	if(currentCam.length == 1) {
+	if(cameraCount == 1) {
 
 		return (
 			<div className={styles.Container}>
 				<CameraSelector
-					currentCam={currentCam[0] ?? "No Camera"}
+					currentCam={selectorLabel}
 					changeCam={changeCam}
 				/>
 				<div className={styles.ImageWrapper}>
@@ -57,10 +59,10 @@ const CameraView = ({
 			</div>
 		);
 
-	} else if (currentCam.length === 2) {
+	} else if (cameraCount === 2) {
 		return (
 			<div className={styles.Container}>
-				{<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
+				{<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />}
 
 				<div className={styles.HalfWrapper}>
 					<img
@@ -85,10 +87,10 @@ const CameraView = ({
 			</div>
 		);
 
-	} else if (currentCam?.length === 3) {
+	} else if (cameraCount === 3) {
 		return (
 			<div className={styles.Container}>
-				<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />
+				<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />
 
 				<div className={styles.LeftHalf}>
 					<img
@@ -125,10 +127,10 @@ const CameraView = ({
 				</div>
 			</div>
 		);
-	} else if (currentCam.length === 4) {
+	} else if (cameraCount === 4) {
 		return (
 			<div className={styles.Container}>
-				{<CameraSelector currentCam={"Multi Cam"} changeCam={changeCam} />}
+				{<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />}
 				{[0, 1, 2, 3].map((i) => (
 				<div key={i} className={styles.QuarterWrapper}>
 					<img
@@ -148,6 +150,28 @@ const CameraView = ({
 					{topicNames[i] && <div className={styles.TopicName}>{topicNames[i]}</div>}
 				</div>
 				))}
+			</div>
+		);
+	} else if (cameraCount > 4) {
+		return (
+			<div className={styles.Container}>
+				<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />
+				<div className={styles.GridWrapper}>
+					{Array.from({ length: cameraCount }, (_, i) => (
+						<div key={i} className={styles.GridItem}>
+							<div className={styles.GridImageWrapper}>
+								<img
+									src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+									alt={`Camera ${i + 1}`}
+									className={styles.GridImage}
+									style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+									onDoubleClick={() => bump(i)}
+								/>
+							</div>
+							<div className={styles.GridTopicName}>{topicNames[i] ?? `Camera ${i + 1}`}</div>
+						</div>
+					))}
+				</div>
 			</div>
 		);
 	} else {
