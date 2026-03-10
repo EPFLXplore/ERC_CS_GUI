@@ -37,6 +37,49 @@
     flex-direction: row
     transition: all 0.5s ease-out
     overflow: hidden
+    gap: 8px
+
+.leftHub
+    width: 150px
+    margin: 20px 0 20px 20px
+    border-radius: 12px
+    background: rgba(62, 134, 191, 0.42)
+    border: 1px solid rgba(185, 228, 255, 0.35)
+    display: flex
+    flex-direction: column
+    gap: 6px
+    padding: 8px
+    overflow-y: auto
+
+.hubButton
+    width: 100%
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    background: rgba(255, 255, 255, 0.06)
+    color: white
+    border-radius: 8px
+    padding: 6px 8px
+    font-size: 12px
+    text-align: left
+    cursor: pointer
+
+.hubButton:hover
+    background: rgba(255, 255, 255, 0.16)
+
+.hubButtonActive
+    background: rgba(255, 255, 255, 0.24)
+    border-color: rgba(255, 255, 255, 0.5)
+
+.hubDivider
+    height: 1px
+    margin: 4px 0
+    background: rgba(255, 255, 255, 0.18)
+
+.hubSectionTitle
+    color: rgba(255, 255, 255, 0.8)
+    font-size: 11px
+    font-weight: 600
+    letter-spacing: 0.02em
+    padding: 2px 2px 0 2px
 
 .expand
     position: absolute
@@ -55,7 +98,7 @@
     flex: 1
     background-color: white
     border-radius: 25px
-    margin: 20px
+    margin: 20px 20px 20px 0
     position: relative
     overflow: hidden
 

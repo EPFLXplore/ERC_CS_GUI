@@ -16,6 +16,10 @@ const CameraView = ({
 	setRotateCams,
 	currentCam,
 	topicNames = [],
+	forceGrid = false,
+	showSelector = true,
+	showRemoveButton = false,
+	onRemoveCam,
 }: {
 	images: Array<string>;
 	rotate?: number[];
@@ -23,6 +27,10 @@ const CameraView = ({
 	setRotateCams: React.Dispatch<React.SetStateAction<number[]>>;
 	currentCam: Array<string>;
 	topicNames?: Array<string>;
+	forceGrid?: boolean;
+	showSelector?: boolean;
+	showRemoveButton?: boolean;
+	onRemoveCam?: (index: number) => void;
 }) => {
 
 	const next90 = (deg: number) => ((deg ?? 0) + 90) % 360;
@@ -30,6 +38,8 @@ const CameraView = ({
   		Array.from({ length: n }, (_, i) => (arr?.[i] ?? 0));
 	const cameraCount = Math.max(images.length, topicNames.length, currentCam.length);
 	const selectorLabel = currentCam.length === 1 ? currentCam[0] ?? "No Camera" : "Multi Cam";
+	const renderSelector = () =>
+		showSelector ? <CameraSelector currentCam={selectorLabel} changeCam={changeCam} /> : null;
 
 	const bump = (idx: number) => {
 		// make sure we have one rotation entry per image
@@ -38,14 +48,44 @@ const CameraView = ({
 		setRotateCams(r);
 	};
 
+	if (forceGrid && cameraCount > 0) {
+		return (
+			<div className={styles.Container}>
+				{renderSelector()}
+				<div className={styles.GridWrapper}>
+					{Array.from({ length: cameraCount }, (_, i) => (
+						<div key={i} className={styles.GridItem}>
+							<div className={styles.GridImageWrapper}>
+								<img
+									src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+									alt={`Camera ${i + 1}`}
+									className={styles.GridImage}
+									style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+									onDoubleClick={() => bump(i)}
+								/>
+								{showRemoveButton && (
+									<button
+										type="button"
+										className={styles.RemoveCamButton}
+										onClick={() => onRemoveCam?.(i)}
+									>
+										×
+									</button>
+								)}
+							</div>
+							<div className={styles.GridTopicName}>{topicNames[i] ?? `Camera ${i + 1}`}</div>
+						</div>
+					))}
+				</div>
+			</div>
+		);
+	}
+
 	if(cameraCount == 1) {
 
 		return (
 			<div className={styles.Container}>
-				<CameraSelector
-					currentCam={selectorLabel}
-					changeCam={changeCam}
-				/>
+				{renderSelector()}
 				<div className={styles.ImageWrapper}>
 					<img
 						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
@@ -62,7 +102,7 @@ const CameraView = ({
 	} else if (cameraCount === 2) {
 		return (
 			<div className={styles.Container}>
-				{<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />}
+				{renderSelector()}
 
 				<div className={styles.HalfWrapper}>
 					<img
@@ -90,7 +130,7 @@ const CameraView = ({
 	} else if (cameraCount === 3) {
 		return (
 			<div className={styles.Container}>
-				<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />
+				{renderSelector()}
 
 				<div className={styles.LeftHalf}>
 					<img
@@ -130,7 +170,7 @@ const CameraView = ({
 	} else if (cameraCount === 4) {
 		return (
 			<div className={styles.Container}>
-				{<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />}
+				{renderSelector()}
 				{[0, 1, 2, 3].map((i) => (
 				<div key={i} className={styles.QuarterWrapper}>
 					<img
@@ -155,7 +195,7 @@ const CameraView = ({
 	} else if (cameraCount > 4) {
 		return (
 			<div className={styles.Container}>
-				<CameraSelector currentCam={selectorLabel} changeCam={changeCam} />
+				{renderSelector()}
 				<div className={styles.GridWrapper}>
 					{Array.from({ length: cameraCount }, (_, i) => (
 						<div key={i} className={styles.GridItem}>
@@ -177,7 +217,7 @@ const CameraView = ({
 	} else {
 		return (
 		<div className={styles.Container}>
-			{<CameraSelector currentCam={"No Camera"} changeCam={changeCam} />}
+			{showSelector && <CameraSelector currentCam={"No Camera"} changeCam={changeCam} />}
 			<img src={DefaultImage} alt="Camera" className={styles.Image} />
 		</div>
 		)

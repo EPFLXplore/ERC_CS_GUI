@@ -696,7 +696,14 @@ const NewControlPage = () => {
 		<div className={"page " + styles.mainPage}>
 			<Background />
 			<div className={styles.header}>
-				<img src={logo} className={styles.logo} alt="Logo Xplore" />
+				<div className={styles.leftHeader}>
+					<img src={logo} className={styles.logo} alt="Logo Xplore" />
+					<div className={styles.powerHeader}>
+						<span className={styles.powerItem}>I: {getCurrentOutput(roverState)} A</span>
+						<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
+						<span className={styles.powerItem}>State: {getBatteryState(roverState)}</span>
+					</div>
+				</div>
 				<div className={styles.systems}>
 					<SystemMode
 						system={"NAV"}
@@ -717,24 +724,21 @@ const NewControlPage = () => {
 						onSelect={(mode) => startService(SubSystems.DRILL, mode, false)}
 					/>
 				</div>
-				<div className={styles.powerHeader}>
-					<span className={styles.powerItem}>I: {getCurrentOutput(roverState)} A</span>
-					<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
-					<span className={styles.powerItem}>State: {getBatteryState(roverState)}</span>
+				<div className={styles.rightHeader}>
+					<Dvr
+						sx={{
+							color: "white",
+							fontSize: 30,
+							marginX: 3,
+							cursor: "pointer",
+						}}
+						onClick={() => navigate("/logs")}
+					/>
+					<Header
+						//@ts-ignore
+						wifiLevel={getNetworkData(roverState)}
+					/>
 				</div>
-				<Dvr
-					sx={{
-						color: "white",
-						fontSize: 30,
-						marginX: 3,
-						cursor: "pointer",
-					}}
-					onClick={() => navigate("/logs")}
-				/>
-				<Header
-					//@ts-ignore
-					wifiLevel={getNetworkData(roverState)}
-				/>
 			</div>
 			<div className={styles.control}>
 				<div className={styles.visualization}>
@@ -880,6 +884,7 @@ const NewControlPage = () => {
 							running={States.OFF}
 							icon={CommandsIcon}
 							tooltip={"Dockers"}
+							className={styles.dockersAction}
 						/>
 						<QuickAction
 							onClick={() => displaySystemModal("cancel_all_actions")}

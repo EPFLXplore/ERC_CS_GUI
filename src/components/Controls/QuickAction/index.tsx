@@ -12,17 +12,19 @@ function QuickAction({
 	selected,
 	running,
 	icon,
-	tooltip
+	tooltip,
+	className = "",
 }: {
 	onClick: () => void;
 	selected: boolean;
 	running: string;
 	icon: string;
 	tooltip: string;
+	className?: string;
 }) {
 	return (
 		<div
-			className={`${styles.container} ${selected ? styles.selected : ""} ${
+			className={`${styles.container} ${className} ${selected ? styles.selected : ""} ${
 				running !== States.OFF ? styles.running : ""
 			}`}
 			onClick={onClick}
