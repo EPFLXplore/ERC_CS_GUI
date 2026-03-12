@@ -8,19 +8,20 @@ import { useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
 	{ id: "nav_front", name: "Front Cam", topic: "/NAV/feed_camera_nav_0" },
-	{ id: "hd_gripper", name: "Gripper Cam", topic: "/HD/feed_camera_hd_0" },
+	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0" },
 	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0" },
 	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1" },
 	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2" },
 	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3" },
 	{ id: "nav_left", name: "LEFT", topic: "/NAV/feed_camera_nav_1" },
 	{ id: "nav_right", name: "RIGHT", topic: "/NAV/feed_camera_nav_2" },
+	{ id: "nav_aux", name: "NAV 3", topic: "/NAV/feed_camera_nav_3" },
 	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4" },
 	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
 ] as const;
 
 const TASK_PRESETS = [
-	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right"] },
+	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right", "nav_aux"] },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
