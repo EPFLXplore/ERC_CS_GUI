@@ -67,7 +67,7 @@ const toHdGoal = (task: string) => {
 		return {
 			...baseGoal,
 			target: "probe_deposit",
-			probe_orientation: probeMatch[1] === "u" ? "up" : "side",
+			probe_orientation: probeMatch[1] === "u" ? "u" : "s",
 			probe_number: Number(probeMatch[2]),
 		};
 	}
