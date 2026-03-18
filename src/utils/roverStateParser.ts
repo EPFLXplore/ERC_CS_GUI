@@ -41,13 +41,33 @@ const getSubsystemData = (data: any, subsystem: string) => {
     return null;
 };
 
+const getHardwareStats = (data: any, subsystem: string, statsKey: string) => {
+    const subsystemStats =
+        data?.[subsystem]?.hardware?.[statsKey] ??
+        data?.[subsystem]?.state?.hardware?.[statsKey];
+    if (subsystemStats) {
+        return subsystemStats;
+    }
+
+    const roverStats = data?.rover?.hardware?.[statsKey];
+    if (roverStats) {
+        return roverStats;
+    }
+
+    const rootStats = data?.hardware?.[statsKey];
+    if (rootStats) {
+        return rootStats;
+    }
+
+    return null;
+};
+
 //////////////////////// GENERAL ////////////////////////
 
 const getJetsonStatsHD = (data: any) => {
-    // Try new structure first
-    const roverData = data?.rover || data;
-    
-    if (!roverData || !roverData['hardware']) {
+    const stats = getHardwareStats(data, "handling_device", "stats_hd");
+
+    if (!stats) {
         return {
             ram: 0,
             load_gpu: 0,
@@ -58,8 +78,6 @@ const getJetsonStatsHD = (data: any) => {
             cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
         }
     }
-
-    const stats = roverData['hardware']['stats_hd']
 
     return {
         ram: stats['ram'] ?? 0,
@@ -74,10 +92,9 @@ const getJetsonStatsHD = (data: any) => {
 
 
 const getJetsonStatsNAV = (data: any) => {
-    // Try new structure first
-    const roverData = data?.rover || data;
-    
-    if (!roverData || !roverData['hardware']) {
+    const stats = getHardwareStats(data, "navigation", "stats_nav");
+
+    if (!stats) {
         return {
             ram: 0,
             load_gpu: 0,
@@ -88,8 +105,6 @@ const getJetsonStatsNAV = (data: any) => {
             cpu_usage: [0, 0, 0, 0, 0, 0, 0, 0]
         }
     }
-
-    const stats = roverData['hardware']['stats_nav']
 
     return {
         ram: stats['ram'] ?? 0,
