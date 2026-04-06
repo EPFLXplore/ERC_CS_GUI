@@ -18,143 +18,148 @@
   width: 100%
   max-width: 700px
   max-height: 90%
-  background: rgba(255, 255, 255, 0.12)
-  backdrop-filter: blur(14px)
-  webkit-backdrop-filter: blur(14px)
-  border: 1px solid rgba(255, 255, 255, 0.28)
-  border-radius: 20px
-  padding: 40px 30px
-  box-shadow: 0 12px 50px rgba(0, 0, 0, 0.4)
+  background: rgba(62, 134, 191, 0.22)
+  backdrop-filter: blur(12px)
+  webkit-backdrop-filter: blur(12px)
+  border: 1px solid rgba(185, 228, 255, 0.35)
+  border-radius: 22px
+  padding: 26px
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35)
   display: flex
   flex-direction: column
   overflow-y: auto
-  gap: 30px
+  gap: 18px
 
 .ModalHeader
   text-align: center
   color: white
-  font-size: 1.8rem
+  font-size: 1.45rem
   font-weight: 700
-  margin-bottom: 10px
+  margin-bottom: 0
 
 .ModalContent
   width: 100%
   display: flex
   flex-direction: column
   align-items: center
-  gap: 20px
+  gap: 12px
   color: white
 
 .Separator
-  width: 80%
+  width: 100%
   height: 1px
-  background-color: rgba(255, 255, 255, 0.2)
-  margin: 20px 0
+  background-color: rgba(255, 255, 255, 0.24)
+  margin: 2px 0
   align-self: center
 
 
 .InputGroup
-  width: 40%
+  width: min(360px, 100%)
   display: flex
   flex-direction: column
   gap: 8px
 
   label
-  font-size: 1.2rem
-  font-weight: 600
-  text-align: center
-  margin: 0
+    font-size: 0.95rem
+    font-weight: 700
+    text-align: left
+    margin: 0
+    color: rgba(255, 255, 255, 0.9)
 
   input
     width: 100%
-    padding: 14px 18px
+    padding: 10px 12px
     border-radius: 10px
-    border: none
+    border: 1px solid rgba(255, 255, 255, 0.3)
     font-weight: 700
-    background-color: #e4e4e4
-    color: black
-    font-size: 1.1rem
-    text-align: center // << CENTER the input text
+    background: rgba(255, 255, 255, 0.1)
+    color: white
+    font-size: 0.95rem
+    text-align: center
 
 .ModalFooter
   display: flex
   justify-content: center
   align-items: center
-  gap: 25px
+  gap: 12px
   flex-wrap: wrap
-  margin-top: 10px
+  margin-top: 0
 
   button
-    padding: 14px 30px
+    padding: 10px 14px
     min-width: 160px
-    border-radius: 12px
-    font-size: 1.2rem
+    border-radius: 10px
+    font-size: 0.95rem
     font-weight: 700
-    border: none
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    color: white
+    background: rgba(255, 255, 255, 0.08)
     transition: all 0.2s ease
 
     &:hover
-      transform: scale(1.05)
+      transform: translateY(-1px)
       cursor: pointer
 
 .PrimaryColor
-  background-color: $primaryColor
+  background: $primaryColor
   color: white
 
   &:hover
-    background-color: darken($primaryColor, 8%)
-    transform: scale(1.05)
+    background: darken($primaryColor, 8%)
+    transform: translateY(-1px)
 
 .ResetSection
   display: flex
   justify-content: center
-  gap: 25px
+  gap: 12px
   flex-wrap: wrap
 
 .Choice
-  background-color: #e4e4e4
-  padding: 14px 30px
-  border-radius: 12px
+  background: rgba(255, 255, 255, 0.08)
+  padding: 10px 14px
+  border-radius: 10px
   font-weight: 700
-  font-size: 1.2rem
-  border: none
+  font-size: 0.95rem
+  border: 1px solid rgba(255, 255, 255, 0.3)
   min-width: 160px
   text-align: center
+  color: white
   transition: all 0.2s ease
 
   &:hover
-    background-color: #d4d4d4
-    transform: scale(1.05)
+    background: rgba(255, 255, 255, 0.16)
+    transform: translateY(-1px)
     cursor: pointer
 
 .SpeedRoverSection
   display: flex
   justify-content: center
   align-items: center
-  gap: 20px
+  gap: 12px
+  flex-wrap: wrap
 
 .SpeedRoverInput
   width: 100px
-  padding: 14px
+  padding: 10px
   font-weight: 700
   border-radius: 10px
-  border: none
-  background-color: #e4e4e4
-  color: black
-  font-size: 1.1rem
-  text-align: center // << CENTER the input text
+  border: 1px solid rgba(255, 255, 255, 0.3)
+  background: rgba(255, 255, 255, 0.1)
+  color: white
+  font-size: 0.95rem
+  text-align: center
 
 .SpeedRoverButton
-  padding: 14px 30px
-  border-radius: 12px
+  padding: 10px 14px
+  border-radius: 10px
   font-weight: 700
-  font-size: 1.2rem
-  border: none
-  background-color: $primaryColor
+  font-size: 0.95rem
+  border: 1px solid rgba(255, 255, 255, 0.25)
+  background: $primaryColor
   color: white
   transition: all 0.2s ease
 
   &:hover
-    background-color: darken($primaryColor, 8%)
-    transform: scale(1.05)
+    background: darken($primaryColor, 8%)
+    transform: translateY(-1px)
     cursor: pointer

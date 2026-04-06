@@ -53,6 +53,7 @@ const useRoverControls = (
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
 		[SubSystems.SCIENCE]: false,
+		["suspension"]: false,
 		["cancel"]: false,
 	});
 
@@ -62,6 +63,7 @@ const useRoverControls = (
 	let screenshotTopic: ROSLIB.Topic<any>;
 	let changeSpeedTopic: ROSLIB.Topic<any>;
 	let namedJointTargetTopic: ROSLIB.Topic<any>;
+	let suspensionHeightTopic: ROSLIB.Topic<any>;
 
 	// Navigation - Direct to NAV subsystem
 	if(ros) {
@@ -80,6 +82,16 @@ const useRoverControls = (
 			ros: ros,
 			name: Topics.HD_NAMED_JOINT_TARGET,
 			messageType: "custom_msg/NamedPose",
+			queue_length: 1,
+			queue_size: 1,
+		});
+	}
+
+	if(ros) {
+		suspensionHeightTopic = new ROSLIB.Topic<any>({
+			ros: ros,
+			name: Topics.ACTIVE_SUSPENSION_HEIGHT,
+			messageType: "std_msgs/Float32",
 			queue_length: 1,
 			queue_size: 1,
 		});
@@ -379,6 +391,19 @@ const useRoverControls = (
 		}
 	}
 
+	const setSuspensionHeight = (height: number) => {
+		if(!ros) {
+			showSnackbar("error", "ROS connection not available");
+			return;
+		}
+
+		const clampedHeight = Math.max(0, Math.min(100, height));
+		suspensionHeightTopic?.publish({
+			data: clampedHeight,
+		});
+		showSnackbar("info", `Suspension height set to ${Math.round(clampedHeight)}%`);
+	};
+
 	// Publish a predefined named pose directly to the kinematics planner.
 	// HD must be in Auto mode for the planner to process it.
 	const sendHdNamedPose = (poseName: string) => {
@@ -522,6 +547,33 @@ const useRoverControls = (
 		}
 	}
 
+	const updateHdTaskCommand = (mode: 0 | 1 | 2) => {
+		if (!ros) {
+			showSnackbar("error", "ROS connection not available");
+			return;
+		}
+
+		const updateCommandService = new ROSLIB.Service({
+			ros: ros,
+			name: Topics.HD_TASK_UPDATE,
+			serviceType: "custom_msg/srv/UpdateTaskRequest",
+		});
+
+		updateCommandService.callService(
+			{ mode },
+			(response: any) => {
+				if ((response?.error_type ?? 1) !== 0) {
+					showSnackbar("error", response?.error_message || "Failed to update HD task command");
+					return;
+				}
+				showSnackbar("success", response?.error_message || "HD task command sent");
+			},
+			(error: any) => {
+				showSnackbar("error", `ROS service error: ${error}`);
+			}
+		);
+	};
+
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
 	// AVIONICS CONTROL FUNCTIONS
@@ -597,7 +649,9 @@ const useRoverControls = (
 		displayGif,
 		setDisplayGif,
 		sendHdNamedPose,
-		screenshotAllCameras
+		screenshotAllCameras,
+		setSuspensionHeight,
+		updateHdTaskCommand
 	] as const;
 };
 

@@ -7,6 +7,7 @@ export enum Topics {
     NAV_STATE = "/NAV/State",                         // 1Hz state summary (subscribe)
     NAV_GAMEPAD_CMDS = "/CS/GamepadCmdsNav",          // Gamepad commands (publish) - Direct to NAV interface
     NAV_CHANGE_SPEED = "/NAV/ChangeSpeed",            // Speed adjustment (publish)
+    ACTIVE_SUSPENSION_HEIGHT = "/NAV/ActiveSuspensionHeight", // Active suspension height command (publish)
     NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
     NAV_RESET_HOME = "/CS/ResetHomeNavMotors",       // Service: reset to home
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
@@ -30,6 +31,7 @@ export enum Topics {
     HD_HUMAN_VERIFICATION = "/Rover/HD/human_verification",  // Service: human verify
     HD_IMAGE_SELECTION = "/HD/ImageSelection",  // Service: image select
     HD_STACK_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Topic: confirmation
+    HD_TASK_UPDATE = "/HD/task_executor/update_command", // Service: update running HD task command
     // ============================================
     // DRILL Subsystem Interface
     // ============================================

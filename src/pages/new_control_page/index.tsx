@@ -10,12 +10,16 @@ import HDIcon from "../../assets/images/icons/handling_device.svg";
 import Stop from "../../assets/images/icons/stop.svg";
 import CommandsIcon from "../../assets/images/icons/setting.svg";
 import Drill from "../../assets/images/icons/drill.svg";
+import Suspension from "../../assets/images/icons/suspension.svg";
 import SystemMode from "../../components/Controls/SystemMode";
 import Science from "../../assets/images/icons/science.svg";
 import Canceled from "../../assets/images/icons/cancelled.svg";
 import ResetMotors from "../../assets/images/icons/motors.svg";
 import Sensor from "../../assets/images/icons/sensor.svg";
 import Screenshot from "../../assets/images/icons/screenshot.svg";
+import PreviousIcon from "../../assets/images/icons/previous.svg";
+import PauseIcon from "../../assets/images/icons/pause.svg";
+import NextIcon from "../../assets/images/icons/next.svg";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -78,6 +82,7 @@ import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
+import SuspensionModal from "../../components/modals/SuspensionModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
@@ -273,7 +278,9 @@ const NewControlPage = () => {
 		displayGif,
 		setDisplayGif,
 		sendHdNamedPose,
-		screenshotAllCameras
+		screenshotAllCameras,
+		setSuspensionHeight,
+		updateHdTaskCommand
   	] = roverControls;
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
@@ -367,7 +374,9 @@ const NewControlPage = () => {
 						resetSensors,
 						reset_leds,
 						sendHdNamedPose,
-						ros
+						ros,
+						setSuspensionHeight,
+						updateHdTaskCommand
 					)
 				);
 
@@ -640,13 +649,44 @@ const NewControlPage = () => {
 		{
 			key: "hdData",
 			content: (
-				<InfoBox
-					title="HD Data"
-					infos={[
-						{ name: "Task", value: getCurrentHDTask(roverState) },
-						{ name: "Command", value: getCurrentHDCommand(roverState) },
-					]}
-				/>
+				<div className={styles.hdDataWidget}>
+					<InfoBox
+						title="HD Data"
+						infos={[
+							{ name: "Task", value: getCurrentHDTask(roverState) },
+							{ name: "Command", value: getCurrentHDCommand(roverState) },
+						]}
+					/>
+					<div className={styles.hdDataControls}>
+						<button
+							type="button"
+							className={styles.hdDataControlButton}
+							onClick={() => updateHdTaskCommand(2)}
+							title="Previous Command"
+						>
+							<img src={PreviousIcon} alt="Previous" />
+							<span>Previous</span>
+						</button>
+						<button
+							type="button"
+							className={styles.hdDataControlButton}
+							onClick={() => updateHdTaskCommand(0)}
+							title="Pause Task"
+						>
+							<img src={PauseIcon} alt="Pause" />
+							<span>Pause</span>
+						</button>
+						<button
+							type="button"
+							className={styles.hdDataControlButton}
+							onClick={() => updateHdTaskCommand(1)}
+							title="Next Command"
+						>
+							<img src={NextIcon} alt="Next" />
+							<span>Next</span>
+						</button>
+					</div>
+				</div>
 			),
 		},
 		{
@@ -872,6 +912,13 @@ const NewControlPage = () => {
 							tooltip={"Drill"}
 						/>
 						<QuickAction
+							onClick={() => displaySystemModal("suspension")}
+							selected={systemsModalOpen["suspension"]}
+							running={States.OFF}
+							icon={Suspension}
+							tooltip={"Active Suspension"}
+						/>
+						<QuickAction
 							onClick={() => displaySystemModal(SubSystems.SCIENCE)}
 							selected={systemsModalOpen[SubSystems.SCIENCE]}
 							running={States.OFF}
@@ -966,7 +1013,9 @@ const selectModal = (
 	resetSensors: (name: Sensors) => void,
 	reset_leds: () => void,
 	sendHdNamedPose: (poseName: string) => void,
-	ros: ROSLIB.Ros | null
+	ros: ROSLIB.Ros | null,
+	setSuspensionHeight: (value: number) => void,
+	updateHdTaskCommand: (mode: 0 | 1 | 2) => void
 ) => {
 	switch (system) {
 		case "commands":
@@ -1039,6 +1088,7 @@ const selectModal = (
 					snackBar={showSnackbar}
 					resetHdConfirmation={resetHdConfirmation}
 					onSendNamedPose={sendHdNamedPose}
+					onUpdateTaskCommand={updateHdTaskCommand}
 				/>
 			);
 		case SubSystems.DRILL:
@@ -1071,6 +1121,22 @@ const selectModal = (
 					}}
 					snackBar={showSnackbar}
 					resetSensors={resetSensors}
+				/>
+			);
+
+		case "suspension":
+			return (
+				<SuspensionModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen["suspension"] = false;
+							return newModalOpen;
+						});
+					}}
+					onSetHeight={setSuspensionHeight}
+					snackBar={showSnackbar}
 				/>
 			);
 		default:

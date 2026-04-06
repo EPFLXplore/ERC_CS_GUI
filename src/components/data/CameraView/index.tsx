@@ -32,11 +32,20 @@ const CameraView = ({
 	showRemoveButton?: boolean;
 	onRemoveCam?: (index: number) => void;
 }) => {
+	const getGridDimensions = (count: number): { cols: number; rows: number } => {
+		if (count <= 1) return { cols: 1, rows: 1 };
+		if (count === 2) return { cols: 2, rows: 1 };
+		if (count <= 4) return { cols: 2, rows: 2 };
+		if (count <= 6) return { cols: 3, rows: 2 };
+		if (count <= 9) return { cols: 3, rows: 3 };
+		return { cols: 4, rows: Math.ceil(count / 4) };
+	};
 
 	const next90 = (deg: number) => ((deg ?? 0) + 90) % 360;
 	const ensureLen = (arr: number[], n: number) =>
   		Array.from({ length: n }, (_, i) => (arr?.[i] ?? 0));
 	const cameraCount = Math.max(images.length, topicNames.length, currentCam.length);
+	const gridLayout = getGridDimensions(cameraCount);
 	const selectorLabel = currentCam.length === 1 ? currentCam[0] ?? "No Camera" : "Multi Cam";
 	const renderSelector = () =>
 		showSelector ? <CameraSelector currentCam={selectorLabel} changeCam={changeCam} /> : null;
@@ -52,7 +61,13 @@ const CameraView = ({
 		return (
 			<div className={styles.Container}>
 				{renderSelector()}
-				<div className={styles.GridWrapper}>
+				<div
+					className={styles.GridWrapper}
+					style={{
+						gridTemplateColumns: `repeat(${gridLayout.cols}, minmax(0, 1fr))`,
+						gridTemplateRows: `repeat(${gridLayout.rows}, minmax(0, 1fr))`,
+					}}
+				>
 					{Array.from({ length: cameraCount }, (_, i) => (
 						<div key={i} className={styles.GridItem}>
 							<div className={styles.GridImageWrapper}>
@@ -196,7 +211,13 @@ const CameraView = ({
 		return (
 			<div className={styles.Container}>
 				{renderSelector()}
-				<div className={styles.GridWrapper}>
+				<div
+					className={styles.GridWrapper}
+					style={{
+						gridTemplateColumns: `repeat(${gridLayout.cols}, minmax(0, 1fr))`,
+						gridTemplateRows: `repeat(${gridLayout.rows}, minmax(0, 1fr))`,
+					}}
+				>
 					{Array.from({ length: cameraCount }, (_, i) => (
 						<div key={i} className={styles.GridItem}>
 							<div className={styles.GridImageWrapper}>

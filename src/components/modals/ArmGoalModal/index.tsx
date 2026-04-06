@@ -2,6 +2,9 @@ import React from "react";
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
+import PreviousIcon from "../../../assets/images/icons/previous.svg";
+import PauseIcon from "../../../assets/images/icons/pause.svg";
+import NextIcon from "../../../assets/images/icons/next.svg";
 
 /*
 Author: Ugo Balducci
@@ -82,6 +85,7 @@ function ArmGoalModal({
 	snackBar,
 	resetHdConfirmation,
 	onSendNamedPose,
+	onUpdateTaskCommand,
 }: {
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
@@ -89,6 +93,7 @@ function ArmGoalModal({
 	snackBar: (sev: AlertColor, mes: string) => void;
 	resetHdConfirmation: ((confirm: boolean) => void) | null;
 	onSendNamedPose: (poseName: string) => void;
+	onUpdateTaskCommand: (mode: 0 | 1 | 2) => void;
 }) {
 	const [tasks, setTasks] = React.useState<ArmTask[] | null>(null);
 
@@ -165,6 +170,35 @@ function ArmGoalModal({
 			>
 				<div className={styles.ModalHeader}>
 					<h1>Set Arm Task</h1>
+				</div>
+				<div className={styles.TaskControlBar}>
+					<button
+						type="button"
+						className={styles.TaskControlButton}
+						onClick={() => onUpdateTaskCommand(2)}
+						title="Previous Command"
+					>
+						<img src={PreviousIcon} alt="Previous" />
+						<span>Previous</span>
+					</button>
+					<button
+						type="button"
+						className={styles.TaskControlButton}
+						onClick={() => onUpdateTaskCommand(0)}
+						title="Pause Task"
+					>
+						<img src={PauseIcon} alt="Pause" />
+						<span>Pause</span>
+					</button>
+					<button
+						type="button"
+						className={styles.TaskControlButton}
+						onClick={() => onUpdateTaskCommand(1)}
+						title="Next Command"
+					>
+						<img src={NextIcon} alt="Next" />
+						<span>Next</span>
+					</button>
 				</div>
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
