@@ -35,7 +35,9 @@ export enum Topics {
     // ============================================
     DRILL_STATE = "/DRILL/State",                // 1Hz state summary (subscribe)
     DRILL_CMD = "/CS/DrillTerrain",              // Action: drill commands
-    DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode
+    DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode (DrillCSInterface)
+    /** Legacy: same srv/DrillMode if interface node is old or only SC name is advertised */
+    DRILL_CHANGE_MODE_LEGACY = "/SC/drill_mode_srv",
 
     // ============================================
     // ELECTRONICS (EL) Subsystem Interface

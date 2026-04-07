@@ -12,7 +12,8 @@ stringified and then converted to JSON again by us to access it easily.
 export interface SubsystemState {
     navigation: any;
     handling_device: any;
-    drill: any;
+    /** `undefined` until first `/DRILL/State` message (so UI can show NO DATA vs Disconnected). */
+    drill?: any;
     electronics: any;
     rover: any;  // Keep for global info if needed
 }
@@ -21,7 +22,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
     const [roverState, setRoverState] = useState<SubsystemState>({
         navigation: {},
         handling_device: {},
-        drill: {},
+        drill: undefined,
         electronics: {},
         rover: {}
     });
@@ -80,10 +81,22 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         // Drill state updates
         drillStateListener.subscribe((message) => {
-            const data = JSON.parse((message as any).data);
-            startTransition(() => 
-                setRoverState(prev => ({ ...prev, drill: data }))
-            );
+            try {
+                const raw = (message as any).data;
+                const data =
+                    typeof raw === "string"
+                        ? JSON.parse(raw)
+                        : raw && typeof raw === "object"
+                          ? raw
+                          : JSON.parse(String(raw));
+                if (data && typeof data === "object") {
+                    startTransition(() =>
+                        setRoverState((prev) => ({ ...prev, drill: data }))
+                    );
+                }
+            } catch (e) {
+                console.warn("[roverState] /DRILL/State parse failed:", e);
+            }
         });
 
         // Electronics state updates

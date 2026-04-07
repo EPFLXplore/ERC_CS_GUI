@@ -9,7 +9,7 @@ import States from "../data/states.type";
  *	roverState = {
  *		navigation: { ... },        // From /NAV/State (1 Hz)
  *		handling_device: { ... },   // From /HD/State (1 Hz)
- *		drill: { ... },            // From /DRILL/State (1 Hz)
+ *		drill: { ... } | undefined, // From /DRILL/State (1 Hz); undefined until first message
  *		electronics: { ... },      // From /EL/State (1 Hz)
  *		rover: { ... }             // Optional: from aggregator
  *	}
@@ -738,51 +738,89 @@ const getDustSensor = (data: any) => {
 
 //////////////////////// DRILL ////////////////////////
 
+/** True after at least one valid `/DRILL/State` message was applied (`drill` is no longer `undefined`). */
+const drillStateTopicSeen = (roverState: any): boolean =>
+	roverState != null && roverState.drill !== undefined;
+
 const getMotorModule = (data: any) => {
-	const drillData = getSubsystemData(data, 'drill');
-	
-	if (!drillData || !drillData['motors']) {
+	if (!drillStateTopicSeen(data)) {
 		return {
 			position: 0,
 			current: 0,
-			state: "NO DATA"
-		}
+			state: "NO DATA",
+		};
 	}
+
+	const drillData = getSubsystemData(data, "drill");
+	const motorModule = drillData?.motors?.motor_module;
+	if (!motorModule) {
+		return {
+			position: 0,
+			current: 0,
+			state: "Disconnected",
+		};
+	}
+
+	// Show telemetry from /DRILL/State even when subsystem mode is Off (interface still publishes motors).
+	const subsystemOff =
+		drillData?.state?.mode === States.OFF || String(drillData?.state?.mode).toLowerCase() === "off";
 
 	return {
-		position: Number(Number(drillData['motors']['motor_module']['position']).toFixed(2)),
-		current: Number(drillData['motors']['motor_module']['current']),
-		state: drillData['motors']['motor_module']['state'] ? "Connected" : "Disconnected"
-	}
-}
+		position: Number(Number(motorModule["position"]).toFixed(2)),
+		current: Number(motorModule["current"]),
+		state: subsystemOff
+			? "Off"
+			: motorModule["state"]
+				? "Connected"
+				: "Disconnected",
+	};
+};
 
 const getMotorDrill = (data: any) => {
-	const drillData = getSubsystemData(data, 'drill');
-	
-	if (!drillData || !drillData['motors']) {
+	if (!drillStateTopicSeen(data)) {
 		return {
 			speed: 0,
 			current: 0,
-			state: "NO DATA"
-		}
+			state: "NO DATA",
+		};
 	}
+
+	const drillData = getSubsystemData(data, "drill");
+	const motorDrill = drillData?.motors?.motor_drill;
+	if (!motorDrill) {
+		return {
+			speed: 0,
+			current: 0,
+			state: "Disconnected",
+		};
+	}
+
+	const subsystemOff =
+		drillData?.state?.mode === States.OFF || String(drillData?.state?.mode).toLowerCase() === "off";
 
 	return {
-		speed: Number(drillData['motors']['motor_drill']['speed']),
-		current: Number(drillData['motors']['motor_drill']['current']),
-		state: drillData['motors']['motor_drill']['state'] ? "Connected" : "Disconnected"
-	}
-}
+		speed: Number(motorDrill["speed"]),
+		current: Number(motorDrill["current"]),
+		state: subsystemOff
+			? "Off"
+			: motorDrill["state"]
+				? "Connected"
+				: "Disconnected",
+	};
+};
 
 const getStateFSM = (data: any) => {
-	const drillData = getSubsystemData(data, 'drill');
-	
-	if (!drillData || !drillData['state']) {
-		return "NO DATA"
+	if (!drillStateTopicSeen(data)) {
+		return "NO DATA";
 	}
 
-	return drillData['state']['state_fsm']
-}
+	const drillData = getSubsystemData(data, "drill");
+	if (!drillData?.state) {
+		return "NO DATA";
+	}
+
+	return drillData.state.state_fsm;
+};
 
 export {
 	getStateSystem,
