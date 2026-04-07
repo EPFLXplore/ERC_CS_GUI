@@ -109,6 +109,15 @@ class GamepadController {
 		return this.gamepadState;
 	}
 
+	public pollState(): GamepadControllerState | null {
+		if (!this.getGamepad() || !this.getIsConnected()) {
+			return this.gamepadState;
+		}
+
+		this.gamepadState = this.updateState();
+		return this.gamepadState;
+	}
+
 	public handleNavigation(
 		buttons: readonly boolean[],
 		axes: readonly number[]

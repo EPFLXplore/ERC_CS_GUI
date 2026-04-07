@@ -86,7 +86,7 @@ function useGamepad(
 	}, [ros, mode]);
 
 	const sendCommand = useCallback(() => {
-		const s = gamepad?.getState();
+		const s = gamepad?.pollState() ?? gamepad?.getState();
 		if (!gamepad?.getGamepad() || !s || !publisher) return;
 
 		if (mode === PublishTo.NAVIGATION) {

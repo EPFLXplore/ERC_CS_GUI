@@ -29,15 +29,24 @@ const TASK_PRESETS = [
 	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_other_1", "cs_other_2", "cs_st_0"] },
 ] as const;
 
+const getDefaultRotationByCameraId = (cameraId: string): number => {
+	if (cameraId === "hd_gripper") {
+		return 180;
+	}
+
+	return 0;
+};
+
+const getDefaultRotations = (cameraIds: readonly string[]): number[] =>
+	cameraIds.map((cameraId) => getDefaultRotationByCameraId(cameraId));
+
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
 	const allCameraIds = useMemo(() => CAMERA_DEFS.map((camera) => camera.id), []);
 	const [viewMode, setViewMode] = useState<"all" | "custom">("all");
 	const [customCameraIds, setCustomCameraIds] = useState<string[]>(allCameraIds);
-	const [rotateCams, setRotateCams] = useState<number[]>(
-		Array.from({ length: allCameraIds.length }, () => 0)
-	);
+	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
 
 	const displayedCameraIds = viewMode === "all" ? allCameraIds : customCameraIds;
 	const displayedCameras = useMemo(
@@ -57,12 +66,13 @@ const CamerasPage = () => {
 		const asSet = new Set(cameraIds);
 		const ordered = allCameraIds.filter((id) => asSet.has(id));
 		setCustomCameraIds(ordered);
-		setRotateCams(Array.from({ length: ordered.length }, () => 0));
+		setRotateCams(getDefaultRotations(ordered));
 	};
 
 	const switchToAll = () => {
 		setViewMode("all");
 		setCustomCameraIds(allCameraIds);
+		setRotateCams(getDefaultRotations(allCameraIds));
 	};
 
 	const toggleSingleCamera = (cameraId: string) => {
@@ -75,7 +85,7 @@ const CamerasPage = () => {
 			} else {
 				next = allCameraIds.filter((id) => previous.includes(id) || id === cameraId);
 			}
-			setRotateCams(Array.from({ length: next.length }, () => 0));
+			setRotateCams(getDefaultRotations(next));
 			return next;
 		});
 	};
