@@ -13,6 +13,9 @@ Year: 2023
 Description: Navigation Modal. You can send a nav2 position goal by writing the coordinates.
 */
 
+const ROVER_SPEED_MIN = 0;
+const ROVER_SPEED_MAX = 2.4;
+
 function NavigationGoalModal({
 	ros,
 	onSetGoal,
@@ -43,7 +46,17 @@ function NavigationGoalModal({
 	const [speedRover, setSpeedRover] = React.useState<number>(0.7);
 
 	const handleSpeedSubmit = () => {
-		if (speedRover <= 0.5) return;
+		if (
+			!Number.isFinite(speedRover) ||
+			speedRover < ROVER_SPEED_MIN ||
+			speedRover > ROVER_SPEED_MAX
+		) {
+			snackBar(
+				"error",
+				`Speed must be between ${ROVER_SPEED_MIN} and ${ROVER_SPEED_MAX} m/s`
+			);
+			return;
+		}
 		setSpeedRoverService(speedRover);
 		onClose();
 		snackBar("success", `Set Speed Rover to ${speedRover}`);
@@ -137,12 +150,30 @@ function NavigationGoalModal({
 				</div>
 
 				<div className={styles.ModalContent}>
+					<label
+						htmlFor="speed-rover"
+						style={{ fontWeight: 600, fontSize: "1.15rem", textAlign: "center" }}
+					>
+						Speed (m/s, {ROVER_SPEED_MIN}–{ROVER_SPEED_MAX})
+					</label>
 					<div className={styles.SpeedRoverSection}>
 						<input
+							id="speed-rover"
 							type="number"
 							className={styles.SpeedRoverInput}
+							min={ROVER_SPEED_MIN}
+							max={ROVER_SPEED_MAX}
+							step={0.1}
 							value={speedRover}
-							onChange={(e) => setSpeedRover(parseFloat(e.target.value))}
+							onChange={(e) => {
+								const raw = e.target.value;
+								if (raw === "") {
+									setSpeedRover(0);
+									return;
+								}
+								const v = parseFloat(raw);
+								if (!Number.isNaN(v)) setSpeedRover(v);
+							}}
 							placeholder="Enter speed"
 						/>
 						<button
