@@ -8,7 +8,7 @@ import States from "../data/states.type";
  *
  *	roverState = {
  *		navigation: { ... },        // From /NAV/State (1 Hz)
- *		handling_device: { ... },   // From /HD/State (1 Hz)
+ *		handling_device: { ... },   // From /HD/State (~2 Hz)
  *		drill: { ... } | undefined, // From /DRILL/State (1 Hz); undefined until first message
  *		electronics: { ... },      // From /EL/State (1 Hz)
  *		rover: { ... }             // Optional: from aggregator
@@ -20,6 +20,18 @@ import States from "../data/states.type";
  */
 
 import SubSystems from "../data/subsystems.type";
+import { roundToTwoDecimals } from "./maths";
+
+/** HD /HD/State `joints` keys in UI order (J1–J6 + gripper). */
+const HD_JOINT_VELOCITY_KEYS = [
+	"joint_0",
+	"joint_1",
+	"joint_2",
+	"joint_3",
+	"joint_4",
+	"joint_5",
+	"gripper",
+] as const;
 
 
 //////////////////////// HELPER: Graceful Access ////////////////////////
@@ -522,21 +534,16 @@ const getJointsPositions = (data: any) => {
 };
 
 const getJointsCurrent = (data: any) => {
-	const hdData = getSubsystemData(data, 'handling_device');
-	
-	if (!hdData || !hdData['joints']) {
+	const hdData = getSubsystemData(data, "handling_device");
+
+	if (!hdData || !hdData["joints"]) {
 		return [0, 0, 0, 0, 0, 0, 0];
 	}
 
 	const joints = hdData["joints"];
-	const currents = [];
-
-	for (const joint in joints) {
-		// HDS interface no longer provides current; velocity (rad/s) is shown instead
-		currents.push(Number(joints[joint]?.["velocity"] ?? 0));
-	}
-
-	return currents;
+	return HD_JOINT_VELOCITY_KEYS.map((key) =>
+		roundToTwoDecimals(Number(joints[key]?.["velocity"] ?? 0))
+	);
 };
 
 const getTotalJointsCurrent = (data: any) => {
@@ -544,23 +551,18 @@ const getTotalJointsCurrent = (data: any) => {
 };
 
 const getJointsStates = (data: any) => {
-	const hdData = getSubsystemData(data, 'handling_device');
-	
-	if (!hdData || !hdData['joints']) {
+	const hdData = getSubsystemData(data, "handling_device");
+
+	if (!hdData || !hdData["joints"]) {
 		return ["NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA", "NO DATA"];
 	}
 
 	const joints = hdData["joints"];
-	const states = [];
-
-	for (const joint in joints) {
-		// HDS interface (sensor_msgs/JointState) no longer provides mode_motor.
-		// A joint entry with a position field means the motor is reporting telemetry.
-		const hasData = joints[joint] != null && "position" in joints[joint];
-		states.push(hasData ? "Connected" : "Disconnected");
-	}
-
-	return states;
+	return HD_JOINT_VELOCITY_KEYS.map((joint) => {
+		const j = joints[joint];
+		const hasData = j != null && "position" in j;
+		return hasData ? "Connected" : "Disconnected";
+	});
 };
 
 const getTorqueGripper = (data: any) => {
@@ -581,6 +583,65 @@ const getTorqueGripper = (data: any) => {
 	// HDS interface no longer provides current; torque estimate unavailable
 	return (Number(gripperJoint["current"] ?? 0) * factor_conversion_to_torque).toFixed(2)
 }
+
+/** Parse `is_opening` from HD JSON (bool, 0/1, or string). */
+const parseGripperIsOpeningRaw = (raw: unknown): boolean | undefined => {
+	if (typeof raw === "boolean") return raw;
+	if (raw === 0 || raw === 1) return raw === 1;
+	if (raw === "true" || raw === "false") return raw === "true";
+	return undefined;
+};
+
+/** Top-level `gripper` in /HD/State JSON; fallback `state.gripper` if ever nested. */
+const getHdGripperMeta = (hdData: any): Record<string, unknown> | null => {
+	if (!hdData) return null;
+	const top = hdData.gripper;
+	if (top != null && typeof top === "object") return top as Record<string, unknown>;
+	const nested = hdData.state?.gripper;
+	if (nested != null && typeof nested === "object") return nested as Record<string, unknown>;
+	return null;
+};
+
+const getGripperIsOpening = (data: any): boolean | undefined => {
+	const hdData = getSubsystemData(data, "handling_device");
+	const g = getHdGripperMeta(hdData);
+	if (!g) return undefined;
+	return parseGripperIsOpeningRaw(g["is_opening"]);
+};
+
+/** Display string for telemetry boolean (explicit in UI). */
+const getGripperIsOpeningDisplay = (data: any): string => {
+	const v = getGripperIsOpening(data);
+	if (v === undefined) return "—";
+	return v ? "true" : "false";
+};
+
+/**
+ * Opening / Closing / Idle / NO DATA — uses `gripper.is_opening` when present;
+ * when `is_opening` is false, uses `joints.gripper.velocity` (negative = closing, zero = idle).
+ */
+const getGripperMotionState = (data: any): string => {
+	const hdData = getSubsystemData(data, "handling_device");
+	if (!hdData) return "NO DATA";
+
+	const opening = getGripperIsOpening(data);
+	const velRaw = hdData.joints?.gripper?.velocity;
+	const vel = velRaw === undefined || velRaw === null ? NaN : Number(velRaw);
+
+	if (opening === true) return "Opening";
+	if (opening === false) {
+		if (!Number.isNaN(vel) && vel < 0) return "Closing";
+		return "Idle";
+	}
+
+	if (hdData.joints?.gripper != null) {
+		if (!Number.isNaN(vel) && vel > 0) return "Opening";
+		if (!Number.isNaN(vel) && vel < 0) return "Closing";
+		return "Idle";
+	}
+
+	return "NO DATA";
+};
 
 const getCurrentHDTask = (data: any) => {
 	const hdData = getSubsystemData(data, 'handling_device');
@@ -858,6 +919,9 @@ export {
 	getTotalJointsCurrent,
 	getBatteryState,
 	getTorqueGripper,
+	getGripperIsOpening,
+	getGripperIsOpeningDisplay,
+	getGripperMotionState,
 	getBatteryVoltage,
 	getCameraStates
 };

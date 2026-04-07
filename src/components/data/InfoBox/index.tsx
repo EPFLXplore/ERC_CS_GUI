@@ -21,6 +21,8 @@ export interface Info {
 	name: string;
 	value: any;
 	unit?: string;
+	/** If true, do not append the ControllerInfoBox-level `unit` (e.g. boolean / text rows). */
+	hideUnit?: boolean;
 }
 
 interface InfoBoxProps {
@@ -155,8 +157,11 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 									<p className={styles.infoNameColoredGreen}>{info.connected}</p>
 
 								: <p className={styles.infoNameWeirdState}>{info.connected}</p>}
-								<p className={styles.infoValueController}>{`${info.info.value} 
-								${unit ?? (info.info.unit ?? "")}`}</p>
+								<p className={styles.infoValueController}>
+									{info.info.hideUnit
+										? `${info.info.value}`
+										: `${info.info.value} ${unit ?? (info.info.unit ?? "")}`}
+								</p>
 							</div>
 						);
 					})}

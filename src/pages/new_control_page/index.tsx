@@ -63,6 +63,8 @@ import {
 	getTotalJointsCurrent,
 	getBatteryState,
 	getTorqueGripper,
+	getGripperIsOpeningDisplay,
+	getGripperMotionState,
 	getBatteryVoltage,
 	getDustSensor,
 	getMassDrillSensor,
@@ -471,6 +473,14 @@ const NewControlPage = () => {
 						{ info: { name: "Joint 5", value: getJointsCurrent(roverState)[4] }, connected: getJointsStates(roverState)[4] },
 						{ info: { name: "Joint 6", value: getJointsCurrent(roverState)[5] }, connected: getJointsStates(roverState)[5] },
 						{ info: { name: "Gripper", value: getJointsCurrent(roverState)[6] }, connected: getJointsStates(roverState)[6] },
+						{
+							info: {
+								name: "Gripper is_opening",
+								value: getGripperIsOpeningDisplay(roverState),
+								hideUnit: true,
+							},
+							connected: getJointsStates(roverState)[6],
+						},
 					]}
 					unit="rad/s"
 				/>
@@ -532,6 +542,8 @@ const NewControlPage = () => {
 						{ name: "Joint 5", value: getJointsPositions(roverState)[4], unit: "°" },
 						{ name: "Joint 6", value: getJointsPositions(roverState)[5], unit: "°" },
 						{ name: "Gripper", value: getTorqueGripper(roverState), unit: "Nm" },
+						{ name: "Gripper is_opening", value: getGripperIsOpeningDisplay(roverState) },
+						{ name: "Gripper motion", value: getGripperMotionState(roverState) },
 					]}
 					warning={true}
 					triggerWarning={(x: number) => x > 300 || x < -300}
