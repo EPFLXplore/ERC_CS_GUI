@@ -113,7 +113,7 @@ Used in hooks and UI; keep in sync with how you refer to subsystems.
 ### `frontend/src/hooks/roverControlsHooks.ts`
 **Publishers and their message types:**
 
-- `Topics.NAV_CHANGE_SPEED` → `std_msgs/Float32`
+- `Topics.NAV_CHANGE_SPEED` → `/ROVER/change_NAV_speed`, `std_msgs/Float32` (matches NAV `DisplacementCmds` / `rover_change_nav_speed`)
 - `Topics.EL_MASS_TARE_DRILL` → `custom_msg/MassRequestDrill`
 - `Topics.EL_MASS_TARE_HD` → `custom_msg/MassRequestHD`
 - `Topics.SCREENSHOT_ALL_CAMS` → `std_msgs/Bool`

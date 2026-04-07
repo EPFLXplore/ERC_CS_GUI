@@ -79,26 +79,44 @@ const requestChangeMode = (
     };
   }
 
-  const changeModeService = new ROSLIB.Service({
-    ros: ros,
-    name: serviceName,
-    serviceType: serviceType,
-  });
+  const callModeService = (name: string, allowDrillLegacyFallback: boolean) => {
+    const changeModeService = new ROSLIB.Service({
+      ros: ros,
+      name: name,
+      serviceType: serviceType,
+    });
 
-  changeModeService.callService(
-    request,
-    (res) => {
-      if ((res as any)["error_type"] !== 0) {
-        snackBar("error", "Error: " + (res as any)["error_message"]);
-      } else {
-        // Success
-        snackBar("success", (res as any)["error_message"] || "Mode changed successfully");
+    changeModeService.callService(
+      request,
+      (res) => {
+        if ((res as any)["error_type"] !== 0) {
+          snackBar("error", "Error: " + (res as any)["error_message"]);
+        } else {
+          snackBar("success", (res as any)["error_message"] || "Mode changed successfully");
+        }
+      },
+      (err) => {
+        const errStr = String(err);
+        const looksLikeMissingService =
+          /does not exist|not\s+advertised|404|unknown\s+service/i.test(errStr);
+        const isDrillPrimaryMissing =
+          allowDrillLegacyFallback &&
+          !isCamera &&
+          request_mode.system === SubSystems.DRILL &&
+          name === Topics.DRILL_CHANGE_MODE &&
+          looksLikeMissingService;
+
+        if (isDrillPrimaryMissing) {
+          // Old stacks / missing DrillCSInterface: try science_interface_names service
+          callModeService(Topics.DRILL_CHANGE_MODE_LEGACY, false);
+          return;
+        }
+        snackBar("error", "ROS service error: " + errStr);
       }
-    },
-    (err) => {
-      snackBar("error", "ROS service error: " + err);
-    }
-  );
+    );
+  };
+
+  callModeService(serviceName, true);
 };
 
 export default requestChangeMode;

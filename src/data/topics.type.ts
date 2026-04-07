@@ -6,8 +6,8 @@ export enum Topics {
     // ============================================
     NAV_STATE = "/NAV/State",                         // 1Hz state summary (subscribe)
     NAV_GAMEPAD_CMDS = "/CS/GamepadCmdsNav",          // Gamepad commands (publish) - Direct to NAV interface
-    NAV_CHANGE_SPEED = "/NAV/ChangeSpeed",            // Speed adjustment (publish)
     ACTIVE_SUSPENSION_HEIGHT = "/NAV/ActiveSuspensionHeight", // Active suspension height command (publish)
+    NAV_CHANGE_SPEED = "/ROVER/change_NAV_speed", // NAV DisplacementCmds + rover_interface_names rover_change_nav_speed
     NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
     NAV_RESET_HOME = "/CS/ResetHomeNavMotors",       // Service: reset to home
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
@@ -37,7 +37,9 @@ export enum Topics {
     // ============================================
     DRILL_STATE = "/DRILL/State",                // 1Hz state summary (subscribe)
     DRILL_CMD = "/CS/DrillTerrain",              // Action: drill commands
-    DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode
+    DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode (DrillCSInterface)
+    /** Legacy: same srv/DrillMode if interface node is old or only SC name is advertised */
+    DRILL_CHANGE_MODE_LEGACY = "/SC/drill_mode_srv",
 
     // ============================================
     // ELECTRONICS (EL) Subsystem Interface
@@ -65,7 +67,7 @@ export enum Topics {
     CHANGE_MODE_RGB_NAV = "/NAV/ChangeModeRGB",  // RGB camera mode for NAV
     
     // Navigation speed change - Already defined as NAV_CHANGE_SPEED but used differently
-    CHANGE_SPEED_ROVER = "/NAV/ChangeSpeed",  // Speed adjustment topic
+    CHANGE_SPEED_ROVER = "/ROVER/change_NAV_speed",
     
     // Mass sensor services - Assigned to EL (Electronics)
     MASS_TARE_DRILL = "/EL/mass_req_drill",  // Already defined
