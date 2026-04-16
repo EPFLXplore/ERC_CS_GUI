@@ -27,6 +27,7 @@ import NavigationGoalModal from "../../components/modals/NavigationGoalModal";
 import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
+import ParametersModal from "../../components/modals/ParametersModal";
 import NodeModal from "../../components/modals/NodeModal";
 import ImageSelection from "../../components/data/ImageSelection";
 import GifOverlay from "../../components/data/GifView/GifOverlay";
@@ -934,6 +935,14 @@ const NewControlPage = () => {
 							className={styles.dockersAction}
 						/>
 						<QuickAction
+							onClick={() => displaySystemModal("parameters")}
+							selected={Boolean(systemsModalOpen["parameters"])}
+							running={States.OFF}
+							icon={CommandsIcon}
+							tooltip={"Parameters"}
+							className={styles.dockersAction}
+						/>
+						<QuickAction
 							onClick={() => displaySystemModal("cancel_all_actions")}
 							selected={false}
 							running={States.OFF}
@@ -1032,7 +1041,23 @@ const selectModal = (
 					snackBar={showSnackbar}
 					resetLeds={reset_leds}
 				/>
-			)
+			);
+
+		case "parameters":
+			return (
+				<ParametersModal
+					ros={ros}
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen["parameters"] = false;
+							return newModalOpen;
+						});
+					}}
+					snackBar={showSnackbar}
+				/>
+			);
 
 		case SubSystems.CAMERA:
 			return (

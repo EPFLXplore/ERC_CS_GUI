@@ -55,29 +55,31 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 				ros.getNodes(
 					(nodes) => {
 						console.log("All ROS nodes detected:", nodes);
+
+						const normalizedNodes = nodes.map((nodeName) => nodeName.toLowerCase());
 						
 						// Check if essential subsystem nodes are running
 						// Nodes might be named differently, so check for common patterns
-						const hasNAV = nodes.some(n => 
-							n.includes("/NAV") || 
-							n.includes("/nav") || 
+						const hasNAV = normalizedNodes.some(n => 
+							n.includes("/nav") ||
 							n.includes("navigation")
 						);
-						const hasHD = nodes.some(n => 
-							n.includes("/HD") || 
-							n.includes("/hd") || 
+						const hasHD = normalizedNodes.some(n => 
+							n.includes("/hd") ||
 							n.includes("handling")
 						);
-						const hasDRILL = nodes.some(n => 
-							n.includes("/DRILL") || 
+						const hasDRILL = normalizedNodes.some(n => 
 							n.includes("/drill") ||
-							n.includes("Drill")
+							n.includes("drill")
 						);
-						const hasEL = nodes.some(n => 
-							n.includes("/EL") || 
-							n.includes("/el") || 
+						const hasEL = normalizedNodes.some(n => 
+							n.includes("/el") ||
 							n.includes("electronics") ||
 							n.includes("avionics")
+						);
+
+						const hasRosapiInfra = normalizedNodes.some((n) =>
+							n.includes("rosapi") || n.includes("rosbridge")
 						);
 
 						// For development: consider connected if rosbridge is working
@@ -97,15 +99,15 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 							});
 							
 							clearInterval(check);
+						} else if (hasRosapiInfra) {
+							// rosapi/rosbridge only is still enough for CS features such as parameter editing.
+							setConnected(true);
+							clearInterval(check);
 						} else if (hasRosbridgeNodes) {
 							// Rosbridge is working but no subsystem nodes yet
 							num_checks++;
-							setConnected(true); // Allow UI to work for development/testing
-							
-							if (num_checks === 1) {
-								console.log("Rosbridge connected, waiting for subsystem nodes...");
-								snackBar("info", "Connected to ROS, but no subsystem interface nodes detected yet.");
-							}
+							setConnected(true);
+							console.log("Rosbridge connected, waiting for subsystem nodes...");
 							
 							// Stop checking after a while to avoid spamming
 							if (num_checks > 5) {

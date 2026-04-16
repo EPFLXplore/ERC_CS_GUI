@@ -30,6 +30,24 @@ function useRoverState(ros: ROSLIB.Ros | null) {
     useEffect(() => {
         if (!ros) return;
 
+        const parseStateMessage = (message: any, topicName: string) => {
+            try {
+                const raw = message?.data;
+                if (typeof raw === "string") {
+                    return JSON.parse(raw);
+                }
+
+                if (raw && typeof raw === "object") {
+                    return raw;
+                }
+
+                return JSON.parse(String(raw));
+            } catch (error) {
+                console.warn(`[roverState] ${topicName} parse failed:`, error, message);
+                return null;
+            }
+        };
+
         // Subscribe to each subsystem's 1Hz state topic
         const navStateListener = new ROSLIB.Topic({
             ros: ros,
@@ -65,18 +83,22 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         // Navigation state updates
         navStateListener.subscribe((message) => {
-            const data = JSON.parse((message as any).data);
-            startTransition(() => 
-                setRoverState(prev => ({ ...prev, navigation: data }))
-            );
+            const data = parseStateMessage(message, "/NAV/State");
+            if (data) {
+                startTransition(() =>
+                    setRoverState((prev) => ({ ...prev, navigation: data }))
+                );
+            }
         });
 
         // Handling Device state updates
         hdStateListener.subscribe((message) => {
-            const data = JSON.parse((message as any).data);
-            startTransition(() => 
-                setRoverState(prev => ({ ...prev, handling_device: data }))
-            );
+            const data = parseStateMessage(message, "/HD/State");
+            if (data) {
+                startTransition(() =>
+                    setRoverState((prev) => ({ ...prev, handling_device: data }))
+                );
+            }
         });
 
         // Drill state updates
@@ -101,10 +123,12 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         // Electronics state updates
         elecStateListener.subscribe((message) => {
-            const data = JSON.parse((message as any).data);
-            startTransition(() => 
-                setRoverState(prev => ({ ...prev, electronics: data }))
-            );
+            const data = parseStateMessage(message, "/EL/State");
+            if (data) {
+                startTransition(() =>
+                    setRoverState((prev) => ({ ...prev, electronics: data }))
+                );
+            }
         });
 
         return () => {

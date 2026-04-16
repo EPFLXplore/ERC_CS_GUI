@@ -1,0 +1,252 @@
+@import '../../../styles/variables.sass'
+
+.Background
+  position: fixed
+  top: 0
+  left: 0
+  width: 100%
+  height: 100%
+  background: rgba(0, 0, 0, 0.6)
+  backdrop-filter: blur(5px)
+  z-index: 100
+  display: flex
+  justify-content: center
+  align-items: center
+  padding: 20px
+
+.Modal
+  width: 100%
+  max-width: 1180px
+  max-height: 90%
+  background: rgba(62, 134, 191, 0.22)
+  backdrop-filter: blur(12px)
+  webkit-backdrop-filter: blur(12px)
+  border: 1px solid rgba(185, 228, 255, 0.35)
+  border-radius: 22px
+  padding: 24px
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35)
+  display: flex
+  flex-direction: column
+  overflow: hidden
+  gap: 16px
+
+.ModalHeader
+  text-align: center
+  color: white
+
+  h1
+    margin: 0
+    font-size: 1.6rem
+
+  p
+    margin: 8px 0 0 0
+    font-size: 0.95rem
+    opacity: 0.88
+
+.ModalContent
+  flex: 1
+  overflow-y: auto
+  padding-right: 6px
+  display: flex
+  flex-direction: column
+  gap: 18px
+
+.Toolbar
+  display: flex
+  flex-wrap: wrap
+  gap: 12px
+  justify-content: flex-end
+
+.NodeSection
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.NodeHeader
+  display: flex
+  justify-content: space-between
+  align-items: baseline
+  gap: 12px
+  color: rgba(255, 255, 255, 0.9)
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22)
+  padding-bottom: 6px
+
+  h2
+    margin: 0
+    font-size: 1.05rem
+
+  span
+    font-size: 0.82rem
+    text-transform: uppercase
+    letter-spacing: 0.04em
+
+.ParameterGrid
+  display: grid
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr))
+  gap: 12px
+
+.ParameterCard
+  border: 1px solid rgba(255, 255, 255, 0.22)
+  background: rgba(255, 255, 255, 0.06)
+  border-radius: 14px
+  padding: 14px
+  display: flex
+  flex-direction: column
+  gap: 12px
+
+.ParameterHeader
+  display: flex
+  justify-content: space-between
+  gap: 12px
+  align-items: flex-start
+  color: white
+
+  h3
+    margin: 0
+    font-size: 1rem
+
+  p
+    margin: 4px 0 0 0
+    font-size: 0.8rem
+    color: rgba(255, 255, 255, 0.72)
+    word-break: break-word
+
+.Badges
+  display: flex
+  gap: 8px
+  flex-wrap: wrap
+  justify-content: flex-end
+
+.TypeBadge,
+.DirtyBadge
+  border-radius: 999px
+  padding: 4px 8px
+  font-size: 0.74rem
+  font-weight: 700
+  text-transform: uppercase
+  letter-spacing: 0.03em
+
+.TypeBadge
+  border: 1px solid rgba(255, 255, 255, 0.22)
+  background: rgba(255, 255, 255, 0.08)
+  color: white
+
+.DirtyBadge
+  border: 1px solid rgba(255, 215, 0, 0.35)
+  background: rgba(255, 215, 0, 0.18)
+  color: #fff4c4
+
+.Typeboolean
+  background: rgba(112, 193, 255, 0.16)
+
+.Typenumber
+  background: rgba(116, 255, 169, 0.14)
+
+.Typestring
+  background: rgba(255, 255, 255, 0.1)
+
+.Typejson
+  background: rgba(255, 163, 112, 0.14)
+
+.ParameterEditor
+  display: flex
+  flex-direction: column
+  gap: 10px
+
+.CheckboxRow
+  display: flex
+  align-items: center
+  gap: 10px
+  color: white
+  font-size: 0.92rem
+  font-weight: 600
+
+  input
+    width: 18px
+    height: 18px
+    accent-color: #b9e4ff
+
+.Input,
+.Textarea
+  width: 100%
+  border: 1px solid rgba(255, 255, 255, 0.25)
+  background: rgba(10, 16, 26, 0.42)
+  color: white
+  border-radius: 10px
+  padding: 10px 12px
+  font-size: 0.92rem
+  outline: none
+
+.Textarea
+  min-height: 108px
+  resize: vertical
+  line-height: 1.4
+
+.LiveValue
+  display: flex
+  flex-direction: column
+  gap: 4px
+  border-radius: 10px
+  border: 1px solid rgba(255, 255, 255, 0.14)
+  background: rgba(0, 0, 0, 0.2)
+  padding: 8px 10px
+  color: rgba(255, 255, 255, 0.88)
+
+  span
+    font-size: 0.72rem
+    text-transform: uppercase
+    letter-spacing: 0.04em
+    opacity: 0.82
+
+  pre
+    margin: 0
+    white-space: pre-wrap
+    word-break: break-word
+    font-size: 0.84rem
+    line-height: 1.35
+
+.Error
+  border-radius: 10px
+  border: 1px solid rgba(255, 99, 99, 0.35)
+  background: rgba(255, 99, 99, 0.12)
+  color: #ffd7d7
+  padding: 8px 10px
+  font-size: 0.84rem
+
+.EmptyState
+  color: rgba(255, 255, 255, 0.88)
+  border: 1px dashed rgba(255, 255, 255, 0.25)
+  border-radius: 16px
+  padding: 24px
+  text-align: center
+  background: rgba(255, 255, 255, 0.04)
+
+  p
+    margin: 0
+
+  p + p
+    margin-top: 6px
+    opacity: 0.82
+
+.ModalFooter
+  display: flex
+  justify-content: center
+  gap: 16px
+  flex-wrap: wrap
+
+  button
+    min-width: 160px
+    border-radius: 10px
+    padding: 10px 14px
+    border: none
+    cursor: pointer
+    font-size: 0.95rem
+    font-weight: 700
+
+.PrimaryColor
+  background: $primaryColor
+  color: white
+
+.SecondaryColor
+  background: rgba(255, 255, 255, 0.2)
+  color: white
