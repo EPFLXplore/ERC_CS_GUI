@@ -20,6 +20,7 @@ const CameraView = ({
 	showSelector = true,
 	showRemoveButton = false,
 	onRemoveCam,
+	gridLayoutOverride,
 }: {
 	images: Array<string>;
 	rotate?: number[];
@@ -31,6 +32,7 @@ const CameraView = ({
 	showSelector?: boolean;
 	showRemoveButton?: boolean;
 	onRemoveCam?: (index: number) => void;
+	gridLayoutOverride?: { cols: number; rows: number };
 }) => {
 	const getGridDimensions = (count: number): { cols: number; rows: number } => {
 		if (count <= 1) return { cols: 1, rows: 1 };
@@ -45,7 +47,7 @@ const CameraView = ({
 	const ensureLen = (arr: number[], n: number) =>
   		Array.from({ length: n }, (_, i) => (arr?.[i] ?? 0));
 	const cameraCount = Math.max(images.length, topicNames.length, currentCam.length);
-	const gridLayout = getGridDimensions(cameraCount);
+	const gridLayout = gridLayoutOverride ?? getGridDimensions(cameraCount);
 	const selectorLabel = currentCam.length === 1 ? currentCam[0] ?? "No Camera" : "Multi Cam";
 	const renderSelector = () =>
 		showSelector ? <CameraSelector currentCam={selectorLabel} changeCam={changeCam} /> : null;

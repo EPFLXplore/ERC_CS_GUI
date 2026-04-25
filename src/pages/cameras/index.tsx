@@ -20,8 +20,11 @@ const CAMERA_DEFS = [
 	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
 ] as const;
 
+type CameraId = (typeof CAMERA_DEFS)[number]["id"];
+
 const TASK_PRESETS = [
 	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right", "nav_aux"] },
+	{ label: "Panorama", cameraIds: ["nav_left", "nav_front", "nav_right"], gridLayout: { cols: 3, rows: 1 } },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
@@ -43,15 +46,20 @@ const getDefaultRotations = (cameraIds: readonly string[]): number[] =>
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
-	const allCameraIds = useMemo(() => CAMERA_DEFS.map((camera) => camera.id), []);
+	const allCameraIds = useMemo<CameraId[]>(() => CAMERA_DEFS.map((camera) => camera.id), []);
 	const [viewMode, setViewMode] = useState<"all" | "custom">("all");
-	const [customCameraIds, setCustomCameraIds] = useState<string[]>(allCameraIds);
+	const [customCameraIds, setCustomCameraIds] = useState<CameraId[]>(allCameraIds);
 	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
+	const [gridLayoutOverride, setGridLayoutOverride] = useState<{ cols: number; rows: number } | undefined>(undefined);
 
 	const displayedCameraIds = viewMode === "all" ? allCameraIds : customCameraIds;
+	const cameraById = useMemo(
+		() => Object.fromEntries(CAMERA_DEFS.map((camera) => [camera.id, camera])) as Record<CameraId, (typeof CAMERA_DEFS)[number]>,
+		[]
+	);
 	const displayedCameras = useMemo(
-		() => CAMERA_DEFS.filter((camera) => displayedCameraIds.includes(camera.id)),
-		[displayedCameraIds]
+		() => displayedCameraIds.map((id) => cameraById[id]).filter(Boolean),
+		[cameraById, displayedCameraIds]
 	);
 	const activeTopics = useMemo(
 		() => displayedCameras.map((camera) => camera.topic),
@@ -61,22 +69,24 @@ const CamerasPage = () => {
 	const images = displayedCameras.map((camera) => imagesByTopic[camera.topic] ?? "");
 	const topicNames = displayedCameras.map((camera) => camera.name);
 
-	const setCustomLayout = (cameraIds: readonly string[]) => {
+	const setCustomLayout = (cameraIds: readonly CameraId[], layout?: { cols: number; rows: number }) => {
 		setViewMode("custom");
-		const asSet = new Set(cameraIds);
-		const ordered = allCameraIds.filter((id) => asSet.has(id));
+		const ordered = cameraIds.filter((id) => allCameraIds.includes(id));
 		setCustomCameraIds(ordered);
 		setRotateCams(getDefaultRotations(ordered));
+		setGridLayoutOverride(layout);
 	};
 
 	const switchToAll = () => {
 		setViewMode("all");
 		setCustomCameraIds(allCameraIds);
 		setRotateCams(getDefaultRotations(allCameraIds));
+		setGridLayoutOverride(undefined);
 	};
 
-	const toggleSingleCamera = (cameraId: string) => {
+	const toggleSingleCamera = (cameraId: CameraId) => {
 		setViewMode("custom");
+		setGridLayoutOverride(undefined);
 		setCustomCameraIds((previous) => {
 			const isActive = previous.includes(cameraId);
 			let next = previous;
@@ -92,6 +102,7 @@ const CamerasPage = () => {
 
 	const removeCameraByIndex = (index: number) => {
 		setViewMode("custom");
+		setGridLayoutOverride(undefined);
 		setCustomCameraIds((previous) => {
 			const idToRemove = displayedCameras[index]?.id;
 			if (!idToRemove) {
@@ -147,7 +158,7 @@ const CamerasPage = () => {
 							type="button"
 							key={preset.label}
 							className={styles.hubButton}
-							onClick={() => setCustomLayout(preset.cameraIds)}
+							onClick={() => setCustomLayout(preset.cameraIds, "gridLayout" in preset ? preset.gridLayout : undefined)}
 						>
 							{preset.label}
 						</button>
@@ -162,6 +173,7 @@ const CamerasPage = () => {
 						topicNames={topicNames}
 						changeCam={() => {}}
 						forceGrid={true}
+						gridLayoutOverride={gridLayoutOverride}
 						showSelector={false}
 						showRemoveButton={true}
 						onRemoveCam={removeCameraByIndex}
