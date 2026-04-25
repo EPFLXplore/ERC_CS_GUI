@@ -15,6 +15,11 @@ const STATE_TO_MODE_INT: Record<string, number> = {
   [States.ON]: 1,            // Drill: On -> 1
 };
 
+const SUBSYSTEM_TO_SYSTEM_INT: Record<string, number> = {
+  [SubSystems.NAGIVATION]: 0,
+  [SubSystems.HANDLING_DEVICE]: 1,
+};
+
 // Map subsystems to their direct service topics (no ROVER middleman)
 const SUBSYSTEM_MODE_SERVICES: Record<string, { topic: string; type: string }> = {
   [SubSystems.NAGIVATION]: {
@@ -74,9 +79,15 @@ const requestChangeMode = (
 
     serviceName = serviceConfig.topic;
     serviceType = serviceConfig.type;
-    request = {
-      mode: modeInt,  // Send integer (0, 1, 2, 3) to backend
-    };
+    request =
+      serviceType === "custom_msg/srv/ChangeModeSystem"
+        ? {
+            system: SUBSYSTEM_TO_SYSTEM_INT[request_mode.system] ?? 0,
+            mode: modeInt, // Send integer (0, 1, 2, 3) to backend
+          }
+        : {
+            mode: modeInt,
+          };
   }
 
   const callModeService = (name: string, allowDrillLegacyFallback: boolean) => {

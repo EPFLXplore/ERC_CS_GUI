@@ -48,6 +48,7 @@ import {
 	getWheelsDrivingValue,
 	getBatteryLevel,
 	getDrivingState,
+	getSteeringState,
 	getJointsStates,
 	getJointsCurrent,
 	getCurrentDriving,
@@ -450,10 +451,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Steering Currents"
 					infos={[
-						{ info: { name: "Front Left", value: getCurrentSteering(roverState)[0] }, connected: getDrivingState(roverState)[0] },
-						{ info: { name: "Front Right", value: getCurrentSteering(roverState)[1] }, connected: getDrivingState(roverState)[1] },
-						{ info: { name: "Back Right", value: getCurrentSteering(roverState)[2] }, connected: getDrivingState(roverState)[2] },
-						{ info: { name: "Back Left", value: getCurrentSteering(roverState)[3] }, connected: getDrivingState(roverState)[3] },
+						{ info: { name: "Front Left", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
+						{ info: { name: "Front Right", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
+						{ info: { name: "Back Right", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
+						{ info: { name: "Back Left", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
 					]}
 					unit="mA"
 				/>

@@ -197,11 +197,18 @@ class GamepadController {
 				const axisProfile = profile.axes[parseInt(axis)];
 				if (axisProfile.type === "axis") {
 					let normalizedAxis = 0
-					if(axisProfile.axis == 2 || axisProfile.axis == 5) {
-						normalizedAxis = (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
+					// Trigger-like axes rest at one edge of the range (e.g. PS4/Chrome/Linux
+					// LT/RT on raw axes 2 and 5), so they normalize to 0..1. Stick-like axes
+					// rest at the midpoint and normalize to -1..1. Detect which kind this is
+					// from the profile itself rather than the raw axis index, otherwise a
+					// stick that happens to live on axis 2 or 5 (e.g. Xbox/Chrome/Linux right
+					// stick X) gets treated as a trigger and sits stuck at +0.5 when centered.
+					const isTriggerLikeAxis = axisProfile.zeroAxisRange === axisProfile.minAxisRange;
+					if (isTriggerLikeAxis) {
+						normalizedAxis = (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange -
 							axisProfile.minAxisRange)
 					} else {
-						normalizedAxis = (2 * (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange - 
+						normalizedAxis = (2 * (axes[axisProfile.axis] - axisProfile.minAxisRange) / (axisProfile.maxAxisRange -
 							axisProfile.minAxisRange)) - 1
 					}
 
