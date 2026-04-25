@@ -49,6 +49,14 @@ const LIST_PARAMETERS_SERVICE_TYPES = [
 	"rcl_interfaces/srv/ListParameters",
 	"rcl_interfaces/ListParameters",
 ] as const;
+const TOPICS_SERVICE_FALLBACKS = [
+	{ name: "/rosapi/topics", serviceType: "rosapi_msgs/srv/Topics" },
+	{ name: "rosapi/topics", serviceType: "rosapi_msgs/srv/Topics" },
+	{ name: "/topics", serviceType: "rosapi_msgs/srv/Topics" },
+	{ name: "/rosapi/topics", serviceType: "rosapi/Topics" },
+	{ name: "rosapi/topics", serviceType: "rosapi/Topics" },
+	{ name: "/topics", serviceType: "rosapi/Topics" },
+] as const;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
 	return new Promise((resolve, reject) => {
@@ -111,6 +119,42 @@ function sleep(milliseconds: number): Promise<void> {
 	return new Promise((resolve) => {
 		setTimeout(resolve, milliseconds);
 	});
+}
+
+async function getAvailableTopics(ros: ROSLIB.Ros): Promise<string[]> {
+	for (const fallback of TOPICS_SERVICE_FALLBACKS) {
+		try {
+			const response = await withTimeout(
+				callService<Record<string, never>, { topics?: string[] }>(
+					ros,
+					fallback.name,
+					fallback.serviceType,
+					{}
+				),
+				PARAM_NAME_QUERY_TIMEOUT_MS,
+				`callService(${fallback.name})`
+			);
+
+			const topics = Array.isArray(response?.topics) ? response.topics.filter((topic) => typeof topic === "string") : [];
+			if (topics.length > 0) {
+				return Array.from(new Set(topics));
+			}
+		} catch {
+			// Try next fallback
+		}
+	}
+
+	return [];
+}
+
+function extractTopicScope(pathValue: string): string {
+	if (!pathValue) {
+		return "";
+	}
+
+	const normalized = pathValue.startsWith("/") ? pathValue.slice(1) : pathValue;
+	const firstSegment = normalized.split("/")[0];
+	return firstSegment || "";
 }
 
 function normalizeServiceName(serviceName: string): string {
@@ -366,6 +410,22 @@ function coerceDraftValue(draft: string, kind: ParameterKind) {
 	return JSON.parse(draft);
 }
 
+function valuesMatch(left: unknown, right: unknown): boolean {
+	if (left === right) {
+		return true;
+	}
+
+	if (typeof left === "number" && typeof right === "number" && Number.isNaN(left) && Number.isNaN(right)) {
+		return true;
+	}
+
+	try {
+		return JSON.stringify(left) === JSON.stringify(right);
+	} catch {
+		return false;
+	}
+}
+
 function ParametersModal({
 	ros,
 	onClose,
@@ -379,6 +439,8 @@ function ParametersModal({
 	const [isRefreshing, setIsRefreshing] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [statusMessage, setStatusMessage] = useState("Load parameter names to begin editing.");
+	const [availableTopicScopes, setAvailableTopicScopes] = useState<string[]>([]);
+	const [selectedTopicScope, setSelectedTopicScope] = useState("all");
 	const refreshTokenRef = useRef(0);
 	const parametersRef = useRef<ParameterMap>({});
 
@@ -407,6 +469,57 @@ function ParametersModal({
 
 		return grouped;
 	}, [parameters]);
+
+	const filteredGroupedParameters = useMemo(() => {
+		if (selectedTopicScope === "all") {
+			return groupedParameters;
+		}
+
+		const filtered = new Map<string, ParameterEntry[]>();
+
+		groupedParameters.forEach((entries, nodeName) => {
+			const filteredEntries = entries.filter((entry) => {
+				const nodeScope = extractTopicScope(entry.nodeName);
+				if (nodeScope === selectedTopicScope) {
+					return true;
+				}
+
+				const fullNameScope = extractTopicScope(entry.fullName);
+				return fullNameScope === selectedTopicScope;
+			});
+
+			if (filteredEntries.length > 0) {
+				filtered.set(nodeName, filteredEntries);
+			}
+		});
+
+		return filtered;
+	}, [groupedParameters, selectedTopicScope]);
+
+	const refreshTopicScopes = async () => {
+		if (!ros) {
+			setAvailableTopicScopes([]);
+			setSelectedTopicScope("all");
+			return;
+		}
+
+		try {
+			const topics = await getAvailableTopics(ros);
+			const scopes = Array.from(
+				new Set(
+					topics
+						.map((topic) => extractTopicScope(topic))
+						.filter((scope) => scope.length > 0)
+				)
+			).sort((left, right) => left.localeCompare(right));
+
+			setAvailableTopicScopes(scopes);
+			setSelectedTopicScope((current) => (current === "all" || scopes.includes(current) ? current : "all"));
+		} catch {
+			setAvailableTopicScopes([]);
+			setSelectedTopicScope("all");
+		}
+	};
 
 	const populateParameterValues = async (ros: ROSLIB.Ros, names: string[], requestToken: number) => {
 		const queue = [...names];
@@ -569,21 +682,49 @@ function ParametersModal({
 		const results = await Promise.allSettled(
 			dirtyEntries.map(async (entry) => {
 				const typedValue = coerceDraftValue(entry.draft, entry.kind);
-				const response = await callService<
-					{ name: string; value: string },
-					{ successful?: boolean; success?: boolean; reason?: string }
-				>(ros, SET_PARAM_SERVICE.name, SET_PARAM_SERVICE.serviceType, {
-					name: entry.fullName,
-					value: JSON.stringify(typedValue),
-				});
 
-				if (response?.successful === false || response?.success === false) {
-					throw new Error(response?.reason || "Parameter update rejected");
+				// This rosapi expects <node_name>:<param_name> and returns an empty response,
+				// so we verify by reading back the parameter value after each write attempt.
+				const candidatePayloads: string[] = [];
+				if (entry.kind === "number") {
+					const numericDraft = entry.draft.trim();
+					if (numericDraft.length > 0) {
+						candidatePayloads.push(numericDraft);
+					}
+
+					if (Number.isInteger(typedValue)) {
+						candidatePayloads.push(`${typedValue}.0`);
+					}
+				}
+
+				candidatePayloads.push(JSON.stringify(typedValue));
+				const uniquePayloads = Array.from(new Set(candidatePayloads));
+
+				let readBackValue: unknown = null;
+				for (const payload of uniquePayloads) {
+					await callService<
+						{ name: string; value: string },
+						{ successful?: boolean; success?: boolean; reason?: string }
+					>(ros, SET_PARAM_SERVICE.name, SET_PARAM_SERVICE.serviceType, {
+						name: entry.fullName,
+						value: payload,
+					});
+
+					readBackValue = await fetchParameterValue(ros, entry.fullName);
+					if (valuesMatch(readBackValue, typedValue)) {
+						break;
+					}
+				}
+
+				if (!valuesMatch(readBackValue, typedValue)) {
+					throw new Error(
+						`Write verification failed. Requested ${JSON.stringify(typedValue)}, got ${JSON.stringify(readBackValue)}.`
+					);
 				}
 
 				return {
 					fullName: entry.fullName,
-					typedValue,
+					typedValue: readBackValue,
 				};
 			})
 		);
@@ -628,6 +769,7 @@ function ParametersModal({
 
 	useEffect(() => {
 		if (ros) {
+			void refreshTopicScopes();
 			void refreshParameters();
 		}
 		// The modal is mounted only while open, so refreshing on mount keeps the panel in sync.
@@ -644,6 +786,16 @@ function ParametersModal({
 
 				<div className={styles.ModalContent}>
 					<div className={styles.Toolbar}>
+						<select
+							className={styles.FilterSelect}
+							value={selectedTopicScope}
+							onChange={(event) => setSelectedTopicScope(event.target.value)}
+						>
+							<option value="all">All topic scopes</option>
+							{availableTopicScopes.map((scope) => (
+								<option key={scope} value={scope}>{scope}</option>
+							))}
+						</select>
 						<button type="button" className={styles.SecondaryColor} onClick={refreshParameters} disabled={isRefreshing}>
 							{isRefreshing ? "Refreshing..." : "Refresh"}
 						</button>
@@ -652,13 +804,13 @@ function ParametersModal({
 						</button>
 					</div>
 
-					{groupedParameters.size === 0 ? (
+					{filteredGroupedParameters.size === 0 ? (
 						<div className={styles.EmptyState}>
-							<p>No parameters loaded yet.</p>
-							<p>Use refresh to query rosapi and populate the editable list.</p>
+							<p>No parameters match the current filter.</p>
+							<p>Use refresh or switch to "All topic scopes" to view more entries.</p>
 						</div>
 					) : (
-						Array.from(groupedParameters.entries()).map(([nodeName, entries]) => (
+						Array.from(filteredGroupedParameters.entries()).map(([nodeName, entries]) => (
 							<section key={nodeName} className={styles.NodeSection}>
 								<div className={styles.NodeHeader}>
 									<h2>{nodeName}</h2>
@@ -669,9 +821,9 @@ function ParametersModal({
 									{entries.map((entry) => (
 										<div key={entry.fullName} className={styles.ParameterCard}>
 											<div className={styles.ParameterHeader}>
-												<div>
-													<h3>{entry.paramName}</h3>
-													<p>{entry.fullName}</p>
+												<div className={styles.ParameterMeta}>
+													<h3 className={styles.ParameterName} title={entry.paramName}>{entry.paramName}</h3>
+													<p className={styles.ParameterFullName} title={entry.fullName}>{entry.fullName}</p>
 												</div>
 												<div className={styles.Badges}>
 													<span className={`${styles.TypeBadge} ${styles[`Type${entry.kind}`]}`}>{entry.kind}</span>

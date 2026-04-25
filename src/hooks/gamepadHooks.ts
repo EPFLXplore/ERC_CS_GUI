@@ -5,6 +5,12 @@ import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../utils/Gamepad/bindings";
 import States from "../data/states.type";
 import { Topics } from "../data/topics.type";
+import {
+	HD_BINDINGS_EVENT,
+	HdBindingsConfig,
+	applyHdBindingMap,
+	loadHdBindingsConfig,
+} from "../utils/hdBindingsConfig";
 
 export enum GamepadCommandState {
 	UI,
@@ -24,6 +30,7 @@ function useGamepad(
 	GamepadCommandState.UI
 	);
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
+	const [hdBindingsConfig, setHdBindingsConfig] = useState<HdBindingsConfig>(() => loadHdBindingsConfig());
 
 	// 1) Init gamepad & one-time listeners
 	useEffect(() => {
@@ -85,6 +92,24 @@ function useGamepad(
 
 	}, [ros, mode]);
 
+	useEffect(() => {
+		const syncBindings = () => {
+			setHdBindingsConfig(loadHdBindingsConfig());
+		};
+
+		const handleCustomEvent = () => {
+			syncBindings();
+		};
+
+		window.addEventListener(HD_BINDINGS_EVENT, handleCustomEvent as EventListener);
+		window.addEventListener("storage", syncBindings);
+
+		return () => {
+			window.removeEventListener(HD_BINDINGS_EVENT, handleCustomEvent as EventListener);
+			window.removeEventListener("storage", syncBindings);
+		};
+	}, []);
+
 	const sendCommand = useCallback(() => {
 		const s = gamepad?.pollState() ?? gamepad?.getState();
 		if (!gamepad?.getGamepad() || !s || !publisher) return;
@@ -96,20 +121,20 @@ function useGamepad(
 		} else if (mode === PublishTo.HANDLING_DEVICE) {
 
 			if (submode[1] === States.MANUAL_DIRECT) {
-			const msg = gamepad.handleDirectArm(s.buttons, s.axes);
-			//console.log("DIRECT")
-			publisher.publish(msg);
+				const remappedState = applyHdBindingMap(s.buttons, s.axes, hdBindingsConfig.direct);
+				const msg = gamepad.handleDirectArm(remappedState.buttons, remappedState.axes);
+				publisher.publish(msg);
 
 			} else {
 
-			const msg = gamepad.handleInverseArm(s.buttons, s.axes);
-			//console.log("INVERSE")
-			publisher.publish(msg);
+				const remappedState = applyHdBindingMap(s.buttons, s.axes, hdBindingsConfig.inverse);
+				const msg = gamepad.handleInverseArm(remappedState.buttons, remappedState.axes);
+				publisher.publish(msg);
 
 			}
 		}
 
-	}, [gamepad, publisher, mode, submode]);
+	}, [gamepad, publisher, mode, submode, hdBindingsConfig]);
 
 	const timerRef = useRef<number | null>(null);
 

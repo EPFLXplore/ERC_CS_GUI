@@ -19,6 +19,16 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
     // Helper to determine if wheel is moving significantly
     const isMoving = (speed: number) => Math.abs(speed) > 0.1;
 
+    const safeSteeringAngles = Array.from({ length: 4 }, (_, index) => {
+        const value = steeringAngles?.[index];
+        return Number.isFinite(value) ? Number(value) : 0;
+    });
+
+    const safeWheelSpeeds = Array.from({ length: 4 }, (_, index) => {
+        const value = wheelSpeeds?.[index];
+        return Number.isFinite(value) ? Number(value) : 0;
+    });
+
     return (
         <div className={styles.Container}>
             <svg viewBox="0 0 150 300" className={styles.Svg}>
@@ -38,13 +48,13 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </text>
 
                 {/* Front Left Wheel */}
-                <g transform={`translate(40, 100) rotate(${steeringAngles[0]- 90}, 0, 0)`}>
+                <g transform={`translate(40, 100) rotate(${safeSteeringAngles[0] - 90}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
                         width="40"
                         height="12"
-                        className={`${styles.Wheel} ${isMoving(wheelSpeeds[0]) ? styles.WheelActive : ''}`}
+                        className={`${styles.Wheel} ${isMoving(safeWheelSpeeds[0]) ? styles.WheelActive : ''}`}
                         rx="2"
                     />
                     {/* Direction indicator */}
@@ -60,13 +70,13 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </g>
 
                 {/* Front Right Wheel */}
-                <g transform={`translate(120, 100) rotate(${steeringAngles[1] - 90}, 0, 0)`}>
+                <g transform={`translate(120, 100) rotate(${safeSteeringAngles[1] - 90}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
                         width="40"
                         height="12"
-                        className={`${styles.Wheel} ${isMoving(wheelSpeeds[1]) ? styles.WheelActive : ''}`}
+                        className={`${styles.Wheel} ${isMoving(safeWheelSpeeds[1]) ? styles.WheelActive : ''}`}
                         rx="2"
                     />
                     <line
@@ -81,13 +91,13 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </g>
 
                 {/* Rear Right Wheel */}
-                <g transform={`translate(120, 200) rotate(${steeringAngles[2]- 90}, 0, 0)`}>
+                <g transform={`translate(120, 200) rotate(${safeSteeringAngles[2] - 90}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
                         width="40"
                         height="12"
-                        className={`${styles.Wheel} ${isMoving(wheelSpeeds[2]) ? styles.WheelActive : ''}`}
+                        className={`${styles.Wheel} ${isMoving(safeWheelSpeeds[2]) ? styles.WheelActive : ''}`}
                         rx="2"
                     />
                     <line
@@ -102,13 +112,13 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </g>
 
                 {/* Rear Left Wheel */}
-                <g transform={`translate(40, 200) rotate(${steeringAngles[3]- 90}, 0, 0)`}>
+                <g transform={`translate(40, 200) rotate(${safeSteeringAngles[3] - 90}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
                         width="40"
                         height="12"
-                        className={`${styles.Wheel} ${isMoving(wheelSpeeds[3]) ? styles.WheelActive : ''}`}
+                        className={`${styles.Wheel} ${isMoving(safeWheelSpeeds[3]) ? styles.WheelActive : ''}`}
                         rx="2"
                     />
                     <line

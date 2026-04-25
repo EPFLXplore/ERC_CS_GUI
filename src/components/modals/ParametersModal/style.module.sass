@@ -57,6 +57,16 @@
   gap: 12px
   justify-content: flex-end
 
+.FilterSelect
+  border: 1px solid rgba(255, 255, 255, 0.3)
+  background: rgba(10, 16, 26, 0.45)
+  color: white
+  border-radius: 10px
+  padding: 10px 12px
+  font-size: 0.9rem
+  min-width: 180px
+  outline: none
+
 .NodeSection
   display: flex
   flex-direction: column
@@ -110,6 +120,28 @@
     font-size: 0.8rem
     color: rgba(255, 255, 255, 0.72)
     word-break: break-word
+
+.ParameterMeta
+  display: flex
+  flex-direction: column
+  min-width: 0
+
+.ParameterName,
+.ParameterFullName
+  max-width: 20ch
+  white-space: nowrap
+  overflow-x: auto
+  overflow-y: hidden
+  scrollbar-width: thin
+
+.ParameterName::-webkit-scrollbar,
+.ParameterFullName::-webkit-scrollbar
+  height: 5px
+
+.ParameterName::-webkit-scrollbar-thumb,
+.ParameterFullName::-webkit-scrollbar-thumb
+  background: rgba(255, 255, 255, 0.35)
+  border-radius: 999px
 
 .Badges
   display: flex
@@ -204,6 +236,17 @@
     word-break: break-word
     font-size: 0.84rem
     line-height: 1.35
+    max-height: 3.5rem
+    overflow-y: auto
+    overflow-x: hidden
+    scrollbar-width: thin
+
+  pre::-webkit-scrollbar
+    width: 5px
+
+  pre::-webkit-scrollbar-thumb
+    background: rgba(255, 255, 255, 0.35)
+    border-radius: 999px
 
 .Error
   border-radius: 10px
