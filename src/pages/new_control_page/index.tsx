@@ -440,10 +440,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Driving Currents"
 					infos={[
-						{ info: { name: "Front Left", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
-						{ info: { name: "Front Right", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
-						{ info: { name: "Back Right", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
-						{ info: { name: "Back Left", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
+						{ info: { name: "FRONT_LEFT_DRIVE", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
+						{ info: { name: "FRONT_RIGHT_DRIVE", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
+						{ info: { name: "BACK_RIGHT_DRIVE", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
+						{ info: { name: "BACK_LEFT_DRIVE", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -455,10 +455,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Steering Currents"
 					infos={[
-						{ info: { name: "Front Left", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
-						{ info: { name: "Front Right", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
-						{ info: { name: "Back Right", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
-						{ info: { name: "Back Left", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
+						{ info: { name: "FRONT_LEFT_STEER", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
+						{ info: { name: "FRONT_RIGHT_STEER", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
+						{ info: { name: "BACK_RIGHT_STEER", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
+						{ info: { name: "BACK_LEFT_STEER", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
