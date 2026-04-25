@@ -10,6 +10,8 @@ import HDIcon from "../../assets/images/icons/handling_device.svg";
 import Stop from "../../assets/images/icons/stop.svg";
 import CommandsIcon from "../../assets/images/icons/setting.svg";
 import Drill from "../../assets/images/icons/drill.svg";
+import ParametersIcon from "../../assets/images/icons/parameters.svg";
+import BindingsIcon from "../../assets/images/icons/bindings.svg";
 import Suspension from "../../assets/images/icons/suspension.svg";
 import SystemMode from "../../components/Controls/SystemMode";
 import Science from "../../assets/images/icons/science.svg";
@@ -28,6 +30,7 @@ import ArmGoalModal from "../../components/modals/ArmGoalModal";
 import DrillGoalModal from "../../components/modals/DrillGoalModal";
 import ControlModal from "../../components/modals/ControlModal";
 import ParametersModal from "../../components/modals/ParametersModal";
+import BindingsModal from "../../components/modals/BindingsModal";
 import NodeModal from "../../components/modals/NodeModal";
 import ImageSelection from "../../components/data/ImageSelection";
 import GifOverlay from "../../components/data/GifView/GifOverlay";
@@ -84,6 +87,7 @@ import Gamepad from "../../components/Controls/Gamepad";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
 import SuspensionModal from "../../components/modals/SuspensionModal";
+import MicroscopeModal from "../../components/modals/MicroscopeModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
@@ -612,33 +616,69 @@ const NewControlPage = () => {
 				typeof getNodes(roverState) !== "string" ? (
 					<InfoBoxButton
 						title="ROS Nodes"
-						infos={[
-							{
-								name: "Navigation",
-								onClick: () => displayRosModal(SubSystems.NAGIVATION),
-								icon: CommandsIcon,
-							},
-							{
-								name: "Rover",
-								onClick: () => displayRosModal(SubSystems.ROVER),
-								icon: CommandsIcon,
-							},
-							{
-								name: "HD",
-								onClick: () => displayRosModal(SubSystems.HANDLING_DEVICE),
-								icon: CommandsIcon,
-							},
-							{
-								name: "Science",
-								onClick: () => displayRosModal(SubSystems.DRILL),
-								icon: CommandsIcon,
-							},
-							{
-								name: "Avionics",
-								onClick: () => displayRosModal(SubSystems.EL),
-								icon: CommandsIcon,
-							},
-						]}
+						infos={(() => {
+							const getNodeSummary = (subsystemKey: string) => {
+								const stateData = roverState as any;
+								const subsystem = stateData?.[subsystemKey];
+								const nodes = subsystem?.software?.nodes;
+								const cameras = subsystem?.cameras;
+
+								if ((!nodes || typeof nodes !== "object") && (!cameras || typeof cameras !== "object")) {
+									return { hasData: false, running: 0, total: 0 };
+								}
+
+								const nodeEntries = nodes && typeof nodes === "object" ? Object.values(nodes as Record<string, any>) : [];
+								const cameraEntries = cameras && typeof cameras === "object" ? Object.values(cameras as Record<string, any>) : [];
+								const entries = [...nodeEntries, ...cameraEntries];
+								if (entries.length === 0) {
+									return { hasData: false, running: 0, total: 0 };
+								}
+
+								const running = entries.reduce((count, node) => (node?.status ? count + 1 : count), 0);
+								return { hasData: true, running, total: entries.length };
+							};
+
+							const formatSubsystem = (
+								label: string,
+								subsystemKey: string,
+								onClick: () => void
+							) => {
+								const summary = getNodeSummary(subsystemKey);
+
+								if (!summary.hasData) {
+									return {
+										name: label,
+										summary: "NO DATA",
+										onClick,
+										color: "#ff9fa6",
+									};
+								}
+
+								const allRunning = summary.running === summary.total;
+								const noneRunning = summary.running === 0;
+
+								const color = allRunning
+									? "#9be8a6"
+									: noneRunning
+										? "#ff9fa6"
+										: "#ffc89e";
+
+								return {
+									name: label,
+									summary: `${summary.running}/${summary.total}`,
+									onClick,
+									color,
+								};
+							};
+
+							return [
+								formatSubsystem("Navigation", "navigation", () => displayRosModal(SubSystems.NAGIVATION)),
+								formatSubsystem("Rover", "rover", () => displayRosModal(SubSystems.ROVER)),
+								formatSubsystem("HD", "handling_device", () => displayRosModal(SubSystems.HANDLING_DEVICE)),
+								formatSubsystem("Science", "drill", () => displayRosModal(SubSystems.DRILL)),
+								formatSubsystem("Avionics", "electronics", () => displayRosModal(SubSystems.EL)),
+							];
+						})()}
 					/>
 				) : (
 					<InfoBox
@@ -884,99 +924,131 @@ const NewControlPage = () => {
 					</div>
 
 					<div className={styles.actions}>
-						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.CAMERA)}
-							selected={systemsModalOpen[SubSystems.CAMERA]}
-							running={"Off"}
-							icon={CameraIcon}
-							tooltip={"Camera"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.NAGIVATION)}
-							selected={systemsModalOpen[SubSystems.NAGIVATION]}
-							running={stateActions[SubSystems.NAGIVATION].action.state}
-							icon={NavIcon}
-							tooltip={"Navigation"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.HANDLING_DEVICE)}
-							selected={systemsModalOpen[SubSystems.HANDLING_DEVICE]}
-							running={stateActions[SubSystems.HANDLING_DEVICE].action.state}
-							icon={HDIcon}
-							tooltip={"Handling Device"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.DRILL)}
-							selected={systemsModalOpen[SubSystems.DRILL]}
-							running={stateActions[SubSystems.DRILL].action.state}
-							icon={Drill}
-							tooltip={"Drill"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("suspension")}
-							selected={systemsModalOpen["suspension"]}
-							running={States.OFF}
-							icon={Suspension}
-							tooltip={"Active Suspension"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal(SubSystems.SCIENCE)}
-							selected={systemsModalOpen[SubSystems.SCIENCE]}
-							running={States.OFF}
-							icon={Science}
-							tooltip={"Science"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("commands")}
-							selected={false}
-							running={States.OFF}
-							icon={CommandsIcon}
-							tooltip={"Dockers"}
-							className={styles.dockersAction}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("parameters")}
-							selected={Boolean(systemsModalOpen["parameters"])}
-							running={States.OFF}
-							icon={CommandsIcon}
-							tooltip={"Parameters"}
-							className={styles.dockersAction}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("cancel_all_actions")}
-							selected={false}
-							running={States.OFF}
-							icon={Canceled}
-							tooltip={"Cancel All Actions"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("record_sensors")}
-							selected={false}
-							running={recordSensors ? States.ON : States.OFF}
-							icon={Sensor}
-							tooltip={"Record Sensors"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("screenshot")}
-							selected={false}
-							running={States.OFF}
-							icon={Screenshot}
-							tooltip={"Screenshot all Cameras"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("reset_motors")}
-							selected={false}
-							running={States.OFF}
-							icon={ResetMotors}
-							tooltip={"Reset Motors Requested"}
-						/>
-						<QuickAction
-							onClick={() => displaySystemModal("emergency_shutdown")}
-							selected={false}
-							running={States.OFF}
-							icon={Stop}
-							tooltip={"Emergency Shutdown Requested"}
-						/>
+						<div className={styles.dockGroup}>
+							<div className={styles.dockGroupTitle}>UTILITIES</div>
+						<div className={styles.utilityActionsGroup}>
+							<QuickAction
+								onClick={() => displaySystemModal(SubSystems.CAMERA)}
+								selected={systemsModalOpen[SubSystems.CAMERA]}
+								running={"Off"}
+								icon={CameraIcon}
+								tooltip={"Camera"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("commands")}
+								selected={false}
+								running={States.OFF}
+								icon={CommandsIcon}
+								tooltip={"Dockers"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("parameters")}
+								selected={Boolean(systemsModalOpen["parameters"])}
+								running={States.OFF}
+								icon={ParametersIcon}
+								tooltip={"Parameters"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("bindings")}
+								selected={Boolean(systemsModalOpen["bindings"])}
+								running={States.OFF}
+								icon={BindingsIcon}
+								tooltip={"Bindings"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("record_sensors")}
+								selected={false}
+								running={recordSensors ? States.ON : States.OFF}
+								icon={Sensor}
+								tooltip={"Record Sensors"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("screenshot")}
+								selected={false}
+								running={States.OFF}
+								icon={Screenshot}
+								tooltip={"Screenshot all Cameras"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("microscope")}
+								selected={Boolean(systemsModalOpen["microscope"])}
+								running={States.OFF}
+								icon={CameraIcon}
+								tooltip={"Microscope"}
+							/>
+						</div>
+						</div>
+
+						<div className={styles.dockGroup}>
+							<div className={styles.dockGroupTitle}>REQUESTS</div>
+
+						<div className={styles.criticalActionsGroup}>
+							<QuickAction
+								onClick={() => displaySystemModal("cancel_all_actions")}
+								selected={false}
+								running={States.OFF}
+								icon={Canceled}
+								tooltip={"Cancel All Actions"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("reset_motors")}
+								selected={false}
+								running={States.OFF}
+								icon={ResetMotors}
+								tooltip={"Reset Motors Requested"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("emergency_shutdown")}
+								selected={false}
+								running={States.OFF}
+								icon={Stop}
+								tooltip={"Emergency Shutdown Requested"}
+							/>
+						</div>
+						</div>
+
+						<div className={styles.dockGroup}>
+							<div className={styles.dockGroupTitle}>SUBSYSTEMS</div>
+
+						<div className={styles.restActionsGroup}>
+							<QuickAction
+								onClick={() => displaySystemModal(SubSystems.NAGIVATION)}
+								selected={systemsModalOpen[SubSystems.NAGIVATION]}
+								running={stateActions[SubSystems.NAGIVATION].action.state}
+								icon={NavIcon}
+								tooltip={"Navigation"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal(SubSystems.HANDLING_DEVICE)}
+								selected={systemsModalOpen[SubSystems.HANDLING_DEVICE]}
+								running={stateActions[SubSystems.HANDLING_DEVICE].action.state}
+								icon={HDIcon}
+								tooltip={"Handling Device"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal(SubSystems.DRILL)}
+								selected={systemsModalOpen[SubSystems.DRILL]}
+								running={stateActions[SubSystems.DRILL].action.state}
+								icon={Drill}
+								tooltip={"Drill"}
+								className={styles.drillAction}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal("suspension")}
+								selected={systemsModalOpen["suspension"]}
+								running={States.OFF}
+								icon={Suspension}
+								tooltip={"Active Suspension"}
+							/>
+							<QuickAction
+								onClick={() => displaySystemModal(SubSystems.SCIENCE)}
+								selected={systemsModalOpen[SubSystems.SCIENCE]}
+								running={States.OFF}
+								icon={Science}
+								tooltip={"Science"}
+							/>
+						</div>
+						</div>
 					</div>
 					{modal}
 					{modalRosNodes}
@@ -1052,6 +1124,21 @@ const selectModal = (
 						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen["parameters"] = false;
+							return newModalOpen;
+						});
+					}}
+					snackBar={showSnackbar}
+				/>
+			);
+
+		case "bindings":
+			return (
+				<BindingsModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen["bindings"] = false;
 							return newModalOpen;
 						});
 					}}
@@ -1146,6 +1233,21 @@ const selectModal = (
 					}}
 					snackBar={showSnackbar}
 					resetSensors={resetSensors}
+				/>
+			);
+		case "microscope":
+			return (
+				<MicroscopeModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen["microscope"] = false;
+							return newModalOpen;
+						});
+					}}
+					ros={ros}
+					snackBar={showSnackbar}
 				/>
 			);
 

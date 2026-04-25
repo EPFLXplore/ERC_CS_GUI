@@ -40,8 +40,9 @@ export interface WheelsInfo {
 
 export interface RosNodesInfo {
 	name: string;
+	summary: string;
 	onClick: () => void;
-    icon: string;
+	color?: string;
 }
 
 const InfoBox: React.FC<InfoBoxProps> = ({
@@ -96,10 +97,11 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 					<p className={styles.cpuSectionTitle}>CPU cores</p>
 					<div className={styles.cpuCoreList}>
 						{usages.map((u, i) => {
+						const usage = Number.isFinite(u) ? Math.max(0, Math.min(100, u)) : 0
 						const cls =
-							u >= RED_THRESHOLD
+							usage >= RED_THRESHOLD
 							? styles.red
-							: u >= ORANGE_THRESHOLD
+							: usage >= ORANGE_THRESHOLD
 							? styles.orange
 							: styles.green
 
@@ -107,10 +109,15 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 							<div
 							key={i}
 							className={`${styles.cpuCore} ${cls}`}
-							title={`CPU ${i}: ${u}%`}
+							title={`CPU ${i}: ${usage}%`}
 							>
-								<span className={styles.cpuCoreLabel}>{`C${i + 1}`}</span>
-								<span className={styles.cpuCoreValue}>{`${Math.round(u)}%`}</span>
+								<div className={styles.cpuCoreTop}>
+									<span className={styles.cpuCoreLabel}>{`C${i + 1}`}</span>
+									<span className={styles.cpuCoreValue}>{`${Math.round(usage)}%`}</span>
+								</div>
+								<div className={styles.cpuBar}>
+									<div className={styles.cpuBarFill} style={{ width: `${usage}%` }} />
+								</div>
 							</div>
 						)
 						})}
@@ -145,8 +152,11 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 							<div className={styles.info} key={index}>
 								<p className={styles.infoName}>{info.info.name}</p>
 								
-								{(info.connected === "NO DATA" || info.connected === "Disconnected") ?
-									<p className={styles.infoNameColoredRed}>{info.connected}</p>
+								{info.connected === "NO DATA" ?
+									<p className={styles.infoNameNoData}>{info.connected}</p>
+
+								: info.connected === "Disconnected" ?
+									<p className={styles.infoNameNoData}>DISCONNECTED</p>
 
 								: (info.connected === HDMotorStates.Fault || info.connected === HDMotorStates.FaultReactionActive) ? 
 								<p className={styles.infoNameFault}>{info.connected}</p>
@@ -182,13 +192,13 @@ const InfoBoxButton = ({ title, infos }: { title: string; infos: RosNodesInfo[] 
 						{isCollapsed ? "Show" : "Hide"}
 					</button>
 				</div>
-				{!isCollapsed && <div className={styles.infoArrangement}>
+				{!isCollapsed && <div className={styles.rosNodeArrangement}>
 					{infos.map((info, index) => {
 						return (
-							<div className={styles.info} key={index}>
+							<div className={styles.rosNodeRow} key={index}>
 								<p className={styles.infoName}>{info.name}</p>
-							
-								<RosNodesButton onClick={info.onClick} icon={info.icon}/>
+								<p className={styles.rosNodeSummary} style={{ color: info.color ?? "" }}>{info.summary}</p>
+								<RosNodesButton onClick={info.onClick} label="info" />
 							</div>
 						);
 					})}

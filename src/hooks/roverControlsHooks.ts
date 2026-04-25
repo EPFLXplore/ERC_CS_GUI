@@ -53,6 +53,7 @@ const useRoverControls = (
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
 		[SubSystems.SCIENCE]: false,
+		["microscope"]: false,
 		["suspension"]: false,
 		["parameters"]: false,
 		["cancel"]: false,

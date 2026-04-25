@@ -8,17 +8,17 @@ Description: Button on the control page in the ROS node panel.
 
 function RosNodesButton({
 	onClick,
-	icon,
+	label,
 }: {
 	onClick: () => void;
-	icon: string;
+	label: string;
 }) {
 	return (
 		<div
 			className={styles.container}
 			onClick={onClick}
 		>
-			<img className={styles.icon} src={icon} alt="icon" />
+			<span className={styles.label}>{label}</span>
 		</div>
 	);
 }
