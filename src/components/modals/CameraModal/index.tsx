@@ -1,8 +1,10 @@
 import styles from "./style.module.sass";
-import { depth_cameras, allCameras} from "../../../data/cameras.type";
+import { depth_cameras, allCameras, NAV_CAMERA_NAV_INDEX } from "../../../data/cameras.type";
 import * as ROSLIB from "roslib";
 import React from "react";
 import { CameraType } from "../../../data/cameras.type";
+import SubSystems from "../../../data/subsystems.type";
+import useNavCameraBandwidth from "../../../hooks/useNavCameraBandwidth";
 
 /*
 Author: Giovanni Ranieri and Matas Jones
@@ -12,17 +14,21 @@ is red if the camera is publishing. White button means nothing, the camera node 
 necessarily running. Check instead on the ROS panel. The data rate is also shown. 
 */
 
-function dataRateDiv(cameraStates: any, camera: string) {
-
-	let rate = 0
-
-	const cameraState = cameraStates?.[camera];
-	if(cameraState?.status) {
-		rate = Math.round(Number(cameraState?.data_rate ?? 0))
+function dataRateDiv(
+	cameraStates: any,
+	camera: string,
+	liveNavMbps: number | undefined
+) {
+	let rate = 0;
+	if (liveNavMbps !== undefined) {
+		rate = Math.round(liveNavMbps);
 	} else {
-		rate = 0.0
+		const cameraState = cameraStates?.[camera];
+		if (cameraState?.status) {
+			rate = Math.round(Number(cameraState?.data_rate ?? 0));
+		}
 	}
-	let unit = "Mbps"
+	const unit = "Mbps";
 
 	return (
 		<div className={styles.dataRate}>
@@ -33,16 +39,19 @@ function dataRateDiv(cameraStates: any, camera: string) {
 
 
 function CameraModal({
+	ros,
 	cameraStates,
 	onClose,
 	onClick,
-	rgbOnClick
+	rgbOnClick,
 }: {
-	cameraStates: CameraType,
+	ros: ROSLIB.Ros | null;
+	cameraStates: CameraType;
 	onClose: () => void;
 	onClick: (subsystem: string, mode: string, activated: boolean) => void;
 	rgbOnClick: (subsystem: string, activate: boolean) => void; // button press -> change HD/NAV camera mode
 }) {
+	const navBwMbps = useNavCameraBandwidth(ros);
 
 	const [camera, clickedCamera] = React.useState<string | null>(null);
 
@@ -76,6 +85,12 @@ function CameraModal({
 										status: false,
 										data_rate: "0",
 									};
+									const navIdx =
+										subsystem === SubSystems.NAGIVATION
+											? NAV_CAMERA_NAV_INDEX[camera]
+											: undefined;
+									const liveNavMbps =
+										navIdx !== undefined ? navBwMbps[navIdx] : undefined;
 
 									return (
 									<React.Fragment key={camera}>
@@ -95,7 +110,7 @@ function CameraModal({
 										>
 											{camera}
 										</button>
-									{dataRateDiv(subsystemCameras ?? {}, camera)}
+									{dataRateDiv(subsystemCameras ?? {}, camera, liveNavMbps)}
 										</div>
 									</React.Fragment>
 									);

@@ -13,6 +13,9 @@ export enum Topics {
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
     NAV_CHANGE_MODE = "/NAV/ChangeModeSystem",        // Service: NAV mode change - Direct to NAV interface
     NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera", // Service: camera mode
+    NAV_BW_CAMERA_NAV_0 = "/NAV/bw_camera_nav_0",
+    NAV_BW_CAMERA_NAV_1 = "/NAV/bw_camera_nav_1",
+    NAV_BW_CAMERA_NAV_2 = "/NAV/bw_camera_nav_2",
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
 

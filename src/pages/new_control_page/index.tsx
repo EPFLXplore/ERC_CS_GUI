@@ -1150,6 +1150,7 @@ const selectModal = (
 		case SubSystems.CAMERA:
 			return (
 				<CameraModal
+					ros={ros}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {

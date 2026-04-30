@@ -3,6 +3,7 @@ import { AlertColor } from "@mui/material";
 import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { Topics } from "../data/topics.type";
+import { NAV_CAMERA_NAV_INDEX } from "../data/cameras.type";
 
 // Map state strings to integers for backend (matching NAV interface node)
 const STATE_TO_MODE_INT: Record<string, number> = {
@@ -52,15 +53,48 @@ const requestChangeMode = (
   let request: any = {};
 
   if (isCamera) {
-    // Camera mode changes
-    serviceName = request_mode.subsystem === SubSystems.HANDLING_DEVICE
-        ? Topics.HD_CHANGE_CAMERA_MODE    // "/HD/ChangeModeCamera"
-        : Topics.NAV_CHANGE_CAMERA_MODE;  // "/NAV/ChangeModeCamera"
-    serviceType = "custom_msg/srv/ChangeModeCamera";
-    request = {
-      camera_name: request_mode.index,
-      activate: request_mode.activate,
-    };
+    if (request_mode.subsystem === SubSystems.NAGIVATION) {
+      const navIdx = NAV_CAMERA_NAV_INDEX[request_mode.index];
+      if (navIdx === undefined) {
+        snackBar("error", `Unknown NAV camera: ${request_mode.index}`);
+        return;
+      }
+      const reqCameraService = new ROSLIB.Service({
+        ros: ros,
+        name: `/NAV/req_camera_nav_${navIdx}`,
+        serviceType: "std_srvs/srv/SetBool",
+      });
+      reqCameraService.callService(
+        { data: request_mode.activate },
+        (res) => {
+          if ((res as any).success) {
+            snackBar(
+              "success",
+              `NAV camera ${request_mode.index} ${request_mode.activate ? "on" : "off"}`
+            );
+          } else {
+            snackBar(
+              "error",
+              (res as any).message || "NAV camera request was rejected"
+            );
+          }
+        },
+        (err) => snackBar("error", "ROS service error: " + String(err))
+      );
+      return;
+    }
+
+    if (request_mode.subsystem === SubSystems.HANDLING_DEVICE) {
+      serviceName = Topics.HD_CHANGE_CAMERA_MODE;
+      serviceType = "custom_msg/srv/ChangeModeCamera";
+      request = {
+        camera_name: request_mode.index,
+        activate: request_mode.activate,
+      };
+    } else {
+      snackBar("error", `Unknown subsystem for camera: ${request_mode.subsystem}`);
+      return;
+    }
   } else {
     // Subsystem mode changes
     const serviceConfig = SUBSYSTEM_MODE_SERVICES[request_mode.system];

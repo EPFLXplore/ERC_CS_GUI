@@ -29,10 +29,17 @@ enum CameraHD {
 }
 
 enum CameraNAV {
-    UP1 = "Up1",
-    UP2 = "Up2",
-    FRONT = "Front",
+    UP_BACK = "UpBack",
+    UP_LEFT = "UpLeft",
+    UP_RIGHT = "UpRight",
 }
+
+/** NAV RGB labels → stream index (services `/NAV/req_camera_nav_*`, bw `/NAV/bw_camera_nav_*`). */
+const NAV_CAMERA_NAV_INDEX: Record<string, number> = {
+    UpBack: 0,
+    UpLeft: 1,
+    UpRight: 2,
+};
 
 enum CameraSC {
     MAIN = "Main",
@@ -46,7 +53,7 @@ const depth_cameras = {
     },
     "Navigation Depth": {
         name: "Depth NAV",
-        camera: "Front",
+        camera: "UpRight",
         subsystem_to_check: SubSystems.NAGIVATION
     }
 }
@@ -68,4 +75,4 @@ const allCameras = {
 
 
 export type {CameraElement, CameraType}
-export {CameraRover, CameraHD, CameraNAV, CameraSC, depth_cameras, allCameras}
+export {CameraRover, CameraHD, CameraNAV, CameraSC, depth_cameras, allCameras, NAV_CAMERA_NAV_INDEX}
