@@ -184,10 +184,16 @@ Sent as `action: task.toLowerCase()` or `{ action, multiple_increment }`.
 ## 6. Other hardcoded / config
 
 ### `frontend/src/hooks/rosbridgeHooks.ts`
-- **WebSocket URL:** `ws://localhost:9090`
+- **WebSocket URL resolution:**
+  1. `REACT_APP_ROSBRIDGE_URL` (if set)
+  2. Otherwise `${ws|wss}://<browser-host>:9090`
 - **Node check:** looks for node names containing `/NAV`, `/HD`, `/DRILL`, `/EL` (or variants).
 
 **Change here when** you change rosbridge URL or the way you detect subsystems.
+
+**Examples:**
+- `REACT_APP_ROSBRIDGE_URL=ws://169.254.55.251:9090`
+- `REACT_APP_ROSBRIDGE_URL=ws://xplore:9090`
 
 ---
 

@@ -10,6 +10,17 @@ Description: Hooks managing the rosbridge server. Please check the documentation
 what is this server. 
 */
 
+const getRosbridgeUrl = () => {
+	const configuredUrl = process.env.REACT_APP_ROSBRIDGE_URL?.trim();
+	if (configuredUrl) {
+		return configuredUrl;
+	}
+
+	const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+	const host = window.location.hostname || "localhost";
+	return `${protocol}://${host}:9090`;
+};
+
 function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
 	const [connected, setConnected] = useState(false);
@@ -19,19 +30,20 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	// 1. Launching the server locally:           use => ros_server.connect("ws://169.254.55.251:9090");
 	// 2. Launching the server on another device: use => ros_server.connect("ws://IP_SERVER:9090");
 	useEffect(() => {
+		const rosbridgeUrl = getRosbridgeUrl();
 		const ros_server = new ROSLIB.Ros({});
-		ros_server.connect("ws://localhost:9090");
+		ros_server.connect(rosbridgeUrl);
 
 		ros_server.on("error", function (error) {
-			snackBar("error", "Failed to connect to ROS server.");
+			snackBar("error", `Failed to connect to ROS server (${rosbridgeUrl}).`);
 			console.log(error);
 			setRos(null);
 		});
 
 		// Find out exactly when we made a connection.
 		ros_server.on("connection", function () {
-			console.log("Connected!");
-			snackBar("success", "Connected to ROS server.");
+			console.log("Connected to ROS server at", rosbridgeUrl);
+			snackBar("success", `Connected to ROS server (${rosbridgeUrl}).`);
 			setRos(ros_server);
 		});
 
