@@ -17,8 +17,13 @@ record.checkCSVFileExists(homeDir, mass_arm_file, mass_arm_format_line);
 
 // ExpressJS
 const express = require('express');
+const { execFile } = require('child_process');
+const net = require('net');
 const app = express();
 app.use(express.json());
+
+/** Link-local / partner device to measure RTT from the machine running this server (ICMP). */
+const LINK_PING_HOST = '169.254.55.230';
 
 // Cors
 const cors = require('cors');
@@ -85,6 +90,111 @@ app.get('/close-connection/:id', (req, res) => {
   } else {
     console.log("error 404 id not found")
       res.status(404).json({ status: false, error: `Connection ${id} not found` }).end()
+  }
+});
+
+function parsePingMs(stdout, stderr) {
+  const text = `${stdout || ''}\n${stderr || ''}`;
+  const mUs = text.match(/time=([\d.,]+)\s*(?:µs|us)\b/i);
+  if (mUs) {
+    const u = parseFloat(String(mUs[1]).replace(',', '.'));
+    if (Number.isFinite(u)) return u / 1000;
+  }
+  const m =
+    text.match(/time=([\d.,]+)\s*ms/i) || text.match(/time<([\d.,]+)\s*ms/i);
+  if (!m) return null;
+  const n = parseFloat(String(m[1]).replace(',', '.'));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** When `ping` is missing (common in slim images) or ICMP is blocked, approximate RTT via TCP handshake. */
+function tcpConnectMs(host, port, timeoutMs) {
+  return new Promise((resolve) => {
+    const t0 = Date.now();
+    const sock = net.connect({ host, port }, () => {
+      const ms = Date.now() - t0;
+      sock.destroy();
+      resolve(ms);
+    });
+    sock.setTimeout(timeoutMs);
+    sock.on('error', () => {
+      try {
+        sock.destroy();
+      } catch (_) {}
+      resolve(null);
+    });
+    sock.on('timeout', () => {
+      try {
+        sock.destroy();
+      } catch (_) {}
+      resolve(null);
+    });
+  });
+}
+
+async function measureLinkPingMs() {
+  const pingBin = fs.existsSync('/bin/ping') ? '/bin/ping' : 'ping';
+  const icmpMs = await new Promise((resolve) => {
+    execFile(
+      pingBin,
+      ['-c', '1', '-W', '2', LINK_PING_HOST],
+      { timeout: 4000 },
+      (err, stdout, stderr) => {
+        const ms = parsePingMs(stdout, stderr);
+        if (ms != null) return resolve({ ms, method: 'icmp' });
+        resolve({ ms: null, err });
+      }
+    );
+  });
+  if (icmpMs.ms != null) {
+    return { ok: true, ms: icmpMs.ms, method: icmpMs.method };
+  }
+
+  const ports = [22, 9090, 80, 443];
+  for (const port of ports) {
+    const ms = await tcpConnectMs(LINK_PING_HOST, port, 2000);
+    if (ms != null) {
+      return { ok: true, ms, method: `tcp:${port}` };
+    }
+  }
+
+  const detail =
+    icmpMs.err && icmpMs.err.code === 'ENOENT'
+      ? 'ping binary not found (and no TCP port responded)'
+      : icmpMs.err
+        ? String(icmpMs.err.message || icmpMs.err)
+        : 'no icmp reply and tcp probe failed';
+  return { ok: false, ms: null, detail };
+}
+
+/**
+ * GET /link-ping — ICMP to LINK_PING_HOST when available; else TCP connect RTT to common ports.
+ * Used by the control station header (browser cannot ping directly).
+ */
+app.get('/link-ping', async (req, res) => {
+  try {
+    const out = await measureLinkPingMs();
+    if (out.ok) {
+      return res.json({
+        ok: true,
+        host: LINK_PING_HOST,
+        ms: out.ms,
+        method: out.method,
+      });
+    }
+    return res.json({
+      ok: false,
+      host: LINK_PING_HOST,
+      ms: null,
+      detail: out.detail,
+    });
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      host: LINK_PING_HOST,
+      ms: null,
+      detail: String(e && e.message ? e.message : e),
+    });
   }
 });
 
