@@ -40,16 +40,13 @@ import States from "../../data/states.type";
 import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data/InfoBox";
 import { Dvr } from "@mui/icons-material";
 import {
-	getCurrentOrientation,
 	getCurrentPosition,
 	getNetworkData,
 	getJointsPositions,
 	getSteeringAngles,
-	getTrajectory,
 	getMotorDrill,
 	getMotorModule,
 	getWheelsDrivingValue,
-	getBatteryLevel,
 	getDrivingState,
 	getSteeringState,
 	getJointsStates,
@@ -60,12 +57,9 @@ import {
 	getJetsonStatsHD,
 	getJetsonStatsNAV,
 	getNodes,
-	getLinearVelocity,
-	getAngularVelocity,
 	getStateFSM,
 	getCurrentHDTask,
 	getCurrentHDCommand,
-	getTotalJointsCurrent,
 	getBatteryState,
 	getTorqueGripper,
 	getBatteryVoltage,
@@ -80,7 +74,7 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
-import { ReactElement, useEffect, useState } from "react";
+import { ReactElement, useCallback, useEffect, useState } from "react";
 import * as ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
@@ -92,7 +86,6 @@ import MicroscopeModal from "../../components/modals/MicroscopeModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
-import { useRoverContext } from "../../roverControlsContext";
 import axios from "axios";
 
 const WIDGET_KEYS = [
@@ -237,7 +230,7 @@ const NewControlPage = () => {
 	const navigate = useNavigate();
 
 	const [snackbar, showSnackbar] = useAlert();
-	const [ros, active] = useRosBridge(showSnackbar);
+	const [ros] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
 
   	// Destructure:
@@ -253,24 +246,24 @@ const NewControlPage = () => {
 		setImageToSelect,
 		stateServices,
 		stateActions,
-		setStateActions,
+		,
 		systemsModalOpen,
 		setSystemsModalOpen,
 		manualMode,
 		modal,
-		volumetric,
+		,
 		setModal,
-		dataFocus,
+		,
 		cancelAction,
 		cancelAllActions,
 		launchAction,
 		startService,
 		changeMode,
-		selectSubMode,
+		,
 		point,
-		setPoint,
-		setVolumetric,
-		rosModalOpen,
+		,
+		,
+		,
 		setRosModalOpen,
 		modalRosNodes,
 		setModalRosNodes,
@@ -307,9 +300,9 @@ const NewControlPage = () => {
 		
 	}
 
-	const test = () => {
-		if(getMassArmSensor(roverState) === "NO DATA" || !recordSensors) return;
-		recordSensorData(SensorsType.MASS_HD, 
+	const recordMassAndEnvSensors = useCallback(() => {
+		if (getMassArmSensor(roverState) === "NO DATA" || !recordSensors) return;
+		recordSensorData(SensorsType.MASS_HD,
 			getMassArmSensor(roverState).toString(),
 			getMassDrillSensor(roverState).toString(),
 			getForInOneSensor(roverState).temperature.toString(),
@@ -327,15 +320,14 @@ const NewControlPage = () => {
 			getDustSensor(roverState).num_particles_1_0.toString(),
 			getDustSensor(roverState).num_particles_2_5.toString(),
 			getDustSensor(roverState).num_particles_5_0.toString(),
-			getDustSensor(roverState).num_particles_10.toString())
-	}
+			getDustSensor(roverState).num_particles_10.toString());
+	}, [roverState, recordSensors]);
 
 	useEffect(() => {
 		console.log("Rover state updated");
-		const interval = setInterval(test, 500);
-    	return () => clearInterval(interval);
-
-	}, [roverState, recordSensors])
+		const interval = setInterval(recordMassAndEnvSensors, 500);
+		return () => clearInterval(interval);
+	}, [recordMassAndEnvSensors]);
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page
@@ -346,19 +338,19 @@ const NewControlPage = () => {
 		setSystemsModalOpen((old: typeModal) => {
 			let newModalOpen = { ...old };
 
-			if (system == "cancel_all_actions") {
+			if (system === "cancel_all_actions") {
 				cancelAllActions();
 				return newModalOpen;
-			} else if (system == "reset_motors") {
+			} else if (system === "reset_motors") {
 				reset_motors();
 				return newModalOpen;
-			} else if (system == "emergency_shutdown") {
+			} else if (system === "emergency_shutdown") {
 				emergency_shutdown();
 				return newModalOpen;
-			} else if (system == "record_sensors") {
+			} else if (system === "record_sensors") {
 				setRecordSensors(!recordSensors);
 				return newModalOpen;
-			} else if (system == "screenshot") {
+			} else if (system === "screenshot") {
 				screenshotAllCameras();
 				return newModalOpen;
 			} else {

@@ -180,7 +180,7 @@ class GamepadController {
 				} else if (buttonProfile.type === "trigger") {
 					return triggers[buttonProfile.index] > buttonProfile.threshold;
 				} else {
-					return axes[buttonProfile.axis] == buttonProfile.value
+					return axes[buttonProfile.axis] === buttonProfile.value
 				}
 			});
 

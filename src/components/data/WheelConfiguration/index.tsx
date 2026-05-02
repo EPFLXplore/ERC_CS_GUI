@@ -24,6 +24,9 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
         return Number.isFinite(value) ? Number(value) : 0;
     });
 
+    /** Telemetry sign vs top-down SVG: negate so drawn heading matches rover. */
+    const wheelRotateDeg = (telemetryDeg: number) => -telemetryDeg - 90;
+
     const safeWheelSpeeds = Array.from({ length: 4 }, (_, index) => {
         const value = wheelSpeeds?.[index];
         return Number.isFinite(value) ? Number(value) : 0;
@@ -48,7 +51,7 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </text>
 
                 {/* Front Left Wheel */}
-                <g transform={`translate(40, 100) rotate(${safeSteeringAngles[0] - 90}, 0, 0)`}>
+                <g transform={`translate(40, 100) rotate(${wheelRotateDeg(safeSteeringAngles[0])}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
@@ -70,7 +73,7 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </g>
 
                 {/* Front Right Wheel */}
-                <g transform={`translate(120, 100) rotate(${safeSteeringAngles[1] - 90}, 0, 0)`}>
+                <g transform={`translate(120, 100) rotate(${wheelRotateDeg(safeSteeringAngles[1])}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
@@ -91,7 +94,7 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </g>
 
                 {/* Rear Right Wheel */}
-                <g transform={`translate(120, 200) rotate(${safeSteeringAngles[2] - 90}, 0, 0)`}>
+                <g transform={`translate(120, 200) rotate(${wheelRotateDeg(safeSteeringAngles[2])}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"
@@ -112,7 +115,7 @@ const WheelConfiguration: React.FC<WheelConfigurationProps> = ({
                 </g>
 
                 {/* Rear Left Wheel */}
-                <g transform={`translate(40, 200) rotate(${safeSteeringAngles[3] - 90}, 0, 0)`}>
+                <g transform={`translate(40, 200) rotate(${wheelRotateDeg(safeSteeringAngles[3])}, 0, 0)`}>
                     <rect
                         x="-15"
                         y="-6"

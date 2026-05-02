@@ -53,7 +53,7 @@ function CameraModal({
 }) {
 	const navBwMbps = useNavCameraBandwidth(ros);
 
-	const [camera, clickedCamera] = React.useState<string | null>(null);
+	const [, setClickedCamera] = React.useState<string | null>(null);
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -105,7 +105,7 @@ function CameraModal({
 											} else {
 												onClick(subsystem, camera, false)
 											}
-											clickedCamera(camera)
+											setClickedCamera(camera)
 										}}
 										>
 											{camera}
