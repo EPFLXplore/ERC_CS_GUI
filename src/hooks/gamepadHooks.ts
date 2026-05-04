@@ -32,6 +32,24 @@ function useGamepad(
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [hdBindingsConfig, setHdBindingsConfig] = useState<HdBindingsConfig>(() => loadHdBindingsConfig());
 
+	const togglePublishing = useCallback(() => {
+		setGamepadCommandState((prev) => {
+			if (
+				prev === GamepadCommandState.UI &&
+				(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)
+			) {
+				return GamepadCommandState.CONTROL;
+			}
+			return GamepadCommandState.UI;
+		});
+	}, [mode]);
+
+	const togglePublishingRef = useRef(togglePublishing);
+	togglePublishingRef.current = togglePublishing;
+
+	const selectorCallbackRef = useRef(selectorCallback);
+	selectorCallbackRef.current = selectorCallback;
+
 	// 1) Init gamepad & one-time listeners
 	useEffect(() => {
 		const gp = new GamepadController((state) => setGamepadState(state));
@@ -41,22 +59,14 @@ function useGamepad(
 		GamepadController.addGamepadListener(
 			"gamepadButtonPressed",
 			ClassicalGamepad.Button.START,
-			() => selectorCallback?.()
+			() => selectorCallbackRef.current?.()
 		);
 
-		// BACK -> toggle UI/CONTROL
+		// BACK -> toggle UI/CONTROL (physical View/Select)
 		GamepadController.addGamepadListener(
 			"gamepadButtonPressed",
 			ClassicalGamepad.Button.BACK,
-			() => {
-			setGamepadCommandState((prev) => {
-				if (prev === GamepadCommandState.UI &&
-					(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)) {
-				return GamepadCommandState.CONTROL;
-				}
-				return GamepadCommandState.UI;
-			});
-			}
+			() => togglePublishingRef.current()
 		);
 
 	// No remover available for addGamepadListener; ensure this effect runs ONCE.
@@ -164,7 +174,7 @@ function useGamepad(
 
   }, [publisher, gamepadCommandState, sendCommand]);
 
-	return [gamepad, gamepadState, gamepadCommandState] as const;
+	return [gamepad, gamepadState, gamepadCommandState, togglePublishing] as const;
 }
 
 export default useGamepad;

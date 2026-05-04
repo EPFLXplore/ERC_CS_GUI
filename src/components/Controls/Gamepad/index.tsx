@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import useGamepad, { GamepadCommandState } from "../../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
@@ -25,12 +26,78 @@ const Gamepad = ({
 	visible?: boolean;
 	ros: ROSLIB.Ros | null;
 }) => {
-	const [gamepad, gamepadState, gamepadCommandState] = useGamepad(
+	const [gamepad, gamepadState, gamepadCommandState, togglePublishing] = useGamepad(
 		ros,
 		mode,
 		submode,
 		selectorCallback
 	);
+
+	const wrapRef = useRef<HTMLDivElement>(null);
+	const dragSession = useRef<{
+		pointerId: number;
+		startX: number;
+		startY: number;
+		originLeft: number;
+		originTop: number;
+	} | null>(null);
+	const [dragPos, setDragPos] = useState<{ left: number; top: number } | null>(null);
+	const [isDragging, setIsDragging] = useState(false);
+
+	useEffect(() => {
+		return () => {
+			const el = wrapRef.current;
+			const sid = dragSession.current?.pointerId;
+			if (el != null && sid != null) {
+				try {
+					el.releasePointerCapture(sid);
+				} catch {
+					/* not captured */
+				}
+			}
+		};
+	}, []);
+
+	const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+		if (e.button !== 0) return;
+		const el = e.currentTarget;
+		const r = el.getBoundingClientRect();
+		dragSession.current = {
+			pointerId: e.pointerId,
+			startX: e.clientX,
+			startY: e.clientY,
+			originLeft: r.left,
+			originTop: r.top,
+		};
+		el.setPointerCapture(e.pointerId);
+		setIsDragging(true);
+	}, []);
+
+	const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+		const s = dragSession.current;
+		if (!s || e.pointerId !== s.pointerId) return;
+
+		const el = wrapRef.current;
+		const w = el?.offsetWidth ?? 0;
+		const h = el?.offsetHeight ?? 0;
+		let left = s.originLeft + (e.clientX - s.startX);
+		let top = s.originTop + (e.clientY - s.startY);
+		left = Math.max(0, Math.min(left, window.innerWidth - w));
+		top = Math.max(0, Math.min(top, window.innerHeight - h));
+		setDragPos({ left, top });
+	}, []);
+
+	const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+		const s = dragSession.current;
+		if (!s || e.pointerId !== s.pointerId) return;
+		try {
+			e.currentTarget.releasePointerCapture(e.pointerId);
+		} catch {
+			/* already released */
+		}
+		dragSession.current = null;
+		setIsDragging(false);
+	}, []);
 
 	const calcDirectionVertical = (axe: number) => {
 		// Up
@@ -61,12 +128,31 @@ const Gamepad = ({
 	if (gamepad?.getGamepad() && gamepadState && visible) {
 		return (
 			<div
-				className={`${styles.Container} ${
-					//@ts-ignore
-					gamepadCommandState === GamepadCommandState.UI ? styles.Outline : ""
-				}`}
+				ref={wrapRef}
+				className={`${styles.DraggableWrap} ${isDragging ? styles.DraggableWrapDragging : ""}`}
+				style={
+					dragPos
+						? {
+								left: dragPos.left,
+								top: dragPos.top,
+								right: "auto",
+								bottom: "auto",
+							}
+						: undefined
+				}
+				onPointerDown={onPointerDown}
+				onPointerMove={onPointerMove}
+				onPointerUp={endDrag}
+				onPointerCancel={endDrag}
 			>
+				<div
+					className={`${styles.Container} ${
+						//@ts-ignore
+						gamepadCommandState === GamepadCommandState.UI ? styles.Outline : ""
+					}`}
+				>
 				<GamepadDisplay
+					onPublishToggle={togglePublishing}
 					buttonDown={gamepadState.buttons[ClassicalGamepad.Button.A]}
 					buttonRight={gamepadState.buttons[ClassicalGamepad.Button.B]}
 					buttonLeft={gamepadState.buttons[ClassicalGamepad.Button.X]}
@@ -115,6 +201,7 @@ const Gamepad = ({
 				/>
 				<div className={styles.GamepadMode}>
 					<p>{mode === PublishTo.NAVIGATION ? "NAV" : "HD"}</p>
+				</div>
 				</div>
 			</div>
 		);

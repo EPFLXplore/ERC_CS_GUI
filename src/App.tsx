@@ -7,6 +7,7 @@ import { RoverControlsProvider } from "./roverControlsContext";
 import SimulationPage from "./pages/simulation";
 import NetworkPage from "./pages/network";
 import CamerasPage from "./pages/cameras";
+import RoverLinkLocalHostWarning from "./components/ui/RoverLinkLocalHostWarning";
 
 const router = createBrowserRouter([
 	{
@@ -40,8 +41,8 @@ const router = createBrowserRouter([
 ]);
 
 export const App = () => (
-//   <RoverControlsProvider>
-//     <RouterProvider router={router} />
-//   </RoverControlsProvider>
- <RouterProvider router={router} />
+	<>
+		<RoverLinkLocalHostWarning />
+		<RouterProvider router={router} />
+	</>
 );

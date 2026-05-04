@@ -7,6 +7,7 @@ Description: Styles of the Gamepad on the screen
 */
 
 export default ({
+	onPublishToggle,
 	buttonLeft,
 	buttonUp,
 	buttonDown,
@@ -31,6 +32,7 @@ export default ({
 	isControlling = false,
 	...props
 }: {
+	onPublishToggle?: () => void;
 	buttonLeft: boolean;
 	buttonUp: boolean;
 	buttonDown: boolean;
@@ -213,6 +215,15 @@ export default ({
 				d="M343.456 273.049C350.924 273.049 356.978 266.995 356.978 259.527C356.978 252.059 350.924 246.005 343.456 246.005C335.988 246.005 329.934 252.059 329.934 259.527C329.934 266.995 335.988 273.049 343.456 273.049Z"
 				fill={select ? activeColor : inactiveColor}
 				name="screen"
+				style={onPublishToggle ? { cursor: "pointer" } : undefined}
+				onPointerDown={(e) => {
+					if (onPublishToggle) e.stopPropagation();
+				}}
+				onClick={(e) => {
+					if (!onPublishToggle) return;
+					e.stopPropagation();
+					onPublishToggle();
+				}}
 			/>
 			<path
 				d="M400 205C418.778 205 434 189.778 434 171C434 152.222 418.778 137 400 137C381.222 137 366 152.222 366 171C366 189.778 381.222 205 400 205Z"
