@@ -7,21 +7,21 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import { useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
-	{ id: "nav_front", name: "Front Cam", topic: "/NAV/feed_camera_nav_0" },
+	{ id: "nav_front", name: "Behind", topic: "/NAV/feed_camera_nav_0" },
 	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0" },
 	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0" },
 	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1" },
 	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2" },
 	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3" },
-	{ id: "nav_left", name: "LEFT", topic: "/NAV/feed_camera_nav_1" },
-	{ id: "nav_right", name: "RIGHT", topic: "/NAV/feed_camera_nav_2" },
+	{ id: "nav_left", name: "Front Right", topic: "/NAV/feed_camera_nav_1" },
+	{ id: "nav_right", name: "Front Left", topic: "/NAV/feed_camera_nav_2" },
 	{ id: "nav_aux", name: "NAV 3", topic: "/NAV/feed_camera_nav_3" },
 	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4" },
 	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
 ] as const;
 
 const TASK_PRESETS = [
-	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right", "nav_aux"] },
+	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right"] },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
@@ -40,6 +40,15 @@ const getDefaultRotationByCameraId = (cameraId: string): number => {
 const getDefaultRotations = (cameraIds: readonly string[]): number[] =>
 	cameraIds.map((cameraId) => getDefaultRotationByCameraId(cameraId));
 
+function isNavigationPanoramaPreset(preset: (typeof TASK_PRESETS)[number]): boolean {
+	return (
+		preset.cameraIds.length === 3 &&
+		preset.cameraIds[0] === "nav_front" &&
+		preset.cameraIds[1] === "nav_left" &&
+		preset.cameraIds[2] === "nav_right"
+	);
+}
+
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
@@ -49,6 +58,15 @@ const CamerasPage = () => {
 	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
 
 	const displayedCameraIds = viewMode === "all" ? allCameraIds : customCameraIds;
+	const navigationPanoramaLayout = useMemo(
+		() =>
+			viewMode === "custom" &&
+			displayedCameraIds.length === 3 &&
+			displayedCameraIds[0] === "nav_front" &&
+			displayedCameraIds[1] === "nav_left" &&
+			displayedCameraIds[2] === "nav_right",
+		[viewMode, displayedCameraIds]
+	);
 	const displayedCameras = useMemo(
 		() => CAMERA_DEFS.filter((camera) => displayedCameraIds.includes(camera.id)),
 		[displayedCameraIds]
@@ -146,10 +164,21 @@ const CamerasPage = () => {
 						<button
 							type="button"
 							key={preset.label}
-							className={styles.hubButton}
+							className={`${styles.hubButton} ${
+								isNavigationPanoramaPreset(preset) ? styles.hubButtonNavPreset : ""
+							}`}
 							onClick={() => setCustomLayout(preset.cameraIds)}
 						>
-							{preset.label}
+							{isNavigationPanoramaPreset(preset) ? (
+								<span className={styles.navPresetButtonInner}>
+									<span className={styles.navPresetRow}>
+										<span className={styles.navPresetCell} aria-hidden />
+										<span className={styles.navPresetCell} aria-hidden />
+									</span>
+									<span className={styles.navPresetBehind} aria-hidden />
+								</span>
+							) : null}
+							<span className={styles.navPresetLabel}>{preset.label}</span>
 						</button>
 					))}
 				</div>
@@ -162,6 +191,7 @@ const CamerasPage = () => {
 						topicNames={topicNames}
 						changeCam={() => {}}
 						forceGrid={true}
+						navigationPanoramaLayout={navigationPanoramaLayout}
 						showSelector={false}
 						showRemoveButton={true}
 						onRemoveCam={removeCameraByIndex}

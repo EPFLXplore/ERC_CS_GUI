@@ -17,6 +17,7 @@ const CameraView = ({
 	currentCam,
 	topicNames = [],
 	forceGrid = false,
+	navigationPanoramaLayout = false,
 	showSelector = true,
 	showRemoveButton = false,
 	onRemoveCam,
@@ -28,6 +29,8 @@ const CameraView = ({
 	currentCam: Array<string>;
 	topicNames?: Array<string>;
 	forceGrid?: boolean;
+	/** Behind + Front Right on top row, Front Left full width below (cameras page Navigation preset). */
+	navigationPanoramaLayout?: boolean;
 	showSelector?: boolean;
 	showRemoveButton?: boolean;
 	onRemoveCam?: (index: number) => void;
@@ -58,39 +61,52 @@ const CameraView = ({
 	};
 
 	if (forceGrid && cameraCount > 0) {
+		const gridCell = (i: number) => (
+			<div
+				key={i}
+				className={styles.GridItem}
+				style={navigationPanoramaLayout && i === 2 ? { gridColumn: "1 / -1" } : undefined}
+			>
+				<div className={styles.GridImageWrapper}>
+					<img
+						src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+						alt={`Camera ${i + 1}`}
+						className={styles.GridImage}
+						style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+						onDoubleClick={() => bump(i)}
+					/>
+					{showRemoveButton && (
+						<button
+							type="button"
+							className={styles.RemoveCamButton}
+							onClick={() => onRemoveCam?.(i)}
+						>
+							×
+						</button>
+					)}
+				</div>
+				<div className={styles.GridTopicName}>{topicNames[i] ?? `Camera ${i + 1}`}</div>
+			</div>
+		);
+
+		const useNavPanorama =
+			navigationPanoramaLayout && cameraCount === 3;
+
 		return (
 			<div className={styles.Container}>
 				{renderSelector()}
 				<div
-					className={styles.GridWrapper}
-					style={{
-						gridTemplateColumns: `repeat(${gridLayout.cols}, minmax(0, 1fr))`,
-						gridTemplateRows: `repeat(${gridLayout.rows}, minmax(0, 1fr))`,
-					}}
+					className={useNavPanorama ? styles.NavPanoramaGrid : styles.GridWrapper}
+					style={
+						useNavPanorama
+							? undefined
+							: {
+									gridTemplateColumns: `repeat(${gridLayout.cols}, minmax(0, 1fr))`,
+									gridTemplateRows: `repeat(${gridLayout.rows}, minmax(0, 1fr))`,
+								}
+					}
 				>
-					{Array.from({ length: cameraCount }, (_, i) => (
-						<div key={i} className={styles.GridItem}>
-							<div className={styles.GridImageWrapper}>
-								<img
-									src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
-									alt={`Camera ${i + 1}`}
-									className={styles.GridImage}
-									style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
-									onDoubleClick={() => bump(i)}
-								/>
-								{showRemoveButton && (
-									<button
-										type="button"
-										className={styles.RemoveCamButton}
-										onClick={() => onRemoveCam?.(i)}
-									>
-										×
-									</button>
-								)}
-							</div>
-							<div className={styles.GridTopicName}>{topicNames[i] ?? `Camera ${i + 1}`}</div>
-						</div>
-					))}
+					{Array.from({ length: cameraCount }, (_, i) => gridCell(i))}
 				</div>
 			</div>
 		);
