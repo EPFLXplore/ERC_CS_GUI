@@ -44,9 +44,14 @@ const Gamepad = ({
 	const [dragPos, setDragPos] = useState<{ left: number; top: number } | null>(null);
 	const [isDragging, setIsDragging] = useState(false);
 
+	const showGamepad = Boolean(gamepad?.getGamepad() && gamepadState && visible);
+
 	useEffect(() => {
+		if (!showGamepad) {
+			return;
+		}
+		const el = wrapRef.current;
 		return () => {
-			const el = wrapRef.current;
 			const sid = dragSession.current?.pointerId;
 			if (el != null && sid != null) {
 				try {
@@ -56,7 +61,7 @@ const Gamepad = ({
 				}
 			}
 		};
-	}, []);
+	}, [showGamepad]);
 
 	const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
 		if (e.button !== 0) return;

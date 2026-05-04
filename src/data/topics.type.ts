@@ -4,6 +4,7 @@ export enum Topics {
     // ============================================
     // NAVIGATION (NAV) Subsystem Interface
     // ============================================
+    /** 1 Hz `std_msgs/String` JSON for the whole NAV subsystem UI — **not** a Nav2 topic. If missing while Nav2 topics exist, start the NAV interface / state publisher on the robot (or `REACT_APP_NAV_STATE_TOPIC`). */
     NAV_STATE = "/NAV/State",                         // 1Hz state summary (subscribe)
     NAV_GAMEPAD_CMDS = "/CS/GamepadCmdsNav",          // Gamepad commands (publish) - Direct to NAV interface
     ACTIVE_SUSPENSION_HEIGHT = "/NAV/ActiveSuspensionHeight", // Active suspension height command (publish)

@@ -1,5 +1,6 @@
 import { useEffect, useState, startTransition } from "react";
 import * as ROSLIB from "roslib";
+import { Topics } from "../data/topics.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri, modified by Arno Laurie
@@ -17,6 +18,11 @@ export interface SubsystemState {
     electronics: any;
     rover: any;  // Keep for global info if needed
 }
+
+/** CS expects a 1 Hz JSON `std_msgs/String` summary; default `/NAV/State`. Override with REACT_APP_NAV_STATE_TOPIC if your stack uses another name. */
+const NAV_STATE_TOPIC =
+	(typeof process !== "undefined" && process.env.REACT_APP_NAV_STATE_TOPIC?.trim()) ||
+	Topics.NAV_STATE;
 
 function useRoverState(ros: ROSLIB.Ros | null) {
     const [roverState, setRoverState] = useState<SubsystemState>({
@@ -51,7 +57,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         // Subscribe to each subsystem's 1Hz state topic
         const navStateListener = new ROSLIB.Topic({
             ros: ros,
-            name: "/NAV/State",
+            name: NAV_STATE_TOPIC,
             messageType: "std_msgs/String",  // or your custom message type
             queue_length: 1,
             queue_size: 1,
@@ -83,7 +89,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         // Navigation state updates
         navStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, "/NAV/State");
+            const data = parseStateMessage(message, NAV_STATE_TOPIC);
             if (data) {
                 startTransition(() =>
                     setRoverState((prev) => ({ ...prev, navigation: data }))

@@ -21,14 +21,40 @@ const getRosbridgeUrl = () => {
 	return `${protocol}://${host}:9090`;
 };
 
+/** Nav2 / navigation stack node name fragments (ROS 2 graph often has no literal "/nav" node). */
+function navPresentInNodeNames(normalized: string[]): boolean {
+	return normalized.some(
+		(n) =>
+			n.includes("/nav") ||
+			n.includes("navigation") ||
+			n.includes("nav2") ||
+			n.includes("velocity_smoother") ||
+			n.includes("waypoint_follower") ||
+			n.includes("bt_navigator") ||
+			n.includes("controller_server") ||
+			n.includes("smoother_server")
+	);
+}
+
+function navPresentInTopicNames(topicLower: string[]): boolean {
+	return topicLower.some(
+		(t) =>
+			t.includes("/nav/state") ||
+			t.includes("/nav/") ||
+			t.includes("velocity_smoother") ||
+			t.includes("waypoint_follower") ||
+			t.includes("bt_navigator") ||
+			t.includes("controller_server") ||
+			t.includes("smoother_server") ||
+			t.includes("/unsmoothed_plan") ||
+			t.includes("/wheel_odom")
+	);
+}
+
 function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
 	const [connected, setConnected] = useState(false);
-	// const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 
-	// At initialization, we connect to port 9090. You have different modes:
-	// 1. Launching the server locally:           use => ros_server.connect("ws://169.254.55.251:9090");
-	// 2. Launching the server on another device: use => ros_server.connect("ws://IP_SERVER:9090");
 	useEffect(() => {
 		const rosbridgeUrl = getRosbridgeUrl();
 		const ros_server = new ROSLIB.Ros({});
@@ -38,137 +64,135 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 			snackBar("error", `Failed to connect to ROS server (${rosbridgeUrl}).`);
 			console.log(error);
 			setRos(null);
+			setConnected(false);
 		});
 
-		// Find out exactly when we made a connection.
 		ros_server.on("connection", function () {
 			console.log("Connected to ROS server at", rosbridgeUrl);
 			snackBar("success", `Connected to ROS server (${rosbridgeUrl}).`);
 			setRos(ros_server);
+			// WebSocket session is enough for topics/services; do not gate UI on rosapi getNodes.
+			setConnected(true);
 		});
 
 		ros_server.on("close", function () {
 			console.log("Connection closed");
 			setRos(null);
+			setConnected(false);
 		});
 
 		return () => {
 			ros_server.close();
 		};
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- connect once; snackBar is stable enough from callers
 	}, []);
-	
 
-	// Check if subsystem interface nodes are connected
-	// With direct subsystem communication, we check for NAV, HD, DRILL, EL nodes instead of ROVER
+	// Optional: detect subsystem-style nodes/topics for logging (getNodes can fail on some rosapi builds).
 	React.useEffect(() => {
-		if (ros) {
-			let num_checks = 0;
-			const check = setInterval(() => {
-				ros.getNodes(
-					(nodes) => {
-						console.log("All ROS nodes detected:", nodes);
+		if (!ros) return;
 
-						const normalizedNodes = nodes.map((nodeName) => nodeName.toLowerCase());
-						
-						// Check if essential subsystem nodes are running
-						// Nodes might be named differently, so check for common patterns
-						const hasNAV = normalizedNodes.some(n => 
-							n.includes("/nav") ||
-							n.includes("navigation")
-						);
-						const hasHD = normalizedNodes.some(n => 
-							n.includes("/hd") ||
-							n.includes("handling")
-						);
-						const hasDRILL = normalizedNodes.some(n => 
-							n.includes("/drill") ||
-							n.includes("drill")
-						);
-						const hasEL = normalizedNodes.some(n => 
+		let num_checks = 0;
+		let warnedEmpty = false;
+
+		const finishSubsystemLog = (
+			source: string,
+			hasNAV: boolean,
+			hasHD: boolean,
+			hasDRILL: boolean,
+			hasEL: boolean
+		) => {
+			console.log(`[rosbridge] ${source} — subsystems:`, {
+				NAV: hasNAV,
+				HD: hasHD,
+				DRILL: hasDRILL,
+				EL: hasEL,
+			});
+		};
+
+		const check = setInterval(() => {
+			ros.getNodes(
+				(rawNodes) => {
+					const nodes = Array.isArray(rawNodes) ? rawNodes.map(String) : [];
+					console.log("All ROS nodes detected:", nodes);
+
+					const normalizedNodes = nodes.map((nodeName) => nodeName.toLowerCase());
+
+					const hasNAV = navPresentInNodeNames(normalizedNodes);
+					const hasHD = normalizedNodes.some(
+						(n) => n.includes("/hd") || n.includes("handling")
+					);
+					const hasDRILL = normalizedNodes.some(
+						(n) => n.includes("/drill") || n.includes("drill")
+					);
+					const hasEL = normalizedNodes.some(
+						(n) =>
 							n.includes("/el") ||
 							n.includes("electronics") ||
 							n.includes("avionics")
-						);
+					);
 
-						const hasRosapiInfra = normalizedNodes.some((n) =>
-							n.includes("rosapi") || n.includes("rosbridge")
-						);
+					const hasRosapiInfra = normalizedNodes.some(
+						(n) => n.includes("rosapi") || n.includes("rosbridge")
+					);
 
-						// For development: consider connected if rosbridge is working
-						// In production, you'd want at least one subsystem
-						const hasAnySubsystem = hasNAV || hasHD || hasDRILL || hasEL;
-						const hasRosbridgeNodes = nodes.length > 0;
+					const hasAnySubsystem = hasNAV || hasHD || hasDRILL || hasEL;
+					const hasRosbridgeNodes = nodes.length > 0;
 
-						if (hasAnySubsystem) {
-							setConnected(true);
-							
-							// Log which subsystems are available
-							console.log("Subsystems online:", {
-								NAV: hasNAV,
-								HD: hasHD,
-								DRILL: hasDRILL,
-								EL: hasEL
-							});
-							
-							clearInterval(check);
-						} else if (hasRosapiInfra) {
-							// rosapi/rosbridge only is still enough for CS features such as parameter editing.
-							setConnected(true);
-							clearInterval(check);
-						} else if (hasRosbridgeNodes) {
-							// Rosbridge is working but no subsystem nodes yet
-							num_checks++;
-							setConnected(true);
-							console.log("Rosbridge connected, waiting for subsystem nodes...");
-							
-							// Stop checking after a while to avoid spamming
-							if (num_checks > 5) {
-								clearInterval(check);
-							}
-						} else {
-							num_checks++;
-							setConnected(false);
-
-							if (num_checks % 20 === 0) {
-								snackBar("warning", "No subsystem nodes detected. Waiting for NAV/HD/DRILL/EL...");
-							}
-						}
-					},
-					(error) => {
-						console.error("Error checking ROS nodes:", error);
-						snackBar("error", "Failed to check ROS nodes");
+					if (hasAnySubsystem) {
+						finishSubsystemLog("getNodes", hasNAV, hasHD, hasDRILL, hasEL);
 						clearInterval(check);
+					} else if (hasRosapiInfra) {
+						clearInterval(check);
+					} else if (hasRosbridgeNodes) {
+						num_checks++;
+						console.log("Rosbridge connected, waiting for subsystem-style node names...");
+						if (num_checks > 5) {
+							clearInterval(check);
+						}
+					} else {
+						num_checks++;
+						if (!warnedEmpty && num_checks >= 3) {
+							warnedEmpty = true;
+							snackBar(
+								"warning",
+								"No subsystem nodes matched heuristics yet (Nav2 may still be running — see topic list)."
+							);
+						}
+						if (num_checks > 8) {
+							clearInterval(check);
+						}
 					}
-				);
-			}, 4000);
+				},
+				(err) => {
+					console.warn("[rosbridge] getNodes failed (rosapi); trying getTopics:", err);
+					ros.getTopics(
+						(res) => {
+							const topics = Array.isArray(res?.topics) ? res.topics.map(String) : [];
+							const tl = topics.map((x) => x.toLowerCase());
+							const hasNAV = navPresentInTopicNames(tl);
+							const hasHD = tl.some((t) => t.includes("/hd/") || t.includes("handling"));
+							const hasDRILL = tl.some((t) => t.includes("/drill") || t.includes("drill"));
+							const hasEL = tl.some(
+								(t) => t.includes("/el/") || t.includes("electronics")
+							);
+							if (hasNAV || hasHD || hasDRILL || hasEL) {
+								finishSubsystemLog("getTopics", hasNAV, hasHD, hasDRILL, hasEL);
+							} else {
+								console.log("[rosbridge] getTopics: no subsystem heuristics matched.");
+							}
+							clearInterval(check);
+						},
+						(e2) => {
+							console.warn("[rosbridge] getTopics also failed:", e2);
+							clearInterval(check);
+						}
+					);
+				}
+			);
+		}, 4000);
 
-			return () => clearInterval(check);
-		}
+		return () => clearInterval(check);
 	}, [ros, snackBar]);
-
-	// useEffect(() => {
-	// 	if (!ros) return;
-
-	// 	// The Service object does double duty for both calling and advertising services
-	// 	var askUserConfirmation = new ROSLIB.Service({
-	// 		ros: ros,
-	// 		name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
-	// 		serviceType: "std_srvs/Trigger",
-	// 	});
-
-	// 	// Use the advertise() method to indicate that we want to provide this service
-	// 	askUserConfirmation.advertiseAsync(async (request) => {
-	// 		const result = await new Promise<boolean>((resolve, reject) => {
-	// 			setHDConfirmation(() => (confirm: boolean) => {
-	// 				resolve(confirm)
-	// 				setHDConfirmation(null);
-	// 			});
-	// 		});
-	// 		return {
-	// 			success: result,
-	// 		};
-	// 	});
-	// }, [ros]);
 
 	return [ros, connected] as const;
 }
