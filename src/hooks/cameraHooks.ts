@@ -13,6 +13,31 @@ export type CameraFeedInput =
 	| string
 	| { topic: string; messageType: "sensor_msgs/Image" | "sensor_msgs/msg/Image" };
 
+/**
+ * rosbridge `subscribe` QoS (see ROSBRIDGE_PROTOCOL.md §4.2). roslib's Topic omits `qos`, so the
+ * bridge may not apply the intended profile; mutating the wire message keeps reconnect payloads
+ * consistent (same object reference is reused on websocket reconnect).
+ */
+const CAMERA_FEED_SUBSCRIBE_QOS = {
+	history: "keep_last",
+	depth: 1,
+	reliability: "best_effort",
+	durability: "volatile",
+} as const;
+
+function patchTopicRosbridgeCameraFeedQoS(topic: ROSLIB.Topic<any>): void {
+	const t = topic as ROSLIB.Topic<any> & {
+		callForSubscribeAndAdvertise: (msg: Record<string, unknown>) => void;
+	};
+	const original = t.callForSubscribeAndAdvertise.bind(topic);
+	t.callForSubscribeAndAdvertise = (msg: Record<string, unknown>) => {
+		if (msg.op === "subscribe") {
+			msg.qos = { ...CAMERA_FEED_SUBSCRIBE_QOS };
+		}
+		original(msg);
+	};
+}
+
 function toBytes(data: unknown): Uint8Array | null {
 	if (data == null) return null;
 	if (typeof data === "string") {
@@ -92,6 +117,7 @@ function useCamera(ros: ROSLIB.Ros | null, activeTopics: CameraFeedInput[]) {
 					queue_length: 1,
 					queue_size: 1,
 				});
+				patchTopicRosbridgeCameraFeedQoS(listener);
 
 				listener.subscribe((message: unknown) => {
 					const m = message as { data?: string };
@@ -113,6 +139,7 @@ function useCamera(ros: ROSLIB.Ros | null, activeTopics: CameraFeedInput[]) {
 				queue_length: 1,
 				queue_size: 1,
 			});
+			patchTopicRosbridgeCameraFeedQoS(listener);
 
 			listener.subscribe((message: unknown) => {
 				const m = message as {

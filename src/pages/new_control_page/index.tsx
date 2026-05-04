@@ -830,16 +830,15 @@ const NewControlPage = () => {
 					</div>
 					)}
 
-					{hdConfirmationSelectElements !== null && (
-						<div>
-						{imageToSelect && 
-							<ImageSelection 
-								imageData={imageToSelect} 
+					{hdConfirmationSelectElements !== null && imageToSelect && (
+						<div className={styles.confirm} role="dialog" aria-modal="true" aria-label="Handling device image selection">
+							<ImageSelection
+								imageData={imageToSelect}
 								number_element_to_select={numberElementToSelect}
 								setCoordinates={(x: number[], y: number[]) => hdConfirmationSelectElements(x, y)}
-								onClose={() => setImageToSelect(null)} 
-							/>}
-					  </div>
+								onClose={() => setImageToSelect(null)}
+							/>
+						</div>
 					)}
 
 					<>

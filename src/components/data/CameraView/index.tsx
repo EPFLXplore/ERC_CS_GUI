@@ -29,7 +29,7 @@ const CameraView = ({
 	currentCam: Array<string>;
 	topicNames?: Array<string>;
 	forceGrid?: boolean;
-	/** Behind + Front Right on top row, Front Left full width below (cameras page Navigation preset). */
+	/** Top Left + Top Right on top row, Behind full width below (cameras page Navigation preset). */
 	navigationPanoramaLayout?: boolean;
 	showSelector?: boolean;
 	showRemoveButton?: boolean;

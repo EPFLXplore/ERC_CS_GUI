@@ -13,15 +13,17 @@ const CAMERA_DEFS = [
 	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1" },
 	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2" },
 	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3" },
-	{ id: "nav_left", name: "Front Right", topic: "/NAV/feed_camera_nav_1" },
-	{ id: "nav_right", name: "Front Left", topic: "/NAV/feed_camera_nav_2" },
+	{ id: "nav_left", name: "Top Right", topic: "/NAV/feed_camera_nav_1" },
+	{ id: "nav_right", name: "Top Left", topic: "/NAV/feed_camera_nav_2" },
 	{ id: "nav_aux", name: "NAV 3", topic: "/NAV/feed_camera_nav_3" },
 	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4" },
 	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
 ] as const;
 
+type CameraDef = (typeof CAMERA_DEFS)[number];
+
 const TASK_PRESETS = [
-	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right"] },
+	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_front"] },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
@@ -40,12 +42,23 @@ const getDefaultRotationByCameraId = (cameraId: string): number => {
 const getDefaultRotations = (cameraIds: readonly string[]): number[] =>
 	cameraIds.map((cameraId) => getDefaultRotationByCameraId(cameraId));
 
+/** Top Left (nav_right) on the left, Top Right (nav_left) on the right when only that pair is visible. */
+function normalizeFrontStereoOrder(ids: readonly string[]): string[] {
+	const arr = [...ids];
+	if (arr.length !== 2) return arr;
+	const s = new Set(arr);
+	if (s.has("nav_left") && s.has("nav_right")) {
+		return ["nav_right", "nav_left"];
+	}
+	return arr;
+}
+
 function isNavigationPanoramaPreset(preset: (typeof TASK_PRESETS)[number]): boolean {
 	return (
 		preset.cameraIds.length === 3 &&
-		preset.cameraIds[0] === "nav_front" &&
+		preset.cameraIds[0] === "nav_right" &&
 		preset.cameraIds[1] === "nav_left" &&
-		preset.cameraIds[2] === "nav_right"
+		preset.cameraIds[2] === "nav_front"
 	);
 }
 
@@ -62,15 +75,20 @@ const CamerasPage = () => {
 		() =>
 			viewMode === "custom" &&
 			displayedCameraIds.length === 3 &&
-			displayedCameraIds[0] === "nav_front" &&
+			displayedCameraIds[0] === "nav_right" &&
 			displayedCameraIds[1] === "nav_left" &&
-			displayedCameraIds[2] === "nav_right",
+			displayedCameraIds[2] === "nav_front",
 		[viewMode, displayedCameraIds]
 	);
-	const displayedCameras = useMemo(
-		() => CAMERA_DEFS.filter((camera) => displayedCameraIds.includes(camera.id)),
-		[displayedCameraIds]
-	);
+	const displayedCameras = useMemo(() => {
+		const byId = new Map<string, CameraDef>();
+		for (const c of CAMERA_DEFS) {
+			byId.set(c.id, c);
+		}
+		return displayedCameraIds
+			.map((id) => byId.get(id))
+			.filter((c): c is CameraDef => c != null);
+	}, [displayedCameraIds]);
 	const activeTopics = useMemo(
 		() => displayedCameras.map((camera) => camera.topic),
 		[displayedCameras]
@@ -81,8 +99,8 @@ const CamerasPage = () => {
 
 	const setCustomLayout = (cameraIds: readonly string[]) => {
 		setViewMode("custom");
-		const asSet = new Set(cameraIds);
-		const ordered = allCameraIds.filter((id) => asSet.has(id));
+		const allowed = new Set<string>(allCameraIds);
+		const ordered = normalizeFrontStereoOrder(cameraIds.filter((id) => allowed.has(id)));
 		setCustomCameraIds(ordered);
 		setRotateCams(getDefaultRotations(ordered));
 	};
@@ -103,25 +121,27 @@ const CamerasPage = () => {
 			} else {
 				next = allCameraIds.filter((id) => previous.includes(id) || id === cameraId);
 			}
+			next = normalizeFrontStereoOrder(next);
 			setRotateCams(getDefaultRotations(next));
 			return next;
 		});
 	};
 
 	const removeCameraByIndex = (index: number) => {
+		const idToRemove = displayedCameras[index]?.id;
+		if (!idToRemove) return;
+
 		setViewMode("custom");
-		setCustomCameraIds((previous) => {
-			const idToRemove = displayedCameras[index]?.id;
-			if (!idToRemove) {
-				return previous;
-			}
-			return previous.filter((id) => id !== idToRemove);
+		const oldIds = displayedCameraIds;
+		const oldRot = rotateCams;
+		const filtered = oldIds.filter((id) => id !== idToRemove);
+		const nextIds = normalizeFrontStereoOrder(filtered);
+		const nextRot = nextIds.map((id) => {
+			const i = oldIds.indexOf(id);
+			return i >= 0 ? (oldRot[i] ?? 0) : 0;
 		});
-		setRotateCams((previous) => {
-			const next = previous.slice();
-			next.splice(index, 1);
-			return next;
-		});
+		setCustomCameraIds(nextIds);
+		setRotateCams(nextRot);
 	};
 
 	return (
