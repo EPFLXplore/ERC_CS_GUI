@@ -22,8 +22,8 @@ const net = require('net');
 const app = express();
 app.use(express.json());
 
-/** Link-local / partner device to measure RTT from the machine running this server (ICMP). */
-const LINK_PING_HOST = '169.254.55.230';
+/** Shown top → bottom in the CS header (ping every host each poll). */
+const LINK_PING_HOSTS = ['169.254.55.230', '169.254.55.231'];
 
 // Cors
 const cors = require('cors');
@@ -132,66 +132,76 @@ function tcpConnectMs(host, port, timeoutMs) {
   });
 }
 
-async function measureLinkPingMs() {
+async function probeOneHost(host) {
   const pingBin = fs.existsSync('/bin/ping') ? '/bin/ping' : 'ping';
+  const ports = [22, 9090, 80, 443];
+
   const icmpMs = await new Promise((resolve) => {
     execFile(
       pingBin,
-      ['-c', '1', '-W', '2', LINK_PING_HOST],
+      ['-c', '1', '-W', '2', host],
       { timeout: 4000 },
       (err, stdout, stderr) => {
         const ms = parsePingMs(stdout, stderr);
-        if (ms != null) return resolve({ ms, method: 'icmp' });
+        if (ms != null) return resolve({ ms, method: 'icmp', err: null });
         resolve({ ms: null, err });
       }
     );
   });
   if (icmpMs.ms != null) {
-    return { ok: true, ms: icmpMs.ms, method: icmpMs.method };
+    return { host, ok: true, ms: icmpMs.ms, method: icmpMs.method };
   }
 
-  const ports = [22, 9090, 80, 443];
   for (const port of ports) {
-    const ms = await tcpConnectMs(LINK_PING_HOST, port, 2000);
+    const ms = await tcpConnectMs(host, port, 2000);
     if (ms != null) {
-      return { ok: true, ms, method: `tcp:${port}` };
+      return { host, ok: true, ms, method: `tcp:${port}` };
     }
   }
 
   const detail =
     icmpMs.err && icmpMs.err.code === 'ENOENT'
-      ? 'ping binary not found (and no TCP port responded)'
+      ? 'ping missing / no TCP'
       : icmpMs.err
         ? String(icmpMs.err.message || icmpMs.err)
-        : 'no icmp reply and tcp probe failed';
-  return { ok: false, ms: null, detail };
+        : 'no reply';
+  return { host, ok: false, ms: null, detail };
+}
+
+async function measureAllLinkPings() {
+  const hosts = [];
+  for (const h of LINK_PING_HOSTS) {
+    hosts.push(await probeOneHost(h));
+  }
+  const ok = hosts.some((x) => x.ok);
+  return { ok, hosts };
 }
 
 /**
- * GET /link-ping — ICMP to LINK_PING_HOST when available; else TCP connect RTT to common ports.
- * Used by the control station header (browser cannot ping directly).
+ * GET /link-ping — Per-host ICMP (else TCP RTT) for LINK_PING_HOSTS.
+ * Response includes `hosts` array in display order (CS header shows each row).
  */
 app.get('/link-ping', async (req, res) => {
   try {
-    const out = await measureLinkPingMs();
-    if (out.ok) {
-      return res.json({
-        ok: true,
-        host: LINK_PING_HOST,
-        ms: out.ms,
-        method: out.method,
-      });
-    }
+    const out = await measureAllLinkPings();
+    const firstOk = out.hosts.find((h) => h.ok);
     return res.json({
-      ok: false,
-      host: LINK_PING_HOST,
-      ms: null,
-      detail: out.detail,
+      ok: out.ok,
+      hosts: out.hosts,
+      host: firstOk ? firstOk.host : LINK_PING_HOSTS[0],
+      ms: firstOk ? firstOk.ms : null,
+      method: firstOk ? firstOk.method : undefined,
     });
   } catch (e) {
     return res.status(500).json({
       ok: false,
-      host: LINK_PING_HOST,
+      hosts: LINK_PING_HOSTS.map((host) => ({
+        host,
+        ok: false,
+        ms: null,
+        detail: String(e && e.message ? e.message : e),
+      })),
+      host: LINK_PING_HOSTS[0],
       ms: null,
       detail: String(e && e.message ? e.message : e),
     });

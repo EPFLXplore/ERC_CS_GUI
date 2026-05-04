@@ -16,10 +16,22 @@ function linkPingApiUrl(): string {
 	return `${protocol}//${hostname}:5000/link-ping`;
 }
 
+type LinkPingRow = {
+	host: string;
+	ok: boolean;
+	ms: number | null;
+	method?: string;
+	detail?: string;
+};
+
 type LinkPingState =
 	| { status: "loading" }
-	| { status: "ok"; host: string; ms: number; method?: string }
-	| { status: "unavailable"; host?: string; detail?: string };
+	| { status: "ready"; rows: LinkPingRow[]; fetchError?: string };
+
+const DEFAULT_ROWS: LinkPingRow[] = [
+	{ host: "169.254.55.230", ok: false, ms: null },
+	{ host: "169.254.55.231", ok: false, ms: null },
+];
 
 const Header = ({
 	wifiLevel
@@ -37,31 +49,65 @@ const Header = ({
 				const r = await fetch(url);
 				const j = (await r.json()) as {
 					ok?: boolean;
+					hosts?: Array<{
+						host?: string;
+						ok?: boolean;
+						ms?: number | null;
+						method?: string;
+						detail?: string;
+					}>;
 					host?: string;
 					ms?: number | null;
 					method?: string;
 					detail?: string;
 				};
 				if (cancelled) return;
+
+				if (Array.isArray(j.hosts) && j.hosts.length > 0) {
+					const rows: LinkPingRow[] = j.hosts.map((h) => ({
+						host: String(h.host ?? "—"),
+						ok: Boolean(h.ok),
+						ms: typeof h.ms === "number" && Number.isFinite(h.ms) ? h.ms : null,
+						method: h.method,
+						detail: h.detail,
+					}));
+					setLinkPing({ status: "ready", rows });
+					return;
+				}
+
+				// Legacy single-host response
 				if (j?.ok && typeof j.ms === "number" && Number.isFinite(j.ms)) {
 					setLinkPing({
-						status: "ok",
-						host: j.host ?? "169.254.55.230",
-						ms: j.ms,
-						method: j.method,
+						status: "ready",
+						rows: [
+							{
+								host: j.host ?? "169.254.55.230",
+								ok: true,
+								ms: j.ms,
+								method: j.method,
+							},
+						],
 					});
-				} else {
-					setLinkPing({
-						status: "unavailable",
-						host: j?.host,
-						detail: j?.detail ?? (r.ok ? undefined : `HTTP ${r.status}`),
-					});
+					return;
 				}
+
+				setLinkPing({
+					status: "ready",
+					rows: DEFAULT_ROWS.map((d) => ({
+						...d,
+						detail: j?.detail ?? (r.ok ? undefined : `HTTP ${r.status}`),
+					})),
+					fetchError: j?.detail,
+				});
 			} catch (e) {
 				if (!cancelled) {
 					setLinkPing({
-						status: "unavailable",
-						detail: e instanceof Error ? e.message : String(e),
+						status: "ready",
+						rows: DEFAULT_ROWS.map((d) => ({
+							...d,
+							detail: e instanceof Error ? e.message : String(e),
+						})),
+						fetchError: e instanceof Error ? e.message : String(e),
 					});
 				}
 			}
@@ -75,26 +121,21 @@ const Header = ({
 		};
 	}, []);
 
+	const rows: LinkPingRow[] =
+		linkPing.status === "ready" ? linkPing.rows : DEFAULT_ROWS;
+
 	const linkPingTitle =
-		linkPing.status === "ok"
-			? `${linkPing.method ?? "RTT"} to ${linkPing.host}: ${linkPing.ms.toFixed(2)} ms`
-			: linkPing.status === "unavailable"
-				? `Link check failed (${linkPingApiUrl()}). ${linkPing.detail ?? "Is ssh_backend running on port 5000?"}`
-				: "Measuring…";
-
-	const linkPingLabel =
-		linkPing.status === "ok"
-			? linkPing.host
-			: linkPing.status === "unavailable" && linkPing.host
-				? linkPing.host
-				: "169.254.55.230";
-
-	const linkPingValue =
 		linkPing.status === "loading"
-			? "…"
-			: linkPing.status === "ok"
-				? `${linkPing.ms.toFixed(2)} ms${linkPing.method && linkPing.method.startsWith("tcp:") ? "*" : ""}`
-				: "—";
+			? "Measuring…"
+			: linkPing.fetchError
+				? `Link check (${linkPingApiUrl()}): ${linkPing.fetchError}`
+				: rows
+						.map((row) =>
+							row.ok && row.ms != null
+								? `${row.method ?? "RTT"} ${row.host}: ${row.ms.toFixed(2)} ms`
+								: `${row.host}: ${row.detail ?? "—"}`
+						)
+						.join("\n");
 
 	return (
 		<div
@@ -107,9 +148,26 @@ const Header = ({
 				<CellWifiIcon className={styles.icon} />
 				<p>{wifiLevel} {wifiLevel === "NO DATA" ? "" : "dBm"}</p>
 			</div>
-			<div className={styles.linkPing} title={linkPingTitle}>
-				<p className={styles.linkPingHost}>{linkPingLabel}</p>
-				<p className={styles.linkPingValue}>{linkPingValue}</p>
+			<div className={styles.linkPingWrap} title={linkPingTitle}>
+				{linkPing.status === "loading" ? (
+					<div className={styles.linkPingRow}>
+						<p className={styles.linkPingHost}>…</p>
+						<p className={styles.linkPingValue}>…</p>
+					</div>
+				) : (
+					rows.map((row) => (
+						<div key={row.host} className={styles.linkPingRow}>
+							<p className={styles.linkPingHost}>{row.host}</p>
+							<p className={styles.linkPingValue}>
+								{row.ok && row.ms != null
+									? `${row.ms.toFixed(2)} ms${
+											row.method && row.method.startsWith("tcp:") ? "*" : ""
+										}`
+									: "—"}
+							</p>
+						</div>
+					))
+				)}
 			</div>
 		</div>
 	);

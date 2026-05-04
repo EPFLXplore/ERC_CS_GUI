@@ -79,6 +79,7 @@ import * as ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
+import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
 import SuspensionModal from "../../components/modals/SuspensionModal";
@@ -779,6 +780,7 @@ const NewControlPage = () => {
 					</div>
 				</div>
 				<div className={styles.systems}>
+					<RosDdsDevBanner />
 					<SystemMode
 						system={"NAV"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
