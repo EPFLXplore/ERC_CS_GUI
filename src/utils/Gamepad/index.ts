@@ -15,8 +15,10 @@ class GamepadController {
 	private gamepadState: GamepadControllerState | null;
 	private prevGamepadState: GamepadControllerState | null;
 	private deviceProfile: DeviceProfile | null = null;
+	private onState: (state: GamepadControllerState) => void;
 
 	constructor(stateCallback: (state: GamepadControllerState) => void) {
+		this.onState = stateCallback;
 		if (navigator.getGamepads().length > 0 && navigator.getGamepads()[0]) {
 			this.gamepad = navigator.getGamepads()[0];
 			this.isConnected = true;
@@ -54,7 +56,9 @@ class GamepadController {
 				} else {
 					this.gamepad = null;
 					this.isConnected = false;
-					this.gamepadState = null;
+					this.prevGamepadState = null;
+					this.gamepadState = this.makeNeutralState();
+					this.onState(this.gamepadState);
 				}
 			}
 		};
@@ -110,12 +114,26 @@ class GamepadController {
 	}
 
 	public pollState(): GamepadControllerState | null {
-		if (!this.getGamepad() || !this.getIsConnected()) {
+		const live = navigator.getGamepads()[0];
+		if (!live || !this.getIsConnected()) {
 			return this.gamepadState;
 		}
 
+		this.gamepad = live;
 		this.gamepadState = this.updateState();
 		return this.gamepadState;
+	}
+
+	private makeNeutralState(): GamepadControllerState {
+		const profile = this.deviceProfile ?? profiles.DEFAULT_PROFILE;
+		const nButtons = Object.keys(profile.buttons).length;
+		const nAxes = Object.keys(profile.axes).length;
+		return {
+			controller: null,
+			isConnected: false,
+			buttons: Array.from({ length: nButtons }, () => false),
+			axes: Array.from({ length: nAxes }, () => 0),
+		};
 	}
 
 	public handleNavigation(

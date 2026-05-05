@@ -85,6 +85,9 @@ export default ({
 		return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 	};
 
+	const clamp01 = (v: number) =>
+		Math.max(0, Math.min(1, Number.isFinite(v) ? v : 0));
+
 	const colorInterpolator2 = (value: number, colorFrom: string, colorTo: string) => {
 		// Convert hex color strings to integers
 		const from = parseInt(colorFrom.slice(1), 16);
@@ -247,12 +250,12 @@ export default ({
 			/>
 			<path
 				d="M679.5 110.641C685.1 116.242 683 132.141 678 140.141C648.5 113.141 560.5 90.1414 538 96.6414C538 88.1414 539.522 74.9044 553.522 71.4044C567.522 67.9044 656.5 87.6413 679.5 110.641Z"
-				fill={colorInterpolator(triggerRight, inactiveColor, activeColor)}
+				fill={colorInterpolator(clamp01(triggerRight), inactiveColor, activeColor)}
 				name="rt"
 			/>
 			<path
 				d="M121.5 110.5C115.9 116.1 118 132 123 140C152.5 113 240.5 90 263 96.5C263 88 261.478 74.763 247.478 71.263C233.478 67.763 144.5 87.4999 121.5 110.5Z"
-				fill={colorInterpolator(triggerLeft, inactiveColor, activeColor)}
+				fill={colorInterpolator(clamp01(triggerLeft), inactiveColor, activeColor)}
 				name="lt"
 			/>
 			<g

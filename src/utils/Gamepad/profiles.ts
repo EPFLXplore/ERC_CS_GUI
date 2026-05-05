@@ -929,20 +929,22 @@ const PS4_CHROME_LINUX: DeviceProfile = {
 			maxAxisRange: -1,
 			zeroAxisRange: 0,
 		},
+		// L2/R2 rest at -1 and go to +1 when pressed (Chrome/Linux gamepad mapping).
+		// zeroAxisRange must equal minAxisRange so remapAxes treats them as triggers → 0..1, not -1..1 sticks.
 		[ClassicalGamepad.Axis.LT]: {
 			type: "axis",
 			axis: 2,
 			minAxisRange: -1,
 			maxAxisRange: 1,
-			zeroAxisRange: 0
+			zeroAxisRange: -1,
 		},
 		[ClassicalGamepad.Axis.RT]: {
 			type: "axis",
 			axis: 5,
 			minAxisRange: -1,
 			maxAxisRange: 1,
-			zeroAxisRange: 0
-		}
+			zeroAxisRange: -1,
+		},
 	},
 	navigationHandler: computeNavigationCommandClassicGamepad,
 	directArmHandler: computeDirectArmCommandClassicGamepad,

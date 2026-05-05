@@ -32,6 +32,11 @@ function useGamepad(
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [hdBindingsConfig, setHdBindingsConfig] = useState<HdBindingsConfig>(() => loadHdBindingsConfig());
 
+	const gamepadCommandStateRef = useRef(gamepadCommandState);
+	gamepadCommandStateRef.current = gamepadCommandState;
+
+	const prevGamepadCommandStateRef = useRef(GamepadCommandState.UI);
+
 	const togglePublishing = useCallback(() => {
 		setGamepadCommandState((prev) => {
 			if (
@@ -121,6 +126,9 @@ function useGamepad(
 	}, []);
 
 	const sendCommand = useCallback(() => {
+		if (gamepadCommandStateRef.current !== GamepadCommandState.CONTROL) {
+			return;
+		}
 		const s = gamepad?.pollState() ?? gamepad?.getState();
 		if (!gamepad?.getGamepad() || !s || !publisher) return;
 
@@ -145,6 +153,58 @@ function useGamepad(
 		}
 
 	}, [gamepad, publisher, mode, submode, hdBindingsConfig]);
+
+	// When leaving CONTROL, send one neutral Joy so triggers/sticks do not appear stuck on the robot.
+	useEffect(() => {
+		const prev = prevGamepadCommandStateRef.current;
+		const canPublishNeutral =
+			publisher &&
+			gamepad &&
+			(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE);
+
+		if (
+			prev === GamepadCommandState.CONTROL &&
+			gamepadCommandState === GamepadCommandState.UI &&
+			canPublishNeutral
+		) {
+			const neutralButtons = Array.from(
+				{ length: ClassicalGamepad.Button.HOME + 1 },
+				() => false
+			);
+			const neutralAxes = Array.from({ length: ClassicalGamepad.Axis.RT + 1 }, () => 0);
+			try {
+				if (mode === PublishTo.NAVIGATION) {
+					publisher.publish(gamepad.handleNavigation(neutralButtons, neutralAxes));
+				} else if (mode === PublishTo.HANDLING_DEVICE) {
+					if (submode[1] === States.MANUAL_DIRECT) {
+						const remapped = applyHdBindingMap(
+							neutralButtons,
+							neutralAxes,
+							hdBindingsConfig.direct
+						);
+						publisher.publish(gamepad.handleDirectArm(remapped.buttons, remapped.axes));
+					} else {
+						const remapped = applyHdBindingMap(
+							neutralButtons,
+							neutralAxes,
+							hdBindingsConfig.inverse
+						);
+						publisher.publish(gamepad.handleInverseArm(remapped.buttons, remapped.axes));
+					}
+				}
+			} catch {
+				/* ros not ready */
+			}
+		}
+		prevGamepadCommandStateRef.current = gamepadCommandState;
+	}, [
+		gamepadCommandState,
+		publisher,
+		gamepad,
+		mode,
+		submode,
+		hdBindingsConfig,
+	]);
 
 	const timerRef = useRef<number | null>(null);
 
