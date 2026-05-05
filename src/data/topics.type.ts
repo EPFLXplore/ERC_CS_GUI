@@ -27,7 +27,9 @@ export enum Topics {
     HD_GAMEPAD_CMDS = "/CS/GamepadCmdsHandlingDevice",        // Gamepad commands (publish)
     HD_MANIPULATION = "/ROVER/HandlingDeviceManipulation",        // Action: manipulation tasks (task_executor)
     HD_CHANGE_MODE = "/HD/ChangeModeSystem",    // Service: change mode
-    HD_CHANGE_CAMERA_MODE = "/HD/ChangeModeCamera", // Service: camera mode for HD
+    /** HD gripper RGB stream (index 0); `std_srvs/SetBool`. Depth uses `ROVER_DEPTH_REQ_CAMERA_HD_0` after RGB is on. */
+    ROVER_REQ_CAMERA_HD_0 = "/ROVER/req_camera_hd_0",
+    ROVER_DEPTH_REQ_CAMERA_HD_0 = "/ROVER/depth_req_camera_hd_0",
     HD_NAMED_JOINT_TARGET = "/HD/kinematics/named_joint_target", // Topic: publish named pose (custom_msg/NamedPose)
     HD_POSE_GOAL = "/HD/kinematics/pose_goal",          // Topic: Cartesian goal (geometry_msgs/Pose)
     HD_JOINT_GOAL = "/HD/kinematics/joint_goal",        // Topic: explicit joint goal (std_msgs/Float64MultiArray)

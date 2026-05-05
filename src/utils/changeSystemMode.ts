@@ -4,6 +4,7 @@ import SubSystems from "../data/subsystems.type";
 import States from "../data/states.type";
 import { Topics } from "../data/topics.type";
 import { NAV_CAMERA_NAV_INDEX } from "../data/cameras.type";
+import { callStdSetBool } from "./changeCameraMode";
 
 // Map state strings to integers for backend (matching NAV interface node)
 const STATE_TO_MODE_INT: Record<string, number> = {
@@ -85,12 +86,31 @@ const requestChangeMode = (
     }
 
     if (request_mode.subsystem === SubSystems.HANDLING_DEVICE) {
-      serviceName = Topics.HD_CHANGE_CAMERA_MODE;
-      serviceType = "custom_msg/srv/ChangeModeCamera";
-      request = {
-        camera_name: request_mode.index,
-        activate: request_mode.activate,
+      const HD_CAMERA_REQ_INDEX: Record<string, number> = {
+        Gripper: 0,
       };
+      const idx = HD_CAMERA_REQ_INDEX[request_mode.index];
+      if (idx === undefined) {
+        snackBar("error", `Unknown HD camera: ${request_mode.index}`);
+        return;
+      }
+      const reqPath = `/ROVER/req_camera_hd_${idx}`;
+      if (request_mode.activate) {
+        callStdSetBool(ros, reqPath, true, snackBar, (ok) => {
+          if (ok) snackBar("success", `HD camera ${request_mode.index} on`);
+        });
+      } else if (idx === 0) {
+        callStdSetBool(ros, Topics.ROVER_DEPTH_REQ_CAMERA_HD_0, false, snackBar, () => {
+          callStdSetBool(ros, reqPath, false, snackBar, (ok) => {
+            if (ok) snackBar("success", `HD camera ${request_mode.index} off`);
+          });
+        });
+      } else {
+        callStdSetBool(ros, reqPath, false, snackBar, (ok) => {
+          if (ok) snackBar("success", `HD camera ${request_mode.index} off`);
+        });
+      }
+      return;
     } else {
       snackBar("error", `Unknown subsystem for camera: ${request_mode.subsystem}`);
       return;

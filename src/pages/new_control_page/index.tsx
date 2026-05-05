@@ -77,7 +77,7 @@ import { AlertColor } from "@mui/material";
 import { ReactElement, useCallback, useEffect, useState } from "react";
 import * as ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
-import { startCamModeService } from "../../utils/changeCameraMode";
+import { startCamModeService, startHdDepthCameraService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
@@ -1155,6 +1155,7 @@ const selectModal = (
 					cameraStates={cameraStates}
 					onClick={(subsystem, mode, activated) => startService(subsystem, mode, true, activated)}
 					rgbOnClick={(subsystem, activate) => startCamModeService(subsystem, activate, ros, showSnackbar)}
+					hdDepthOnClick={(activate) => startHdDepthCameraService(ros, activate, showSnackbar)}
 				/>
 			);
 

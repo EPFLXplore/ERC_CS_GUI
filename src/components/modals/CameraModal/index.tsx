@@ -44,12 +44,15 @@ function CameraModal({
 	onClose,
 	onClick,
 	rgbOnClick,
+	hdDepthOnClick,
 }: {
 	ros: ROSLIB.Ros | null;
 	cameraStates: CameraType;
 	onClose: () => void;
 	onClick: (subsystem: string, mode: string, activated: boolean) => void;
-	rgbOnClick: (subsystem: string, activate: boolean) => void; // button press -> change HD/NAV camera mode
+	rgbOnClick: (subsystem: string, activate: boolean) => void; // NAV depth / RGB mode (and legacy HD RGB toggle if used)
+	/** HD gripper depth: `/ROVER/req_camera_hd_0` then `/ROVER/depth_req_camera_hd_0` */
+	hdDepthOnClick: (activate: boolean) => void;
 }) {
 	const navBwMbps = useNavCameraBandwidth(ros);
 
@@ -142,9 +145,17 @@ function CameraModal({
 										}`}
 									onClick={() => {
 										if (!cameraData['depth']) {
-											rgbOnClick(subsystem, true)
+											if (subsystem === SubSystems.HANDLING_DEVICE) {
+												hdDepthOnClick(true);
+											} else {
+												rgbOnClick(subsystem, true);
+											}
 										} else {
-											rgbOnClick(subsystem, false)
+											if (subsystem === SubSystems.HANDLING_DEVICE) {
+												hdDepthOnClick(false);
+											} else {
+												rgbOnClick(subsystem, false);
+											}
 										}
 									}}
 									>
