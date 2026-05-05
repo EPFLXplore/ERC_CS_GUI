@@ -919,129 +919,129 @@ const NewControlPage = () => {
 
 					<div className={styles.actions}>
 						<div className={styles.dockGroup}>
-							<div className={styles.dockGroupTitle}>UTILITIES</div>
-						<div className={styles.utilityActionsGroup}>
-							<QuickAction
-								onClick={() => displaySystemModal(SubSystems.CAMERA)}
-								selected={systemsModalOpen[SubSystems.CAMERA]}
-								running={"Off"}
-								icon={CameraIcon}
-								tooltip={"Camera"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("commands")}
-								selected={false}
-								running={States.OFF}
-								icon={CommandsIcon}
-								tooltip={"Dockers"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("parameters")}
-								selected={Boolean(systemsModalOpen["parameters"])}
-								running={States.OFF}
-								icon={ParametersIcon}
-								tooltip={"Parameters"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("bindings")}
-								selected={Boolean(systemsModalOpen["bindings"])}
-								running={States.OFF}
-								icon={BindingsIcon}
-								tooltip={"Bindings"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("record_sensors")}
-								selected={false}
-								running={recordSensors ? States.ON : States.OFF}
-								icon={Sensor}
-								tooltip={"Record Sensors"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("screenshot")}
-								selected={false}
-								running={States.OFF}
-								icon={Screenshot}
-								tooltip={"Screenshot all Cameras"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("microscope")}
-								selected={Boolean(systemsModalOpen["microscope"])}
-								running={States.OFF}
-								icon={CameraIcon}
-								tooltip={"Microscope"}
-							/>
+							<div className={styles.dockGroupTitle}>SUBSYSTEMS</div>
+
+							<div className={styles.restActionsGroup}>
+								<QuickAction
+									onClick={() => displaySystemModal(SubSystems.NAGIVATION)}
+									selected={systemsModalOpen[SubSystems.NAGIVATION]}
+									running={stateActions[SubSystems.NAGIVATION].action.state}
+									icon={NavIcon}
+									tooltip={"Navigation"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal(SubSystems.HANDLING_DEVICE)}
+									selected={systemsModalOpen[SubSystems.HANDLING_DEVICE]}
+									running={stateActions[SubSystems.HANDLING_DEVICE].action.state}
+									icon={HDIcon}
+									tooltip={"Handling Device"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal(SubSystems.DRILL)}
+									selected={systemsModalOpen[SubSystems.DRILL]}
+									running={stateActions[SubSystems.DRILL].action.state}
+									icon={Drill}
+									tooltip={"Drill"}
+									className={styles.drillAction}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("suspension")}
+									selected={systemsModalOpen["suspension"]}
+									running={States.OFF}
+									icon={Suspension}
+									tooltip={"Active Suspension"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal(SubSystems.SCIENCE)}
+									selected={systemsModalOpen[SubSystems.SCIENCE]}
+									running={States.OFF}
+									icon={Science}
+									tooltip={"Science"}
+								/>
+							</div>
 						</div>
+
+						<div className={styles.dockGroup}>
+							<div className={styles.dockGroupTitle}>UTILITIES</div>
+							<div className={styles.utilityActionsGroup}>
+								<QuickAction
+									onClick={() => displaySystemModal(SubSystems.CAMERA)}
+									selected={systemsModalOpen[SubSystems.CAMERA]}
+									running={"Off"}
+									icon={CameraIcon}
+									tooltip={"Camera"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("commands")}
+									selected={false}
+									running={States.OFF}
+									icon={CommandsIcon}
+									tooltip={"Dockers"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("parameters")}
+									selected={Boolean(systemsModalOpen["parameters"])}
+									running={States.OFF}
+									icon={ParametersIcon}
+									tooltip={"Parameters"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("bindings")}
+									selected={Boolean(systemsModalOpen["bindings"])}
+									running={States.OFF}
+									icon={BindingsIcon}
+									tooltip={"Bindings"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("record_sensors")}
+									selected={false}
+									running={recordSensors ? States.ON : States.OFF}
+									icon={Sensor}
+									tooltip={"Record Sensors"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("screenshot")}
+									selected={false}
+									running={States.OFF}
+									icon={Screenshot}
+									tooltip={"Screenshot all Cameras"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("microscope")}
+									selected={Boolean(systemsModalOpen["microscope"])}
+									running={States.OFF}
+									icon={CameraIcon}
+									tooltip={"Microscope"}
+								/>
+							</div>
 						</div>
 
 						<div className={styles.dockGroup}>
 							<div className={styles.dockGroupTitle}>REQUESTS</div>
 
-						<div className={styles.criticalActionsGroup}>
-							<QuickAction
-								onClick={() => displaySystemModal("cancel_all_actions")}
-								selected={false}
-								running={States.OFF}
-								icon={Canceled}
-								tooltip={"Cancel All Actions"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("reset_motors")}
-								selected={false}
-								running={States.OFF}
-								icon={ResetMotors}
-								tooltip={"Reset Motors Requested"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("emergency_shutdown")}
-								selected={false}
-								running={States.OFF}
-								icon={Stop}
-								tooltip={"Emergency Shutdown Requested"}
-							/>
-						</div>
-						</div>
-
-						<div className={styles.dockGroup}>
-							<div className={styles.dockGroupTitle}>SUBSYSTEMS</div>
-
-						<div className={styles.restActionsGroup}>
-							<QuickAction
-								onClick={() => displaySystemModal(SubSystems.NAGIVATION)}
-								selected={systemsModalOpen[SubSystems.NAGIVATION]}
-								running={stateActions[SubSystems.NAGIVATION].action.state}
-								icon={NavIcon}
-								tooltip={"Navigation"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal(SubSystems.HANDLING_DEVICE)}
-								selected={systemsModalOpen[SubSystems.HANDLING_DEVICE]}
-								running={stateActions[SubSystems.HANDLING_DEVICE].action.state}
-								icon={HDIcon}
-								tooltip={"Handling Device"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal(SubSystems.DRILL)}
-								selected={systemsModalOpen[SubSystems.DRILL]}
-								running={stateActions[SubSystems.DRILL].action.state}
-								icon={Drill}
-								tooltip={"Drill"}
-								className={styles.drillAction}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal("suspension")}
-								selected={systemsModalOpen["suspension"]}
-								running={States.OFF}
-								icon={Suspension}
-								tooltip={"Active Suspension"}
-							/>
-							<QuickAction
-								onClick={() => displaySystemModal(SubSystems.SCIENCE)}
-								selected={systemsModalOpen[SubSystems.SCIENCE]}
-								running={States.OFF}
-								icon={Science}
-								tooltip={"Science"}
-							/>
-						</div>
+							<div className={styles.criticalActionsGroup}>
+								<QuickAction
+									onClick={() => displaySystemModal("cancel_all_actions")}
+									selected={false}
+									running={States.OFF}
+									icon={Canceled}
+									tooltip={"Cancel All Actions"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("reset_motors")}
+									selected={false}
+									running={States.OFF}
+									icon={ResetMotors}
+									tooltip={"Reset Motors Requested"}
+								/>
+								<QuickAction
+									onClick={() => displaySystemModal("emergency_shutdown")}
+									selected={false}
+									running={States.OFF}
+									icon={Stop}
+									tooltip={"Emergency Shutdown Requested"}
+								/>
+							</div>
 						</div>
 					</div>
 					{modal}
