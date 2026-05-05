@@ -136,6 +136,7 @@ function ArmGoalModal({
 		  { name: "Align Metal Bar", msg: "align_metal_bar" },
 		]},
 		{ category: "Tasks", items: [
+		  { name: "debug", msg: "debug" },
 		  { name: "Pick Rock", msg: "rocks" },
 		  { name: "Approach Aruco", msg: "aruco_approach" },
 		  { name: "Grab Sand", msg: "sand_collect" },
