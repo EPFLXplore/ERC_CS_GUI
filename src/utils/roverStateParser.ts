@@ -223,6 +223,17 @@ const getCameraStates = (data: any) => {
         
         return Object.keys(transformed).length > 0 ? transformed : null;
     };
+
+	const normalizeRoverCameraKeys = (cameras: any) => {
+		if (!cameras || typeof cameras !== "object") return cameras;
+		if ("Up" in cameras) return cameras;
+		if (!("camera_cs_0" in cameras)) return cameras;
+
+		return {
+			...cameras,
+			Up: cameras.camera_cs_0,
+		};
+	};
     
     // Accept both new subsystem state shape and legacy aggregated camera maps.
     const getCameraSource = (subsystem: string) => {
@@ -240,11 +251,13 @@ const getCameraStates = (data: any) => {
 
     result[SubSystems.NAGIVATION] = transformCameraData(getCameraSource(SubSystems.NAGIVATION));
     result[SubSystems.HANDLING_DEVICE] = transformCameraData(getCameraSource(SubSystems.HANDLING_DEVICE));
-    result[SubSystems.ROVER] = transformCameraData(
-        getCameraSource(SubSystems.ROVER) ||
-        data?.electronics?.cameras ||
-        data?.rover?.cameras
-    );
+	result[SubSystems.ROVER] = transformCameraData(
+		normalizeRoverCameraKeys(
+			getCameraSource(SubSystems.ROVER) ||
+			data?.electronics?.cameras ||
+			data?.rover?.cameras
+		)
+	);
 
     return result
 }
@@ -609,8 +622,16 @@ const BATTERY_MIN_VOLTAGE = 24.0;
 
 const getBatteryState = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['power']) {
+
+	if (!elData) {
+		return "NO DATA";
+	}
+
+	if (elData?.bms?.status) {
+		return elData.bms.status;
+	}
+
+	if (!elData['power']) {
 		return "NO DATA";
 	}
 
@@ -643,22 +664,38 @@ const getBatteryLevel = (data: any) => {
  */
 const getBatteryVoltage = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['power']) {
+
+	if (!elData) {
 		return "NO DATA";
 	}
 
-	return (Number(elData["power"]["voltage"])).toFixed(2)
+	if (elData?.bms?.v_bat != null) {
+		return Number(elData.bms.v_bat).toFixed(2);
+	}
+
+	if (!elData['power']) {
+		return "NO DATA";
+	}
+
+	return Number(elData["power"]["voltage"]).toFixed(2);
 };
 
 const getCurrentOutput = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['power']) {
+
+	if (!elData) {
 		return 0;
 	}
 
-	return (Number(elData["power"]["current"])).toFixed(2)
+	if (elData?.bms?.current != null) {
+		return Number(elData.bms.current).toFixed(2);
+	}
+
+	if (!elData['power']) {
+		return 0;
+	}
+
+	return Number(elData["power"]["current"]).toFixed(2);
 };
 
 const getMassArmSensor = (data: any) => {

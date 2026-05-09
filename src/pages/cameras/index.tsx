@@ -7,15 +7,16 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import { useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
-	{ id: "nav_front", name: "Behind", topic: "/NAV/feed_camera_nav_0" },
+	{ id: "nav_front", name: "Front", topic: "/CS/feed_camera_nav_3" },
 	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0" },
+	{ id: "up", name: "Up", topic: "/ROVER/feed_camera_cs_0" },
 	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0" },
 	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1" },
 	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2" },
 	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3" },
-	{ id: "nav_left", name: "Top Right", topic: "/NAV/feed_camera_nav_1" },
-	{ id: "nav_right", name: "Top Left", topic: "/NAV/feed_camera_nav_2" },
-	{ id: "nav_aux", name: "NAV 3", topic: "/NAV/feed_camera_nav_3" },
+	{ id: "nav_back", name: "Back", topic: "/CS/feed_camera_nav_0" },	
+	{ id: "nav_left", name: "Top Right", topic: "/CS/feed_camera_nav_1" },
+	{ id: "nav_right", name: "Top Left", topic: "/CS/feed_camera_nav_2" },
 	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4" },
 	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
 ] as const;

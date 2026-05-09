@@ -87,6 +87,21 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             queue_size: 1,
         });
 
+        const bmsMessageTypes = [
+            "custom_msg/msg/avionics/BMS",
+            "custom_msg/msg/BMS",
+        ];
+        const bmsStateListeners = bmsMessageTypes.map(
+            (messageType) =>
+                new ROSLIB.Topic({
+                    ros: ros,
+                    name: "/EL/bms_topic",
+                    messageType,
+                    queue_length: 1,
+                    queue_size: 1,
+                })
+        );
+
         // Navigation state updates
         navStateListener.subscribe((message) => {
             const data = parseStateMessage(message, NAV_STATE_TOPIC);
@@ -132,16 +147,39 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             const data = parseStateMessage(message, "/EL/State");
             if (data) {
                 startTransition(() =>
-                    setRoverState((prev) => ({ ...prev, electronics: data }))
+                    setRoverState((prev) => ({
+                        ...prev,
+                        electronics: {
+                            ...data,
+                            bms: (prev.electronics as any)?.bms ?? (data as any)?.bms,
+                        },
+                    }))
                 );
             }
         });
+
+        // BMS updates (voltage/current/status)
+        const handleBmsMessage = (message: any) => {
+            if (!message || typeof message !== "object") return;
+            startTransition(() =>
+                setRoverState((prev) => ({
+                    ...prev,
+                    electronics: {
+                        ...(prev.electronics || {}),
+                        bms: message,
+                    },
+                }))
+            );
+        };
+
+        bmsStateListeners.forEach((listener) => listener.subscribe(handleBmsMessage));
 
         return () => {
             navStateListener.unsubscribe();
             hdStateListener.unsubscribe();
             drillStateListener.unsubscribe();
             elecStateListener.unsubscribe();
+            bmsStateListeners.forEach((listener) => listener.unsubscribe());
         };
     }, [ros]);
 

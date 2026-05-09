@@ -57,6 +57,7 @@ function CameraModal({
 	const navBwMbps = useNavCameraBandwidth(ros);
 
 	const [, setClickedCamera] = React.useState<string | null>(null);
+	const [localCameraActive, setLocalCameraActive] = React.useState<Record<string, boolean>>({});
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -81,13 +82,16 @@ function CameraModal({
 							</div>
 							
 							<React.Fragment>
-								{Object.values(allCameras[cameraGroup].enum).map((camera: string) => {
+									{Object.values(allCameras[cameraGroup].enum).map((camera: string) => {
 									const subsystem = allCameras[cameraGroup].subsystem_to_check;
 									const subsystemCameras = cameraStates[subsystem] as any;
 									const cameraData = subsystemCameras?.[camera] ?? {
 										status: false,
 										data_rate: "0",
 									};
+										const localKey = `${subsystem}:${camera}`;
+										const isActive =
+											localCameraActive[localKey] ?? Boolean(cameraData["status"]);
 									const navIdx =
 										subsystem === SubSystems.NAGIVATION
 											? NAV_CAMERA_NAV_INDEX[camera]
@@ -99,16 +103,15 @@ function CameraModal({
 									<React.Fragment key={camera}>
 										<div className={styles.ChoiceWrapper}>
 										<button
-										className={`${styles.Choice} ${
-											cameraData['status'] ? styles.Selected : ""
-											}`}
+										className={`${styles.Choice} ${isActive ? styles.Selected : ""}`}
 										onClick={() => {
-											if (!cameraData['status']) {
-												onClick(subsystem, camera, true)
-											} else {
-												onClick(subsystem, camera, false)
-											}
-											setClickedCamera(camera)
+											const nextActive = !isActive;
+											setLocalCameraActive((prev) => ({
+												...prev,
+												[localKey]: nextActive,
+											}));
+											onClick(subsystem, camera, nextActive);
+											setClickedCamera(camera);
 										}}
 										>
 											{camera}

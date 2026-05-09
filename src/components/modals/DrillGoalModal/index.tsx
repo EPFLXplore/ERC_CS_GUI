@@ -1,8 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
-import { act } from "@react-three/fiber";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -55,6 +54,14 @@ function DrillGoalModal({
 		multiple_increment: 0
 	});
 
+	const handleSmallStepCountChange = (value: string) => {
+		const parsedValue = Number.parseInt(value, 10);
+		setActionSmallTask((prev) => ({
+			...prev,
+			multiple_increment: Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0
+		}));
+	};
+
 	return (
 		<div className={styles.Background} onClick={onClose}>
 			<div
@@ -90,7 +97,7 @@ function DrillGoalModal({
 							className={`${styles.Choice}`}
 							onClick={() => {
 
-								if(actionSmallTask.task === _action) {
+								if (actionSmallTask.task === _action) {
 									setActionSmallTask({
 										task: _action,
 										multiple_increment: actionSmallTask.multiple_increment + 1
@@ -110,6 +117,23 @@ function DrillGoalModal({
 							{_action} : {actionSmallTask.task == _action ? actionSmallTask.multiple_increment : 0}
 						</button>
 					))}
+					</div>
+
+					<div className={styles.StepInputRow}>
+						<label className={styles.StepLabel} htmlFor="drill-step-count">
+							Steps
+						</label>
+						<input
+							id="drill-step-count"
+							type="number"
+							min={0}
+							step={1}
+							inputMode="numeric"
+							className={styles.StepInput}
+							value={actionSmallTask.multiple_increment}
+							onChange={(event) => handleSmallStepCountChange(event.target.value)}
+							aria-label="Drill step count"
+						/>
 					</div>
 				</div>
 

@@ -111,6 +111,24 @@ const requestChangeMode = (
         });
       }
       return;
+    }
+
+    if (request_mode.subsystem === SubSystems.ROVER) {
+      const ROVER_CAMERA_REQ_INDEX: Record<string, number> = {
+        Up: 0,
+      };
+      const idx = ROVER_CAMERA_REQ_INDEX[request_mode.index];
+      if (idx === undefined) {
+        snackBar("error", `Unknown ROVER camera: ${request_mode.index}`);
+        return;
+      }
+      const reqPath = `/ROVER/req_camera_cs_${idx}`;
+      callStdSetBool(ros, reqPath, request_mode.activate, snackBar, (ok) => {
+        if (ok) {
+          snackBar("success", `ROVER camera ${request_mode.index} ${request_mode.activate ? "on" : "off"}`);
+        }
+      });
+      return;
     } else {
       snackBar("error", `Unknown subsystem for camera: ${request_mode.subsystem}`);
       return;

@@ -16,12 +16,7 @@ type CameraElement = {
 type CameraType = { [key: string]: null | CameraElement[] };
 
 enum CameraRover {
-    RIGHT = "Right",
-    LEFT = "Left",
-    UpLeft = "UpLeft",
-    UpRight = "UpRight",
-    Other1 = "Other1",
-    Other2 = "Other2"
+    UP = "Up"
 }
 
 enum CameraHD {
