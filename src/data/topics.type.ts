@@ -14,9 +14,10 @@ export enum Topics {
     NAV_REACH_GOAL = "/NAV/LaunchNavAuto",            // Action: autonomous navigation
     NAV_CHANGE_MODE = "/NAV/ChangeModeSystem",        // Service: NAV mode change - Direct to NAV interface
     NAV_CHANGE_CAMERA_MODE = "/NAV/ChangeModeCamera", // Service: camera mode
-    NAV_BW_CAMERA_NAV_0 = "/NAV/bw_camera_nav_0",
-    NAV_BW_CAMERA_NAV_1 = "/NAV/bw_camera_nav_1",
-    NAV_BW_CAMERA_NAV_2 = "/NAV/bw_camera_nav_2",
+    NAV_BW_CAMERA_NAV_0 = "/CS/bw_camera_nav_0",
+    NAV_BW_CAMERA_NAV_1 = "/CS/bw_camera_nav_1",
+    NAV_BW_CAMERA_NAV_2 = "/CS/bw_camera_nav_2",
+    NAV_BW_CAMERA_NAV_3 = "/CS/bw_camera_nav_3",
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
 
@@ -59,6 +60,11 @@ export enum Topics {
     // Control Station (CS) Internal
     // ============================================
     CS_CHANGE_FRONT_CAMERA_ANGLE = "/CS/ChangeAngleFrontCamera",  // CS-specific
+
+    // ============================================
+    // Rover Camera Bandwidth
+    // ============================================
+    ROVER_BW_CAMERA_CS_0 = "/ROVER/bw_camera_cs_0",
 
     // ============================================
     // Missing Topic Definitions (need to assign to correct subsystem)

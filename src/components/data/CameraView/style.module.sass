@@ -16,7 +16,7 @@
     align-items: center
     justify-content: center
 
-.TopicName
+.TopicMeta
     position: absolute
     bottom: 10px
     left: 50%
@@ -39,6 +39,29 @@
     @media (max-width: 900px)
         font-size: 8px
         padding: 3px 8px
+
+.TopicMetaLabel
+    line-height: 1.1
+
+.TopicMetaPath
+    line-height: 1.1
+    opacity: 0.8
+    font-size: 11px
+
+.GridTopicMeta
+  color: white
+  font-family: monospace
+  font-size: 11px
+  text-align: center
+  line-height: 1.1
+  padding: 1px 4px 2px 4px
+  white-space: nowrap
+  overflow: hidden
+  text-overflow: ellipsis
+
+.GridTopicMeta .TopicMetaPath
+  font-size: 10px
+  opacity: 0.8
 
 .Rotate0
   transform: rotate(0deg)
@@ -220,16 +243,6 @@
   display: block
   user-select: none
 
-.GridTopicName
-  color: white
-  font-family: monospace
-  font-size: 11px
-  text-align: center
-  line-height: 1.1
-  padding: 1px 4px 2px 4px
-  white-space: nowrap
-  overflow: hidden
-  text-overflow: ellipsis
 
 .RemoveCamButton
   position: absolute

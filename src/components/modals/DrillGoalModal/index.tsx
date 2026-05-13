@@ -32,6 +32,14 @@ enum DrillSmallActions {
     STEP_UP = "step_up"
 }
 
+/** Matches `uint16` ceiling in `custom_msg/action/DrillCmd.action` (max 65535); UI cap per ops need. */
+const MAX_DRILL_STEP_INCREMENT = 64000;
+
+function clampStepIncrement(n: number): number {
+	if (!Number.isFinite(n) || n <= 0) return 0;
+	return Math.min(Math.trunc(n), MAX_DRILL_STEP_INCREMENT);
+}
+
 interface DrillGoalModalProps {
 	task: DrillSmallActions,
 	multiple_increment: number
@@ -58,7 +66,7 @@ function DrillGoalModal({
 		const parsedValue = Number.parseInt(value, 10);
 		setActionSmallTask((prev) => ({
 			...prev,
-			multiple_increment: Number.isFinite(parsedValue) && parsedValue > 0 ? parsedValue : 0
+			multiple_increment: clampStepIncrement(parsedValue),
 		}));
 	};
 
@@ -100,7 +108,10 @@ function DrillGoalModal({
 								if (actionSmallTask.task === _action) {
 									setActionSmallTask({
 										task: _action,
-										multiple_increment: actionSmallTask.multiple_increment + 1
+										multiple_increment: Math.min(
+											MAX_DRILL_STEP_INCREMENT,
+											actionSmallTask.multiple_increment + 1
+										),
 									});
 								} else {
 									setActionSmallTask({
@@ -127,6 +138,7 @@ function DrillGoalModal({
 							id="drill-step-count"
 							type="number"
 							min={0}
+							max={MAX_DRILL_STEP_INCREMENT}
 							step={1}
 							inputMode="numeric"
 							className={styles.StepInput}

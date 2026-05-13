@@ -97,6 +97,7 @@ const CamerasPage = () => {
 	const [imagesByTopic] = useCamera(ros, activeTopics);
 	const images = displayedCameras.map((camera) => imagesByTopic[camera.topic] ?? "");
 	const topicNames = displayedCameras.map((camera) => camera.name);
+	const topicPaths = displayedCameras.map((camera) => camera.topic);
 
 	const setCustomLayout = (cameraIds: readonly string[]) => {
 		setViewMode("custom");
@@ -210,6 +211,7 @@ const CamerasPage = () => {
 						setRotateCams={setRotateCams}
 						currentCam={[viewMode === "all" ? "All Cams" : "Custom"]}
 						topicNames={topicNames}
+						topicPaths={topicPaths}
 						changeCam={() => {}}
 						forceGrid={true}
 						navigationPanoramaLayout={navigationPanoramaLayout}

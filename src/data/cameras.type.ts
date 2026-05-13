@@ -27,13 +27,15 @@ enum CameraNAV {
     UP_BACK = "UpBack",
     UP_LEFT = "UpLeft",
     UP_RIGHT = "UpRight",
+    FRONT = "Front",
 }
 
 /** NAV RGB labels → stream index (services `/NAV/req_camera_nav_*`, bw `/NAV/bw_camera_nav_*`). */
 const NAV_CAMERA_NAV_INDEX: Record<string, number> = {
     UpBack: 0,
-    UpLeft: 1,
-    UpRight: 2,
+    UpLeft: 2,
+    UpRight: 1,
+    Front: 3,
 };
 
 enum CameraSC {
@@ -68,6 +70,21 @@ const allCameras = {
     }
 }
 
+const CAMERA_FEED_TOPICS: Record<string, Record<string, string>> = {
+    [SubSystems.ROVER]: {
+        Up: "/ROVER/feed_camera_cs_0",
+    },
+    [SubSystems.HANDLING_DEVICE]: {
+        Gripper: "/ROVER/feed_camera_hd_0",
+    },
+    [SubSystems.NAGIVATION]: {
+        UpBack: "/CS/feed_camera_nav_0",
+        UpLeft: "/CS/feed_camera_nav_2",
+        UpRight: "/CS/feed_camera_nav_1",
+        Front: "/CS/feed_camera_nav_3",
+    },
+};
+
 
 export type {CameraElement, CameraType}
-export {CameraRover, CameraHD, CameraNAV, CameraSC, depth_cameras, allCameras, NAV_CAMERA_NAV_INDEX}
+export {CameraRover, CameraHD, CameraNAV, CameraSC, depth_cameras, allCameras, NAV_CAMERA_NAV_INDEX, CAMERA_FEED_TOPICS}

@@ -16,6 +16,7 @@ const CameraView = ({
 	setRotateCams,
 	currentCam,
 	topicNames = [],
+	topicPaths = [],
 	forceGrid = false,
 	navigationPanoramaLayout = false,
 	showSelector = true,
@@ -28,6 +29,7 @@ const CameraView = ({
 	setRotateCams: React.Dispatch<React.SetStateAction<number[]>>;
 	currentCam: Array<string>;
 	topicNames?: Array<string>;
+	topicPaths?: Array<string>;
 	forceGrid?: boolean;
 	/** Top Left + Top Right on top row, Behind full width below (cameras page Navigation preset). */
 	navigationPanoramaLayout?: boolean;
@@ -47,11 +49,22 @@ const CameraView = ({
 	const next90 = (deg: number) => ((deg ?? 0) + 90) % 360;
 	const ensureLen = (arr: number[], n: number) =>
   		Array.from({ length: n }, (_, i) => (arr?.[i] ?? 0));
-	const cameraCount = Math.max(images.length, topicNames.length, currentCam.length);
+	const cameraCount = Math.max(images.length, topicNames.length, topicPaths.length, currentCam.length);
 	const gridLayout = getGridDimensions(cameraCount);
 	const selectorLabel = currentCam.length === 1 ? currentCam[0] ?? "No Camera" : "Multi Cam";
 	const renderSelector = () =>
 		showSelector ? <CameraSelector currentCam={selectorLabel} changeCam={changeCam} /> : null;
+	const renderTopicMeta = (idx: number, className: string) => {
+		const name = topicNames[idx];
+		const path = topicPaths[idx];
+		if (!name && !path) return null;
+		return (
+			<div className={className}>
+				{name ? <div className={styles.TopicMetaLabel}>{name}</div> : null}
+				{path ? <div className={styles.TopicMetaPath}>{path}</div> : null}
+			</div>
+		);
+	};
 
 	const bump = (idx: number) => {
 		// make sure we have one rotation entry per image
@@ -85,7 +98,7 @@ const CameraView = ({
 						</button>
 					)}
 				</div>
-				<div className={styles.GridTopicName}>{topicNames[i] ?? `Camera ${i + 1}`}</div>
+				{renderTopicMeta(i, styles.GridTopicMeta)}
 			</div>
 		);
 
@@ -125,7 +138,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
           				onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
 					/>
-					{topicNames[0] && <div className={styles.TopicName}>{topicNames[0]}</div>}
+					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 			</div>
 		);
@@ -143,7 +156,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             			onDoubleClick={() => bump(0)}
 					/>
-					{topicNames[0] && <div className={styles.TopicName}>{topicNames[0]}</div>}
+					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 				<div className={styles.HalfWrapper}>
 					<img
@@ -153,7 +166,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[1] ?? 0}deg)`}}
             			onDoubleClick={() => bump(1)}
 					/>
-					{topicNames[1] && <div className={styles.TopicName}>{topicNames[1]}</div>}
+					{renderTopicMeta(1, styles.TopicMeta)}
 				</div>
 			</div>
 		);
@@ -171,7 +184,7 @@ const CameraView = ({
 						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             			onDoubleClick={() => bump(0)}
 					/>
-					{topicNames[0] && <div className={styles.TopicName}>{topicNames[0]}</div>}
+					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 
 				<div className={styles.RightHalf}>
@@ -183,7 +196,7 @@ const CameraView = ({
 							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             				onDoubleClick={() => bump(1)}
 						/>
-						{topicNames[1] && <div className={styles.TopicName}>{topicNames[1]}</div>}
+						{renderTopicMeta(1, styles.TopicMeta)}
 					</div>
 					<div className={styles.BottomHalf}>
 						<img
@@ -193,7 +206,7 @@ const CameraView = ({
 							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
             				onDoubleClick={() => bump(2)}
 						/>
-						{topicNames[2] && <div className={styles.TopicName}>{topicNames[2]}</div>}
+						{renderTopicMeta(2, styles.TopicMeta)}
 					</div>
 				</div>
 			</div>
@@ -218,7 +231,7 @@ const CameraView = ({
 							});
 						}}
 					/>
-					{topicNames[i] && <div className={styles.TopicName}>{topicNames[i]}</div>}
+					{renderTopicMeta(i, styles.TopicMeta)}
 				</div>
 				))}
 			</div>
@@ -245,7 +258,7 @@ const CameraView = ({
 									onDoubleClick={() => bump(i)}
 								/>
 							</div>
-							<div className={styles.GridTopicName}>{topicNames[i] ?? `Camera ${i + 1}`}</div>
+							{renderTopicMeta(i, styles.GridTopicMeta)}
 						</div>
 					))}
 				</div>

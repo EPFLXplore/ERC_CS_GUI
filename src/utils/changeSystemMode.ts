@@ -60,9 +60,10 @@ const requestChangeMode = (
         snackBar("error", `Unknown NAV camera: ${request_mode.index}`);
         return;
       }
+      const navServiceName = `/CS/req_camera_nav_${navIdx}`;
       const reqCameraService = new ROSLIB.Service({
         ros: ros,
-        name: `/NAV/req_camera_nav_${navIdx}`,
+        name: navServiceName,
         serviceType: "std_srvs/srv/SetBool",
       });
       reqCameraService.callService(

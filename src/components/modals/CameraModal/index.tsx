@@ -1,10 +1,16 @@
 import styles from "./style.module.sass";
-import { depth_cameras, allCameras, NAV_CAMERA_NAV_INDEX } from "../../../data/cameras.type";
+import {
+	depth_cameras,
+	allCameras,
+	NAV_CAMERA_NAV_INDEX,
+	CAMERA_FEED_TOPICS,
+} from "../../../data/cameras.type";
 import * as ROSLIB from "roslib";
 import React from "react";
 import { CameraType } from "../../../data/cameras.type";
 import SubSystems from "../../../data/subsystems.type";
 import useNavCameraBandwidth from "../../../hooks/useNavCameraBandwidth";
+import useRoverCameraBandwidth from "../../../hooks/useRoverCameraBandwidth";
 
 /*
 Author: Giovanni Ranieri and Matas Jones
@@ -17,15 +23,18 @@ necessarily running. Check instead on the ROS panel. The data rate is also shown
 function dataRateDiv(
 	cameraStates: any,
 	camera: string,
-	liveNavMbps: number | undefined
+	liveNavMbps: number | undefined,
+	liveRoverMbps: number | undefined
 ) {
 	let rate = 0;
 	if (liveNavMbps !== undefined) {
-		rate = Math.round(liveNavMbps);
+		rate = Math.round(liveNavMbps * 10) / 10;
+	} else if (liveRoverMbps !== undefined) {
+		rate = Math.round(liveRoverMbps * 10) / 10;
 	} else {
 		const cameraState = cameraStates?.[camera];
 		if (cameraState?.status) {
-			rate = Math.round(Number(cameraState?.data_rate ?? 0));
+			rate = Math.round(Number(cameraState?.data_rate ?? 0) * 10) / 10;
 		}
 	}
 	const unit = "Mbps";
@@ -55,9 +64,54 @@ function CameraModal({
 	hdDepthOnClick: (activate: boolean) => void;
 }) {
 	const navBwMbps = useNavCameraBandwidth(ros);
+	const roverBwMbps = useRoverCameraBandwidth(ros);
 
-	const [, setClickedCamera] = React.useState<string | null>(null);
-	const [localCameraActive, setLocalCameraActive] = React.useState<Record<string, boolean>>({});
+	const [lastSeenByKey, setLastSeenByKey] = React.useState<Record<string, number>>({});
+	const [, setTick] = React.useState(0);
+
+	React.useEffect(() => {
+		const id = setInterval(() => {
+			setTick((value) => (value + 1) % 100000);
+		}, 1000);
+		return () => clearInterval(id);
+	}, []);
+
+	React.useEffect(() => {
+		if (!ros) return;
+
+		const listeners: ROSLIB.Topic<any>[] = [];
+		const register = (subsystem: string, camera: string, topic: string) => {
+			const key = `${subsystem}:${camera}`;
+			const listener = new ROSLIB.Topic<any>({
+				ros: ros,
+				name: topic,
+				messageType: "sensor_msgs/CompressedImage",
+				compression: "jpeg",
+				queue_length: 1,
+				queue_size: 1,
+			} as any);
+
+			listener.subscribe(() => {
+				const ts = Date.now();
+				setLastSeenByKey((prev) => {
+					if (prev[key] === ts) return prev;
+					return { ...prev, [key]: ts };
+				});
+			});
+
+			listeners.push(listener);
+		};
+
+		Object.entries(CAMERA_FEED_TOPICS).forEach(([subsystem, cameras]) => {
+			Object.entries(cameras).forEach(([camera, topic]) => {
+				register(subsystem, camera, topic);
+			});
+		});
+
+		return () => {
+			listeners.forEach((listener) => listener.unsubscribe());
+		};
+	}, [ros]);
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -90,14 +144,25 @@ function CameraModal({
 										data_rate: "0",
 									};
 										const localKey = `${subsystem}:${camera}`;
-										const isActive =
-											localCameraActive[localKey] ?? Boolean(cameraData["status"]);
-									const navIdx =
+										const navIdx =
 										subsystem === SubSystems.NAGIVATION
 											? NAV_CAMERA_NAV_INDEX[camera]
 											: undefined;
 									const liveNavMbps =
 										navIdx !== undefined ? navBwMbps[navIdx] : undefined;
+									const liveRoverMbps =
+										subsystem === SubSystems.ROVER ? roverBwMbps[0] : undefined;
+										const lastSeen = lastSeenByKey[localKey];
+										const recentlySeen =
+											lastSeen !== undefined && Date.now() - lastSeen < 2000;
+										const parsedRate = Number(cameraData["data_rate"] ?? 0);
+										const hasDataRate = Number.isFinite(parsedRate) && parsedRate > 0;
+										const hasNavBw =
+											navIdx !== undefined && liveNavMbps !== undefined
+												? liveNavMbps > 0
+												: false;
+										const isActive =
+											recentlySeen || hasDataRate || hasNavBw || Boolean(cameraData["status"]);
 
 									return (
 									<React.Fragment key={camera}>
@@ -105,18 +170,12 @@ function CameraModal({
 										<button
 										className={`${styles.Choice} ${isActive ? styles.Selected : ""}`}
 										onClick={() => {
-											const nextActive = !isActive;
-											setLocalCameraActive((prev) => ({
-												...prev,
-												[localKey]: nextActive,
-											}));
-											onClick(subsystem, camera, nextActive);
-											setClickedCamera(camera);
+											onClick(subsystem, camera, !isActive);
 										}}
 										>
 											{camera}
 										</button>
-									{dataRateDiv(subsystemCameras ?? {}, camera, liveNavMbps)}
+											{dataRateDiv(subsystemCameras ?? {}, camera, liveNavMbps, liveRoverMbps)}
 										</div>
 									</React.Fragment>
 									);
