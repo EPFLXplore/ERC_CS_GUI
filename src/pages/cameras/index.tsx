@@ -4,6 +4,8 @@ import Background from "../../components/ui/Background";
 import useCamera from "../../hooks/cameraHooks";
 import useAlert from "../../hooks/alertHooks";
 import useRosBridge from "../../hooks/rosbridgeHooks";
+import useNavCameraBandwidth from "../../hooks/useNavCameraBandwidth";
+import useRoverCameraBandwidth from "../../hooks/useRoverCameraBandwidth";
 import { useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
@@ -66,6 +68,8 @@ function isNavigationPanoramaPreset(preset: (typeof TASK_PRESETS)[number]): bool
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
+	const navBwMbps = useNavCameraBandwidth(ros);
+	const roverBwMbps = useRoverCameraBandwidth(ros);
 	const allCameraIds = useMemo(() => CAMERA_DEFS.map((camera) => camera.id), []);
 	const [viewMode, setViewMode] = useState<"all" | "custom">("all");
 	const [customCameraIds, setCustomCameraIds] = useState<string[]>(allCameraIds);
@@ -97,7 +101,19 @@ const CamerasPage = () => {
 	const [imagesByTopic] = useCamera(ros, activeTopics);
 	const images = displayedCameras.map((camera) => imagesByTopic[camera.topic] ?? "");
 	const topicNames = displayedCameras.map((camera) => camera.name);
-	const topicPaths = displayedCameras.map((camera) => camera.topic);
+	const topicPaths = displayedCameras.map((camera) => {
+		const topic = camera.topic;
+		let bw: number | undefined;
+		if (topic.startsWith("/CS/feed_camera_nav_")) {
+			const idx = Number(topic.slice("/CS/feed_camera_nav_".length));
+			bw = Number.isFinite(idx) ? navBwMbps[idx as 0 | 1 | 2 | 3] : undefined;
+		} else if (topic === "/ROVER/feed_camera_cs_0") {
+			bw = roverBwMbps[0];
+		}
+
+		if (bw === undefined) return topic;
+		return `${topic} (${bw.toFixed(1)} Mbps)`;
+	});
 
 	const setCustomLayout = (cameraIds: readonly string[]) => {
 		setViewMode("custom");
