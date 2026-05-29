@@ -2,6 +2,8 @@ import React from "react";
 import styles from "./style.module.sass";
 import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
+import * as ROSLIB from "roslib";
+import { resetDrillHome } from "../../../utils/drillActions";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -46,11 +48,13 @@ interface DrillGoalModalProps {
 }
 
 function DrillGoalModal({
+	ros,
 	onSetGoal,
 	onClose,
 	onCancelGoal,
 	snackBar,
 }: {
+	ros: ROSLIB.Ros | null;
 	onSetGoal: (system: string, actionArgs: Object) => void;
 	onClose: () => void;
 	onCancelGoal: (system: string) => void;
@@ -146,6 +150,18 @@ function DrillGoalModal({
 							onChange={(event) => handleSmallStepCountChange(event.target.value)}
 							aria-label="Drill step count"
 						/>
+					</div>
+				</div>
+
+				<div className={styles.ModalContent}>
+					<div className={styles.ChoiceGroup}>
+						<button
+							type="button"
+							className={styles.Choice}
+							onClick={() => resetDrillHome(ros, snackBar)}
+						>
+							Home Drill Translation
+						</button>
 					</div>
 				</div>
 

@@ -240,7 +240,7 @@ class GamepadController {
 							: axes[axisProfile.axis]  - axisProfile.zeroAxisRange / -axisProfile.minAxisRange;
 					*/
 					//Deadzone handling
-					const DEADZONE = 0.02;
+					const DEADZONE = 0.05;
 					normalizedAxis = Math.abs(normalizedAxis) < DEADZONE ? 0.0 : normalizedAxis 	
 					
 					//if (axisProfile.axis == 3) console.log(normalizedAxis)

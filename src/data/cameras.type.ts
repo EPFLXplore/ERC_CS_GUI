@@ -5,6 +5,7 @@ Description: Type for Cameras and their states
 */
 
 import SubSystems from "./subsystems.type";
+import { Topics } from "./topics.type";
 
 type CameraElement = {
   name: string;
@@ -81,7 +82,7 @@ const CAMERA_FEED_TOPICS: Record<string, Record<string, string>> = {
         UpBack: "/CS/feed_camera_nav_0",
         UpLeft: "/CS/feed_camera_nav_2",
         UpRight: "/CS/feed_camera_nav_1",
-        Front: "/CS/feed_camera_nav_3",
+        Front: Topics.NAV_FRONT_CAMERA_COMPRESSED,
     },
 };
 

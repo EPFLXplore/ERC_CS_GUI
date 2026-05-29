@@ -1202,6 +1202,7 @@ const selectModal = (
 		case SubSystems.DRILL:
 			return (
 				<DrillGoalModal
+					ros={ros}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {

@@ -6,10 +6,11 @@ import useAlert from "../../hooks/alertHooks";
 import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNavCameraBandwidth from "../../hooks/useNavCameraBandwidth";
 import useRoverCameraBandwidth from "../../hooks/useRoverCameraBandwidth";
+import { Topics } from "../../data/topics.type";
 import { useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
-	{ id: "nav_front", name: "Front", topic: "/CS/feed_camera_nav_3" },
+	{ id: "nav_front", name: "Front", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED },
 	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0" },
 	{ id: "up", name: "Up", topic: "/ROVER/feed_camera_cs_0" },
 	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0" },

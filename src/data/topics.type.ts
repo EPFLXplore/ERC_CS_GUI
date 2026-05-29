@@ -18,6 +18,8 @@ export enum Topics {
     NAV_BW_CAMERA_NAV_1 = "/CS/bw_camera_nav_1",
     NAV_BW_CAMERA_NAV_2 = "/CS/bw_camera_nav_2",
     NAV_BW_CAMERA_NAV_3 = "/CS/bw_camera_nav_3",
+    /** NAV front (ZED RGB rectified compressed); subscribed directly, not via `/CS/feed_camera_nav_*`. */
+    NAV_FRONT_CAMERA_COMPRESSED = "/zed/zed_node/rgb/color/rect/image/compressed",
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
 
@@ -47,6 +49,7 @@ export enum Topics {
     DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode (DrillCSInterface)
     /** Legacy: same srv/DrillMode if interface node is old or only SC name is advertised */
     DRILL_CHANGE_MODE_LEGACY = "/SC/drill_mode_srv",
+    DRILL_RESET_HOME = "/SC/ResetHomeDrillMotors",  // Service: reset drill motors to home
 
     // ============================================
     // ELECTRONICS (EL) Subsystem Interface
