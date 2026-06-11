@@ -7,23 +7,18 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import { useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
-	{ id: "nav_front", name: "Front Cam", topic: "/NAV/feed_camera_nav_0" },
-	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0" },
-	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0" },
-	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1" },
-	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2" },
-	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3" },
-	{ id: "nav_left", name: "LEFT", topic: "/NAV/feed_camera_nav_1" },
-	{ id: "nav_right", name: "RIGHT", topic: "/NAV/feed_camera_nav_2" },
-	{ id: "nav_aux", name: "NAV 3", topic: "/NAV/feed_camera_nav_3" },
-	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4" },
-	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
+    { id: "nav_front",  name: "Front Cam",  source: { type: "ros" as const, topic: "/NAV/feed_camera_nav_0" } },
+    { id: "hd_gripper", name: "Gripper Cam", source: { type: "ros" as const, topic: "/ROVER/feed_camera_hd_0" } },
+    { id: "cs_nav_0",   name: "CS Nav 0",   source: { type: "gst" as const, url: "http://localhost:8080" } },
+    { id: "cs_nav_1",   name: "CS Nav 1",   source: { type: "gst" as const, url: "http://localhost:8081" } },
+    { id: "cs_nav_2",   name: "CS Nav 2",   source: { type: "gst" as const, url: "http://localhost:8082" } },
+    { id: "cs_nav_3",   name: "CS Nav 3",   source: { type: "gst" as const, url: "http://localhost:8083" } },
 ] as const;
 
 const TASK_PRESETS = [
 	{ label: "Navigation", cameraIds: ["nav_front", "nav_left", "nav_right", "nav_aux"] },
-	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
-	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
+	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_nav_0", "cs_nav_1"] },
+	{ label: "Exploration", cameraIds: ["nav_front", "cs_nav_0", "cs_nav_1", "cs_nav_2", "cs_nav_3"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
 	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
 	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_other_1", "cs_other_2", "cs_st_0"] },
@@ -53,12 +48,8 @@ const CamerasPage = () => {
 		() => CAMERA_DEFS.filter((camera) => displayedCameraIds.includes(camera.id)),
 		[displayedCameraIds]
 	);
-	const activeTopics = useMemo(
-		() => displayedCameras.map((camera) => camera.topic),
-		[displayedCameras]
-	);
-	const [imagesByTopic] = useCamera(ros, activeTopics);
-	const images = displayedCameras.map((camera) => imagesByTopic[camera.topic] ?? "");
+	const [imagesByKey] = useCamera(ros, displayedCameras);
+	const images = displayedCameras.map((camera) => imagesByKey[camera.id] ?? "");
 	const topicNames = displayedCameras.map((camera) => camera.name);
 
 	const setCustomLayout = (cameraIds: readonly string[]) => {

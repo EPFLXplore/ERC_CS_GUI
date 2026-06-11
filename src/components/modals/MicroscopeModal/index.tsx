@@ -16,8 +16,11 @@ function MicroscopeModal({
 	ros: ROSLIB.Ros | null;
 	snackBar: (severity: AlertColor, message: string) => void;
 }) {
-	const [imagesByTopic] = useCamera(ros, [MICROSCOPE_TOPIC]);
-	const microscopeImage = imagesByTopic[MICROSCOPE_TOPIC] ?? "";
+	
+	const [imagesByKey] = useCamera(ros, [
+		{ id: "microscope", source: { type: "ros" as const, topic: MICROSCOPE_TOPIC } }
+	]);
+	const microscopeImage = imagesByKey["microscope"] ?? "";
 
 	const takeScreenshot = () => {
 		if (!microscopeImage) {

@@ -1,66 +1,50 @@
 import { useEffect, useState } from "react";
 import * as ROSLIB from "roslib";
 
-/*
-Author: Ugo Balducci and Giovanni Ranieri
-Year: 2025
-Description: Hooks for managing the states of the different cameras. It creates the subscribers to
-get the feeds of the cameras. 
-*/
+type CameraDef = {
+	id: string;
+	source: { type: "ros"; topic: string } | { type: "gst"; url: string };
+};
 
-function useCamera(ros: ROSLIB.Ros | null, activeTopics: string[]) {
-	const [imagesByTopic, setImagesByTopic] = useState<Record<string, string>>({});
-	const [listeners, setListeners] = useState<ROSLIB.Topic<any>[]>([]);
-	
+function useCamera(ros: ROSLIB.Ros | null, cameras: readonly CameraDef[]) {
+	const [imagesByKey, setImagesByKey] = useState<Record<string, string>>({});
+
 	useEffect(() => {
-		if (ros) {
-			let _listeners: ROSLIB.Topic<any>[] = [];
+		const cleanups: (() => void)[] = [];
 
-			setListeners(old => {
-				old.forEach((listener) => {
-					listener.unsubscribe();
-				});
-
-				return _listeners;
-			});
-
-			activeTopics.forEach((camera) => {
+		cameras.forEach((camera) => {
+			if (camera.source.type === "ros") {
+				if (!ros) return;
 				const listener = new ROSLIB.Topic({
-					ros: ros,
-					name: camera,
+					ros,
+					name: camera.source.topic,
 					messageType: "sensor_msgs/CompressedImage",
 					compression: "jpeg",
 					queue_length: 1,
 					queue_size: 1,
 				});
-
-				listener.subscribe((message) => {
-					//@ts-ignore
-					if (!message.data) {
-						return;
-					}
-					setImagesByTopic((previous) => {
-						return {
-							...previous,
-							//@ts-ignore
-							[camera]: "data:image/jpeg;charset=utf-8;base64," + message.data,
-						};
-					});
+				listener.subscribe((message: any) => {
+					if (!message.data) return;
+					setImagesByKey((prev) => ({
+						...prev,
+						[camera.id]: "data:image/jpeg;base64," + message.data,
+					}));
 				});
+				cleanups.push(() => listener.unsubscribe());
 
-				_listeners = [..._listeners, listener];
-			});
+			} else if (camera.source.type === "gst") {
+				const streamUrl = camera.source.url;
+				setImagesByKey((prev) => ({
+					...prev,
+					[camera.id]: streamUrl,
+				}));
+			}
+		});
 
-			return () => {
-				_listeners.forEach((listener) => {
-					listener.unsubscribe();
-				});
-			};
-		}
+		return () => cleanups.forEach((fn) => fn());
+	}, [ros, JSON.stringify(cameras)]);
 
-	}, [ros, activeTopics]);
-
-	return [imagesByTopic] as const;
+	return [imagesByKey] as const;
 }
 
 export default useCamera;
