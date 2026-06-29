@@ -4,6 +4,8 @@ import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import { resetDrillHome } from "../../../utils/drillActions";
+import { roundToTwoDecimals } from "../../../utils/maths";
+import { Topics } from "../../../data/topics.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -60,6 +62,43 @@ function DrillGoalModal({
 	onCancelGoal: (system: string) => void;
 	snackBar: (sev: AlertColor, mes: string) => void;
 }) {
+	const [positionCm, setPositionCm] = React.useState<number | null>(null);
+
+	React.useEffect(() => {
+		if (!ros) {
+			setPositionCm(null);
+			return;
+		}
+
+		const listener = new ROSLIB.Topic({
+			ros,
+			name: Topics.DRILL_STATE,
+			messageType: "std_msgs/String",
+			queue_length: 1,
+			queue_size: 1,
+		});
+
+		listener.subscribe((message) => {
+			try {
+				const raw = (message as { data?: unknown }).data;
+				const data =
+					typeof raw === "string"
+						? JSON.parse(raw)
+						: raw && typeof raw === "object"
+							? raw
+							: JSON.parse(String(raw));
+				const pos = data?.motors?.motor_module?.position;
+				setPositionCm(typeof pos === "number" ? pos : null);
+			} catch {
+				setPositionCm(null);
+			}
+		});
+
+		return () => listener.unsubscribe();
+	}, [ros]);
+
+	const positionLabel =
+		positionCm === null ? "NO DATA" : `${roundToTwoDecimals(positionCm)} cm`;
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 	const [actionSmallTask, setActionSmallTask] = React.useState<DrillGoalModalProps>({
 		task: DrillSmallActions.STEP_DOWN,
@@ -84,6 +123,10 @@ function DrillGoalModal({
 			>
 				<div className={styles.ModalHeader}>
 					<h1>Drill Task</h1>
+				</div>
+				<div className={styles.StatusBar}>
+					<span className={styles.StatusLabel}>Position</span>
+					<span className={styles.StatusValue}>{positionLabel}</span>
 				</div>
 				<div className={styles.ModalContent}>
 

@@ -7,27 +7,46 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNavCameraBandwidth from "../../hooks/useNavCameraBandwidth";
 import useRoverCameraBandwidth from "../../hooks/useRoverCameraBandwidth";
 import { Topics } from "../../data/topics.type";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const CAMERA_DEFS = [
-	{ id: "nav_front", name: "Front", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED },
-	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0" },
-	{ id: "up", name: "Up", topic: "/ROVER/feed_camera_cs_0" },
-	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0" },
-	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1" },
-	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2" },
-	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3" },
-	{ id: "nav_back", name: "Back", topic: "/CS/feed_camera_nav_0" },	
-	{ id: "nav_left", name: "Top Right", topic: "/CS/feed_camera_nav_1" },
-	{ id: "nav_right", name: "Top Left", topic: "/CS/feed_camera_nav_2" },
-	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4" },
-	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5" },
+	{ id: "nav_front", name: "Front", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED, gstPort: 5006 },
+	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0", gstPort: 5008 },
+	{ id: "up", name: "Up", topic: "/ROVER/feed_camera_cs_0", gstPort: 5010 },
+	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0", gstPort: 5012 },
+	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1", gstPort: 5014 },
+	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2", gstPort: 5016 },
+	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3", gstPort: 5018 },
+	{ id: "nav_back", name: "Back", topic: "/CS/feed_camera_nav_0", gstPort: 5000 },
+	{ id: "nav_left", name: "Top Right", topic: "/CS/feed_camera_nav_1", gstPort: 5002 },
+	{ id: "nav_right", name: "Top Left", topic: "/CS/feed_camera_nav_2", gstPort: 5004 },
+	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4", gstPort: 5020 },
+	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5", gstPort: 5022 },
 ] as const;
 
 type CameraDef = (typeof CAMERA_DEFS)[number];
+type CameraId = CameraDef["id"];
+type CameraSource = "gst" | "ros";
+type CameraSourceMap = Record<CameraId, CameraSource>;
+type CameraStreamStats = {
+	port: number;
+	mbps: number;
+	packetsPerSec: number;
+	payloadMbps: number;
+	overheadMbps: number;
+	active: boolean;
+	lastPacketAgeMs: number | null;
+};
+
+const CAMERA_SOURCE_STORAGE_KEY = "erc-cs-camera-feed-sources-v1";
+
+const DEFAULT_CAMERA_SOURCES = CAMERA_DEFS.reduce((acc, camera) => {
+	acc[camera.id] = "gst";
+	return acc;
+}, {} as CameraSourceMap);
 
 const TASK_PRESETS = [
-	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_front"] },
+	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_back", "nav_front"] },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
@@ -46,6 +65,31 @@ const getDefaultRotationByCameraId = (cameraId: string): number => {
 const getDefaultRotations = (cameraIds: readonly string[]): number[] =>
 	cameraIds.map((cameraId) => getDefaultRotationByCameraId(cameraId));
 
+function loadCameraSources(): CameraSourceMap {
+	if (typeof window === "undefined") return { ...DEFAULT_CAMERA_SOURCES };
+	try {
+		const raw = window.localStorage.getItem(CAMERA_SOURCE_STORAGE_KEY);
+		const parsed = raw ? JSON.parse(raw) : {};
+		return CAMERA_DEFS.reduce((acc, camera) => {
+			acc[camera.id] = parsed?.[camera.id] === "ros" ? "ros" : "gst";
+			return acc;
+		}, {} as CameraSourceMap);
+	} catch {
+		return { ...DEFAULT_CAMERA_SOURCES };
+	}
+}
+
+function getCameraStreamUrl(cameraId: CameraId): string {
+	return `${getCameraBackendBaseUrl()}/camera-streams/${cameraId}.mjpg`;
+}
+
+function getCameraBackendBaseUrl(): string {
+	if (typeof window === "undefined") return "";
+	const protocol = window.location.protocol || "http:";
+	const hostname = window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname;
+	return `${protocol}//${hostname}:5000`;
+}
+
 /** Top Left (nav_right) on the left, Top Right (nav_left) on the right when only that pair is visible. */
 function normalizeFrontStereoOrder(ids: readonly string[]): string[] {
 	const arr = [...ids];
@@ -59,10 +103,12 @@ function normalizeFrontStereoOrder(ids: readonly string[]): string[] {
 
 function isNavigationPanoramaPreset(preset: (typeof TASK_PRESETS)[number]): boolean {
 	return (
-		preset.cameraIds.length === 3 &&
+		preset.label === "Navigation" &&
+		preset.cameraIds.length === 4 &&
 		preset.cameraIds[0] === "nav_right" &&
 		preset.cameraIds[1] === "nav_left" &&
-		preset.cameraIds[2] === "nav_front"
+		preset.cameraIds[2] === "nav_back" &&
+		preset.cameraIds[3] === "nav_front"
 	);
 }
 
@@ -75,15 +121,46 @@ const CamerasPage = () => {
 	const [viewMode, setViewMode] = useState<"all" | "custom">("all");
 	const [customCameraIds, setCustomCameraIds] = useState<string[]>(allCameraIds);
 	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
+	const [cameraSources, setCameraSources] = useState<CameraSourceMap>(() => loadCameraSources());
+	const [gstStats, setGstStats] = useState<Record<string, CameraStreamStats>>({});
+
+	useEffect(() => {
+		try {
+			window.localStorage.setItem(CAMERA_SOURCE_STORAGE_KEY, JSON.stringify(cameraSources));
+		} catch {
+			// Ignore storage failures; the default GStreamer mode still applies next load.
+		}
+	}, [cameraSources]);
+
+	useEffect(() => {
+		let canceled = false;
+		const loadStats = async () => {
+			try {
+				const response = await fetch(`${getCameraBackendBaseUrl()}/camera-streams/stats`);
+				if (!response.ok) return;
+				const next = (await response.json()) as Record<string, CameraStreamStats>;
+				if (!canceled) setGstStats(next);
+			} catch {
+				if (!canceled) setGstStats({});
+			}
+		};
+		loadStats();
+		const timer = window.setInterval(loadStats, 1000);
+		return () => {
+			canceled = true;
+			window.clearInterval(timer);
+		};
+	}, []);
 
 	const displayedCameraIds = viewMode === "all" ? allCameraIds : customCameraIds;
 	const navigationPanoramaLayout = useMemo(
 		() =>
 			viewMode === "custom" &&
-			displayedCameraIds.length === 3 &&
+			displayedCameraIds.length === 4 &&
 			displayedCameraIds[0] === "nav_right" &&
 			displayedCameraIds[1] === "nav_left" &&
-			displayedCameraIds[2] === "nav_front",
+			displayedCameraIds[2] === "nav_back" &&
+			displayedCameraIds[3] === "nav_front",
 		[viewMode, displayedCameraIds]
 	);
 	const displayedCameras = useMemo(() => {
@@ -96,13 +173,28 @@ const CamerasPage = () => {
 			.filter((c): c is CameraDef => c != null);
 	}, [displayedCameraIds]);
 	const activeTopics = useMemo(
-		() => displayedCameras.map((camera) => camera.topic),
-		[displayedCameras]
+		() =>
+			displayedCameras
+				.filter((camera) => cameraSources[camera.id] === "ros")
+				.map((camera) => camera.topic),
+		[displayedCameras, cameraSources]
 	);
 	const [imagesByTopic] = useCamera(ros, activeTopics);
-	const images = displayedCameras.map((camera) => imagesByTopic[camera.topic] ?? "");
+	const images = displayedCameras.map((camera) =>
+		cameraSources[camera.id] === "ros"
+			? imagesByTopic[camera.topic] ?? ""
+			: getCameraStreamUrl(camera.id)
+	);
 	const topicNames = displayedCameras.map((camera) => camera.name);
 	const topicPaths = displayedCameras.map((camera) => {
+		if (cameraSources[camera.id] === "gst") {
+			const stats = gstStats[camera.id];
+			if (!stats || !stats.active) {
+				return `GStreamer UDP:${camera.gstPort} (no packets)`;
+			}
+			return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps wire, ${stats.overheadMbps.toFixed(2)} Mbps overhead)`;
+		}
+
 		const topic = camera.topic;
 		let bw: number | undefined;
 		if (topic.startsWith("/CS/feed_camera_nav_")) {
@@ -128,6 +220,13 @@ const CamerasPage = () => {
 		setViewMode("all");
 		setCustomCameraIds(allCameraIds);
 		setRotateCams(getDefaultRotations(allCameraIds));
+	};
+
+	const toggleCameraSource = (cameraId: CameraId) => {
+		setCameraSources((previous) => ({
+			...previous,
+			[cameraId]: previous[cameraId] === "ros" ? "gst" : "ros",
+		}));
 	};
 
 	const toggleSingleCamera = (cameraId: string) => {
@@ -186,15 +285,29 @@ const CamerasPage = () => {
 					<div className={styles.hubSectionTitle}>Individual Cameras</div>
 					{CAMERA_DEFS.map((camera) => {
 						const isActive = displayedCameraIds.includes(camera.id);
+						const source = cameraSources[camera.id];
 						return (
-							<button
-								type="button"
-								key={camera.id}
-								className={`${styles.hubButton} ${isActive ? styles.hubButtonActive : ""}`}
-								onClick={() => toggleSingleCamera(camera.id)}
-							>
-								{camera.name}
-							</button>
+							<div key={camera.id} className={styles.cameraButtonRow}>
+								<button
+									type="button"
+									className={`${styles.hubButton} ${styles.cameraVisibilityButton} ${
+										isActive ? styles.hubButtonActive : ""
+									}`}
+									onClick={() => toggleSingleCamera(camera.id)}
+								>
+									{camera.name}
+								</button>
+								<button
+									type="button"
+									className={`${styles.sourceToggle} ${
+										source === "ros" ? styles.sourceToggleRos : ""
+									}`}
+									title={`${camera.name}: ${source === "gst" ? "GStreamer" : "ROS"} feed`}
+									onClick={() => toggleCameraSource(camera.id)}
+								>
+									{source.toUpperCase()}
+								</button>
+							</div>
 						);
 					})}
 					<div className={styles.hubDivider} />
@@ -214,7 +327,10 @@ const CamerasPage = () => {
 										<span className={styles.navPresetCell} aria-hidden />
 										<span className={styles.navPresetCell} aria-hidden />
 									</span>
-									<span className={styles.navPresetBehind} aria-hidden />
+									<span className={styles.navPresetRow}>
+										<span className={styles.navPresetCell} aria-hidden />
+										<span className={styles.navPresetCell} aria-hidden />
+									</span>
 								</span>
 							) : null}
 							<span className={styles.navPresetLabel}>{preset.label}</span>

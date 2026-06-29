@@ -785,6 +785,7 @@ const getMotorModule = (data: any) => {
 			position: 0,
 			current: 0,
 			state: "NO DATA",
+			homed: "NO DATA",
 		};
 	}
 
@@ -795,6 +796,7 @@ const getMotorModule = (data: any) => {
 			position: 0,
 			current: 0,
 			state: "Disconnected",
+			homed: "NO DATA",
 		};
 	}
 
@@ -803,13 +805,14 @@ const getMotorModule = (data: any) => {
 		drillData?.state?.mode === States.OFF || String(drillData?.state?.mode).toLowerCase() === "off";
 
 	return {
-		position: Number(Number(motorModule["position"]).toFixed(2)),
+		position: Number(Number(motorModule["position"]).toFixed(2)), // cm (translation module)
 		current: Number(motorModule["current"]),
 		state: subsystemOff
 			? "Off"
 			: motorModule["state"]
 				? "Connected"
 				: "Disconnected",
+		homed: motorModule["homed"] ? "Homed" : "Not homed",
 	};
 };
 

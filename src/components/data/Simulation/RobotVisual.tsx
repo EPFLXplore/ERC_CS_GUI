@@ -36,8 +36,9 @@ ROS URDf
 
 */
 
-const MIN_DRILL_ENCODER = 0.0
-const MAX_DRILL_ENCODER = 30000000.0
+/** `/DRILL/State` motor_module.position is in cm (0 = retracted, negative = extended). */
+const MIN_DRILL_CM = 0.0
+const MAX_DRILL_CM = -40.0
 const MIN_DRILL_STATE = 0.0
 const MAX_DRILL_STATE = -0.64
 
@@ -67,9 +68,10 @@ const RobotVisual = ({
 
 	const [currentAngle, setCurrentAngle] = useState([0.0, 0.0, 0.0, 0.0])
 
-	const mapRangeDrill = (value: number): number => {
-		return MIN_DRILL_STATE + (value - MIN_DRILL_ENCODER) * 
-		((MAX_DRILL_STATE - MIN_DRILL_STATE) / (MAX_DRILL_ENCODER - MIN_DRILL_ENCODER));
+	const mapRangeDrill = (valueCm: number): number => {
+		const clamped = Math.max(MAX_DRILL_CM, Math.min(MIN_DRILL_CM, valueCm));
+		const t = (clamped - MIN_DRILL_CM) / (MAX_DRILL_CM - MIN_DRILL_CM);
+		return t * MAX_DRILL_STATE;
 	}
 
 	let interval = false

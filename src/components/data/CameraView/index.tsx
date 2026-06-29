@@ -31,7 +31,7 @@ const CameraView = ({
 	topicNames?: Array<string>;
 	topicPaths?: Array<string>;
 	forceGrid?: boolean;
-	/** Top Left + Top Right on top row, Behind full width below (cameras page Navigation preset). */
+	/** Top Left + Top Right on top row; Back + Front on bottom row (cameras page Navigation preset). */
 	navigationPanoramaLayout?: boolean;
 	showSelector?: boolean;
 	showRemoveButton?: boolean;
@@ -78,7 +78,11 @@ const CameraView = ({
 			<div
 				key={i}
 				className={styles.GridItem}
-				style={navigationPanoramaLayout && i === 2 ? { gridColumn: "1 / -1" } : undefined}
+				style={
+					navigationPanoramaLayout && cameraCount === 3 && i === 2
+						? { gridColumn: "1 / -1" }
+						: undefined
+				}
 			>
 				<div className={styles.GridImageWrapper}>
 					<img
@@ -103,7 +107,7 @@ const CameraView = ({
 		);
 
 		const useNavPanorama =
-			navigationPanoramaLayout && cameraCount === 3;
+			navigationPanoramaLayout && (cameraCount === 3 || cameraCount === 4);
 
 		return (
 			<div className={styles.Container}>

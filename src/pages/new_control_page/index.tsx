@@ -93,7 +93,7 @@ const WIDGET_KEYS = [
 	"drivingCurrents",
 	"steeringCurrents",
 	"jointsHdVelocity",
-	"drillCurrents",
+	"drill",
 	"wheelsSpeed",
 	"steeringAngles",
 	"jointsHd",
@@ -103,7 +103,6 @@ const WIDGET_KEYS = [
 	"jetsonNav",
 	"rosNodes",
 	"hdData",
-	"drillData",
 	"currentPosition",
 	"scienceSensors",
 ] as const;
@@ -130,7 +129,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	drivingCurrents: "Driving Currents",
 	steeringCurrents: "Steering Currents",
 	jointsHdVelocity: "Joints HD Velocity",
-	drillCurrents: "Drill Currents",
+	drill: "Drill",
 	wheelsSpeed: "Wheels Speed",
 	steeringAngles: "Steering Angles",
 	jointsHd: "Joints HD",
@@ -140,7 +139,6 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	jetsonNav: "Jetson NAV",
 	rosNodes: "ROS Nodes",
 	hdData: "HD Data",
-	drillData: "Drill Data",
 	currentPosition: "Current Position",
 	scienceSensors: "Science Sensors",
 };
@@ -162,6 +160,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonHd",
 		"jetsonNav",
 		"rosNodes",
+		"drill",
 		"currentPosition",
 	]),
 	Manipulation: buildVisibility([
@@ -176,6 +175,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonNav",
 		"rosNodes",
 		"hdData",
+		"drill",
 		"currentPosition",
 	]),
 	Probing: buildVisibility([
@@ -190,14 +190,14 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonNav",
 		"rosNodes",
 		"hdData",
+		"drill",
 	]),
 	Sampling: buildVisibility([
 		"drivingCurrents",
 		"steeringCurrents",
 		"jointsHdVelocity",
 		"jointsHd",
-		"drillCurrents",
-		"drillData",
+		"drill",
 		"wheelsSpeed",
 		"steeringAngles",
 		"wheelConfiguration",
@@ -212,8 +212,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"steeringCurrents",
 		"jointsHdVelocity",
 		"jointsHd",
-		"drillCurrents",
-		"drillData",
+		"drill",
 		"wheelsSpeed",
 		"steeringAngles",
 		"wheelConfiguration",
@@ -426,6 +425,12 @@ const NewControlPage = () => {
 		}));
 	};
 
+	const drillModule = getMotorModule(roverState);
+	const drillMotor = getMotorDrill(roverState);
+	const drillFsm = getStateFSM(roverState);
+	const drillMode =
+		roverState?.drill?.state?.mode != null ? String(roverState.drill.state.mode) : "NO DATA";
+
 	const widgetCards: { key: WidgetKey; content: ReactElement }[] = [
 		{
 			key: "drivingCurrents",
@@ -476,15 +481,29 @@ const NewControlPage = () => {
 			),
 		},
 		{
-			key: "drillCurrents",
+			key: "drill",
 			content: (
 				<ControllerInfoBox
-					title="Drill Currents"
+					title="Drill"
 					infos={[
-						{ info: { name: "Motor", value: getMotorModule(roverState)["current"] }, connected: getMotorModule(roverState)["state"] },
-						{ info: { name: "Drill", value: getMotorDrill(roverState)["current"] }, connected: getMotorDrill(roverState)["state"] },
+						{
+							info: { name: "Position", value: drillModule.position, unit: "cm" },
+							connected: drillModule.homed,
+						},
+						{ info: { name: "FSM State", value: drillFsm }, connected: drillMode },
+						{
+							info: { name: "Translation", value: drillModule.current, unit: "mA" },
+							connected: drillModule.state,
+						},
+						{
+							info: { name: "Drill", value: drillMotor.current, unit: "mA" },
+							connected: drillMotor.state,
+						},
+						{
+							info: { name: "Velocity", value: drillMotor.speed, unit: "rpm" },
+							connected: drillMotor.state,
+						},
 					]}
-					unit="mA"
 				/>
 			),
 		},
@@ -722,19 +741,6 @@ const NewControlPage = () => {
 						</button>
 					</div>
 				</div>
-			),
-		},
-		{
-			key: "drillData",
-			content: (
-				<InfoBox
-					title="Drill Data"
-					infos={[
-						{ name: "Height", value: getMotorModule(roverState).position, unit: "%" },
-						{ name: "Velocity", value: getMotorDrill(roverState).speed, unit: "rpm" },
-						{ name: "FSM State", value: getStateFSM(roverState) },
-					]}
-				/>
 			),
 		},
 		{

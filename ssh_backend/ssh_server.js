@@ -17,7 +17,8 @@ record.checkCSVFileExists(homeDir, mass_arm_file, mass_arm_format_line);
 
 // ExpressJS
 const express = require('express');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
+const dgram = require('dgram');
 const net = require('net');
 const app = express();
 app.use(express.json());
@@ -28,6 +29,258 @@ const LINK_PING_HOSTS = ['169.254.55.230', '169.254.55.231'];
 // Cors
 const cors = require('cors');
 app.use(cors());
+
+const CAMERA_GST_PORTS = {
+  nav_back: 5000,
+  nav_left: 5002,
+  nav_right: 5004,
+  nav_front: 5006,
+  hd_gripper: 5008,
+  up: 5010,
+  cs_st_0: 5012,
+  cs_st_1: 5014,
+  cs_dr: 5016,
+  cs_bh: 5018,
+  cs_other_1: 5020,
+  cs_other_2: 5022,
+};
+
+const cameraStreams = new Map();
+const cameraStats = new Map();
+const FIRST_FRAME_TIMEOUT_MS = 2500;
+const CAMERA_STATS_WINDOW_MS = 1000;
+const CAMERA_ACTIVE_TIMEOUT_MS = 2000;
+const INTERNAL_GST_PORT_OFFSET = 10000;
+const IPV4_HEADER_BYTES = 20;
+const UDP_HEADER_BYTES = 8;
+const ETHERNET_HEADER_BYTES = 14;
+const ETHERNET_FCS_BYTES = 4;
+const ETHERNET_PREAMBLE_SFD_BYTES = 8;
+const ETHERNET_INTER_FRAME_GAP_BYTES = 12;
+const ETHERNET_MIN_FRAME_BYTES = 64;
+
+function getInternalGstPort(publicPort) {
+  return publicPort + INTERNAL_GST_PORT_OFFSET;
+}
+
+function estimateWireBytes(udpPayloadBytes) {
+  const ethernetFrameBytes =
+    ETHERNET_HEADER_BYTES +
+    IPV4_HEADER_BYTES +
+    UDP_HEADER_BYTES +
+    udpPayloadBytes +
+    ETHERNET_FCS_BYTES;
+  return (
+    Math.max(ETHERNET_MIN_FRAME_BYTES, ethernetFrameBytes) +
+    ETHERNET_PREAMBLE_SFD_BYTES +
+    ETHERNET_INTER_FRAME_GAP_BYTES
+  );
+}
+
+function getCameraStats(cameraId) {
+  let stats = cameraStats.get(cameraId);
+  if (!stats) {
+    stats = {
+      samples: [],
+      lastPacketAt: 0,
+    };
+    cameraStats.set(cameraId, stats);
+  }
+  return stats;
+}
+
+function pruneCameraStats(stats, now) {
+  while (stats.samples.length > 0 && now - stats.samples[0].t > CAMERA_STATS_WINDOW_MS) {
+    stats.samples.shift();
+  }
+}
+
+function recordCameraPacket(cameraId, udpPayloadBytes) {
+  const now = Date.now();
+  const stats = getCameraStats(cameraId);
+  stats.samples.push({
+    t: now,
+    payloadBytes: udpPayloadBytes,
+    wireBytes: estimateWireBytes(udpPayloadBytes),
+  });
+  stats.lastPacketAt = now;
+  pruneCameraStats(stats, now);
+}
+
+function buildCameraStatsSnapshot() {
+  const now = Date.now();
+  const out = {};
+  for (const [cameraId, port] of Object.entries(CAMERA_GST_PORTS)) {
+    const stats = getCameraStats(cameraId);
+    pruneCameraStats(stats, now);
+    const packetCount = stats.samples.length;
+    const payloadBytes = stats.samples.reduce((sum, sample) => sum + sample.payloadBytes, 0);
+    const wireBytes = stats.samples.reduce((sum, sample) => sum + sample.wireBytes, 0);
+    const overheadBytes = Math.max(0, wireBytes - payloadBytes);
+    const lastPacketAgeMs = stats.lastPacketAt > 0 ? now - stats.lastPacketAt : null;
+    const active = lastPacketAgeMs !== null && lastPacketAgeMs <= CAMERA_ACTIVE_TIMEOUT_MS;
+    out[cameraId] = {
+      port,
+      mbps: Number(((wireBytes * 8) / CAMERA_STATS_WINDOW_MS / 1000).toFixed(3)),
+      packetsPerSec: packetCount,
+      payloadMbps: Number(((payloadBytes * 8) / CAMERA_STATS_WINDOW_MS / 1000).toFixed(3)),
+      overheadMbps: Number(((overheadBytes * 8) / CAMERA_STATS_WINDOW_MS / 1000).toFixed(3)),
+      active,
+      lastPacketAgeMs,
+    };
+  }
+  return out;
+}
+
+function startCameraUdpProxy(cameraId, publicPort) {
+  const internalPort = getInternalGstPort(publicPort);
+  const socket = dgram.createSocket('udp4');
+  const proxy = {
+    socket,
+    publicPort,
+    internalPort,
+    ready: false,
+  };
+
+  socket.on('message', (msg) => {
+    recordCameraPacket(cameraId, msg.length);
+    socket.send(msg, internalPort, '127.0.0.1', (err) => {
+      if (err) console.error(`[camera-streams] ${cameraId}: UDP proxy send failed: ${err.message}`);
+    });
+  });
+
+  socket.on('listening', () => {
+    proxy.ready = true;
+    console.log(`[camera-streams] ${cameraId}: proxying UDP ${publicPort} -> 127.0.0.1:${internalPort}`);
+  });
+
+  socket.on('error', (err) => {
+    console.error(`[camera-streams] ${cameraId}: UDP proxy error on ${publicPort}: ${err.message}`);
+    try {
+      socket.close();
+    } catch (_) {}
+  });
+
+  socket.bind(publicPort);
+  return proxy;
+}
+
+function buildGstReceiveArgs(port) {
+  return [
+    '-q',
+    'udpsrc',
+    `port=${port}`,
+    'caps=application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96',
+    '!',
+    'rtpjitterbuffer',
+    'latency=50',
+    'drop-on-latency=true',
+    '!',
+    'rtph264depay',
+    '!',
+    'h264parse',
+    '!',
+    'avdec_h264',
+    '!',
+    'videoconvert',
+    '!',
+    'jpegenc',
+    '!',
+    'multipartmux',
+    'boundary=ThisRandomString',
+    '!',
+    'fdsink',
+    'fd=1',
+  ];
+}
+
+function stopCameraStream(cameraId) {
+  const stream = cameraStreams.get(cameraId);
+  if (!stream) return;
+  cameraStreams.delete(cameraId);
+  if (stream.proxy && stream.proxy.socket) {
+    try {
+      stream.proxy.socket.close();
+    } catch (_) {}
+  }
+  try {
+    stream.process.kill('SIGTERM');
+  } catch (_) {}
+}
+
+function getCameraStream(cameraId) {
+  const existing = cameraStreams.get(cameraId);
+  if (existing) return existing;
+
+  const port = CAMERA_GST_PORTS[cameraId];
+  if (!port) return null;
+  const proxy = startCameraUdpProxy(cameraId, port);
+  const internalPort = proxy.internalPort;
+
+  const gst = spawn('gst-launch-1.0', buildGstReceiveArgs(internalPort), {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  const stream = {
+    process: gst,
+    proxy,
+    clients: new Set(),
+    hasData: false,
+  };
+  cameraStreams.set(cameraId, stream);
+
+  gst.stdout.on('data', (chunk) => {
+    stream.hasData = true;
+    for (const client of stream.clients) {
+      if (client.firstFrameTimer) {
+        clearTimeout(client.firstFrameTimer);
+        client.firstFrameTimer = null;
+      }
+      if (!client.res.headersSent) {
+        client.res.writeHead(200, {
+          'Content-Type': 'multipart/x-mixed-replace; boundary=ThisRandomString',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          Pragma: 'no-cache',
+          Expires: '0',
+          Connection: 'close',
+        });
+      }
+      client.res.write(chunk);
+    }
+  });
+
+  gst.stderr.on('data', (chunk) => {
+    const text = chunk.toString().trim();
+    if (text) console.error(`[camera-streams] ${cameraId}: ${text}`);
+  });
+
+  gst.on('error', (err) => {
+    console.error(`[camera-streams] ${cameraId}: failed to start gst-launch-1.0: ${err.message}`);
+    for (const client of stream.clients) {
+      if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
+      if (!client.res.headersSent) client.res.status(500);
+      client.res.end();
+    }
+    cameraStreams.delete(cameraId);
+  });
+
+  gst.on('close', (code, signal) => {
+    if (cameraStreams.get(cameraId) === stream) {
+      cameraStreams.delete(cameraId);
+    }
+    if (stream.clients.size > 0) {
+      console.log(`[camera-streams] ${cameraId}: gst stopped code=${code} signal=${signal}`);
+    }
+    for (const client of stream.clients) {
+      if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
+      if (!client.res.headersSent) client.res.status(502);
+      client.res.end();
+    }
+    stream.clients.clear();
+  });
+
+  console.log(`[camera-streams] ${cameraId}: receiving RTP/H264 on UDP ${port}`);
+  return stream;
+}
 
 // -----------------------------------------------------------------------
 // SMALL EXPRESS WEB SERVER
@@ -208,6 +461,58 @@ app.get('/link-ping', async (req, res) => {
   }
 });
 
+app.get('/camera-streams/stats', (_req, res) => {
+  res.json(buildCameraStatsSnapshot());
+});
+
+app.get('/camera-streams/:cameraId.mjpg', (req, res) => {
+  const { cameraId } = req.params;
+  if (!Object.prototype.hasOwnProperty.call(CAMERA_GST_PORTS, cameraId)) {
+    return res.status(404).json({ error: `Unknown camera stream: ${cameraId}` });
+  }
+
+  if (req.method === 'HEAD') {
+    return res.writeHead(200, {
+      'Content-Type': 'multipart/x-mixed-replace; boundary=ThisRandomString',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+    }).end();
+  }
+
+  const stream = getCameraStream(cameraId);
+  if (!stream) {
+    return res.status(404).json({ error: `Unknown camera stream: ${cameraId}` });
+  }
+
+  const client = {
+    res,
+    firstFrameTimer: null,
+  };
+  stream.clients.add(client);
+
+  client.firstFrameTimer = setTimeout(() => {
+    stream.clients.delete(client);
+    if (!res.headersSent) {
+      res.status(204).end();
+    } else {
+      res.end();
+    }
+    if (stream.clients.size === 0) {
+      stopCameraStream(cameraId);
+    }
+  }, FIRST_FRAME_TIMEOUT_MS);
+
+  req.on('close', () => {
+    if (client.firstFrameTimer) {
+      clearTimeout(client.firstFrameTimer);
+      client.firstFrameTimer = null;
+    }
+    stream.clients.delete(client);
+    if (stream.clients.size === 0) {
+      stopCameraStream(cameraId);
+    }
+  });
+});
+
 app.post('/sensor-record', (req, res) => {
   const {type_sensor, timestamp, values} = req.body;
 
@@ -232,15 +537,23 @@ app.post('/sensor-record', (req, res) => {
   }
 });
 
+function stopAllCameraStreams() {
+  for (const cameraId of [...cameraStreams.keys()]) {
+    stopCameraStream(cameraId);
+  }
+}
+
 // Handle Ctrl+C (SIGINT) or `kill` (SIGTERM)
 process.on('SIGINT', () => {
   console.log('Gracefully shutting down...');
+  stopAllCameraStreams();
   record.backupCSV(homeDir, mass_arm_file);
   process.exit();
 });
 
 process.on('SIGTERM', () => {
   console.log('Process terminated.');
+  stopAllCameraStreams();
   record.backupCSV(homeDir, mass_arm_file);
   process.exit();
 });
