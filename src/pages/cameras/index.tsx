@@ -121,12 +121,14 @@ const CamerasPage = () => {
 	const [cameraSources, setCameraSources] = useState<CameraSourceMap>(() => loadCameraSources());
 	const [gstStats, setGstStats] = useState<Record<string, CameraStreamStats>>({});
 	const [csBitrate, setCsBitrate] = useState(800);
-	const bitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const [navBitrate, setNavBitrate] = useState(400);
+	const csBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const navBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const applyBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
 		setCsBitrate(value);
-		if (bitrateDebounceRef.current) clearTimeout(bitrateDebounceRef.current);
-		bitrateDebounceRef.current = setTimeout(() => {
+		if (csBitrateDebounceRef.current) clearTimeout(csBitrateDebounceRef.current);
+		csBitrateDebounceRef.current = setTimeout(() => {
 			if (!rosConn) return;
 			const svc = new ROSLIB.Service({
 				ros: rosConn,
@@ -137,6 +139,24 @@ const CamerasPage = () => {
 				{ parameters: [{ name: "bitrate", value: { type: 2, integer_value: value } }] },
 				() => {},
 				(err) => console.error("[CS bitrate] set_parameters failed:", err)
+			);
+		}, 300);
+	}, []);
+
+	const applyNavBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
+		setNavBitrate(value);
+		if (navBitrateDebounceRef.current) clearTimeout(navBitrateDebounceRef.current);
+		navBitrateDebounceRef.current = setTimeout(() => {
+			if (!rosConn) return;
+			const svc = new ROSLIB.Service({
+				ros: rosConn,
+				name: "/NAV/gst_camera_bridge/set_parameters",
+				serviceType: "rcl_interfaces/srv/SetParameters",
+			});
+			svc.callService(
+				{ parameters: [{ name: "bitrate", value: { type: 2, integer_value: value } }] },
+				() => {},
+				(err) => console.error("[NAV bitrate] set_parameters failed:", err)
 			);
 		}, 300);
 	}, []);
@@ -367,6 +387,17 @@ const CamerasPage = () => {
 						step={100}
 						value={csBitrate}
 						onChange={(e) => applyBitrate(Number(e.target.value), ros)}
+						className={styles.bitrateSlider}
+					/>
+					<div className={styles.hubSectionTitle}>NAV Cams Bitrate</div>
+					<div className={styles.bitrateValue}>{navBitrate} kbps</div>
+					<input
+						type="range"
+						min={100}
+						max={4000}
+						step={100}
+						value={navBitrate}
+						onChange={(e) => applyNavBitrate(Number(e.target.value), ros)}
 						className={styles.bitrateSlider}
 					/>
 				</div>
