@@ -122,8 +122,10 @@ const CamerasPage = () => {
 	const [gstStats, setGstStats] = useState<Record<string, CameraStreamStats>>({});
 	const [csBitrate, setCsBitrate] = useState(800);
 	const [navBitrate, setNavBitrate] = useState(400);
+	const [zedBitrate, setZedBitrate] = useState(1500);
 	const csBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const navBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const zedBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const applyBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
 		setCsBitrate(value);
@@ -157,6 +159,24 @@ const CamerasPage = () => {
 				{ parameters: [{ name: "bitrate", value: { type: 2, integer_value: value } }] },
 				() => {},
 				(err) => console.error("[NAV bitrate] set_parameters failed:", err)
+			);
+		}, 300);
+	}, []);
+
+	const applyZedBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
+		setZedBitrate(value);
+		if (zedBitrateDebounceRef.current) clearTimeout(zedBitrateDebounceRef.current);
+		zedBitrateDebounceRef.current = setTimeout(() => {
+			if (!rosConn) return;
+			const svc = new ROSLIB.Service({
+				ros: rosConn,
+				name: "/zed_gst_bridge/set_parameters",
+				serviceType: "rcl_interfaces/srv/SetParameters",
+			});
+			svc.callService(
+				{ parameters: [{ name: "bitrate", value: { type: 2, integer_value: value } }] },
+				() => {},
+				(err) => console.error("[ZED bitrate] set_parameters failed:", err)
 			);
 		}, 300);
 	}, []);
@@ -398,6 +418,17 @@ const CamerasPage = () => {
 						step={100}
 						value={navBitrate}
 						onChange={(e) => applyNavBitrate(Number(e.target.value), ros)}
+						className={styles.bitrateSlider}
+					/>
+					<div className={styles.hubSectionTitle}>ZED Front Cam Bitrate</div>
+					<div className={styles.bitrateValue}>{zedBitrate} kbps</div>
+					<input
+						type="range"
+						min={100}
+						max={8000}
+						step={100}
+						value={zedBitrate}
+						onChange={(e) => applyZedBitrate(Number(e.target.value), ros)}
 						className={styles.bitrateSlider}
 					/>
 				</div>
