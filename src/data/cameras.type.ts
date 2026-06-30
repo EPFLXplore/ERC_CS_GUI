@@ -17,7 +17,9 @@ type CameraElement = {
 type CameraType = { [key: string]: null | CameraElement[] };
 
 enum CameraRover {
-    UP = "Up"
+    TOP = "Top",
+    RIGHT_STEER = "RightSteer",
+    LEFT_STEER = "LeftSteer",
 }
 
 enum CameraHD {
@@ -73,7 +75,9 @@ const allCameras = {
 
 const CAMERA_FEED_TOPICS: Record<string, Record<string, string>> = {
     [SubSystems.ROVER]: {
-        Up: "/ROVER/feed_camera_cs_0",
+        Top: "/ROVER/feed_camera_cs_top",
+        RightSteer: "/ROVER/feed_camera_cs_right_steer",
+        LeftSteer: "/ROVER/feed_camera_cs_left_steer",
     },
     [SubSystems.HANDLING_DEVICE]: {
         Gripper: "/ROVER/feed_camera_hd_0",

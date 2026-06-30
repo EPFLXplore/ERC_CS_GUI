@@ -67,7 +67,9 @@ export enum Topics {
     // ============================================
     // Rover Camera Bandwidth
     // ============================================
-    ROVER_BW_CAMERA_CS_0 = "/ROVER/bw_camera_cs_0",
+    ROVER_BW_CAMERA_CS_TOP = "/ROVER/bw_camera_cs_top",
+    ROVER_BW_CAMERA_CS_RIGHT_STEER = "/ROVER/bw_camera_cs_right_steer",
+    ROVER_BW_CAMERA_CS_LEFT_STEER = "/ROVER/bw_camera_cs_left_steer",
 
     // ============================================
     // Missing Topic Definitions (need to assign to correct subsystem)

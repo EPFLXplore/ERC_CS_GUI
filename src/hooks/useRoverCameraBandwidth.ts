@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import * as ROSLIB from "roslib";
 import { Topics } from "../data/topics.type";
 
-const ROVER_BW_TOPICS = [Topics.ROVER_BW_CAMERA_CS_0] as const;
+const ROVER_BW_TOPICS = [
+	Topics.ROVER_BW_CAMERA_CS_TOP,
+	Topics.ROVER_BW_CAMERA_CS_RIGHT_STEER,
+	Topics.ROVER_BW_CAMERA_CS_LEFT_STEER,
+] as const;
 
 function readStdMsgsFloat(message: unknown): number | null {
 	if (message == null || typeof message !== "object") {
@@ -21,9 +25,9 @@ function readStdMsgsFloat(message: unknown): number | null {
 	return null;
 }
 
-/** Live rover camera bandwidth from `/ROVER/bw_camera_cs_0`. */
-function useRoverCameraBandwidth(ros: ROSLIB.Ros | null): readonly [number] {
-	const [mbps, setMbps] = useState<readonly [number]>([0]);
+/** Live rover camera bandwidth from `/ROVER/bw_camera_cs_{top,right_steer,left_steer}`. */
+function useRoverCameraBandwidth(ros: ROSLIB.Ros | null): readonly [number, number, number] {
+	const [mbps, setMbps] = useState<readonly [number, number, number]>([0, 0, 0]);
 
 	useEffect(() => {
 		if (!ros) {
@@ -47,7 +51,9 @@ function useRoverCameraBandwidth(ros: ROSLIB.Ros | null): readonly [number] {
 					if (prev[idx] === v) {
 						return prev;
 					}
-					return [v] as const;
+					const next: [number, number, number] = [prev[0], prev[1], prev[2]];
+					next[idx] = v;
+					return next;
 				});
 			});
 

@@ -35,14 +35,10 @@ const CAMERA_GST_PORTS = {
   nav_left: 5002,
   nav_right: 5004,
   nav_front: 5006,
-  hd_gripper: 5008,
-  up: 5010,
-  cs_st_0: 5012,
-  cs_st_1: 5014,
-  cs_dr: 5016,
-  cs_bh: 5018,
-  cs_other_1: 5020,
-  cs_other_2: 5022,
+  cs_top: 5008,
+  cs_right_steer: 5010,
+  cs_left_steer: 5012,
+  hd_gripper: 5013,
 };
 
 const cameraStreams = new Map();

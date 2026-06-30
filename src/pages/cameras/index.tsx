@@ -7,21 +7,18 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNavCameraBandwidth from "../../hooks/useNavCameraBandwidth";
 import useRoverCameraBandwidth from "../../hooks/useRoverCameraBandwidth";
 import { Topics } from "../../data/topics.type";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import * as ROSLIB from "roslib";
 
 const CAMERA_DEFS = [
 	{ id: "nav_front", name: "Front", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED, gstPort: 5006 },
-	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0", gstPort: 5008 },
-	{ id: "up", name: "Up", topic: "/ROVER/feed_camera_cs_0", gstPort: 5010 },
-	{ id: "cs_st_0", name: "ST", topic: "/CS/feed_camera_cs_0", gstPort: 5012 },
-	{ id: "cs_st_1", name: "ST", topic: "/CS/feed_camera_cs_1", gstPort: 5014 },
-	{ id: "cs_dr", name: "DR", topic: "/CS/feed_camera_cs_2", gstPort: 5016 },
-	{ id: "cs_bh", name: "BH", topic: "/CS/feed_camera_cs_3", gstPort: 5018 },
+	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0", gstPort: 5013 },
+	{ id: "cs_top", name: "CS Top", topic: "/ROVER/feed_camera_cs_top", gstPort: 5008 },
+	{ id: "cs_right_steer", name: "Right Steer", topic: "/ROVER/feed_camera_cs_right_steer", gstPort: 5010 },
+	{ id: "cs_left_steer", name: "Left Steer", topic: "/ROVER/feed_camera_cs_left_steer", gstPort: 5012 },
 	{ id: "nav_back", name: "Back", topic: "/CS/feed_camera_nav_0", gstPort: 5000 },
 	{ id: "nav_left", name: "Top Right", topic: "/CS/feed_camera_nav_1", gstPort: 5002 },
 	{ id: "nav_right", name: "Top Left", topic: "/CS/feed_camera_nav_2", gstPort: 5004 },
-	{ id: "cs_other_1", name: "Other1", topic: "/CS/feed_camera_cs_4", gstPort: 5020 },
-	{ id: "cs_other_2", name: "Other2", topic: "/CS/feed_camera_cs_5", gstPort: 5022 },
 ] as const;
 
 type CameraDef = (typeof CAMERA_DEFS)[number];
@@ -47,11 +44,11 @@ const DEFAULT_CAMERA_SOURCES = CAMERA_DEFS.reduce((acc, camera) => {
 
 const TASK_PRESETS = [
 	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_back", "nav_front"] },
-	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
-	{ label: "Exploration", cameraIds: ["nav_front", "cs_st_0", "cs_st_1", "cs_dr", "cs_bh"] },
-	{ label: "Astro-Bio", cameraIds: ["cs_other_1", "cs_other_2", "nav_front"] },
-	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_st_0", "cs_dr"] },
-	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_other_1", "cs_other_2", "cs_st_0"] },
+	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
+	{ label: "Exploration", cameraIds: ["nav_front", "cs_top", "cs_right_steer", "cs_left_steer"] },
+	{ label: "Astro-Bio", cameraIds: ["cs_top", "cs_right_steer", "nav_front"] },
+	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
+	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer"] },
 ] as const;
 
 const getDefaultRotationByCameraId = (cameraId: string): number => {
@@ -123,6 +120,26 @@ const CamerasPage = () => {
 	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
 	const [cameraSources, setCameraSources] = useState<CameraSourceMap>(() => loadCameraSources());
 	const [gstStats, setGstStats] = useState<Record<string, CameraStreamStats>>({});
+	const [csBitrate, setCsBitrate] = useState(800);
+	const bitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	const applyBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
+		setCsBitrate(value);
+		if (bitrateDebounceRef.current) clearTimeout(bitrateDebounceRef.current);
+		bitrateDebounceRef.current = setTimeout(() => {
+			if (!rosConn) return;
+			const svc = new ROSLIB.Service({
+				ros: rosConn,
+				name: "/ROVER/gst_cs_camera_bridge/set_parameters",
+				serviceType: "rcl_interfaces/srv/SetParameters",
+			});
+			svc.callService(
+				{ parameters: [{ name: "bitrate", value: { type: 2, integer_value: value } }] },
+				() => {},
+				(err) => console.error("[CS bitrate] set_parameters failed:", err)
+			);
+		}, 300);
+	}, []);
 
 	useEffect(() => {
 		try {
@@ -200,8 +217,12 @@ const CamerasPage = () => {
 		if (topic.startsWith("/CS/feed_camera_nav_")) {
 			const idx = Number(topic.slice("/CS/feed_camera_nav_".length));
 			bw = Number.isFinite(idx) ? navBwMbps[idx as 0 | 1 | 2 | 3] : undefined;
-		} else if (topic === "/ROVER/feed_camera_cs_0") {
+		} else if (topic === "/ROVER/feed_camera_cs_top") {
 			bw = roverBwMbps[0];
+		} else if (topic === "/ROVER/feed_camera_cs_right_steer") {
+			bw = roverBwMbps[1];
+		} else if (topic === "/ROVER/feed_camera_cs_left_steer") {
+			bw = roverBwMbps[2];
 		}
 
 		if (bw === undefined) return topic;
@@ -336,6 +357,18 @@ const CamerasPage = () => {
 							<span className={styles.navPresetLabel}>{preset.label}</span>
 						</button>
 					))}
+					<div className={styles.hubDivider} />
+					<div className={styles.hubSectionTitle}>RPI CS Cams Bitrate</div>
+					<div className={styles.bitrateValue}>{csBitrate} kbps</div>
+					<input
+						type="range"
+						min={100}
+						max={4000}
+						step={100}
+						value={csBitrate}
+						onChange={(e) => applyBitrate(Number(e.target.value), ros)}
+						className={styles.bitrateSlider}
+					/>
 				</div>
 				<div className={styles.visualization}>
 					<CameraView

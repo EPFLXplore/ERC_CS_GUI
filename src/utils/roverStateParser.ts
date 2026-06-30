@@ -226,13 +226,14 @@ const getCameraStates = (data: any) => {
 
 	const normalizeRoverCameraKeys = (cameras: any) => {
 		if (!cameras || typeof cameras !== "object") return cameras;
-		if ("Up" in cameras) return cameras;
-		if (!("camera_cs_0" in cameras)) return cameras;
+		if ("Top" in cameras || "RightSteer" in cameras) return cameras;
 
-		return {
-			...cameras,
-			Up: cameras.camera_cs_0,
-		};
+		const mapped: any = { ...cameras };
+		if ("camera_cs_top" in cameras) mapped.Top = cameras.camera_cs_top;
+		if ("camera_cs_right_steer" in cameras) mapped.RightSteer = cameras.camera_cs_right_steer;
+		if ("camera_cs_left_steer" in cameras) mapped.LeftSteer = cameras.camera_cs_left_steer;
+		if ("camera_cs_0" in cameras && !("Top" in mapped)) mapped.Top = cameras.camera_cs_0;
+		return mapped;
 	};
     
     // Accept both new subsystem state shape and legacy aggregated camera maps.
