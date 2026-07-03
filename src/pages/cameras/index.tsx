@@ -7,7 +7,7 @@ import useRosBridge from "../../hooks/rosbridgeHooks";
 import useNavCameraBandwidth from "../../hooks/useNavCameraBandwidth";
 import useRoverCameraBandwidth from "../../hooks/useRoverCameraBandwidth";
 import { Topics } from "../../data/topics.type";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
 
 const CAMERA_DEFS = [
@@ -109,6 +109,41 @@ function isNavigationPanoramaPreset(preset: (typeof TASK_PRESETS)[number]): bool
 	);
 }
 
+const BitrateSlider = memo(({
+	label,
+	defaultValue,
+	min,
+	max,
+	onChange,
+}: {
+	label: string;
+	defaultValue: number;
+	min: number;
+	max: number;
+	onChange: (v: number) => void;
+}) => {
+	const displayRef = useRef<HTMLDivElement>(null);
+	return (
+		<>
+			<div className={styles.hubSectionTitle}>{label}</div>
+			<div ref={displayRef} className={styles.bitrateValue}>{defaultValue} kbps</div>
+			<input
+				type="range"
+				min={min}
+				max={max}
+				step={100}
+				defaultValue={defaultValue}
+				onInput={(e) => {
+					const v = Number((e.target as HTMLInputElement).value);
+					if (displayRef.current) displayRef.current.textContent = `${v} kbps`;
+					onChange(v);
+				}}
+				className={styles.bitrateSlider}
+			/>
+		</>
+	);
+});
+
 const CamerasPage = () => {
 	const [, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
@@ -120,15 +155,14 @@ const CamerasPage = () => {
 	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
 	const [cameraSources, setCameraSources] = useState<CameraSourceMap>(() => loadCameraSources());
 	const [gstStats, setGstStats] = useState<Record<string, CameraStreamStats>>({});
-	const [csBitrate, setCsBitrate] = useState(800);
-	const [navBitrate, setNavBitrate] = useState(400);
-	const [zedBitrate, setZedBitrate] = useState(1500);
+	const rosRef = useRef(ros);
+	rosRef.current = ros;
 	const csBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const navBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 	const zedBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+	const hdBitrateDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	const applyBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
-		setCsBitrate(value);
 		if (csBitrateDebounceRef.current) clearTimeout(csBitrateDebounceRef.current);
 		csBitrateDebounceRef.current = setTimeout(() => {
 			if (!rosConn) return;
@@ -146,7 +180,6 @@ const CamerasPage = () => {
 	}, []);
 
 	const applyNavBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
-		setNavBitrate(value);
 		if (navBitrateDebounceRef.current) clearTimeout(navBitrateDebounceRef.current);
 		navBitrateDebounceRef.current = setTimeout(() => {
 			if (!rosConn) return;
@@ -164,7 +197,6 @@ const CamerasPage = () => {
 	}, []);
 
 	const applyZedBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
-		setZedBitrate(value);
 		if (zedBitrateDebounceRef.current) clearTimeout(zedBitrateDebounceRef.current);
 		zedBitrateDebounceRef.current = setTimeout(() => {
 			if (!rosConn) return;
@@ -180,6 +212,28 @@ const CamerasPage = () => {
 			);
 		}, 300);
 	}, []);
+
+	const applyHdBitrate = useCallback((value: number, rosConn: ROSLIB.Ros | null) => {
+		if (hdBitrateDebounceRef.current) clearTimeout(hdBitrateDebounceRef.current);
+		hdBitrateDebounceRef.current = setTimeout(() => {
+			if (!rosConn) return;
+			const svc = new ROSLIB.Service({
+				ros: rosConn,
+				name: "/HD/gst_hd_camera_bridge/set_parameters",
+				serviceType: "rcl_interfaces/srv/SetParameters",
+			});
+			svc.callService(
+				{ parameters: [{ name: "bitrate", value: { type: 2, integer_value: value } }] },
+				() => {},
+				(err) => console.error("[HD bitrate] set_parameters failed:", err)
+			);
+		}, 300);
+	}, []);
+
+	const onCsBitrateChange = useCallback((v: number) => applyBitrate(v, rosRef.current), []);
+	const onNavBitrateChange = useCallback((v: number) => applyNavBitrate(v, rosRef.current), []);
+	const onZedBitrateChange = useCallback((v: number) => applyZedBitrate(v, rosRef.current), []);
+	const onHdBitrateChange = useCallback((v: number) => applyHdBitrate(v, rosRef.current), []);
 
 	useEffect(() => {
 		try {
@@ -416,39 +470,10 @@ const CamerasPage = () => {
 						</button>
 					))}
 					<div className={styles.hubDivider} />
-					<div className={styles.hubSectionTitle}>RPI CS Cams Bitrate</div>
-					<div className={styles.bitrateValue}>{csBitrate} kbps</div>
-					<input
-						type="range"
-						min={100}
-						max={4000}
-						step={100}
-						value={csBitrate}
-						onChange={(e) => applyBitrate(Number(e.target.value), ros)}
-						className={styles.bitrateSlider}
-					/>
-					<div className={styles.hubSectionTitle}>NAV Cams Bitrate</div>
-					<div className={styles.bitrateValue}>{navBitrate} kbps</div>
-					<input
-						type="range"
-						min={100}
-						max={4000}
-						step={100}
-						value={navBitrate}
-						onChange={(e) => applyNavBitrate(Number(e.target.value), ros)}
-						className={styles.bitrateSlider}
-					/>
-					<div className={styles.hubSectionTitle}>ZED Front Cam Bitrate</div>
-					<div className={styles.bitrateValue}>{zedBitrate} kbps</div>
-					<input
-						type="range"
-						min={100}
-						max={8000}
-						step={100}
-						value={zedBitrate}
-						onChange={(e) => applyZedBitrate(Number(e.target.value), ros)}
-						className={styles.bitrateSlider}
-					/>
+					<BitrateSlider label="RPI CS Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onCsBitrateChange} />
+					<BitrateSlider label="NAV Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onNavBitrateChange} />
+					<BitrateSlider label="ZED Front Cam Bitrate" defaultValue={1000} min={100} max={8000} onChange={onZedBitrateChange} />
+					<BitrateSlider label="HD Gripper Cam Bitrate" defaultValue={1000} min={100} max={4000} onChange={onHdBitrateChange} />
 				</div>
 				<div className={styles.visualization}>
 					<CameraView
