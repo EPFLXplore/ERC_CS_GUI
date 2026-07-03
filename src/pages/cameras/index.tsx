@@ -237,37 +237,53 @@ const CamerasPage = () => {
 		[displayedCameras, cameraSources]
 	);
 	const [imagesByTopic] = useCamera(ros, activeTopics);
-	const images = displayedCameras.map((camera) =>
-		cameraSources[camera.id] === "ros"
-			? imagesByTopic[camera.topic] ?? ""
-			: getCameraStreamUrl(camera.id)
+	const images = useMemo(
+		() =>
+			displayedCameras.map((camera) =>
+				cameraSources[camera.id] === "ros"
+					? imagesByTopic[camera.topic] ?? ""
+					: getCameraStreamUrl(camera.id)
+			),
+		[displayedCameras, cameraSources, imagesByTopic]
 	);
-	const topicNames = displayedCameras.map((camera) => camera.name);
-	const topicPaths = displayedCameras.map((camera) => {
-		if (cameraSources[camera.id] === "gst") {
-			const stats = gstStats[camera.id];
-			if (!stats || !stats.active) {
-				return `GStreamer UDP:${camera.gstPort} (no packets)`;
-			}
-			return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps wire, ${stats.overheadMbps.toFixed(2)} Mbps overhead)`;
-		}
+	const topicNames = useMemo(
+		() => displayedCameras.map((camera) => camera.name),
+		[displayedCameras]
+	);
+	const topicPaths = useMemo(
+		() =>
+			displayedCameras.map((camera) => {
+				if (cameraSources[camera.id] === "gst") {
+					const stats = gstStats[camera.id];
+					if (!stats || !stats.active) {
+						return `GStreamer UDP:${camera.gstPort} (no packets)`;
+					}
+					return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps wire, ${stats.overheadMbps.toFixed(2)} Mbps overhead)`;
+				}
 
-		const topic = camera.topic;
-		let bw: number | undefined;
-		if (topic.startsWith("/CS/feed_camera_nav_")) {
-			const idx = Number(topic.slice("/CS/feed_camera_nav_".length));
-			bw = Number.isFinite(idx) ? navBwMbps[idx as 0 | 1 | 2 | 3] : undefined;
-		} else if (topic === "/ROVER/feed_camera_cs_top") {
-			bw = roverBwMbps[0];
-		} else if (topic === "/ROVER/feed_camera_cs_right_steer") {
-			bw = roverBwMbps[1];
-		} else if (topic === "/ROVER/feed_camera_cs_left_steer") {
-			bw = roverBwMbps[2];
-		}
+				const topic = camera.topic;
+				let bw: number | undefined;
+				if (topic.startsWith("/CS/feed_camera_nav_")) {
+					const idx = Number(topic.slice("/CS/feed_camera_nav_".length));
+					bw = Number.isFinite(idx) ? navBwMbps[idx as 0 | 1 | 2 | 3] : undefined;
+				} else if (topic === "/ROVER/feed_camera_cs_top") {
+					bw = roverBwMbps[0];
+				} else if (topic === "/ROVER/feed_camera_cs_right_steer") {
+					bw = roverBwMbps[1];
+				} else if (topic === "/ROVER/feed_camera_cs_left_steer") {
+					bw = roverBwMbps[2];
+				}
 
-		if (bw === undefined) return topic;
-		return `${topic} (${bw.toFixed(1)} Mbps)`;
-	});
+				if (bw === undefined) return topic;
+				return `${topic} (${bw.toFixed(1)} Mbps)`;
+			}),
+		[displayedCameras, cameraSources, gstStats, navBwMbps, roverBwMbps]
+	);
+	const currentCam = useMemo(
+		() => [viewMode === "all" ? "All Cams" : "Custom"] as string[],
+		[viewMode]
+	);
+	const changeCam = useCallback(() => {}, []);
 
 	const setCustomLayout = (cameraIds: readonly string[]) => {
 		setViewMode("custom");
@@ -306,7 +322,8 @@ const CamerasPage = () => {
 		});
 	};
 
-	const removeCameraByIndex = (index: number) => {
+	const removeCameraByIndexRef = useRef((_index: number) => {});
+	removeCameraByIndexRef.current = (index: number) => {
 		const idToRemove = displayedCameras[index]?.id;
 		if (!idToRemove) return;
 
@@ -322,6 +339,7 @@ const CamerasPage = () => {
 		setCustomCameraIds(nextIds);
 		setRotateCams(nextRot);
 	};
+	const removeCameraByIndex = useCallback((index: number) => removeCameraByIndexRef.current(index), []);
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -437,10 +455,10 @@ const CamerasPage = () => {
 						images={images}
 						rotate={rotateCams}
 						setRotateCams={setRotateCams}
-						currentCam={[viewMode === "all" ? "All Cams" : "Custom"]}
+						currentCam={currentCam}
 						topicNames={topicNames}
 						topicPaths={topicPaths}
-						changeCam={() => {}}
+						changeCam={changeCam}
 						forceGrid={true}
 						navigationPanoramaLayout={navigationPanoramaLayout}
 						showSelector={false}

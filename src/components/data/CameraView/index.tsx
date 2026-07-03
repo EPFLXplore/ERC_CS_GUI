@@ -1,3 +1,4 @@
+import { memo } from "react";
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 
@@ -309,4 +310,4 @@ const CameraSelector = ({
 	);
 };
 
-export default CameraView;
+export default memo(CameraView);
