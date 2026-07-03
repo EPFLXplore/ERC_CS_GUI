@@ -35,6 +35,11 @@ function useGamepad(
 	const gamepadCommandStateRef = useRef(gamepadCommandState);
 	gamepadCommandStateRef.current = gamepadCommandState;
 
+	const submodeRef = useRef(submode);
+	submodeRef.current = submode;
+	const hdBindingsConfigRef = useRef(hdBindingsConfig);
+	hdBindingsConfigRef.current = hdBindingsConfig;
+
 	const prevGamepadCommandStateRef = useRef(GamepadCommandState.UI);
 
 	const togglePublishing = useCallback(() => {
@@ -137,22 +142,24 @@ function useGamepad(
 			publisher.publish(msg);
 
 		} else if (mode === PublishTo.HANDLING_DEVICE) {
+			const sm = submodeRef.current;
+			const bindings = hdBindingsConfigRef.current;
 
-			if (submode[1] === States.MANUAL_DIRECT) {
-				const remappedState = applyHdBindingMap(s.buttons, s.axes, hdBindingsConfig.direct);
+			if (sm[1] === States.MANUAL_DIRECT) {
+				const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.direct);
 				const msg = gamepad.handleDirectArm(remappedState.buttons, remappedState.axes);
 				publisher.publish(msg);
 
 			} else {
 
-				const remappedState = applyHdBindingMap(s.buttons, s.axes, hdBindingsConfig.inverse);
+				const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.inverse);
 				const msg = gamepad.handleInverseArm(remappedState.buttons, remappedState.axes);
 				publisher.publish(msg);
 
 			}
 		}
 
-	}, [gamepad, publisher, mode, submode, hdBindingsConfig]);
+	}, [gamepad, publisher, mode]); // submode and hdBindingsConfig read via refs — stable identity
 
 	// When leaving CONTROL, send one neutral Joy so triggers/sticks do not appear stuck on the robot.
 	useEffect(() => {
@@ -172,23 +179,17 @@ function useGamepad(
 				() => false
 			);
 			const neutralAxes = Array.from({ length: ClassicalGamepad.Axis.RT + 1 }, () => 0);
+			const sm = submodeRef.current;
+			const bindings = hdBindingsConfigRef.current;
 			try {
 				if (mode === PublishTo.NAVIGATION) {
 					publisher.publish(gamepad.handleNavigation(neutralButtons, neutralAxes));
 				} else if (mode === PublishTo.HANDLING_DEVICE) {
-					if (submode[1] === States.MANUAL_DIRECT) {
-						const remapped = applyHdBindingMap(
-							neutralButtons,
-							neutralAxes,
-							hdBindingsConfig.direct
-						);
+					if (sm[1] === States.MANUAL_DIRECT) {
+						const remapped = applyHdBindingMap(neutralButtons, neutralAxes, bindings.direct);
 						publisher.publish(gamepad.handleDirectArm(remapped.buttons, remapped.axes));
 					} else {
-						const remapped = applyHdBindingMap(
-							neutralButtons,
-							neutralAxes,
-							hdBindingsConfig.inverse
-						);
+						const remapped = applyHdBindingMap(neutralButtons, neutralAxes, bindings.inverse);
 						publisher.publish(gamepad.handleInverseArm(remapped.buttons, remapped.axes));
 					}
 				}
@@ -202,9 +203,7 @@ function useGamepad(
 		publisher,
 		gamepad,
 		mode,
-		submode,
-		hdBindingsConfig,
-	]);
+	]); // submode and hdBindingsConfig read via refs
 
 	const timerRef = useRef<number | null>(null);
 
