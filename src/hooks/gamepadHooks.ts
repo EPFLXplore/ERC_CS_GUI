@@ -35,6 +35,13 @@ function useGamepad(
 	const gamepadCommandStateRef = useRef(gamepadCommandState);
 	gamepadCommandStateRef.current = gamepadCommandState;
 
+	// All values that sendCommand reads must be refs so it never needs to be recreated.
+	const publisherRef = useRef<ROSLIB.Topic<any> | null>(null);
+	publisherRef.current = publisher;
+
+	const modeRef = useRef(mode);
+	modeRef.current = mode;
+
 	const submodeRef = useRef(submode);
 	submodeRef.current = submode;
 	const hdBindingsConfigRef = useRef(hdBindingsConfig);
@@ -60,7 +67,7 @@ function useGamepad(
 	const selectorCallbackRef = useRef(selectorCallback);
 	selectorCallbackRef.current = selectorCallback;
 
-	// 1) Init gamepad & one-time listeners
+	// 1) Init gamepad & one-time listeners — cleaned up on unmount so navigation doesn't accumulate extra listeners
 	useEffect(() => {
 		const gp = new GamepadController((state) => setGamepadState(state));
 		setGamepad(gp);
@@ -88,11 +95,10 @@ function useGamepad(
 			return;
 		}
 
-		// Direct subsystem topic names
 		const topicName =
 			mode === PublishTo.NAVIGATION
-			? Topics.NAV_GAMEPAD_CMDS  // Direct to NAV subsystem
-			: Topics.HD_GAMEPAD_CMDS;  // Direct to HD subsystem
+			? Topics.NAV_GAMEPAD_CMDS
+			: Topics.HD_GAMEPAD_CMDS;
 
 		const t = new ROSLIB.Topic<any>({
 			ros,
@@ -101,7 +107,7 @@ function useGamepad(
 			queue_length: 1,
 			queue_size: 1
 		});
-		
+
 		setPublisher(t);
 
 		return () => {
@@ -128,38 +134,37 @@ function useGamepad(
 		};
 	}, []);
 
+	// sendCommand reads everything via refs so its identity is stable after gamepad is set.
+	// The interval never needs to restart due to mode/publisher/submode changes.
 	const sendCommand = useCallback(() => {
-		if (gamepadCommandStateRef.current !== GamepadCommandState.CONTROL) {
-			return;
-		}
+		if (gamepadCommandStateRef.current !== GamepadCommandState.CONTROL) return;
+		const pub = publisherRef.current;
+		if (!pub) return;
+		const currentMode = modeRef.current;
 		const s = gamepad?.pollState() ?? gamepad?.getState();
-		if (!gamepad?.getGamepad() || !s || !publisher) return;
+		if (!gamepad?.getGamepad() || !s) return;
 
-		if (mode === PublishTo.NAVIGATION) {
+		if (currentMode === PublishTo.NAVIGATION) {
 			const msg = gamepad.handleNavigation(s.buttons, s.axes);
-			publisher.publish(msg);
+			pub.publish(msg);
 
-		} else if (mode === PublishTo.HANDLING_DEVICE) {
+		} else if (currentMode === PublishTo.HANDLING_DEVICE) {
 			const sm = submodeRef.current;
 			const bindings = hdBindingsConfigRef.current;
 
 			if (sm[1] === States.MANUAL_DIRECT) {
 				const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.direct);
 				const msg = gamepad.handleDirectArm(remappedState.buttons, remappedState.axes);
-				publisher.publish(msg);
-
+				pub.publish(msg);
 			} else {
-
 				const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.inverse);
 				const msg = gamepad.handleInverseArm(remappedState.buttons, remappedState.axes);
-				publisher.publish(msg);
-
+				pub.publish(msg);
 			}
 		}
+	}, [gamepad]); // gamepad set once on mount; everything else via refs
 
-	}, [gamepad, publisher, mode]); // submode and hdBindingsConfig read via refs — stable identity
-
-	// When leaving CONTROL, send one neutral Joy so triggers/sticks do not appear stuck on the robot.
+	// When leaving CONTROL, send one neutral Joy so the robot doesn't stay at last commanded velocity.
 	useEffect(() => {
 		const prev = prevGamepadCommandStateRef.current;
 		const canPublishNeutral =
@@ -205,31 +210,29 @@ function useGamepad(
 
 	const timerRef = useRef<number | null>(null);
 
+	// Interval only starts/stops when CONTROL mode toggles.
+	// sendCommand is stable (gamepad dep only) so this effect never restarts due to mode/publisher changes.
+	// sendCommand itself checks publisherRef.current and returns early when null.
 	useEffect(() => {
-		// Only run when actively controlling and a publisher exists
-		if (publisher && gamepadCommandState === GamepadCommandState.CONTROL) {
-			// clear any previous interval before starting a new one
+		if (gamepadCommandState === GamepadCommandState.CONTROL) {
 			if (timerRef.current !== null) {
-			clearInterval(timerRef.current);
-			timerRef.current = null;
+				clearInterval(timerRef.current);
 			}
 			timerRef.current = window.setInterval(sendCommand, 30);
 		} else {
 			if (timerRef.current !== null) {
-			clearInterval(timerRef.current);
-			timerRef.current = null;
+				clearInterval(timerRef.current);
+				timerRef.current = null;
 			}
 		}
 
-		// On ANY relevant change, clean up the previous timer
 		return () => {
 			if (timerRef.current !== null) {
-			clearInterval(timerRef.current);
-			timerRef.current = null;
+				clearInterval(timerRef.current);
+				timerRef.current = null;
 			}
 		};
-
-  }, [publisher, gamepadCommandState, sendCommand]);
+	}, [gamepadCommandState, sendCommand]); // sendCommand is stable → only restarts on CONTROL toggle
 
 	return [gamepad, gamepadState, gamepadCommandState, togglePublishing] as const;
 }
