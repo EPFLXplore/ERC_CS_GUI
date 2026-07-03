@@ -1,7 +1,7 @@
 import Slider from "../Slider";
 import styles from "./style.module.sass";
 
-export default ({ positions }: { positions: number[] }) => {
+const JointPositions = ({ positions }: { positions: number[] }) => {
 	return (
 		<div className={styles.container}>
 			<h3 className={styles.text}>Joint Positions</h3>
@@ -34,3 +34,5 @@ export default ({ positions }: { positions: number[] }) => {
 		</div>
 	);
 };
+
+export default JointPositions;

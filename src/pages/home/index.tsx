@@ -3,13 +3,12 @@ import Background from "../../components/ui/Background";
 import Logo from "../../components/ui/Logo";
 import { Size } from "../../data/size.type";
 import styles from "./style.module.sass";
-import useRosBridge from "../../hooks/rosbridgeHooks";
 import useAlert from "../../hooks/alertHooks";
 import AlertSnackbar from "../../components/ui/Snackbar";
 
 const Home = () => {
 	const navigate = useNavigate();
-	const [snackbar, showSnackbar] = useAlert();
+	const [snackbar] = useAlert();
 	//const [, connected] = useRosBridge(showSnackbar);
 
 	return (
@@ -19,42 +18,47 @@ const Home = () => {
 				<Logo size={Size.LARGE} />
 			</div>
 			<div className={styles.body}>
-				<a
+				<button
+					type="button"
 					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
 						navigate("/control");
 					}}
 				>
 					Start
-				</a>
-				<a
+				</button>
+				<button
+					type="button"
 					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
 						navigate("/simulation");
 					}}
 				>
 					Simulation
-				</a>
-				<a
+				</button>
+				<button
+					type="button"
 					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
 						navigate("/network");
 					}}
 				>
 					Network
-				</a>
-				<a
+				</button>
+				<button
+					type="button"
 					className={true ? styles.buttonStart : styles.buttonStartDisabled}
 					onClick={() => {
 						navigate("/cameras");
 					}}
 				>
 					Cameras
-				</a>
+				</button>
 			</div>
 			<div className={styles.footer}>
 				<div className={styles.links}>
-					<a
+					<button
+						type="button"
 						className={styles.buttonLinks}
 						onClick={() =>
 							window.open(
@@ -64,8 +68,9 @@ const Home = () => {
 						}
 					>
 						Documentation
-					</a>
-					<a
+					</button>
+					<button
+						type="button"
 						className={styles.buttonLinks}
 						onClick={() =>
 							window.open(
@@ -75,7 +80,7 @@ const Home = () => {
 						}
 					>
 						Drive
-					</a>
+					</button>
 				</div>
 			</div>
 			<AlertSnackbar alertMessage={snackbar} />

@@ -1,14 +1,11 @@
 import SubSystems from "../../../data/subsystems.type";
 import styles from "./style.module.sass";
-import * as ROSLIB from "roslib";
 
 /*
 Author: Giovanni Ranieri
 Year: 2024
 Description: ROS node Modal. Shows which nodes are running. It uses the rover state.
 */
-
-const sections = [SubSystems.ROVER, SubSystems.NAGIVATION, SubSystems.HANDLING_DEVICE];
 
 function NodeModal({
 	roverState,

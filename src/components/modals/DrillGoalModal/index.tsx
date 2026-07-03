@@ -172,7 +172,7 @@ function DrillGoalModal({
 								//onSetGoal(SubSystems.DRILL, { action: _action.toLowerCase() });
 							}}
 						>
-							{_action} : {actionSmallTask.task == _action ? actionSmallTask.multiple_increment : 0}
+							{_action} : {actionSmallTask.task === _action ? actionSmallTask.multiple_increment : 0}
 						</button>
 					))}
 					</div>

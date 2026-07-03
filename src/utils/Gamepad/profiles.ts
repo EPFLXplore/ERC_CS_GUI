@@ -1,4 +1,3 @@
-import { Class } from "@mui/icons-material";
 import { ClassicalGamepad, DeviceProfile } from "./bindings";
 
 ////////////////////////// BINDINGS FOR CLASSICAL GAMEPADS //////////////////////////
@@ -992,9 +991,11 @@ const profiles: {
 	XBOX_CHROME_MAC,
 	XBOX_CHROME_WINDOWS,
 	XBOX_EDGE_WINDOWS,
+	XBOX_FIREFOX_WINDOWS,
 	PS4_FIREFOX_LINUX,
 	PS4_CHROME_LINUX,
-	PS4_CHROME_MAC
+	PS4_CHROME_MAC,
+	PS4_CHROME_WINDOWS
 };
 
 export default profiles;

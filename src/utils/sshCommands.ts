@@ -190,6 +190,6 @@ const closeSSH = async (name: string, id: string) => {
     })
 }
 
-export {executeSSHCommand, ActivateRoverNode, CommandsSSH, closeSSH, IDConnections}
+export {executeSSHCommand, ActivateRoverNode, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))

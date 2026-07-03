@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
 import Database from "../utils/IndexedDB/database";
 
@@ -68,6 +67,21 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 	const [oldestTimestamp, setOldestTimestamp] = useState<number | null>(null);
 	const [hasMore, setHasMore] = useState(true);
 	const [mode, setMode] = useState<"all" | "nav" | "hd" | "cs" | "sc" | "el">("all");
+	const filtersRef = useRef(filters);
+	const isAtBottomRef = useRef(isAtBottom);
+	const modeRef = useRef(mode);
+
+	useEffect(() => {
+		filtersRef.current = filters;
+	}, [filters]);
+
+	useEffect(() => {
+		isAtBottomRef.current = isAtBottom;
+	}, [isAtBottom]);
+
+	useEffect(() => {
+		modeRef.current = mode;
+	}, [mode]);
 
 	useEffect(() => {
 		if (ros && db && db.isConnected) {
@@ -100,10 +114,12 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 					prev ? Math.min(prev, newLog.timestamp) : newLog.timestamp
 				);
 
+				const activeFilters = filtersRef.current;
+				const activeMode = modeRef.current;
 				if (
-					!filters.includes(newLog.type) ||
-					(mode !== "all" &&
-						!NODE_FILTERS[mode.toUpperCase() as keyof typeof NODE_FILTERS].includes(
+					!activeFilters.includes(newLog.type) ||
+					(activeMode !== "all" &&
+						!NODE_FILTERS[activeMode.toUpperCase() as keyof typeof NODE_FILTERS].includes(
 							// @ts-ignore
 							newLog.node
 						))
@@ -111,12 +127,13 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 					return;
 				}
 
-				if (roverlogs.length >= PAGE_SIZE && isAtBottom) {
+				if (isAtBottomRef.current) {
 					setRoverLogs((prevLogs) => [...prevLogs, newLog].slice(-PAGE_SIZE));
 				} else {
 					setRoverLogs((prevLogs) => [...prevLogs, newLog]);
 				}
 			});
+			return () => listener.unsubscribe();
 		}
 	}, [ros, db]);
 
@@ -127,7 +144,7 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 			.catch(console.error);
 	}, []);
 
-	const fetchLogs = async (from: number | null, types: string[]) => {
+	const fetchLogs = useCallback(async (from: number | null, types: string[]) => {
 		if (!db || !db.isConnected) return;
 		const logs = (await db.getLogsByTimestamp(
 			from,
@@ -144,14 +161,14 @@ function useRoverLogs(ros: ROSLIB.Ros | null) {
 				setHasMore(false);
 			}
 		}
-	};
+	}, [db, mode]);
 
 	useEffect(() => {
 		setRoverLogs([]);
 		setOldestTimestamp(null);
 		setHasMore(true);
 		fetchLogs(null, filters);
-	}, [db, filters, mode]);
+	}, [db, fetchLogs, filters, mode]);
 
 	const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
 		const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;

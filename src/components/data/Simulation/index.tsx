@@ -1,13 +1,12 @@
 // @ts-nocheck
-import { Suspense, memo, useState, startTransition, useEffect, useRef } from "react";
-import { Canvas, useThree } from "@react-three/fiber";
+import { Suspense, memo, startTransition, useEffect, useRef } from "react";
+import { Canvas } from "@react-three/fiber";
 import { Line, OrbitControls, Plane, useTexture } from "@react-three/drei";
 import RobotVisual from "./RobotVisual";
 import MarsYard from "../../../assets/images/MarsYard2024.png";
 import Pin from "./Pin";
 import { Point2D, Point3D } from "../../../data/point.type";
 import Terrain3D from "./Terrain";
-import { Vector3 } from "three";
 import { map2DTo3D } from "../../../utils/mapUtils";
 
 /**
@@ -53,7 +52,9 @@ const Simulation = ({
 	const terrainRef = useRef();
 
 	useEffect(() => {
-		document.addEventListener("webglcontextlost", (e) => console.log("LOST"));
+		const handleContextLost = () => console.log("LOST");
+		document.addEventListener("webglcontextlost", handleContextLost);
+		return () => document.removeEventListener("webglcontextlost", handleContextLost);
 	}, []);
 
 	return (

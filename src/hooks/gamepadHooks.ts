@@ -39,6 +39,12 @@ function useGamepad(
 	const publisherRef = useRef<ROSLIB.Topic<any> | null>(null);
 	publisherRef.current = publisher;
 
+	const rosRef = useRef<ROSLIB.Ros | null>(null);
+	rosRef.current = ros;
+
+	const gamepadRef = useRef<GamepadController | null>(null);
+	gamepadRef.current = gamepad;
+
 	const modeRef = useRef(mode);
 	modeRef.current = mode;
 
@@ -49,7 +55,11 @@ function useGamepad(
 
 	const prevGamepadCommandStateRef = useRef(GamepadCommandState.UI);
 
+	const lastToggleTimeRef = useRef(0);
 	const togglePublishing = useCallback(() => {
+		const now = Date.now();
+		if (now - lastToggleTimeRef.current < 400) return;
+		lastToggleTimeRef.current = now;
 		setGamepadCommandState((prev) => {
 			if (
 				prev === GamepadCommandState.UI &&
@@ -136,33 +146,68 @@ function useGamepad(
 
 	// sendCommand reads everything via refs so its identity is stable after gamepad is set.
 	// The interval never needs to restart due to mode/publisher/submode changes.
+	const lastPublishRef = useRef<number>(0);
+	const lastAttemptRef = useRef<number>(0);
 	const sendCommand = useCallback(() => {
-		if (gamepadCommandStateRef.current !== GamepadCommandState.CONTROL) return;
-		const pub = publisherRef.current;
-		if (!pub) return;
-		const currentMode = modeRef.current;
-		const s = gamepad?.pollState() ?? gamepad?.getState();
-		if (!gamepad?.getGamepad() || !s) return;
-
-		if (currentMode === PublishTo.NAVIGATION) {
-			const msg = gamepad.handleNavigation(s.buttons, s.axes);
-			pub.publish(msg);
-
-		} else if (currentMode === PublishTo.HANDLING_DEVICE) {
-			const sm = submodeRef.current;
-			const bindings = hdBindingsConfigRef.current;
-
-			if (sm[1] === States.MANUAL_DIRECT) {
-				const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.direct);
-				const msg = gamepad.handleDirectArm(remappedState.buttons, remappedState.axes);
-				pub.publish(msg);
-			} else {
-				const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.inverse);
-				const msg = gamepad.handleInverseArm(remappedState.buttons, remappedState.axes);
-				pub.publish(msg);
-			}
+		if (gamepadCommandStateRef.current !== GamepadCommandState.CONTROL) {
+			const gap = Date.now() - lastPublishRef.current;
+			if (gap > 200) console.warn(`[gamepad] not in CONTROL — gap ${gap}ms`);
+			return;
 		}
-	}, [gamepad]); // gamepad set once on mount; everything else via refs
+		const pub = publisherRef.current;
+		if (!pub) {
+			const gap = Date.now() - lastPublishRef.current;
+			if (gap > 200) console.warn(`[gamepad] publisher null — gap ${gap}ms`);
+			return;
+		}
+		const currentMode = modeRef.current;
+		const gp = gamepadRef.current;
+		const s = gp?.getState();
+		if (!gp?.getGamepad() || !s) {
+			const gap = Date.now() - lastPublishRef.current;
+			if (gap > 200) console.warn(`[gamepad] no gamepad/state — getGamepad=${!!gp?.getGamepad()} s=${!!s} gap=${gap}ms`);
+			return;
+		}
+
+		// ROSLIB queues messages via once("connection") when disconnected, causing bursts on reconnect.
+		// Check isConnected (set synchronously by ROSLIB on WebSocket open/close) and skip instead.
+		if (!rosRef.current?.isConnected) {
+			const gap = Date.now() - lastPublishRef.current;
+			if (gap > 200) console.warn(`[gamepad] ros disconnected — gap ${gap}ms`);
+			return;
+		}
+
+		lastAttemptRef.current = Date.now();
+
+		try {
+			if (currentMode === PublishTo.NAVIGATION) {
+				const msg = gp.handleNavigation(s.buttons, s.axes);
+				pub.publish(msg);
+				lastPublishRef.current = Date.now();
+
+			} else if (currentMode === PublishTo.HANDLING_DEVICE) {
+				const sm = submodeRef.current;
+				const bindings = hdBindingsConfigRef.current;
+
+				if (sm[1] === States.MANUAL_DIRECT) {
+					const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.direct);
+					const msg = gp.handleDirectArm(remappedState.buttons, remappedState.axes);
+					pub.publish(msg);
+				} else {
+					const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.inverse);
+					const msg = gp.handleInverseArm(remappedState.buttons, remappedState.axes);
+					pub.publish(msg);
+				}
+				lastPublishRef.current = Date.now();
+
+			} else {
+				const gap = Date.now() - lastPublishRef.current;
+				if (gap > 200) console.warn(`[gamepad] mode=${currentMode} is not NAV/HD — gap ${gap}ms`);
+			}
+		} catch (e) {
+			console.error('[gamepad] publish threw:', e);
+		}
+	}, []); // everything via refs — sendCommand is permanently stable
 
 	// When leaving CONTROL, send one neutral Joy so the robot doesn't stay at last commanded velocity.
 	useEffect(() => {
@@ -217,10 +262,13 @@ function useGamepad(
 		if (gamepadCommandState === GamepadCommandState.CONTROL) {
 			if (timerRef.current !== null) {
 				clearInterval(timerRef.current);
+				console.warn('[gamepad] interval RESTARTED (prev existed) — dep changed');
 			}
+			console.log('[gamepad] interval START');
 			timerRef.current = window.setInterval(sendCommand, 30);
 		} else {
 			if (timerRef.current !== null) {
+				console.log('[gamepad] interval STOP (not CONTROL)');
 				clearInterval(timerRef.current);
 				timerRef.current = null;
 			}
@@ -228,11 +276,27 @@ function useGamepad(
 
 		return () => {
 			if (timerRef.current !== null) {
+				console.warn('[gamepad] interval CLEANUP (effect re-ran)');
 				clearInterval(timerRef.current);
 				timerRef.current = null;
 			}
 		};
 	}, [gamepadCommandState, sendCommand]); // sendCommand is stable → only restarts on CONTROL toggle
+
+	// Watchdog: fires every 500ms to detect silent publish failures while in CONTROL.
+	// Distinguishes "interval not running" (attemptGap large) from "publish silently failing" (attemptGap small, gap large).
+	useEffect(() => {
+		const watchdog = setInterval(() => {
+			if (gamepadCommandStateRef.current !== GamepadCommandState.CONTROL) return;
+			const now = Date.now();
+			const gap = now - lastPublishRef.current;
+			const attemptGap = now - lastAttemptRef.current;
+			if (gap > 500) {
+				console.error(`[gamepad] WATCHDOG: no publish in ${gap}ms | last attempt ${attemptGap}ms ago | pub=${!!publisherRef.current} mode=${modeRef.current}`);
+			}
+		}, 500);
+		return () => clearInterval(watchdog);
+	}, []);
 
 	return [gamepad, gamepadState, gamepadCommandState, togglePublishing] as const;
 }

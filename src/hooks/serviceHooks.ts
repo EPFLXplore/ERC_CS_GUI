@@ -21,14 +21,6 @@ const rulesNavigation: RuleRover[] = [
 	}
 ];
 
-const rulesCamera: RuleRover[] = [
-	{
-		name: SubSystems.NAGIVATION,
-		new_mode: [States.OFF],
-		state_sys: States.OFF,
-	},
-];
-
 const rulesDrill: RuleRover[] = [
 	{
 		name: SubSystems.NAGIVATION,
@@ -62,7 +54,7 @@ function useService(
 			service: new Service(
 				SubSystems.NAGIVATION,
 				getSubsystemState("navigation"),
-				[],
+				rulesNavigation,
 				false
 			),
 		},
@@ -78,7 +70,7 @@ function useService(
 			service: new Service(
 				SubSystems.DRILL,
 				getSubsystemState("drill"),
-				[],
+				rulesDrill,
 				false
 			),
 		},

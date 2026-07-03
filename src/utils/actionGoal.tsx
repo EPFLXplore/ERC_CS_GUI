@@ -62,7 +62,7 @@ const actionGoal = (
 				});
 
 				console.log(result)
-				if(result.error_type == 0) {
+				if(result.error_type === 0) {
 					snackBar("success", system + ": " + result.result)
 				} else {
 					snackBar("error", system + ": " + result.result + "  /  " + result.error_message)

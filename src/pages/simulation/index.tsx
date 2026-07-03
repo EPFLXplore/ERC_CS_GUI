@@ -23,55 +23,41 @@ import useRoverControls from "../../hooks/roverControlsHooks";
 const SimulationPage = () => {
 	const navigate = useNavigate();
 
-	const [snackbar, showSnackbar] = useAlert();
-  	const [ros, active] = useRosBridge(showSnackbar);
+	const [, showSnackbar] = useAlert();
+	const [ros] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
 	
 	
 	// Destructure like before:
 	const [
 		roverState,
-		qrCode,
-		setQrCode,
-		hdStackLaunched,
-		hdConfirmation,
-		hdConfirmationSelectElements,
-		numberElementToSelect,
-		imageToSelect,
-		setImageToSelect,
+		,
+		,
+		,
+		,
+		,
+		,
+		,
+		,
 		stateServices,
-		stateActions,
-		setStateActions,
-		systemsModalOpen,
-		setSystemsModalOpen,
+		,
+		,
+		,
+		,
 		manualMode,
 		modal,
 		volumetric,
 		setModal,
-		dataFocus,
-		cancelAction,
-		cancelAllActions,
-		launchAction,
-		startService,
+		,
+		,
+		,
+		,
+		,
 		changeMode,
-		selectSubMode,
+		,
 		point,
 		setPoint,
 		setVolumetric,
-		rosModalOpen,
-		setRosModalOpen,
-		modalRosNodes,
-		setModalRosNodes,
-		changeSpeedRover,
-		resetSensors,
-		reset_leds,
-		reset_motors,
-		emergency_shutdown,
-		recordSensors,
-		setRecordSensors,
-		displayGif,
-		setDisplayGif,
-		screenshotAllCameras
 	] = roverControls;
 
 
@@ -143,6 +129,7 @@ const SimulationPage = () => {
 					</div>
 				</div>
 			</div>
+			{modal}
 		</div>
 	);
 };

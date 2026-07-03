@@ -1,6 +1,6 @@
 // @ts-nocheck
 import * as THREE from "three";
-import { useEffect, useState, useRef, memo, startTransition } from "react";
+import { useEffect, useMemo, useState, useRef, memo, startTransition } from "react";
 import { useLoader, useThree } from "@react-three/fiber";
 import { Plane } from "@react-three/drei";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
@@ -39,7 +39,6 @@ ROS URDf
 /** `/DRILL/State` motor_module.position is in cm (0 = retracted, negative = extended). */
 const MIN_DRILL_CM = 0.0
 const MAX_DRILL_CM = -40.0
-const MIN_DRILL_STATE = 0.0
 const MAX_DRILL_STATE = -0.64
 
 const RobotVisual = ({
@@ -66,15 +65,11 @@ const RobotVisual = ({
 	const [roverMapPosition, setRoverMapPosition] = useState({ x: 0, y: 0, z: 0 });
 	const { raycaster } = useThree();
 
-	const [currentAngle, setCurrentAngle] = useState([0.0, 0.0, 0.0, 0.0])
-
 	const mapRangeDrill = (valueCm: number): number => {
 		const clamped = Math.max(MAX_DRILL_CM, Math.min(MIN_DRILL_CM, valueCm));
 		const t = (clamped - MIN_DRILL_CM) / (MAX_DRILL_CM - MIN_DRILL_CM);
 		return t * MAX_DRILL_STATE;
 	}
-
-	let interval = false
 
 	/**
 	 * Convert a speed of wheel to an angle of rotation, using the fact that the rover state is updated each 10ms
@@ -84,6 +79,11 @@ const RobotVisual = ({
 	const wheelsDrivingMotion = (speed: number): number => {
 		return (0.01 / (0.27 * Math.PI)) * speed
 	}
+
+	const currentAngle = useMemo(
+		() => wheelsDrivingValue.map(wheelsDrivingMotion),
+		[wheelsDrivingValue]
+	);
 
 	const robot = useLoader(URDFLoader, filepath, (loader) => {
 		loader.loadMeshFunc = (path, manager, done) => {
@@ -149,7 +149,6 @@ const RobotVisual = ({
 
 		// Set wheel diving values
 		for (let i = 0; i < wheelsDrivingValue.length; i++) {
-			let angle = wheelsDrivingMotion(currentAngle[i])
 			robot.joints[`DR${i + 1}`].setJointValue(
 				THREE.MathUtils.degToRad(currentAngle[i])
 			);
@@ -161,12 +160,13 @@ const RobotVisual = ({
 
 	useEffect(() => {
 		const mapCoord = map2DTo3D(position);
+		const terrain = terrainRef.current;
 
-		if (terrainRef.current) {
+		if (terrain) {
 			// Set raycaster from the rover's position downwards
 			raycaster.set(new Vector3(mapCoord.x, 10, mapCoord.z), new Vector3(0, -1, 0));
 
-			const intersects = raycaster.intersectObject(terrainRef.current);
+			const intersects = raycaster.intersectObject(terrain);
 			if (intersects.length > 0) {
 				// Update rover's Y position based on intersection point
 				setRoverMapPosition({
@@ -178,7 +178,7 @@ const RobotVisual = ({
 		} else {
 			setRoverMapPosition(mapCoord);
 		}
-	}, [terrainRef.current, position]);
+	}, [position, raycaster, terrainRef]);
 
 	return (
 		<group>

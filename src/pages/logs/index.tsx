@@ -32,7 +32,7 @@ const Logs = () => {
 
 		// 👇️ scroll to bottom every time messages change
 		bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [roverlogs]);
+	}, [roverlogs, isAtBottom]);
 
 	const getColorType = (type: string) => {
 		switch (type) {
@@ -163,8 +163,9 @@ const Logs = () => {
 							scrollableTarget="scrollableDiv"
 							style={{ display: "flex", flexDirection: "column", height: "100%" }}
 						>
-							{roverlogs.reverse().map((log) => (
+							{[...roverlogs].reverse().map((log) => (
 								<Tooltip
+									key={`${log.timestamp}-${log.node}-${log.line}-${log.message}`}
 									title={log.file + " - line " + log.line}
 									enterDelay={1000}
 									slotProps={{

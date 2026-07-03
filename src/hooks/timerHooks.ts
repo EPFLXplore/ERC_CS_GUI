@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 
 function useTimer(onFinished?: () => void) {
 	const [minutes, setMinutes] = useState(60); // minutes left
@@ -6,10 +6,10 @@ function useTimer(onFinished?: () => void) {
 	const [finished, setFinished] = useState(false);
 	const [active, _setActive] = useState(false);
 	const [inputFocused, setInputFocused] = useState(false);
-	let interval: NodeJS.Timer;
+	const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Set up timer time
-	const getTime = (changeMinutes?: number, changeSeconds?: number) => {
+	const getTime = useCallback((changeMinutes?: number, changeSeconds?: number) => {
 		let newMinutes = changeMinutes || minutes;
 		let newSeconds = changeSeconds || seconds;
 		let time = newMinutes * 60000 + newSeconds * 1000;
@@ -28,24 +28,26 @@ function useTimer(onFinished?: () => void) {
 		setMinutes(Math.floor((time / 1000 / 60) % 100));
 		setSeconds(Math.floor((time / 1000) % 60));
 		setFinished(false);
-	};
+	}, [active, minutes, seconds]);
 
 	// Set up interval of one second for update
 	useEffect(() => {
 		if (!finished && active) {
-			interval = setTimeout(() => getTime(), 1000);
+			intervalRef.current = setTimeout(() => getTime(), 1000);
 		}
 
-		return () => clearTimeout(interval);
-	}, [finished, active, minutes, seconds]);
+		return () => {
+			if (intervalRef.current) clearTimeout(intervalRef.current);
+		};
+	}, [finished, active, getTime]);
 
 	// Private function to change time
 	const _changeTime = (minutes: number, seconds: number) => {
 		if (minutes >= 0 && seconds >= 0 && seconds < 60) {
-			clearTimeout(interval);
+			if (intervalRef.current) clearTimeout(intervalRef.current);
 			getTime(minutes, seconds);
 		} else if (minutes >= 0 && seconds >= 60) {
-			clearTimeout(interval);
+			if (intervalRef.current) clearTimeout(intervalRef.current);
 			getTime(
 				minutes + Math.floor(seconds / 60),
 				(seconds - Math.floor(seconds / 60) * 60) % 60

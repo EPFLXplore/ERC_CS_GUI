@@ -230,10 +230,10 @@ const CamerasPage = () => {
 		}, 300);
 	}, []);
 
-	const onCsBitrateChange = useCallback((v: number) => applyBitrate(v, rosRef.current), []);
-	const onNavBitrateChange = useCallback((v: number) => applyNavBitrate(v, rosRef.current), []);
-	const onZedBitrateChange = useCallback((v: number) => applyZedBitrate(v, rosRef.current), []);
-	const onHdBitrateChange = useCallback((v: number) => applyHdBitrate(v, rosRef.current), []);
+	const onCsBitrateChange = useCallback((v: number) => applyBitrate(v, rosRef.current), [applyBitrate]);
+	const onNavBitrateChange = useCallback((v: number) => applyNavBitrate(v, rosRef.current), [applyNavBitrate]);
+	const onZedBitrateChange = useCallback((v: number) => applyZedBitrate(v, rosRef.current), [applyZedBitrate]);
+	const onHdBitrateChange = useCallback((v: number) => applyHdBitrate(v, rosRef.current), [applyHdBitrate]);
 
 	useEffect(() => {
 		try {

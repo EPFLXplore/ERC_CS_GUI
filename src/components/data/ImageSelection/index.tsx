@@ -79,7 +79,7 @@ const ImageSelection: React.FC<ImageDisplayProps> = ({
         <img
           ref={imgRef}
           src={imageData}
-          alt="ROS Image"
+          alt="ROS feed"
           onClick={handleClick}
           className={styles.Image}
         />

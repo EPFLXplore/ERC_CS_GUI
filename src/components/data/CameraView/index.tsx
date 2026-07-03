@@ -130,7 +130,7 @@ const CameraView = ({
 		);
 	}
 
-	if(cameraCount == 1) {
+	if(cameraCount === 1) {
 
 		return (
 			<div className={styles.Container}>

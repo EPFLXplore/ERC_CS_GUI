@@ -1,5 +1,4 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import * as ROSLIB from "roslib";
 
 function useRoverNetwork(ros: ROSLIB.Ros | null) {
@@ -9,4 +8,3 @@ function useRoverNetwork(ros: ROSLIB.Ros | null) {
 }
 
 export default useRoverNetwork;
-

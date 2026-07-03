@@ -167,7 +167,7 @@ const getNetworkData = (data: any) => {
 		return "NO DATA";
 	}
 
-    if (Number(roverData['network']['signal_strength']) == 0.0) {
+    if (Number(roverData['network']['signal_strength']) === 0.0) {
         return -40
     }
 
@@ -647,7 +647,7 @@ const getBatteryState = (data: any) => {
 const getBatteryLevel = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
 	
-	if (!elData || !elData['power'] || Number(elData["power"]["voltage"]) == 0) {
+	if (!elData || !elData['power'] || Number(elData["power"]["voltage"]) === 0) {
 		return "NO DATA";
 	}
 

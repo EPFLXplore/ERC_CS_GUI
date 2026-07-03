@@ -1,4 +1,4 @@
-import { ReactElement, startTransition, useEffect, useMemo, useState } from "react";
+import { ReactElement, useEffect, useMemo, useState } from "react";
 import useService from "./serviceHooks";
 import useActions, { ActionType } from "./actionsHooks";
 import useRoverState from "./roverStateHooks";
@@ -11,7 +11,6 @@ import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
-import { BrokenImageSharp } from "@mui/icons-material";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -53,10 +52,10 @@ const useRoverControls = (
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
 		[SubSystems.SCIENCE]: false,
-		["microscope"]: false,
-		["suspension"]: false,
-		["parameters"]: false,
-		["cancel"]: false,
+		microscope: false,
+		suspension: false,
+		parameters: false,
+		cancel: false,
 	});
 
 	const changeSpeedTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.NAV_CHANGE_SPEED, messageType: "std_msgs/Float32", queue_length: 1, queue_size: 1 }) : null, [ros]);
@@ -106,7 +105,7 @@ const useRoverControls = (
 	const [manualMode, setManualMode] = useState<PublishToType>(PublishTo.NAVIGATION);
 
 	// Simulation, not really used right now.
-	const [dataFocus, setDataFocus] = useState<string[]>([]);
+	const [dataFocus] = useState<string[]>([]);
 	const [point, setPoint] = useState({ x: -10, y: -10 });
 	const [volumetric, setVolumetric] = useState(false);
 
@@ -140,43 +139,37 @@ const useRoverControls = (
 
 	// Cancel all actions. If no actions are running, it does nothing.
 	const cancelAllActions = () => {
-		let canceled = false
-		for (const key in stateActions) {
-			if (systemsModalOpen.hasOwnProperty(key)) {
-				setStateActions((old) => {
-					let newStates = { ...old };
+		const cancellableKeys = Object.keys(stateActions).filter((key) => (
+			Object.prototype.hasOwnProperty.call(systemsModalOpen, key) &&
+			stateActions[key].ros_object !== null &&
+			stateActions[key].goal_object !== undefined
+		));
 
-					if (
-						newStates[key].ros_object !== null &&
-						newStates[key].goal_object !== undefined
-					) {
-						newStates[key].ros_object.cancelGoal(newStates[key].goal_object);
-
-						// can't check if the cancelation is successful it's not a future!
-
-						newStates[key].goal_params = null;
-						newStates[key].goal_object = undefined;
-						newStates[key].action.state = States.OFF;
-						newStates[key].ros_object = null;
-						canceled = true
-						showSnackbar(
-							"success",
-							"All actions for have been canceled (correctly we need to check the status on the rover state of the subsystem)"
-						);
-					}
-					return newStates;
-				});
-				// @ts-ignore
-				systemsModalOpen[key] = false;
-			}
+		if (cancellableKeys.length === 0) {
+			showSnackbar("info", "No actions are running");
+			return;
 		}
 
-		if(!canceled) {
-			showSnackbar(
-				"info",
-				"No actions are running"
-			);
-		}
+		setStateActions((old) => {
+			const newStates = { ...old };
+			cancellableKeys.forEach((key) => {
+				newStates[key].ros_object.cancelGoal(newStates[key].goal_object);
+				newStates[key].goal_params = null;
+				newStates[key].goal_object = undefined;
+				newStates[key].action.state = States.OFF;
+				newStates[key].ros_object = null;
+			});
+			return newStates;
+		});
+
+		setSystemsModalOpen((old) => ({
+			...old,
+			...Object.fromEntries(cancellableKeys.map((key) => [key, false])),
+		}));
+		showSnackbar(
+			"success",
+			"All actions for have been canceled (correctly we need to check the status on the rover state of the subsystem)"
+		);
 	};
 
 	// Launch an action for a subsystem with the arguments for ROS. If the system is not enabled, 

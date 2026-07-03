@@ -1,4 +1,4 @@
-import { ReactNode, Ref, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGLTF } from "@react-three/drei";
 import { Point2D } from "../../../data/point.type";
 import { useThree } from "@react-three/fiber";
@@ -18,11 +18,12 @@ const Pin = ({
 	const { raycaster } = useThree();
 
 	useEffect(() => {
-		if (terrainRef.current) {
+		const terrain = terrainRef.current;
+		if (terrain) {
 			// Set raycaster from the rover's position downwards
 			raycaster.set(new Vector3(coordinates.x, 10, coordinates.y), new Vector3(0, -1, 0));
 
-			const intersects = raycaster.intersectObject(terrainRef.current);
+			const intersects = raycaster.intersectObject(terrain);
 			if (intersects.length > 0) {
 				// Update rover's Y position based on intersection point
 				setPinMapPosition({
@@ -34,7 +35,7 @@ const Pin = ({
 		} else {
 			setPinMapPosition({ x: coordinates.x, y: 0, z: coordinates.y });
 		}
-	}, [terrainRef.current, coordinates]);
+	}, [coordinates, raycaster, terrainRef]);
 
 	return (
 		<group
