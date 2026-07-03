@@ -65,22 +65,20 @@ function useGamepad(
 		const gp = new GamepadController((state) => setGamepadState(state));
 		setGamepad(gp);
 
-		// START -> selector
-		GamepadController.addGamepadListener(
-			"gamepadButtonPressed",
-			ClassicalGamepad.Button.START,
-			() => selectorCallbackRef.current?.()
-		);
+		const onButtonPressed = (e: Event) => {
+			const idx = (e as CustomEvent).detail?.buttonIndex;
+			if (idx === ClassicalGamepad.Button.START) {
+				selectorCallbackRef.current?.();
+			} else if (idx === ClassicalGamepad.Button.BACK) {
+				togglePublishingRef.current();
+			}
+		};
 
-		// BACK -> toggle UI/CONTROL (physical View/Select)
-		GamepadController.addGamepadListener(
-			"gamepadButtonPressed",
-			ClassicalGamepad.Button.BACK,
-			() => togglePublishingRef.current()
-		);
+		window.addEventListener("gamepadButtonPressed", onButtonPressed);
 
-	// No remover available for addGamepadListener; ensure this effect runs ONCE.
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		return () => {
+			window.removeEventListener("gamepadButtonPressed", onButtonPressed);
+		};
 	}, []);
 
 	// 2) Create/replace publisher when ros or mode changes
