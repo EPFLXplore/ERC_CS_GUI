@@ -74,7 +74,7 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
-import { ReactElement, useCallback, useEffect, useState } from "react";
+import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService, startHdDepthCameraService } from "../../utils/changeCameraMode";
@@ -300,31 +300,36 @@ const NewControlPage = () => {
 		
 	}
 
+	const roverStateRef = useRef(roverState);
+	roverStateRef.current = roverState;
+	const recordSensorsRef = useRef(recordSensors);
+	recordSensorsRef.current = recordSensors;
+
 	const recordMassAndEnvSensors = useCallback(() => {
-		if (getMassArmSensor(roverState) === "NO DATA" || !recordSensors) return;
+		const state = roverStateRef.current;
+		if (getMassArmSensor(state) === "NO DATA" || !recordSensorsRef.current) return;
 		recordSensorData(SensorsType.MASS_HD,
-			getMassArmSensor(roverState).toString(),
-			getMassDrillSensor(roverState).toString(),
-			getForInOneSensor(roverState).temperature.toString(),
-			getForInOneSensor(roverState).humidity.toString(),
-			getForInOneSensor(roverState).conductivity.toString(),
-			getForInOneSensor(roverState).ph.toString(),
-			getDustSensor(roverState).pm1_0_std.toString(),
-			getDustSensor(roverState).pm2_5_std.toString(),
-			getDustSensor(roverState).pm10_std.toString(),
-			getDustSensor(roverState).pm1_0_atm.toString(),
-			getDustSensor(roverState).pm2_5_atm.toString(),
-			getDustSensor(roverState).pm10_atm.toString(),
-			getDustSensor(roverState).num_particles_0_3.toString(),
-			getDustSensor(roverState).num_particles_0_5.toString(),
-			getDustSensor(roverState).num_particles_1_0.toString(),
-			getDustSensor(roverState).num_particles_2_5.toString(),
-			getDustSensor(roverState).num_particles_5_0.toString(),
-			getDustSensor(roverState).num_particles_10.toString());
-	}, [roverState, recordSensors]);
+			getMassArmSensor(state).toString(),
+			getMassDrillSensor(state).toString(),
+			getForInOneSensor(state).temperature.toString(),
+			getForInOneSensor(state).humidity.toString(),
+			getForInOneSensor(state).conductivity.toString(),
+			getForInOneSensor(state).ph.toString(),
+			getDustSensor(state).pm1_0_std.toString(),
+			getDustSensor(state).pm2_5_std.toString(),
+			getDustSensor(state).pm10_std.toString(),
+			getDustSensor(state).pm1_0_atm.toString(),
+			getDustSensor(state).pm2_5_atm.toString(),
+			getDustSensor(state).pm10_atm.toString(),
+			getDustSensor(state).num_particles_0_3.toString(),
+			getDustSensor(state).num_particles_0_5.toString(),
+			getDustSensor(state).num_particles_1_0.toString(),
+			getDustSensor(state).num_particles_2_5.toString(),
+			getDustSensor(state).num_particles_5_0.toString(),
+			getDustSensor(state).num_particles_10.toString());
+	}, []);
 
 	useEffect(() => {
-		console.log("Rover state updated");
 		const interval = setInterval(recordMassAndEnvSensors, 500);
 		return () => clearInterval(interval);
 	}, [recordMassAndEnvSensors]);
@@ -425,13 +430,18 @@ const NewControlPage = () => {
 		}));
 	};
 
+	const displayRosModalRef = useRef(displayRosModal);
+	displayRosModalRef.current = displayRosModal;
+	const updateHdTaskCommandRef = useRef(updateHdTaskCommand);
+	updateHdTaskCommandRef.current = updateHdTaskCommand;
+
+	const widgetCards = useMemo((): { key: WidgetKey; content: ReactElement }[] => {
 	const drillModule = getMotorModule(roverState);
 	const drillMotor = getMotorDrill(roverState);
 	const drillFsm = getStateFSM(roverState);
 	const drillMode =
 		roverState?.drill?.state?.mode != null ? String(roverState.drill.state.mode) : "NO DATA";
-
-	const widgetCards: { key: WidgetKey; content: ReactElement }[] = [
+	return [
 		{
 			key: "drivingCurrents",
 			content: (
@@ -685,11 +695,11 @@ const NewControlPage = () => {
 							};
 
 							return [
-								formatSubsystem("Navigation", "navigation", () => displayRosModal(SubSystems.NAGIVATION)),
-								formatSubsystem("Rover", "rover", () => displayRosModal(SubSystems.ROVER)),
-								formatSubsystem("HD", "handling_device", () => displayRosModal(SubSystems.HANDLING_DEVICE)),
-								formatSubsystem("Science", "drill", () => displayRosModal(SubSystems.DRILL)),
-								formatSubsystem("Avionics", "electronics", () => displayRosModal(SubSystems.EL)),
+								formatSubsystem("Navigation", "navigation", () => displayRosModalRef.current(SubSystems.NAGIVATION)),
+								formatSubsystem("Rover", "rover", () => displayRosModalRef.current(SubSystems.ROVER)),
+								formatSubsystem("HD", "handling_device", () => displayRosModalRef.current(SubSystems.HANDLING_DEVICE)),
+								formatSubsystem("Science", "drill", () => displayRosModalRef.current(SubSystems.DRILL)),
+								formatSubsystem("Avionics", "electronics", () => displayRosModalRef.current(SubSystems.EL)),
 							];
 						})()}
 					/>
@@ -715,7 +725,7 @@ const NewControlPage = () => {
 						<button
 							type="button"
 							className={styles.hdDataControlButton}
-							onClick={() => updateHdTaskCommand(2)}
+							onClick={() => updateHdTaskCommandRef.current(2)}
 							title="Previous Command"
 						>
 							<img src={PreviousIcon} alt="Previous" />
@@ -724,7 +734,7 @@ const NewControlPage = () => {
 						<button
 							type="button"
 							className={styles.hdDataControlButton}
-							onClick={() => updateHdTaskCommand(0)}
+							onClick={() => updateHdTaskCommandRef.current(0)}
 							title="Pause Task"
 						>
 							<img src={PauseIcon} alt="Pause" />
@@ -733,7 +743,7 @@ const NewControlPage = () => {
 						<button
 							type="button"
 							className={styles.hdDataControlButton}
-							onClick={() => updateHdTaskCommand(1)}
+							onClick={() => updateHdTaskCommandRef.current(1)}
 							title="Next Command"
 						>
 							<img src={NextIcon} alt="Next" />
@@ -772,6 +782,7 @@ const NewControlPage = () => {
 			),
 		},
 	];
+	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<div className={"page " + styles.mainPage}>

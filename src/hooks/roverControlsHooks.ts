@@ -1,4 +1,4 @@
-import { ReactElement, startTransition, useEffect, useState } from "react";
+import { ReactElement, startTransition, useEffect, useMemo, useState } from "react";
 import useService from "./serviceHooks";
 import useActions, { ActionType } from "./actionsHooks";
 import useRoverState from "./roverStateHooks";
@@ -59,45 +59,9 @@ const useRoverControls = (
 		["cancel"]: false,
 	});
 
-	let resetMassDrillTopic: ROSLIB.Topic<any>;
-	let resetMassHDTopic: ROSLIB.Topic<any>;
-	let ledCommandsTopic: ROSLIB.Topic<any>;
-	let screenshotTopic: ROSLIB.Topic<any>;
-	let changeSpeedTopic: ROSLIB.Topic<any>;
-	let namedJointTargetTopic: ROSLIB.Topic<any>;
-	let suspensionHeightTopic: ROSLIB.Topic<any>;
-
-	// Navigation - Direct to NAV subsystem
-	if(ros) {
-		changeSpeedTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.NAV_CHANGE_SPEED,  // Direct to NAV subsystem
-			messageType: "std_msgs/Float32",
-			queue_length: 1,
-			queue_size: 1,
-		});
-	}
-
-	// HD - Named joint target for predefined poses (direct to kinematics planner)
-	if(ros) {
-		namedJointTargetTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.HD_NAMED_JOINT_TARGET,
-			messageType: "custom_msg/NamedPose",
-			queue_length: 1,
-			queue_size: 1,
-		});
-	}
-
-	if(ros) {
-		suspensionHeightTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.ACTIVE_SUSPENSION_HEIGHT,
-			messageType: "std_msgs/Float32",
-			queue_length: 1,
-			queue_size: 1,
-		});
-	}
+	const changeSpeedTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.NAV_CHANGE_SPEED, messageType: "std_msgs/Float32", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const namedJointTargetTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.HD_NAMED_JOINT_TARGET, messageType: "custom_msg/NamedPose", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const suspensionHeightTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.ACTIVE_SUSPENSION_HEIGHT, messageType: "std_msgs/Float32", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// HDS can send a requet to confirm something (continue a task for example)
 	// It can also send some string information, like a qr code value. The term qrCode is not write
@@ -119,48 +83,14 @@ const useRoverControls = (
 	// Confirmation when the HDS stack is launched.
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
-	// Science - Direct to EL (Electronics) subsystem for sensors
-	if(ros) {
-		resetMassDrillTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.EL_MASS_TARE_DRILL,  // Direct to EL subsystem
-			messageType: "custom_msg/MassRequestDrill",
-			queue_length: 1,
-			queue_size: 1,
-		})
-
-		resetMassHDTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.EL_MASS_TARE_HD,  // Direct to EL subsystem
-			messageType: "custom_msg/MassRequestHD",
-			queue_length: 1,
-			queue_size: 1,
-		})
-
-		// Screenshot - which subsystem manages cameras? Using NAV for now
-		screenshotTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.SCREENSHOT_ALL_CAMS,  // Or separate camera manager?
-			messageType: "std_msgs/Bool",
-			queue_length: 1,
-			queue_size: 1,
-		})
-	}
+	const resetMassDrillTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_DRILL, messageType: "custom_msg/MassRequestDrill", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const resetMassHDTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_HD, messageType: "custom_msg/MassRequestHD", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const screenshotTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.SCREENSHOT_ALL_CAMS, messageType: "std_msgs/Bool", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const ledCommandsTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDMessage", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// When the user clicks on the button to record sensors, it sets the state to true and records the sensors in a csv file
 	// using HTTP requests to the backend ExpressJS server
 	const [recordSensors, setRecordSensors] = useState(false)
-
-	// Avionics - Direct to EL (Electronics) subsystem
-	if(ros) {
-		ledCommandsTopic = new ROSLIB.Topic<any>({
-			ros: ros,
-			name: Topics.EL_LED_COMMANDS,  // Direct to EL subsystem
-			messageType: "custom_msg/LEDMessage",
-			queue_length: 1,
-			queue_size: 1,
-		})
-	}
 
 	// Panels of Control for ROS nodes. Which one is open on the control page
 	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
@@ -495,25 +425,28 @@ const useRoverControls = (
 		}, [ros]);
 
 	useEffect(() => {
-		if (ros) {
-			const hdStackLaunched = new ROSLIB.Topic({
-				ros: ros,
-				name: Topics.CONFIRMATION_HDS_LAUNCHED,
-				messageType: "std_msgs/Bool",
-				queue_length: 1,
-				queue_size: 1,
-			});
+		if (!ros) return;
 
-			hdStackLaunched.subscribe(async (message) => {
-				const result = await new Promise<boolean>((resolve, reject) => {
-					setHdStackLaunched(() => (confirm: boolean) => {
-						resolve(confirm)
-						setHdStackLaunched(null);
-					});
-				});
+		const hdLaunchTopic = new ROSLIB.Topic({
+			ros: ros,
+			name: Topics.CONFIRMATION_HDS_LAUNCHED,
+			messageType: "std_msgs/Bool",
+			queue_length: 1,
+			queue_size: 1,
+		});
+
+		let dialogPending = false;
+		hdLaunchTopic.subscribe(() => {
+			if (dialogPending) return;
+			dialogPending = true;
+			setHdStackLaunched(() => (confirm: boolean) => {
+				dialogPending = false;
+				setHdStackLaunched(null);
 			});
-		}
-		}, [ros]);
+		});
+
+		return () => hdLaunchTopic.unsubscribe();
+	}, [ros]);
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
