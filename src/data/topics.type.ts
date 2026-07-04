@@ -55,6 +55,8 @@ export enum Topics {
     // ELECTRONICS (EL) Subsystem Interface
     // ============================================
     EL_STATE = "/EL/State",                      // 1Hz state summary (subscribe)
+    EL_HEARTBEAT = "/EL/heartbeat",              // Avionics alive check, incrementing counter (subscribe)
+    EL_MASS_PACKET = "/EL/mass_packet",          // Live mass sensor readings (subscribe)
     EL_LED_COMMANDS = "/EL/led_req",             // LED control (publish)
     EL_MASS_TARE_HD = "/EL/mass_req_hd",        // Mass sensor tare HD
     EL_MASS_TARE_DRILL = "/EL/mass_req_drill",  // Mass sensor tare Drill

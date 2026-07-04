@@ -67,6 +67,7 @@ import {
 	getMassDrillSensor,
 	getMassArmSensor,
 	getForInOneSensor,
+	getAvionicsAlive,
 	getCameraStates
 	
 } from "../../utils/roverStateParser";
@@ -757,7 +758,7 @@ const NewControlPage = () => {
 			key: "currentPosition",
 			content: (
 				<InfoBox
-					title="Current Position"
+					title="Current EKF Pos."
 					infos={[
 						{ name: "X", value: getCurrentPosition(roverState).x },
 						{ name: "Y", value: getCurrentPosition(roverState).y },
@@ -794,6 +795,9 @@ const NewControlPage = () => {
 						<span className={styles.powerItem}>I: {getCurrentOutput(roverState)} A</span>
 						<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
 						<span className={styles.powerItem}>State: {getBatteryState(roverState)}</span>
+						<span className={styles.powerItem} style={{ color: getAvionicsAlive(roverState) ? "#4caf50" : "#f44336" }}>
+							● Avionics {getAvionicsAlive(roverState) ? "Alive" : "Dead"}
+						</span>
 					</div>
 				</div>
 				<div className={styles.systems}>

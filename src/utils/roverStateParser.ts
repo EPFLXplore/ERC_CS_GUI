@@ -618,6 +618,12 @@ const getCurrentHDCommand = (data: any) => {
 
 //////////////////////// ELECTRONICS ////////////////////////
 
+/** True while the `/EL/heartbeat` counter is observed changing (see roverStateHooks). */
+const getAvionicsAlive = (data: any): boolean => {
+	const elData = getSubsystemData(data, 'electronics');
+	return Boolean(elData?.avionicsAlive);
+}
+
 const BATTERY_MAX_VOLTAGE = 28.5;
 const BATTERY_MIN_VOLTAGE = 24.0;
 
@@ -701,8 +707,8 @@ const getCurrentOutput = (data: any) => {
 
 const getMassArmSensor = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['sensors']) {
+
+	if (!elData?.['sensors']?.['mass_sensors']) {
 		return "NO DATA"
 	}
 
@@ -711,8 +717,8 @@ const getMassArmSensor = (data: any) => {
 
 const getMassDrillSensor = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['sensors']) {
+
+	if (!elData?.['sensors']?.['mass_sensors']) {
 		return "NO DATA"
 	}
 	return Number(elData['sensors']['mass_sensors']["mass_drill"])
@@ -720,8 +726,8 @@ const getMassDrillSensor = (data: any) => {
 
 const getForInOneSensor = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['sensors']) {
+
+	if (!elData?.['sensors']?.['four_in_one']) {
 		return {
 			temperature: "NO DATA",
 			humidity: "NO DATA",
@@ -740,8 +746,8 @@ const getForInOneSensor = (data: any) => {
 
 const getDustSensor = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
-	
-	if (!elData || !elData['sensors']) {
+
+	if (!elData?.['sensors']?.['dust_sensor']) {
 		return {
 			pm1_0_std: "NO DATA",
 			pm2_5_std: "NO DATA",
@@ -900,5 +906,6 @@ export {
 	getBatteryState,
 	getTorqueGripper,
 	getBatteryVoltage,
+	getAvionicsAlive,
 	getCameraStates
 };

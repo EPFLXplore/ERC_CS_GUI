@@ -102,6 +102,25 @@ function useRoverState(ros: ROSLIB.Ros | null) {
                 })
         );
 
+        // Live mass sensor readings (id: 0 = HD, 1 = Drill)
+        const massPacketListener = new ROSLIB.Topic({
+            ros: ros,
+            name: Topics.EL_MASS_PACKET,
+            messageType: "custom_msg/MassPacket",
+            queue_length: 1,
+            queue_size: 1,
+        });
+
+        // Avionics alive check: `dummy` is a free-running counter, avionics is
+        // considered alive as long as it keeps changing.
+        const heartbeatListener = new ROSLIB.Topic({
+            ros: ros,
+            name: Topics.EL_HEARTBEAT,
+            messageType: "custom_msg/Heartbeat",
+            queue_length: 1,
+            queue_size: 1,
+        });
+
         // Navigation state updates
         navStateListener.subscribe((message) => {
             const data = parseStateMessage(message, NAV_STATE_TOPIC);
@@ -152,6 +171,14 @@ function useRoverState(ros: ROSLIB.Ros | null) {
                         electronics: {
                             ...data,
                             bms: (prev.electronics as any)?.bms ?? (data as any)?.bms,
+                            avionicsAlive: (prev.electronics as any)?.avionicsAlive,
+                            sensors: {
+                                ...(data as any)?.sensors,
+                                mass_sensors: {
+                                    ...(data as any)?.sensors?.mass_sensors,
+                                    ...(prev.electronics as any)?.sensors?.mass_sensors,
+                                },
+                            },
                         },
                     }))
                 );
@@ -174,12 +201,72 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         bmsStateListeners.forEach((listener) => listener.subscribe(handleBmsMessage));
 
+        // Mass packet updates (id 0 = HD arm, id 1 = Drill)
+        massPacketListener.subscribe((message: any) => {
+            if (!message || typeof message !== "object") return;
+            const key = message.id === 1 ? "mass_drill" : "mass_container";
+            startTransition(() =>
+                setRoverState((prev) => ({
+                    ...prev,
+                    electronics: {
+                        ...(prev.electronics || {}),
+                        sensors: {
+                            ...((prev.electronics as any)?.sensors || {}),
+                            mass_sensors: {
+                                ...((prev.electronics as any)?.sensors?.mass_sensors || {}),
+                                [key]: message.mass,
+                            },
+                        },
+                    },
+                }))
+            );
+        });
+
+        // Heartbeat: mark alive as soon as the counter changes, mark dead if it
+        // hasn't changed (or nothing arrived) within HEARTBEAT_STALE_MS.
+        const HEARTBEAT_STALE_MS = 3000;
+        let lastHeartbeatValue: number | null = null;
+        let lastHeartbeatChangeTime = Date.now();
+        let avionicsAlive = false;
+
+        const setAvionicsAlive = (alive: boolean) => {
+            if (alive === avionicsAlive) return;
+            avionicsAlive = alive;
+            startTransition(() =>
+                setRoverState((prev) => ({
+                    ...prev,
+                    electronics: {
+                        ...(prev.electronics || {}),
+                        avionicsAlive: alive,
+                    },
+                }))
+            );
+        };
+
+        heartbeatListener.subscribe((message: any) => {
+            if (!message || typeof message.dummy !== "number") return;
+            if (message.dummy !== lastHeartbeatValue) {
+                lastHeartbeatValue = message.dummy;
+                lastHeartbeatChangeTime = Date.now();
+                setAvionicsAlive(true);
+            }
+        });
+
+        const heartbeatWatchdog = setInterval(() => {
+            if (Date.now() - lastHeartbeatChangeTime > HEARTBEAT_STALE_MS) {
+                setAvionicsAlive(false);
+            }
+        }, 1000);
+
         return () => {
             navStateListener.unsubscribe();
             hdStateListener.unsubscribe();
             drillStateListener.unsubscribe();
             elecStateListener.unsubscribe();
             bmsStateListeners.forEach((listener) => listener.unsubscribe());
+            massPacketListener.unsubscribe();
+            heartbeatListener.unsubscribe();
+            clearInterval(heartbeatWatchdog);
         };
     }, [ros]);
 
