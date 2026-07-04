@@ -45,10 +45,12 @@ function wifiQuality(dbm: number): { label: string; color: string } {
 
 type WifiInfo = {
 	signal: number | null;
+	txRate: string | null;
+	rxRate: string | null;
 	raw: Record<string, unknown>;
 };
 
-const EMPTY_WIFI_INFO: WifiInfo = { signal: null, raw: {} };
+const EMPTY_WIFI_INFO: WifiInfo = { signal: null, txRate: null, rxRate: null, raw: {} };
 
 type LinkPingRow = {
 	host: string;
@@ -166,9 +168,12 @@ const Header = () => {
 				if (cancelled) return;
 
 				const signal = Number(j.signal);
+				const raw = j.raw ?? {};
+				const txRate = typeof raw["tx-rate"] === "string" ? raw["tx-rate"] : null;
+				const rxRate = typeof raw["rx-rate"] === "string" ? raw["rx-rate"] : null;
 				setWifiInfo(
 					j.ok && Number.isFinite(signal)
-						? { signal, raw: j.raw ?? {} }
+						? { signal, txRate, rxRate, raw }
 						: EMPTY_WIFI_INFO
 				);
 			} catch {
@@ -187,7 +192,7 @@ const Header = () => {
 	const rows: LinkPingRow[] =
 		linkPing.status === "ready" ? linkPing.rows : DEFAULT_ROWS;
 
-	const { signal, raw } = wifiInfo;
+	const { signal, txRate, rxRate, raw } = wifiInfo;
 	const quality = signal != null ? wifiQuality(signal) : null;
 	const milliwatts = signal != null ? dbmToMilliwatts(signal) : null;
 
@@ -227,6 +232,13 @@ const Header = () => {
 				{quality != null && (
 					<p className={styles.wifiQuality} style={{ color: quality.color }}>
 						{quality.label}
+					</p>
+				)}
+				{(txRate != null || rxRate != null) && (
+					<p className={styles.wifiRate}>
+						{txRate != null && `TX ${txRate}`}
+						{txRate != null && rxRate != null && " / "}
+						{rxRate != null && `RX ${rxRate}`}
 					</p>
 				)}
 			</div>

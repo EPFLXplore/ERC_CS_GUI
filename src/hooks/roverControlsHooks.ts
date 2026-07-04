@@ -526,6 +526,17 @@ const useRoverControls = (
 		}
 	}
 
+	// ----------------------------------------------------------------------------
+	// ----------------------------------------------------------------------------
+	// NAV LED SYNC
+
+	// Whenever NAV switches to AUTO, tell the avionics LEDs to reflect it (system=NAV(0), mode=ON(1))
+	useEffect(() => {
+		if (stateServices[SubSystems.NAGIVATION].service.state === States.AUTO) {
+			ledCommandsTopic?.publish({ system: 0, mode: 1 })
+		}
+	}, [stateServices[SubSystems.NAGIVATION].service.state, ledCommandsTopic])
+
 
 	return [
 		roverState,

@@ -73,7 +73,7 @@
 .networkFooter
     display: flex
     flex-direction: row
-    justify-content: flex-end
+    justify-content: center
     align-items: center
     padding: 10px 20px
     border-top: 1px solid rgba(255, 255, 255, 0.12)
@@ -209,9 +209,13 @@
 
 .widgetsGrid
     position: absolute
-    inset: 20px 20px 120px 20px
-    column-width: 320px
-    column-gap: 12px
+    inset: 20px 20px 178px 20px
+    z-index: 1
+    display: grid
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))
+    grid-auto-rows: minmax(min-content, 1fr)
+    align-items: stretch
+    gap: 12px
     overflow-y: auto
     padding-top: 56px
 
@@ -252,29 +256,15 @@
     transition: padding-left 0.28s ease
 
 .widgetItem
-    display: inline-block
+    display: flex
+    flex-direction: column
     width: 100%
-    margin: 0 0 12px
-    break-inside: avoid
-    -webkit-column-break-inside: avoid
+    height: 100%
     overflow: hidden
-    transition: opacity 0.22s ease, transform 0.24s ease, max-height 0.3s ease, margin 0.24s ease, filter 0.24s ease
 
-.widgetItemVisible
-    opacity: 1
-    transform: scale(1)
-    max-height: 1400px
-    margin: 0 0 12px
-    filter: blur(0)
-    pointer-events: auto
-
-.widgetItemHidden
-    opacity: 0
-    transform: scale(0.96)
-    max-height: 0
-    margin: 0
-    filter: blur(2px)
-    pointer-events: none
+    > *
+        flex: 1
+        min-height: 0
 
 .previews
     position: absolute
@@ -472,6 +462,7 @@
         top: 5px
 
 .WheelConfigBox
+    flex: 0 0 auto
     width: 100%
     height: 280px
     background: rgba(62, 134, 191, 0.32)
@@ -503,6 +494,11 @@
     display: flex
     flex-direction: column
     gap: 8px
+    height: 100%
+
+    > :first-child
+        flex: 1
+        min-height: 0
 
 .hdDataControls
     display: grid
@@ -542,6 +538,9 @@
     bottom: 40px
     right: 0
     left: 0
+    z-index: 10
+    isolation: isolate
+    will-change: transform
     display: flex
     flex-direction: row
     justify-content: center
@@ -564,8 +563,6 @@
     border-radius: 16px
     border: 1px solid rgba(255, 255, 255, 0.16)
     background: rgba(255, 255, 255, 0.05)
-    backdrop-filter: blur(10px)
-    webkit-backdrop-filter: blur(10px)
 
 .utilityActionsGroup
     display: flex
@@ -575,8 +572,6 @@
     border-radius: 16px
     border: 1px solid rgba(255, 255, 255, 0.16)
     background: rgba(255, 255, 255, 0.05)
-    backdrop-filter: blur(10px)
-    webkit-backdrop-filter: blur(10px)
 
 .dockGroup
     display: flex
@@ -599,8 +594,6 @@
     border-radius: 16px
     border: 1px solid rgba(255, 255, 255, 0.16)
     background: rgba(255, 255, 255, 0.05)
-    backdrop-filter: blur(10px)
-    webkit-backdrop-filter: blur(10px)
 
 .dockersAction
     background: rgba(255, 255, 255, 0.14)

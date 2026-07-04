@@ -797,18 +797,14 @@ const NewControlPage = () => {
 						</div>
 					</div>
 
-					<div
-						className={`${styles.widgetsGrid} ${isWidgetMenuOpen ? styles.widgetsGridShifted : ""}`}
-						style={{ columnCount: Math.max(1, Object.values(visibleWidgets).filter(Boolean).length) }}
-					>
-						{widgetCards.map((widget) => (
-							<div
-								className={`${styles.widgetItem} ${visibleWidgets[widget.key] ? styles.widgetItemVisible : styles.widgetItemHidden}`}
-								key={widget.key}
-							>
-								{widget.content}
-							</div>
-						))}
+					<div className={`${styles.widgetsGrid} ${isWidgetMenuOpen ? styles.widgetsGridShifted : ""}`}>
+						{widgetCards
+							.filter((widget) => visibleWidgets[widget.key])
+							.map((widget) => (
+								<div className={styles.widgetItem} key={widget.key}>
+									{widget.content}
+								</div>
+							))}
 					</div>
 
 					<div className={styles.actions}>
