@@ -82,10 +82,10 @@ const useRoverControls = (
 	// Confirmation when the HDS stack is launched.
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
-	const resetMassDrillTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_DRILL, messageType: "custom_msg/MassRequestDrill", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const resetMassHDTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_HD, messageType: "custom_msg/MassRequestHD", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const resetMassDrillTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_DRILL, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const resetMassHDTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_HD, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
 	const screenshotTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.SCREENSHOT_ALL_CAMS, messageType: "std_msgs/Bool", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const ledCommandsTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDMessage", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const ledCommandsTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// When the user clicks on the button to record sensors, it sets the state to true and records the sensors in a csv file
 	// using HTTP requests to the backend ExpressJS server
@@ -447,24 +447,21 @@ const useRoverControls = (
 
 	const resetSensor = (sensor: Sensors) => {
 		if(ros) {
-			const object = {
-				tare: true,
-				scale: 0.0
-			}
+			// load cell ids: HD=0, Drill=1
 			switch (sensor) {
 				case Sensors.MASS_HD:
-					resetMassHDTopic?.publish(object)
+					resetMassHDTopic?.publish({ id: 0, tare: true, change_scale: false, scale: 0.0 })
 					break
 
 				case Sensors.MASS_DRILL:
-					resetMassDrillTopic?.publish(object)
+					resetMassDrillTopic?.publish({ id: 1, tare: true, change_scale: false, scale: 0.0 })
 					break
 
 				default:
 					break
 			}
 		}
-	} 
+	}
 
 	const screenshotAllCameras = () => {
 		if(ros) {
@@ -508,30 +505,26 @@ const useRoverControls = (
 
 	const reset_leds = () => {
 		if(ros) {
-			const object = {
-				state: 6
-			}
-			ledCommandsTopic?.publish(object)
+			// systems: NAV=0, HD=1, DRILL=2, AVIONICS=3 -- turn every system's LED off (mode=OFF)
+			[0, 1, 2, 3].forEach((system) => {
+				ledCommandsTopic?.publish({ system, mode: 0 })
+			})
 		}
 	}
 
 	const reset_motors = () => {
 		if(ros) {
-			const object = {
-				state: 4
-			}
-			ledCommandsTopic?.publish(object)
+			// mode=EMERGENCY_MOTORS is not tied to a specific system
+			ledCommandsTopic?.publish({ system: 0, mode: 4 })
 		}
 	}
 
 	const emergency_shutdown = () => {
 		if(ros) {
-			const object = {
-				state: 5
-			}
-			ledCommandsTopic?.publish(object)
+			// mode=EMERGENCY_SHUTDOWN is not tied to a specific system
+			ledCommandsTopic?.publish({ system: 0, mode: 5 })
 		}
-	} 
+	}
 
 
 	return [

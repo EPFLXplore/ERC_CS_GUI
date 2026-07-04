@@ -55,7 +55,7 @@ export enum Topics {
     // ELECTRONICS (EL) Subsystem Interface
     // ============================================
     EL_STATE = "/EL/State",                      // 1Hz state summary (subscribe)
-    EL_LED_COMMANDS = "/EL/LedCommands",        // LED control (publish)
+    EL_LED_COMMANDS = "/EL/led_req",             // LED control (publish)
     EL_MASS_TARE_HD = "/EL/mass_req_hd",        // Mass sensor tare HD
     EL_MASS_TARE_DRILL = "/EL/mass_req_drill",  // Mass sensor tare Drill
 
@@ -94,7 +94,7 @@ export enum Topics {
     SCREENSHOT_ALL_CAMERAS = "/CS/ScreenshotAllCameras",
     
     // LED control - Assigned to EL (Electronics)  
-    LED_PUBLISHER = "/EL/LedCommands",  // Already defined
+    LED_PUBLISHER = "/EL/led_req",  // Already defined
     
     // HD Services - Control station interaction
     REQUEST_SELECTION_IMAGE = "/HD/ImageSelection",  // Same as HD_IMAGE_SELECTION
