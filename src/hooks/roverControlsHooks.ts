@@ -528,14 +528,71 @@ const useRoverControls = (
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
-	// NAV LED SYNC
+	// LED SYNC
 
-	// Whenever NAV switches to AUTO, tell the avionics LEDs to reflect it (system=NAV(0), mode=ON(1))
+	// True if any wheel is reporting a steering or driving fault (roverState.navigation.wheels.*).
+	// This is the only live NAV fault signal currently published (see getSteeringState/getDrivingState
+	// in roverStateParser.ts for the equivalent per-wheel display logic).
+	const navHasFault = useMemo(() => {
+		const wheels = (roverState as any)?.navigation?.wheels;
+		if (!wheels) return false;
+		return Object.values(wheels).some((wheel: any) => wheel?.steering_fault || wheel?.driving_fault);
+	}, [roverState]);
+
+	// NAV: FAULT takes priority over mode display. AUTO -> BLINK, ACKERMANN/OMNI -> ON.
+	// Republished periodically (not just once) in case the avionics node wasn't subscribed yet when
+	// the first message went out over rosbridge.
 	useEffect(() => {
-		if (stateServices[SubSystems.NAGIVATION].service.state === States.AUTO) {
-			ledCommandsTopic?.publish({ system: 0, mode: 1 })
+		const navState = stateServices[SubSystems.NAGIVATION].service.state;
+
+		let mode: number | null = null;
+		if (navHasFault) {
+			mode = 3; // FAULT
+		} else if (navState === States.AUTO) {
+			mode = 2; // BLINK
+		} else if (navState === States.ACKERMANN || navState === States.OMNI_DIRECTIONAL) {
+			mode = 1; // ON
 		}
-	}, [stateServices[SubSystems.NAGIVATION].service.state, ledCommandsTopic])
+
+		if (mode === null) return;
+
+		ledCommandsTopic?.publish({ system: 0, mode })
+		const interval = setInterval(() => {
+			ledCommandsTopic?.publish({ system: 0, mode })
+		}, 2000)
+
+		return () => clearInterval(interval)
+	}, [stateServices[SubSystems.NAGIVATION].service.state, navHasFault, ledCommandsTopic])
+
+	// HD: AUTO -> BLINK. (HD FAULT isn't wired yet -- the interface no longer publishes a
+	// per-joint fault/mode_motor signal to key off of.)
+	useEffect(() => {
+		if (stateServices[SubSystems.HANDLING_DEVICE].service.state !== States.AUTO) {
+			return;
+		}
+
+		ledCommandsTopic?.publish({ system: 1, mode: 2 })
+		const interval = setInterval(() => {
+			ledCommandsTopic?.publish({ system: 1, mode: 2 })
+		}, 2000)
+
+		return () => clearInterval(interval)
+	}, [stateServices[SubSystems.HANDLING_DEVICE].service.state, ledCommandsTopic])
+
+	// DRILL: ON -> ON. (DRILL only has ON/OFF modes, no AUTO-equivalent to BLINK on; DRILL FAULT
+	// isn't wired yet -- no confirmed fault signal to key off of.)
+	useEffect(() => {
+		if (stateServices[SubSystems.DRILL].service.state !== States.ON) {
+			return;
+		}
+
+		ledCommandsTopic?.publish({ system: 2, mode: 1 })
+		const interval = setInterval(() => {
+			ledCommandsTopic?.publish({ system: 2, mode: 1 })
+		}, 2000)
+
+		return () => clearInterval(interval)
+	}, [stateServices[SubSystems.DRILL].service.state, ledCommandsTopic])
 
 
 	return [

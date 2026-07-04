@@ -243,8 +243,8 @@ const getCameraStates = (data: any) => {
 
 const getLinearVelocity = (data: any) => {
     const navData = getSubsystemData(data, 'navigation');
-    
-    if (!navData || !navData['localization']) {
+
+    if (!navData?.['localization']?.['linear_velocity']) {
         return { x: "NO DATA", y: "NO DATA", z: "NO DATA" }
     }
 
@@ -256,8 +256,8 @@ const getLinearVelocity = (data: any) => {
 }
 const getAngularVelocity = (data: any) => {
 	const navData = getSubsystemData(data, 'navigation');
-	
-	if (!navData || !navData['localization']) {
+
+	if (!navData?.['localization']?.['angular_velocity']) {
 		return {
 			x: "NO DATA",
 			y: "NO DATA",
@@ -410,8 +410,8 @@ const getWheelsDrivingValue = (data: any) => {
  */
 const getCurrentGoal = (data: any) => {
 	const navData = getSubsystemData(data, 'navigation');
-	
-	if (!navData || !navData['state']) {
+
+	if (!navData?.['state']?.['current_goal']?.['position']) {
 		return { x: 0, y: 0 };
 	}
 
@@ -428,8 +428,8 @@ const getCurrentGoal = (data: any) => {
  */
 const getTrajectory = (data: any) => {
 	const navData = getSubsystemData(data, 'navigation');
-	
-	if (!navData || !navData['state'] || navData["state"]["points"].length === 0) {
+
+	if (!navData?.['state']?.['points'] || navData["state"]["points"].length === 0) {
 		return [{ x: 0, y: 0 }];
 	}
 
@@ -451,8 +451,8 @@ const getTrajectory = (data: any) => {
  */
 const getCurrentPosition = (data: any) => {
     const navData = getSubsystemData(data, 'navigation');
-    
-    if (!navData || !navData['localization']) {
+
+    if (!navData?.['localization']?.['position']) {
         return { x: 0, y: 0 };
     }
 
@@ -470,8 +470,8 @@ const getCurrentPosition = (data: any) => {
  */
 const getCurrentOrientation = (data: any) => {
 	const navData = getSubsystemData(data, 'navigation');
-	
-	if (!navData || !navData['localization']) {
+
+	if (!navData?.['localization']?.['orientation']) {
 		return {x: 0, y: 0, z: 0}
 	}
 
