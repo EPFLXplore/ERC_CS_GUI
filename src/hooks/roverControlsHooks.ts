@@ -11,6 +11,7 @@ import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
+import { getAvionicsAlive } from "../utils/roverStateParser";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -593,6 +594,21 @@ const useRoverControls = (
 
 		return () => clearInterval(interval)
 	}, [stateServices[SubSystems.DRILL].service.state, ledCommandsTopic])
+
+	// AVIONICS: alive (heartbeat counter changing, see roverStateHooks) -> ON.
+	const avionicsAlive = getAvionicsAlive(roverState);
+	useEffect(() => {
+		if (!avionicsAlive) {
+			return;
+		}
+
+		ledCommandsTopic?.publish({ system: 3, mode: 1 })
+		const interval = setInterval(() => {
+			ledCommandsTopic?.publish({ system: 3, mode: 1 })
+		}, 2000)
+
+		return () => clearInterval(interval)
+	}, [avionicsAlive, ledCommandsTopic])
 
 
 	return [
