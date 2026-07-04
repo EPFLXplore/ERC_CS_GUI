@@ -41,6 +41,7 @@ import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data
 import { Dvr } from "@mui/icons-material";
 import {
 	getCurrentPosition,
+	getCurrentOrientation,
 	getNetworkData,
 	getJointsPositions,
 	getSteeringAngles,
@@ -99,7 +100,6 @@ const WIDGET_KEYS = [
 	"steeringAngles",
 	"jointsHd",
 	"wheelConfiguration",
-	"dustSensors",
 	"jetsonHd",
 	"jetsonNav",
 	"rosNodes",
@@ -135,7 +135,6 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	steeringAngles: "Steering Angles",
 	jointsHd: "Joints HD",
 	wheelConfiguration: "Wheel Configuration",
-	dustSensors: "Dust Sensors",
 	jetsonHd: "Jetson HD",
 	jetsonNav: "Jetson NAV",
 	rosNodes: "ROS Nodes",
@@ -217,7 +216,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelsSpeed",
 		"steeringAngles",
 		"wheelConfiguration",
-		"dustSensors",
 		"jetsonHd",
 		"jetsonNav",
 		"rosNodes",
@@ -579,28 +577,6 @@ const NewControlPage = () => {
 			),
 		},
 		{
-			key: "dustSensors",
-			content: (
-				<InfoBox
-					title="Sensors"
-					infos={[
-						{ name: "pm1_0_std", value: getDustSensor(roverState).pm1_0_std, unit: "ug/m3" },
-						{ name: "pm2_5_std", value: getDustSensor(roverState).pm2_5_std, unit: "ug/m3" },
-						{ name: "pm10_std", value: getDustSensor(roverState).pm10_std, unit: "ug/m3" },
-						{ name: "pm1_0_atm", value: getDustSensor(roverState).pm1_0_atm, unit: "ug/m3" },
-						{ name: "pm2_5_atm", value: getDustSensor(roverState).pm2_5_atm, unit: "ug/m3" },
-						{ name: "pm10_atm", value: getDustSensor(roverState).pm10_atm, unit: "ug/m3" },
-						{ name: "num_particles_0_3", value: getDustSensor(roverState).num_particles_0_3, unit: "p/L" },
-						{ name: "num_particles_0_5", value: getDustSensor(roverState).num_particles_0_5, unit: "p/L" },
-						{ name: "num_particles_1_0", value: getDustSensor(roverState).num_particles_1_0, unit: "p/L" },
-						{ name: "num_particles_2_5", value: getDustSensor(roverState).num_particles_2_5, unit: "p/L" },
-						{ name: "num_particles_5_0", value: getDustSensor(roverState).num_particles_5_0, unit: "p/L" },
-						{ name: "num_particles_10", value: getDustSensor(roverState).num_particles_10, unit: "p/L" },
-					]}
-				/>
-			),
-		},
-		{
 			key: "jetsonHd",
 			content: (
 				<InfoBox
@@ -758,10 +734,11 @@ const NewControlPage = () => {
 			key: "currentPosition",
 			content: (
 				<InfoBox
-					title="Current EKF Pos."
+					title="ERC Map Frame Position"
 					infos={[
 						{ name: "X", value: getCurrentPosition(roverState).x },
 						{ name: "Y", value: getCurrentPosition(roverState).y },
+						{ name: "Yaw", value: getCurrentOrientation(roverState).z, unit: "°" },
 					]}
 				/>
 			),
@@ -799,9 +776,9 @@ const NewControlPage = () => {
 							● Avionics {getAvionicsAlive(roverState) ? "Alive" : "Dead"}
 						</span>
 					</div>
+					<RosDdsDevBanner />
 				</div>
 				<div className={styles.systems}>
-					<RosDdsDevBanner />
 					<SystemMode
 						system={"NAV"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
