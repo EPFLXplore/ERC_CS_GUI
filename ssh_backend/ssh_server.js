@@ -20,11 +20,17 @@ const express = require('express');
 const { execFile, spawn } = require('child_process');
 const dgram = require('dgram');
 const net = require('net');
+const axios = require('axios');
 const app = express();
 app.use(express.json());
 
 /** Shown top → bottom in the CS header (ping every host each poll). */
 const LINK_PING_HOSTS = ['169.254.55.230', '169.254.55.231'];
+
+/** RouterOS REST API (antenna mast AP) for WiFi signal strength. */
+const WIFI_ROUTER_HOST = '169.254.55.1';
+const WIFI_ROUTER_AUTH = { username: 'admin', password: 'XploreAntenna3' };
+const WIFI_ANTENNA_MAC = 'D4:01:C3:DC:B9:78';
 
 // Cors
 const cors = require('cors');
@@ -454,6 +460,27 @@ app.get('/link-ping', async (req, res) => {
       ms: null,
       detail: String(e && e.message ? e.message : e),
     });
+  }
+});
+
+/**
+ * GET /wifi-signal — Signal strength (dBm) of the antenna mast (WIFI_ANTENNA_MAC)
+ * as seen by the RouterOS AP's WiFi registration table.
+ */
+app.get('/wifi-signal', async (req, res) => {
+  try {
+    const response = await axios.get(
+      `http://${WIFI_ROUTER_HOST}/rest/interface/wifi/registration-table`,
+      { auth: WIFI_ROUTER_AUTH, timeout: 3000 }
+    );
+    const devices = Array.isArray(response.data) ? response.data : [];
+    const device = devices.find((d) => d['mac-address'] === WIFI_ANTENNA_MAC);
+    if (!device) {
+      return res.json({ ok: false, detail: 'Antenna mast not registered on AP' });
+    }
+    return res.json({ ok: true, signal: device.signal, raw: device });
+  } catch (e) {
+    return res.json({ ok: false, detail: e instanceof Error ? e.message : String(e) });
   }
 });
 

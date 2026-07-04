@@ -160,22 +160,6 @@ const getNodes = (data: any) => {
 }
 
 
-const getNetworkData = (data: any) => {
-	const roverData = data?.rover || data;
-
-	if (!roverData || !roverData['network']) {
-		return "NO DATA";
-	}
-
-    if (Number(roverData['network']['signal_strength']) === 0.0) {
-        return -40
-    }
-
-    return Number(roverData['network']['signal_strength'])
-	
-}
-
-
 const getStateSystem = (data: any, system: SubSystems) => {
 	if (!data || !data[system]) {
 		return States.OFF; // Use States enum value: "Off"
@@ -183,14 +167,6 @@ const getStateSystem = (data: any, system: SubSystems) => {
 
 	return data[system]["state"]["mode"];
 };
-
-const getLogs = (data: any) => {
-	if(!data || !data['rover']) {
-		return [];
-	}
-
-	return data['rover']['network']['logs']
-}
 
 
 const getCameraStates = (data: any) => {
@@ -879,8 +855,6 @@ export {
 	getCurrentGoal,
 	getTrajectory,
 	getWheelsDrivingValue,
-	getLogs,
-	getNetworkData,
 	getCurrentDriving,
 	getCurrentSteering,
 	getMotorDrill,

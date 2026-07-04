@@ -2,7 +2,6 @@ import styles from "./style.module.sass";
 import Header from "../../components/ui/Header";
 import Background from "../../components/ui/Background";
 import QuickAction from "../../components/Controls/QuickAction";
-import { useNavigate } from "react-router-dom";
 
 import NavIcon from "../../assets/images/icons/nav.svg";
 import CameraIcon from "../../assets/images/icons/camera.svg"
@@ -37,12 +36,10 @@ import GifOverlay from "../../components/data/GifView/GifOverlay";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
-import { InfoBox, ControllerInfoBox, InfoBoxButton } from "../../components/data/InfoBox";
-import { Dvr } from "@mui/icons-material";
+import { InfoBox, ControllerInfoBox } from "../../components/data/InfoBox";
 import {
 	getCurrentPosition,
 	getCurrentOrientation,
-	getNetworkData,
 	getJointsPositions,
 	getSteeringAngles,
 	getMotorDrill,
@@ -57,7 +54,6 @@ import {
 	getCurrentOutput,
 	getJetsonStatsHD,
 	getJetsonStatsNAV,
-	getNodes,
 	getStateFSM,
 	getCurrentHDTask,
 	getCurrentHDCommand,
@@ -102,7 +98,6 @@ const WIDGET_KEYS = [
 	"wheelConfiguration",
 	"jetsonHd",
 	"jetsonNav",
-	"rosNodes",
 	"hdData",
 	"currentPosition",
 	"scienceSensors",
@@ -137,7 +132,6 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	wheelConfiguration: "Wheel Configuration",
 	jetsonHd: "Jetson HD",
 	jetsonNav: "Jetson NAV",
-	rosNodes: "ROS Nodes",
 	hdData: "HD Data",
 	currentPosition: "Current Position",
 	scienceSensors: "Science Sensors",
@@ -159,7 +153,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelConfiguration",
 		"jetsonHd",
 		"jetsonNav",
-		"rosNodes",
 		"drill",
 		"currentPosition",
 	]),
@@ -173,7 +166,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelConfiguration",
 		"jetsonHd",
 		"jetsonNav",
-		"rosNodes",
 		"hdData",
 		"drill",
 		"currentPosition",
@@ -188,7 +180,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelConfiguration",
 		"jetsonHd",
 		"jetsonNav",
-		"rosNodes",
 		"hdData",
 		"drill",
 	]),
@@ -203,7 +194,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelConfiguration",
 		"jetsonHd",
 		"jetsonNav",
-		"rosNodes",
 		"hdData",
 		"currentPosition",
 	]),
@@ -218,7 +208,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelConfiguration",
 		"jetsonHd",
 		"jetsonNav",
-		"rosNodes",
 		"hdData",
 		"scienceSensors",
 	]),
@@ -226,8 +215,6 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 };
 
 const NewControlPage = () => {
-	const navigate = useNavigate();
-
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
@@ -611,83 +598,6 @@ const NewControlPage = () => {
 			),
 		},
 		{
-			key: "rosNodes",
-			content:
-				typeof getNodes(roverState) !== "string" ? (
-					<InfoBoxButton
-						title="ROS Nodes"
-						infos={(() => {
-							const getNodeSummary = (subsystemKey: string) => {
-								const stateData = roverState as any;
-								const subsystem = stateData?.[subsystemKey];
-								const nodes = subsystem?.software?.nodes;
-								const cameras = subsystem?.cameras;
-
-								if ((!nodes || typeof nodes !== "object") && (!cameras || typeof cameras !== "object")) {
-									return { hasData: false, running: 0, total: 0 };
-								}
-
-								const nodeEntries = nodes && typeof nodes === "object" ? Object.values(nodes as Record<string, any>) : [];
-								const cameraEntries = cameras && typeof cameras === "object" ? Object.values(cameras as Record<string, any>) : [];
-								const entries = [...nodeEntries, ...cameraEntries];
-								if (entries.length === 0) {
-									return { hasData: false, running: 0, total: 0 };
-								}
-
-								const running = entries.reduce((count, node) => (node?.status ? count + 1 : count), 0);
-								return { hasData: true, running, total: entries.length };
-							};
-
-							const formatSubsystem = (
-								label: string,
-								subsystemKey: string,
-								onClick: () => void
-							) => {
-								const summary = getNodeSummary(subsystemKey);
-
-								if (!summary.hasData) {
-									return {
-										name: label,
-										summary: "NO DATA",
-										onClick,
-										color: "#ff9fa6",
-									};
-								}
-
-								const allRunning = summary.running === summary.total;
-								const noneRunning = summary.running === 0;
-
-								const color = allRunning
-									? "#9be8a6"
-									: noneRunning
-										? "#ff9fa6"
-										: "#ffc89e";
-
-								return {
-									name: label,
-									summary: `${summary.running}/${summary.total}`,
-									onClick,
-									color,
-								};
-							};
-
-							return [
-								formatSubsystem("Navigation", "navigation", () => displayRosModalRef.current(SubSystems.NAGIVATION)),
-								formatSubsystem("Rover", "rover", () => displayRosModalRef.current(SubSystems.ROVER)),
-								formatSubsystem("HD", "handling_device", () => displayRosModalRef.current(SubSystems.HANDLING_DEVICE)),
-								formatSubsystem("Science", "drill", () => displayRosModalRef.current(SubSystems.DRILL)),
-								formatSubsystem("Avionics", "electronics", () => displayRosModalRef.current(SubSystems.EL)),
-							];
-						})()}
-					/>
-				) : (
-					<InfoBox
-						title="ROS Nodes"
-						infos={[{ name: "No Nodes", value: "" }]}
-					/>
-				),
-		},
-		{
 			key: "hdData",
 			content: (
 				<div className={styles.hdDataWidget}>
@@ -777,8 +687,6 @@ const NewControlPage = () => {
 						</span>
 					</div>
 					<RosDdsDevBanner />
-				</div>
-				<div className={styles.systems}>
 					<SystemMode
 						system={"NAV"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
@@ -796,21 +704,6 @@ const NewControlPage = () => {
 						currentMode={stateServices[SubSystems.DRILL].service.state}
 						modes={[States.ON, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.DRILL, mode, false)}
-					/>
-				</div>
-				<div className={styles.rightHeader}>
-					<Dvr
-						sx={{
-							color: "white",
-							fontSize: 30,
-							marginX: 3,
-							cursor: "pointer",
-						}}
-						onClick={() => navigate("/logs")}
-					/>
-					<Header
-						//@ts-ignore
-						wifiLevel={getNetworkData(roverState)}
 					/>
 				</div>
 			</div>
@@ -904,7 +797,10 @@ const NewControlPage = () => {
 						</div>
 					</div>
 
-					<div className={`${styles.widgetsGrid} ${isWidgetMenuOpen ? styles.widgetsGridShifted : ""}`}>
+					<div
+						className={`${styles.widgetsGrid} ${isWidgetMenuOpen ? styles.widgetsGridShifted : ""}`}
+						style={{ columnCount: Math.max(1, Object.values(visibleWidgets).filter(Boolean).length) }}
+					>
 						{widgetCards.map((widget) => (
 							<div
 								className={`${styles.widgetItem} ${visibleWidgets[widget.key] ? styles.widgetItemVisible : styles.widgetItemHidden}`}
@@ -1066,6 +962,9 @@ const NewControlPage = () => {
 						ros={ros}
 					/>
 				</div>
+			</div>
+			<div className={styles.networkFooter}>
+				<Header />
 			</div>
 		</div>
 	);

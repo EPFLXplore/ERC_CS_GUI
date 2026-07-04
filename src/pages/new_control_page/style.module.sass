@@ -36,44 +36,15 @@
     gap: 12px
     z-index: 1
 
-.rightHeader
-    display: flex
-    flex-direction: row
-    align-items: flex-end
-    z-index: 1
-
 .logo
     object-fit: contain
     height: 60px
-    
+
     @media (max-width: 1200px)
         height: 50px
-    
+
     @media (max-width: 900px)
         height: 40px
-
-.systems
-    flex: 1
-    display: flex
-    flex-direction: row
-    gap: 70px
-    justify-content: center
-    width: auto
-    align-items: flex-end
-    margin-left: 0
-    position: absolute
-    left: calc(50% + 110px)
-    transform: translateX(-50%)
-    z-index: 2
-    
-    @media (max-width: 1400px)
-        gap: 40px
-    
-    @media (max-width: 1200px)
-        gap: 20px
-    
-    @media (max-width: 900px)
-        gap: 10px
 
 .powerHeader
     display: flex
@@ -98,6 +69,15 @@
     display: flex
     flex-direction: row
     overflow: hidden
+
+.networkFooter
+    display: flex
+    flex-direction: row
+    justify-content: flex-end
+    align-items: center
+    padding: 10px 20px
+    border-top: 1px solid rgba(255, 255, 255, 0.12)
+    flex-shrink: 0
 
 .expand
     position: absolute

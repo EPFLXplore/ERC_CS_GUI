@@ -16,6 +16,40 @@ function linkPingApiUrl(): string {
 	return `${protocol}//${hostname}:5000/link-ping`;
 }
 
+function wifiSignalApiUrl(): string {
+	if (typeof window === "undefined") {
+		return "http://127.0.0.1:5000/wifi-signal";
+	}
+	const { protocol, hostname } = window.location;
+	return `${protocol}//${hostname}:5000/wifi-signal`;
+}
+
+/** dBm -> mW, using the standard RF power reference (0 dBm = 1 mW). */
+function dbmToMilliwatts(dbm: number): number {
+	return Math.pow(10, dbm / 10);
+}
+
+const WIFI_QUALITY_BANDS: { min: number; label: string; color: string }[] = [
+	{ min: -50, label: "Very Good", color: "#2e7d32" },
+	{ min: -60, label: "Good", color: "#8bc34a" },
+	{ min: -67, label: "OK", color: "#cddc39" },
+	{ min: -75, label: "Mid", color: "#ffc107" },
+	{ min: -85, label: "Bad", color: "#ff9800" },
+	{ min: -Infinity, label: "Shit", color: "#f44336" },
+];
+
+function wifiQuality(dbm: number): { label: string; color: string } {
+	const band = WIFI_QUALITY_BANDS.find((b) => dbm >= b.min);
+	return band ?? WIFI_QUALITY_BANDS[WIFI_QUALITY_BANDS.length - 1];
+}
+
+type WifiInfo = {
+	signal: number | null;
+	raw: Record<string, unknown>;
+};
+
+const EMPTY_WIFI_INFO: WifiInfo = { signal: null, raw: {} };
+
 type LinkPingRow = {
 	host: string;
 	ok: boolean;
@@ -33,12 +67,9 @@ const DEFAULT_ROWS: LinkPingRow[] = [
 	{ host: "169.254.55.231", ok: false, ms: null },
 ];
 
-const Header = ({
-	wifiLevel
-}: {
-	wifiLevel: number | string
-}) => {
+const Header = () => {
 	const [linkPing, setLinkPing] = useState<LinkPingState>({ status: "loading" });
+	const [wifiInfo, setWifiInfo] = useState<WifiInfo>(EMPTY_WIFI_INFO);
 
 	useEffect(() => {
 		let cancelled = false;
@@ -121,8 +152,51 @@ const Header = ({
 		};
 	}, []);
 
+	useEffect(() => {
+		let cancelled = false;
+
+		const pollWifi = async () => {
+			try {
+				const r = await fetch(wifiSignalApiUrl());
+				const j = (await r.json()) as {
+					ok?: boolean;
+					signal?: number | string;
+					raw?: Record<string, unknown>;
+				};
+				if (cancelled) return;
+
+				const signal = Number(j.signal);
+				setWifiInfo(
+					j.ok && Number.isFinite(signal)
+						? { signal, raw: j.raw ?? {} }
+						: EMPTY_WIFI_INFO
+				);
+			} catch {
+				if (!cancelled) setWifiInfo(EMPTY_WIFI_INFO);
+			}
+		};
+
+		void pollWifi();
+		const id = window.setInterval(() => void pollWifi(), 2000);
+		return () => {
+			cancelled = true;
+			window.clearInterval(id);
+		};
+	}, []);
+
 	const rows: LinkPingRow[] =
 		linkPing.status === "ready" ? linkPing.rows : DEFAULT_ROWS;
+
+	const { signal, raw } = wifiInfo;
+	const quality = signal != null ? wifiQuality(signal) : null;
+	const milliwatts = signal != null ? dbmToMilliwatts(signal) : null;
+
+	const wifiTitle =
+		signal == null
+			? "No wifi data"
+			: Object.entries(raw)
+					.map(([key, value]) => `${key}: ${value}`)
+					.join("\n");
 
 	const linkPingTitle =
 		linkPing.status === "loading"
@@ -144,9 +218,17 @@ const Header = ({
 				e.stopPropagation();
 			}}
 		>
-			<div className={styles.wifi}>
+			<div className={styles.wifi} title={wifiTitle}>
 				<CellWifiIcon className={styles.icon} />
-				<p>{wifiLevel} {wifiLevel === "NO DATA" ? "" : "dBm"}</p>
+				<p>{signal != null ? `${signal} dBm` : "NO DATA"}</p>
+				{signal != null && milliwatts != null && (
+					<p className={styles.wifiMw}>({milliwatts.toExponential(2)} mW)</p>
+				)}
+				{quality != null && (
+					<p className={styles.wifiQuality} style={{ color: quality.color }}>
+						{quality.label}
+					</p>
+				)}
 			</div>
 			<div className={styles.linkPingWrap} title={linkPingTitle}>
 				{linkPing.status === "loading" ? (
