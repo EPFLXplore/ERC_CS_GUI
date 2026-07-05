@@ -56,6 +56,7 @@ export enum Topics {
     // ============================================
     EL_STATE = "/EL/State",                      // 1Hz state summary (subscribe)
     EL_HEARTBEAT = "/EL/heartbeat",              // Avionics alive check, incrementing counter (subscribe)
+    EL_BMS_TOPIC = "/EL/bms_topic",              // BMS status/voltage/current (subscribe)
     EL_MASS_PACKET = "/EL/mass_packet",          // Live mass sensor readings (subscribe)
     EL_LED_COMMANDS = "/EL/led_req",             // LED control (publish)
     EL_MASS_TARE_HD = "/EL/mass_req_hd",        // Mass sensor tare HD

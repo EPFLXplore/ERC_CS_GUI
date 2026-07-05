@@ -87,20 +87,13 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             queue_size: 1,
         });
 
-        const bmsMessageTypes = [
-            "custom_msg/msg/avionics/BMS",
-            "custom_msg/msg/BMS",
-        ];
-        const bmsStateListeners = bmsMessageTypes.map(
-            (messageType) =>
-                new ROSLIB.Topic({
-                    ros: ros,
-                    name: "/EL/bms_topic",
-                    messageType,
-                    queue_length: 1,
-                    queue_size: 1,
-                })
-        );
+        const bmsStateListener = new ROSLIB.Topic({
+            ros: ros,
+            name: Topics.EL_BMS_TOPIC,
+            messageType: "custom_msg/msg/BMS",
+            queue_length: 1,
+            queue_size: 1,
+        });
 
         // Live mass sensor readings (id: 0 = HD, 1 = Drill)
         const massPacketListener = new ROSLIB.Topic({
@@ -199,7 +192,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             );
         };
 
-        bmsStateListeners.forEach((listener) => listener.subscribe(handleBmsMessage));
+        bmsStateListener.subscribe(handleBmsMessage);
 
         // Mass packet updates (id 0 = HD arm, id 1 = Drill)
         massPacketListener.subscribe((message: any) => {
@@ -263,7 +256,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             hdStateListener.unsubscribe();
             drillStateListener.unsubscribe();
             elecStateListener.unsubscribe();
-            bmsStateListeners.forEach((listener) => listener.unsubscribe());
+            bmsStateListener.unsubscribe();
             massPacketListener.unsubscribe();
             heartbeatListener.unsubscribe();
             clearInterval(heartbeatWatchdog);
