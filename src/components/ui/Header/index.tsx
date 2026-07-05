@@ -29,6 +29,20 @@ function dbmToMilliwatts(dbm: number): number {
 	return Math.pow(10, dbm / 10);
 }
 
+/**
+ * RouterOS wifi registration-table rate fields: bare numeric strings are raw
+ * bps (e.g. "229400000"); the legacy wifi package instead embeds the rate as
+ * a prefix like "866.7Mbps-40MHz/2S/SGI". Normalize both to "X.X Mbps".
+ */
+function formatWifiRate(rate: string | null): string | null {
+	if (rate == null) return null;
+	if (/^\d+(\.\d+)?$/.test(rate)) {
+		return `${(Number(rate) / 1_000_000).toFixed(1)} Mbps`;
+	}
+	const match = rate.match(/^(\d+(\.\d+)?)\s*Mbps/i);
+	return match ? `${Number(match[1]).toFixed(1)} Mbps` : rate;
+}
+
 const WIFI_QUALITY_BANDS: { min: number; label: string; color: string }[] = [
 	{ min: -50, label: "Very Good", color: "#2e7d32" },
 	{ min: -60, label: "Good", color: "#8bc34a" },
@@ -169,8 +183,15 @@ const Header = () => {
 
 				const signal = Number(j.signal);
 				const raw = j.raw ?? {};
-				const txRate = typeof raw["tx-rate"] === "string" ? raw["tx-rate"] : null;
-				const rxRate = typeof raw["rx-rate"] === "string" ? raw["rx-rate"] : null;
+				// Use live throughput (bits-per-second), not tx-rate/rx-rate — those report
+				// the negotiated PHY link rate, which stays pinned near the radio's max
+				// regardless of actual traffic.
+				const txRate = formatWifiRate(
+					typeof raw["tx-bits-per-second"] === "string" ? raw["tx-bits-per-second"] : null
+				);
+				const rxRate = formatWifiRate(
+					typeof raw["rx-bits-per-second"] === "string" ? raw["rx-bits-per-second"] : null
+				);
 				setWifiInfo(
 					j.ok && Number.isFinite(signal)
 						? { signal, txRate, rxRate, raw }
@@ -182,7 +203,7 @@ const Header = () => {
 		};
 
 		void pollWifi();
-		const id = window.setInterval(() => void pollWifi(), 2000);
+		const id = window.setInterval(() => void pollWifi(), 1000);
 		return () => {
 			cancelled = true;
 			window.clearInterval(id);

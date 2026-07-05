@@ -540,7 +540,7 @@ const useRoverControls = (
 		return Object.values(wheels).some((wheel: any) => wheel?.steering_fault || wheel?.driving_fault);
 	}, [roverState]);
 
-	// NAV: FAULT takes priority over mode display. AUTO -> BLINK, ACKERMANN/OMNI -> ON.
+	// NAV: FAULT takes priority over mode display. AUTO -> BLINK, ACKERMANN/OMNI -> ON, OFF -> OFF.
 	// Republished periodically (not just once) in case the avionics node wasn't subscribed yet when
 	// the first message went out over rosbridge.
 	useEffect(() => {
@@ -553,6 +553,8 @@ const useRoverControls = (
 			mode = 2; // BLINK
 		} else if (navState === States.ACKERMANN || navState === States.OMNI_DIRECTIONAL) {
 			mode = 1; // ON
+		} else if (navState === States.OFF) {
+			mode = 0; // OFF
 		}
 
 		if (mode === null) return;
