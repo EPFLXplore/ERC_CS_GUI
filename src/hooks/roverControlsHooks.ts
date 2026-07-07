@@ -28,6 +28,32 @@ type typeModal = {
 
 export type { typeModal };
 
+/**
+ * rosbridge `subscribe` QoS (see ROSBRIDGE_PROTOCOL.md §4.2). roslib's Topic omits `qos`, so
+ * without this the bridge falls back to its best-effort/volatile default (fine for camera feeds,
+ * not for one-shot confirmations that must not be silently dropped). This mirrors ROS 2's
+ * rmw_qos_profile_services_default.
+ */
+const HDS_CONFIRMATION_SUBSCRIBE_QOS = {
+	history: "keep_last",
+	depth: 10,
+	reliability: "reliable",
+	durability: "volatile",
+} as const;
+
+function patchTopicRosbridgeQoS(topic: ROSLIB.Topic<any>, qos: Record<string, unknown>): void {
+	const t = topic as ROSLIB.Topic<any> & {
+		callForSubscribeAndAdvertise: (msg: Record<string, unknown>) => void;
+	};
+	const original = t.callForSubscribeAndAdvertise.bind(topic);
+	t.callForSubscribeAndAdvertise = (msg: Record<string, unknown>) => {
+		if (msg.op === "subscribe") {
+			msg.qos = { ...qos };
+		}
+		original(msg);
+	};
+}
+
 const useRoverControls = (
 	ros: ROSLIB.Ros | null,
 	showSnackbar: (sev: AlertColor, mes: string) => void
@@ -428,6 +454,10 @@ const useRoverControls = (
 			queue_length: 1,
 			queue_size: 1,
 		});
+		// This is a one-shot confirmation, not high-rate sensor data: it must not be silently
+		// dropped by rosbridge's best-effort/volatile default (see subscribers.py). Force the
+		// standard ROS 2 service QoS (rmw_qos_profile_services_default) instead.
+		patchTopicRosbridgeQoS(hdLaunchTopic, HDS_CONFIRMATION_SUBSCRIBE_QOS);
 
 		let dialogPending = false;
 		hdLaunchTopic.subscribe(() => {
