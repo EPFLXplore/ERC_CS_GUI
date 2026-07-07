@@ -141,6 +141,7 @@ function ArmGoalModal({
 		  { name: "Approach Aruco", msg: "aruco_approach" },
 		  { name: "Grab Sand", msg: "sand_collect" },
 		  { name: "QR Code", msg: "qr_code"},
+		  { name: "Move Nav", msg: "send_nav_move"},
 		  { name: "Turn J6 30° POS", msg: "turn_j6_30_pos"},
 		  { name: "Turn J6 45° POS", msg: "turn_j6_45_pos"},
 		  { name: "Turn J6 90° POS", msg: "turn_j6_90_pos"},
