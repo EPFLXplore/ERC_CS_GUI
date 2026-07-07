@@ -28,6 +28,12 @@ type typeModal = {
 
 export type { typeModal };
 
+type ImageSelectionResult = {
+	x: number[];
+	y: number[];
+	success: boolean;
+};
+
 /**
  * rosbridge `subscribe` QoS (see ROSBRIDGE_PROTOCOL.md §4.2). roslib's Topic omits `qos`, so
  * without this the bridge falls back to its best-effort/volatile default (fine for camera feeds,
@@ -378,71 +384,117 @@ const useRoverControls = (
 	// Service that triggers Human verification for selecting a something on an image that needs to be collected
 	// The name with rocks it not right, please rename it at some point.
 	useEffect(() => {
-		if (ros) {
-			var res = new ROSLIB.Service({
-				ros: ros,
-				name: Topics.REQUEST_SELECTION_IMAGE,
-				serviceType: "custom_msg/srv/ControlStationSelection",
-			});
+		if (!ros) return;
 
-			res.advertiseAsync(async (request: any) => {
-				setImageToSelect("data:image/jpeg;charset=utf-8;base64," + request.image.data)
+		const imageSelectionService = new ROSLIB.Service({
+			ros: ros,
+			name: Topics.REQUEST_SELECTION_IMAGE,
+			serviceType: "custom_msg/srv/ControlStationSelection",
+		});
+		let active = true;
+		let resolvePending: ((result: ImageSelectionResult) => void) | null = null;
 
-				setNumberElementToSelect(request.number_element_to_select);
+		const clearSelectionPrompt = () => {
+			setHDConfirmationSelectElements(null);
+			setNumberElementToSelect(0);
+			setImageToSelect(null);
+		};
 
-				const result = await new Promise<{x: number[], y: number[]}>((resolve, reject) => {
-					setHDConfirmationSelectElements(() => (x: number[], y: number[]) => {
-						resolve({x, y});
-						setHDConfirmationSelectElements(null);
-						setNumberElementToSelect(0);
-						setImageToSelect(null);
-					});
+		imageSelectionService.advertiseAsync(async (request: any) => {
+			if (!active) {
+				return { x: [], y: [], success: false };
+			}
+
+			setImageToSelect("data:image/jpeg;charset=utf-8;base64," + request.image.data);
+			setNumberElementToSelect(request.number_element_to_select);
+
+			return await new Promise<ImageSelectionResult>((resolve) => {
+				resolvePending = resolve;
+				setHDConfirmationSelectElements(() => (x: number[], y: number[]) => {
+					resolvePending = null;
+					resolve({ x, y, success: true });
+					clearSelectionPrompt();
 				});
+			});
+		});
 
-				return {
-					x: result.x,
-					y: result.y,
-					success: true
-				};
-			})
-		}
+		return () => {
+			active = false;
+			if (resolvePending) {
+				resolvePending({ x: [], y: [], success: false });
+				resolvePending = null;
+			}
+			clearSelectionPrompt();
+			try {
+				imageSelectionService.unadvertise();
+			} catch (error) {
+				console.warn("[rosbridge] image selection service cleanup failed:", error);
+			}
+		};
 
 	}, [ros]);
 
 	useEffect(() => {
-			if (!ros) return;
-	
-			// The Service object does double duty for both calling and advertising services
-			var askUserConfirmation = new ROSLIB.Service({
-				ros: ros,
-				name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
-				serviceType: "custom_msg/srv/HumanVerification",
-			});
-	
-			// Use the advertise() method to indicate that we want to provide this service
-			askUserConfirmation.advertiseAsync(async (request) => {
-				//@ts-ignore
-				const information = request.information
-				setQrCode(information)
+		if (!ros) return;
 
-				// TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION
-				if(information === "A" || information === "B" || information === "C"
-					|| information === "D" || information === "E" || information === "F"
-				) {
-					setDisplayGif(true);
-				}
+		// The Service object does double duty for both calling and advertising services
+		const askUserConfirmation = new ROSLIB.Service({
+			ros: ros,
+			name: Topics.REQUEST_HUMAIN_VERIFICATION_HD,
+			serviceType: "custom_msg/srv/HumanVerification",
+		});
+		let active = true;
+		let resolvePending: ((confirm: boolean) => void) | null = null;
 
-				const result = await new Promise<boolean>((resolve, reject) => {
-					setHDConfirmation(() => (confirm: boolean) => {
-						resolve(confirm)
-						setHDConfirmation(null);
-					});
+		const clearConfirmationPrompt = () => {
+			setHDConfirmation(null);
+			setQrCode(null);
+			setDisplayGif(null);
+		};
+
+		// Use the advertise() method to indicate that we want to provide this service
+		askUserConfirmation.advertiseAsync(async (request: any) => {
+			if (!active) {
+				return { success: false };
+			}
+
+			const information = request.information;
+			setQrCode(information);
+
+			// TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION
+			if(information === "A" || information === "B" || information === "C"
+				|| information === "D" || information === "E" || information === "F"
+			) {
+				setDisplayGif(true);
+			}
+
+			const result = await new Promise<boolean>((resolve) => {
+				resolvePending = resolve;
+				setHDConfirmation(() => (confirm: boolean) => {
+					resolvePending = null;
+					resolve(confirm);
+					clearConfirmationPrompt();
 				});
-				return {
-					success: result,
-				};
 			});
-		}, [ros]);
+			return {
+				success: result,
+			};
+		});
+
+		return () => {
+			active = false;
+			if (resolvePending) {
+				resolvePending(false);
+				resolvePending = null;
+			}
+			clearConfirmationPrompt();
+			try {
+				askUserConfirmation.unadvertise();
+			} catch (error) {
+				console.warn("[rosbridge] HD confirmation service cleanup failed:", error);
+			}
+		};
+	}, [ros]);
 
 	useEffect(() => {
 		if (!ros) return;

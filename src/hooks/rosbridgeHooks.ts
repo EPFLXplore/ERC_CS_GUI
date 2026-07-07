@@ -1,6 +1,6 @@
 import { AlertColor } from "@mui/material";
 import React from "react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import * as ROSLIB from "roslib";
 
 /*
@@ -20,6 +20,9 @@ const getRosbridgeUrl = () => {
 	const host = window.location.hostname || "localhost";
 	return `${protocol}://${host}:9090`;
 };
+
+const INITIAL_RECONNECT_DELAY_MS = 500;
+const MAX_RECONNECT_DELAY_MS = 5000;
 
 /** Nav2 / navigation stack node name fragments (ROS 2 graph often has no literal "/nav" node). */
 function navPresentInNodeNames(normalized: string[]): boolean {
@@ -54,22 +57,55 @@ function navPresentInTopicNames(topicLower: string[]): boolean {
 function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 	const [ros, setRos] = useState<ROSLIB.Ros | null>(null);
 	const [connected, setConnected] = useState(false);
+	const snackBarRef = useRef(snackBar);
+	snackBarRef.current = snackBar;
 
 	useEffect(() => {
 		const rosbridgeUrl = getRosbridgeUrl();
 		const ros_server = new ROSLIB.Ros({});
+		let disposed = false;
+		let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+		let reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
+		let hasConnectedOnce = false;
+
+		const clearReconnectTimer = () => {
+			if (reconnectTimer) {
+				clearTimeout(reconnectTimer);
+				reconnectTimer = null;
+			}
+		};
+
+		const scheduleReconnect = () => {
+			if (disposed || reconnectTimer) return;
+			reconnectTimer = setTimeout(() => {
+				reconnectTimer = null;
+				if (disposed || ros_server.isConnected) return;
+				console.log(`Reconnecting to ROS server at ${rosbridgeUrl}`);
+				ros_server.connect(rosbridgeUrl);
+				reconnectDelayMs = Math.min(reconnectDelayMs * 2, MAX_RECONNECT_DELAY_MS);
+			}, reconnectDelayMs);
+		};
+
 		ros_server.connect(rosbridgeUrl);
 
 		ros_server.on("error", function (error) {
-			snackBar("error", `Failed to connect to ROS server (${rosbridgeUrl}).`);
+			snackBarRef.current("error", `Failed to connect to ROS server (${rosbridgeUrl}).`);
 			console.log(error);
 			setRos(null);
 			setConnected(false);
+			scheduleReconnect();
 		});
 
 		ros_server.on("connection", function () {
 			console.log("Connected to ROS server at", rosbridgeUrl);
-			snackBar("success", `Connected to ROS server (${rosbridgeUrl}).`);
+			clearReconnectTimer();
+			reconnectDelayMs = INITIAL_RECONNECT_DELAY_MS;
+			if (!hasConnectedOnce) {
+				snackBarRef.current("success", `Connected to ROS server (${rosbridgeUrl}).`);
+				hasConnectedOnce = true;
+			} else {
+				snackBarRef.current("success", `Reconnected to ROS server (${rosbridgeUrl}).`);
+			}
 			setRos(ros_server);
 			// WebSocket session is enough for topics/services; do not gate UI on rosapi getNodes.
 			setConnected(true);
@@ -79,12 +115,15 @@ function useRosBridge(snackBar: (sev: AlertColor, mes: string) => void) {
 			console.log("Connection closed");
 			setRos(null);
 			setConnected(false);
+			scheduleReconnect();
 		});
 
 		return () => {
+			disposed = true;
+			clearReconnectTimer();
+			ros_server.removeAllListeners();
 			ros_server.close();
 		};
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- connect once; snackBar is stable enough from callers
 	}, []);
 
 	// Optional: detect subsystem-style nodes/topics for logging (getNodes can fail on some rosapi builds).
