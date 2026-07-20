@@ -1,0 +1,251 @@
+@import '../../../styles/variables.sass'
+
+.container
+    display: flex
+    flex-direction: column
+    width: 100%
+    height: 100%
+    min-height: 0
+    background: rgba(255, 255, 255, 0.1)
+    backdrop-filter: blur(12px)
+    -webkit-backdrop-filter: blur(12px)
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25)
+    border-radius: 15px
+    padding: 16px
+    box-sizing: border-box
+    gap: 10px
+
+.headerRow
+    display: flex
+    align-items: center
+    justify-content: space-between
+    gap: 12px
+
+.title
+    font-size: 1.3em
+    font-weight: 400
+    margin: 0
+    color: $textLightColor
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+
+.zoomControls
+    display: flex
+    align-items: center
+    gap: 6px
+    flex-shrink: 0
+
+    span
+        min-width: 42px
+        text-align: center
+        font-size: 0.8rem
+        color: rgba(255, 255, 255, 0.85)
+
+    button
+        border: 1px solid rgba(255, 255, 255, 0.3)
+        background: rgba(255, 255, 255, 0.12)
+        color: $textLightColor
+        border-radius: 8px
+        width: 26px
+        height: 26px
+        line-height: 1
+        cursor: pointer
+        font-size: 0.85rem
+        transition: background-color 0.15s ease, transform 0.15s ease
+
+        &:hover
+            background: rgba(255, 255, 255, 0.22)
+            transform: translateY(-1px)
+
+    button:nth-child(4)
+        width: auto
+        padding: 0 10px
+
+.subHeaderRow
+    display: flex
+    flex-wrap: wrap
+    gap: 6px 18px
+    font-size: 0.82rem
+    color: rgba(255, 255, 255, 0.75)
+
+    strong
+        color: $textLightColor
+        font-weight: 700
+
+.taskName, .currentCommand
+    white-space: nowrap
+    overflow: hidden
+    text-overflow: ellipsis
+    max-width: 100%
+
+.viewport
+    flex: 1
+    min-height: 0
+    overflow: auto
+    border-radius: 10px
+    background: rgba(0, 0, 0, 0.18)
+    border: 1px solid rgba(255, 255, 255, 0.12)
+    padding: 18px
+
+.zoomWrap
+    transform-origin: top left
+    width: fit-content
+
+.placeholder
+    display: flex
+    align-items: center
+    justify-content: center
+    height: 100%
+    min-height: 120px
+    color: rgba(255, 255, 255, 0.55)
+    font-size: 0.9rem
+
+.canvas
+    position: relative
+
+.edgesLayer
+    position: absolute
+    top: 0
+    left: 0
+    pointer-events: none
+    overflow: visible
+
+.edgeForward
+    fill: none
+    stroke: rgba(255, 255, 255, 0.55)
+    stroke-width: 2
+
+.edgeBack
+    fill: none
+    stroke: $warningColor
+    stroke-width: 2
+    stroke-dasharray: 5 4
+
+.arrowForward
+    fill: rgba(255, 255, 255, 0.55)
+
+.arrowBack
+    fill: $warningColor
+
+.node
+    position: absolute
+    box-sizing: border-box
+    border-radius: 10px
+    border: 2px solid rgba(255, 255, 255, 0.3)
+    background: rgba(13, 153, 255, 0.28)
+    padding: 6px 8px
+    display: flex
+    flex-direction: column
+    align-items: center
+    justify-content: center
+    text-align: center
+    overflow: hidden
+    transition: box-shadow 0.2s ease, transform 0.2s ease
+
+.nodeIndex
+    position: absolute
+    top: 3px
+    left: 5px
+    font-size: 0.62rem
+    opacity: 0.6
+    font-weight: 700
+
+.nodeLabel
+    font-size: 0.72rem
+    font-weight: 700
+    color: $textLightColor
+    line-height: 1.15
+    max-width: 100%
+    overflow: hidden
+    text-overflow: ellipsis
+    display: -webkit-box
+    -webkit-line-clamp: 3
+    -webkit-box-orient: vertical
+
+.nodeKindTag
+    margin-top: 3px
+    font-size: 0.55rem
+    letter-spacing: 0.05em
+    text-transform: uppercase
+    opacity: 0.7
+
+.currentBadge
+    position: absolute
+    bottom: 3px
+    right: 5px
+    font-size: 0.55rem
+    font-weight: 800
+    letter-spacing: 0.04em
+    color: $primaryColor
+    background: rgba(255, 255, 255, 0.92)
+    border-radius: 999px
+    padding: 1px 6px
+
+.nestedWrap
+    position: absolute
+
+// ------------------------------------------------------------------
+// Node kind colors
+// ------------------------------------------------------------------
+
+.kind_start
+    background: rgba(92, 206, 124, 0.28)
+    border-color: rgba(92, 206, 124, 0.65)
+
+.kind_step
+    background: rgba(13, 153, 255, 0.26)
+    border-color: rgba(13, 153, 255, 0.55)
+
+.kind_decision
+    background: rgba(249, 151, 61, 0.26)
+    border-color: rgba(249, 151, 61, 0.65)
+    border-radius: 16px
+
+.kind_end
+    background: rgba(255, 68, 68, 0.24)
+    border-color: rgba(255, 68, 68, 0.6)
+
+.kind_subtask
+    background: rgba(177, 140, 255, 0.2)
+    border-color: rgba(177, 140, 255, 0.65)
+    border-style: dashed
+    padding-top: 22px
+    justify-content: flex-start
+
+@keyframes currentPulse
+    0%
+        box-shadow: 0 0 0 0 rgba(255, 67, 69, 0.65)
+    70%
+        box-shadow: 0 0 0 10px rgba(255, 67, 69, 0)
+    100%
+        box-shadow: 0 0 0 0 rgba(255, 67, 69, 0)
+
+.current
+    border-color: $primaryColor
+    border-width: 3px
+    z-index: 2
+    animation: currentPulse 1.8s ease-out infinite
+
+// ------------------------------------------------------------------
+// Legend
+// ------------------------------------------------------------------
+
+.legend
+    display: flex
+    flex-wrap: wrap
+    gap: 8px
+    flex-shrink: 0
+
+.legendItem
+    font-size: 0.68rem
+    font-weight: 700
+    padding: 3px 9px
+    border-radius: 999px
+    border: 1.5px solid rgba(255, 255, 255, 0.3)
+    color: $textLightColor
+
+.legendItem.current
+    animation: none
+    border-width: 1.5px

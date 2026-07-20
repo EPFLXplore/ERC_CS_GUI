@@ -266,6 +266,13 @@
         flex: 1
         min-height: 0
 
+.widgetItemWide
+    grid-column: span 2
+    min-height: 380px
+
+    @media (max-width: 900px)
+        grid-column: span 1
+
 .previews
     position: absolute
     bottom: 20px

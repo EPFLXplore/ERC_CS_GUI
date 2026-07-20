@@ -57,6 +57,7 @@ import {
 	getStateFSM,
 	getCurrentHDTask,
 	getCurrentHDCommand,
+	getHdTaskGraph,
 	getBatteryState,
 	getTorqueGripper,
 	getBatteryVoltage,
@@ -83,6 +84,7 @@ import ScienceModal from "../../components/modals/ScienceModal";
 import SuspensionModal from "../../components/modals/SuspensionModal";
 import MicroscopeModal from "../../components/modals/MicroscopeModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
+import TaskGraph from "../../components/data/TaskGraph";
 import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
 import axios from "axios";
@@ -99,6 +101,7 @@ const WIDGET_KEYS = [
 	"jetsonHd",
 	"jetsonNav",
 	"hdData",
+	"taskGraph",
 	"currentPosition",
 	"scienceSensors",
 ] as const;
@@ -133,6 +136,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	jetsonHd: "Jetson HD",
 	jetsonNav: "Jetson NAV",
 	hdData: "HD Data",
+	taskGraph: "HD Task Graph",
 	currentPosition: "Current Position",
 	scienceSensors: "Science Sensors",
 };
@@ -167,6 +171,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonHd",
 		"jetsonNav",
 		"hdData",
+		"taskGraph",
 		"drill",
 		"currentPosition",
 	]),
@@ -181,6 +186,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonHd",
 		"jetsonNav",
 		"hdData",
+		"taskGraph",
 		"drill",
 	]),
 	Sampling: buildVisibility([
@@ -195,6 +201,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonHd",
 		"jetsonNav",
 		"hdData",
+		"taskGraph",
 		"currentPosition",
 	]),
 	"Astro-Bio Exploration": buildVisibility([
@@ -209,6 +216,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonHd",
 		"jetsonNav",
 		"hdData",
+		"taskGraph",
 		"scienceSensors",
 	]),
 	All: buildVisibility(WIDGET_KEYS as unknown as WidgetKey[]),
@@ -641,6 +649,16 @@ const NewControlPage = () => {
 			),
 		},
 		{
+			key: "taskGraph",
+			content: (
+				<TaskGraph
+					graph={getHdTaskGraph(roverState)}
+					taskName={getCurrentHDTask(roverState)}
+					currentCommand={getCurrentHDCommand(roverState)}
+				/>
+			),
+		},
+		{
 			key: "currentPosition",
 			content: (
 				<InfoBox
@@ -801,7 +819,10 @@ const NewControlPage = () => {
 						{widgetCards
 							.filter((widget) => visibleWidgets[widget.key])
 							.map((widget) => (
-								<div className={styles.widgetItem} key={widget.key}>
+								<div
+									className={`${styles.widgetItem} ${widget.key === "taskGraph" ? styles.widgetItemWide : ""}`}
+									key={widget.key}
+								>
 									{widget.content}
 								</div>
 							))}

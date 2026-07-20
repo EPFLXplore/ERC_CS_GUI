@@ -129,7 +129,39 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             const data = parseStateMessage(message, "/HD/State");
             if (data) {
                 startTransition(() =>
-                    setRoverState((prev) => ({ ...prev, handling_device: data }))
+                    setRoverState((prev) => ({
+                        ...prev,
+                        // /HD/State is republished wholesale every tick; keep the last
+                        // received task graph (from a separate, sparser topic) alive.
+                        handling_device: {
+                            ...data,
+                            task_graph: (prev.handling_device as any)?.task_graph,
+                        },
+                    }))
+                );
+            }
+        });
+
+        // HD FSM task graph (sparse: republished whenever the task executor builds a new FSM)
+        const hdTaskGraphListener = new ROSLIB.Topic({
+            ros: ros,
+            name: Topics.HD_TASK_GRAPH,
+            messageType: "std_msgs/String",
+            queue_length: 1,
+            queue_size: 1,
+        });
+
+        hdTaskGraphListener.subscribe((message) => {
+            const data = parseStateMessage(message, Topics.HD_TASK_GRAPH);
+            if (data) {
+                startTransition(() =>
+                    setRoverState((prev) => ({
+                        ...prev,
+                        handling_device: {
+                            ...(prev.handling_device || {}),
+                            task_graph: data,
+                        },
+                    }))
                 );
             }
         });
@@ -254,6 +286,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         return () => {
             navStateListener.unsubscribe();
             hdStateListener.unsubscribe();
+            hdTaskGraphListener.unsubscribe();
             drillStateListener.unsubscribe();
             elecStateListener.unsubscribe();
             bmsStateListener.unsubscribe();

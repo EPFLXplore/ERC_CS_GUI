@@ -41,6 +41,8 @@ export enum Topics {
     HD_IMAGE_SELECTION = "/HD/ImageSelection",  // Service: image select
     HD_STACK_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Topic: confirmation
     HD_TASK_UPDATE = "/HD/task_executor/update_command", // Service: update running HD task command
+    /** `std_msgs/String` JSON-encoded FSM graph for the current HD task (see `SubTask.export_fsm_graph`). Published by `kinematics_task_executor` whenever a task's FSM is built. */
+    HD_TASK_GRAPH = "/HD/kinematics/json_graph",
     // ============================================
     // DRILL Subsystem Interface
     // ============================================

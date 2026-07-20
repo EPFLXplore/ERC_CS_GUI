@@ -1,5 +1,6 @@
 import { CameraType } from "../data/cameras.type";
 import States from "../data/states.type";
+import { FsmGraphNode } from "../data/hdTaskGraph.type";
 
 /**
  * This file contains functions that parse the subsystem state data gotten from publishers in 
@@ -574,22 +575,28 @@ const getTorqueGripper = (data: any) => {
 
 const getCurrentHDTask = (data: any) => {
 	const hdData = getSubsystemData(data, 'handling_device');
-	
-	if (!hdData || !hdData['state']) {
-		return "NO DATA"
-	}
 
-	return hdData['state']['task']
+	// HDCSInterface publishes this under `task.name` (see kinematics_task_executor);
+	// keep the old `state.task` path as a fallback for older backends.
+	return hdData?.['task']?.['name'] ?? hdData?.['state']?.['task'] ?? "NO DATA";
 }
 
 const getCurrentHDCommand = (data: any) => {
 	const hdData = getSubsystemData(data, 'handling_device');
-	
-	if (!hdData || !hdData['state']) {
-		return "NO DATA"
-	}
 
-	return hdData['state']['current_command']
+	// HDCSInterface publishes this under `task.current_cmd` (see kinematics_task_executor);
+	// keep the old `state.current_command` path as a fallback for older backends.
+	return hdData?.['task']?.['current_cmd'] ?? hdData?.['state']?.['current_command'] ?? "NO DATA";
+}
+
+/**
+ * The FSM graph for the HD's current task, as published on `Topics.HD_TASK_GRAPH`
+ * (see `SubTask.export_fsm_graph`). `null` until the first message arrives.
+ */
+const getHdTaskGraph = (data: any): FsmGraphNode[] | null => {
+	const hdData = getSubsystemData(data, 'handling_device');
+	const graph = hdData?.['task_graph'];
+	return Array.isArray(graph) ? graph : null;
 }
 
 //////////////////////// ELECTRONICS ////////////////////////
@@ -876,6 +883,7 @@ export {
 	getForInOneSensor,
 	getCurrentHDCommand,
 	getCurrentHDTask,
+	getHdTaskGraph,
 	getTotalJointsCurrent,
 	getBatteryState,
 	getTorqueGripper,
