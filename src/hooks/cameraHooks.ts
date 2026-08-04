@@ -25,6 +25,10 @@ const CAMERA_FEED_SUBSCRIBE_QOS = {
 	durability: "volatile",
 } as const;
 
+/** Caps the frame rate rosbridge forwards per camera feed. The QoS above bounds the DDS-side
+ *  queue but not the websocket one, which is where latency accumulates. */
+export const CAMERA_FEED_THROTTLE_RATE_MS = 100;
+
 function patchTopicRosbridgeCameraFeedQoS(topic: ROSLIB.Topic<any>): void {
 	const t = topic as ROSLIB.Topic<any> & {
 		callForSubscribeAndAdvertise: (msg: Record<string, unknown>) => void;
@@ -113,7 +117,13 @@ function useCamera(ros: ROSLIB.Ros | null, activeTopics: CameraFeedInput[]) {
 					ros: ros,
 					name: topic,
 					messageType: "sensor_msgs/CompressedImage",
-					compression: "jpeg",
+					// roslib only knows png/cbor/cbor-raw/none; anything else is silently downgraded
+					// to "none", so say so rather than implying the JPEG is handled specially.
+					compression: "none",
+					// rosbridge takes the min throttle_rate across every subscriber of a topic, so
+					// this only holds if all of them set it. Without it a slow websocket sink builds
+					// an unbounded backlog and the feed drifts further behind real time.
+					throttle_rate: CAMERA_FEED_THROTTLE_RATE_MS,
 					queue_length: 1,
 					queue_size: 1,
 				});

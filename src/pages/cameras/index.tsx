@@ -76,15 +76,23 @@ function loadCameraSources(): CameraSourceMap {
 	}
 }
 
-function getCameraStreamUrl(cameraId: CameraId): string {
-	return `${getCameraBackendBaseUrl()}/camera-streams/${cameraId}.mjpg`;
+/** Mirrored in frontend/ssh_backend/ssh_server.js — keep in sync. */
+const CAMERA_HTTP_PORT_OFFSET = 20000;
+
+/**
+ * Each camera streams from its own port, hence its own origin. Browsers allow only 6 concurrent
+ * connections per origin; the 8 permanent MJPEG streams plus the stats, link-ping and wifi-signal
+ * polls would otherwise fight over that budget and the surplus streams would never start.
+ */
+function getCameraStreamUrl(camera: CameraDef): string {
+	return `${getCameraBackendBaseUrl(camera.gstPort + CAMERA_HTTP_PORT_OFFSET)}/camera-streams/${camera.id}.mjpg`;
 }
 
-function getCameraBackendBaseUrl(): string {
+function getCameraBackendBaseUrl(port: number = 5000): string {
 	if (typeof window === "undefined") return "";
 	const protocol = window.location.protocol || "http:";
 	const hostname = window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname;
-	return `${protocol}//${hostname}:5000`;
+	return `${protocol}//${hostname}:${port}`;
 }
 
 /** Top Left (nav_right) on the left, Top Right (nav_left) on the right when only that pair is visible. */
@@ -296,7 +304,7 @@ const CamerasPage = () => {
 			displayedCameras.map((camera) =>
 				cameraSources[camera.id] === "ros"
 					? imagesByTopic[camera.topic] ?? ""
-					: getCameraStreamUrl(camera.id)
+					: getCameraStreamUrl(camera)
 			),
 		[displayedCameras, cameraSources, imagesByTopic]
 	);

@@ -9,6 +9,7 @@ import * as ROSLIB from "roslib";
 import React from "react";
 import { CameraType } from "../../../data/cameras.type";
 import SubSystems from "../../../data/subsystems.type";
+import { CAMERA_FEED_THROTTLE_RATE_MS } from "../../../hooks/cameraHooks";
 import useNavCameraBandwidth from "../../../hooks/useNavCameraBandwidth";
 import useRoverCameraBandwidth from "../../../hooks/useRoverCameraBandwidth";
 
@@ -86,7 +87,11 @@ function CameraModal({
 				ros: ros,
 				name: topic,
 				messageType: "sensor_msgs/CompressedImage",
-				compression: "jpeg",
+				// roslib downgrades anything outside png/cbor/cbor-raw to "none" anyway.
+				compression: "none",
+				// rosbridge takes the min throttle_rate across a topic's subscribers, so this must
+				// match cameraHooks or that subscriber resets the topic to unthrottled.
+				throttle_rate: CAMERA_FEED_THROTTLE_RATE_MS,
 				queue_length: 1,
 				queue_size: 1,
 			} as any);
