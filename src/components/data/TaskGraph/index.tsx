@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { FsmGraphNode } from "../../../data/hdTaskGraph.type";
 import {
 	FsmLaidOutNode,
@@ -26,6 +26,23 @@ const KIND_LABEL: Record<FsmNodeKind, string> = {
 
 const MIN_ZOOM = 0.35;
 const MAX_ZOOM = 1.75;
+
+const normalizeNodeName = (value?: string | null) => value?.trim().toLowerCase() ?? "";
+
+const matchesNodeName = (nodeName?: string | null, activeName?: string | null) => {
+	const normalizedNode = normalizeNodeName(nodeName);
+	const normalizedActive = normalizeNodeName(activeName);
+
+	if (!normalizedNode || !normalizedActive) {
+		return false;
+	}
+
+	return (
+		normalizedNode === normalizedActive ||
+		normalizedNode.includes(normalizedActive) ||
+		normalizedActive.includes(normalizedNode)
+	);
+};
 
 const edgePath = (from: FsmLaidOutNode, to: FsmLaidOutNode, back: boolean, selfLoop: boolean) => {
 	if (selfLoop) {
@@ -55,14 +72,30 @@ const edgePath = (from: FsmLaidOutNode, to: FsmLaidOutNode, back: boolean, selfL
 
 const FsmCanvas = ({
 	layout,
+	taskName,
 	currentCommand,
 	depth,
 }: {
 	layout: FsmLayoutResult;
+	taskName?: string | null;
 	currentCommand?: string | null;
 	depth: number;
 }) => {
 	const idPrefix = useId();
+	const activeNodeIndex = useMemo(() => {
+		const candidates = [currentCommand, taskName].filter(Boolean) as string[];
+
+		for (const candidate of candidates) {
+			const matchedNode = layout.nodes.find(
+				(n) => n.kind !== "subtask" && matchesNodeName(n.node.name, candidate)
+			);
+			if (matchedNode) {
+				return matchedNode.node.index;
+			}
+		}
+
+		return null;
+	}, [layout.nodes, currentCommand, taskName]);
 
 	return (
 		<div
@@ -117,8 +150,7 @@ const FsmCanvas = ({
 			</svg>
 
 			{layout.nodes.map((n) => {
-				const isCurrent =
-					!!currentCommand && n.kind !== "subtask" && n.node.name === currentCommand;
+				const isCurrent = activeNodeIndex === n.node.index;
 				const label =
 					n.kind === "subtask"
 						? `Sub-task #${n.node.index}`
@@ -133,6 +165,8 @@ const FsmCanvas = ({
 							isCurrent ? styles.current : "",
 						].join(" ")}
 						style={{ left: n.x, top: n.y, width: n.width, height: n.height }}
+						data-task-graph-current-node={isCurrent ? "true" : undefined}
+						aria-current={isCurrent ? "true" : undefined}
 						title={`#${n.node.index} — ${label}`}
 					>
 						<div className={styles.nodeIndex}>{n.node.index}</div>
@@ -152,6 +186,7 @@ const FsmCanvas = ({
 							>
 								<FsmCanvas
 									layout={n.nested}
+									taskName={taskName}
 									currentCommand={currentCommand}
 									depth={depth + 1}
 								/>
@@ -177,9 +212,36 @@ const Legend = () => (
 
 const TaskGraph = ({ graph, taskName, currentCommand }: TaskGraphProps) => {
 	const layout = useMemo(() => layoutFsmGraph(graph ?? []), [graph]);
+	const viewportRef = useRef<HTMLDivElement | null>(null);
 	const [zoom, setZoom] = useState(1);
 
 	const hasGraph = !!graph && graph.length > 0;
+	const hasCurrentCommand = Boolean(currentCommand && currentCommand !== "none yet");
+
+	useEffect(() => {
+		if (!hasGraph || !hasCurrentCommand) {
+			return;
+		}
+
+		const viewport = viewportRef.current;
+		if (!viewport) {
+			return;
+		}
+
+		const currentNode = viewport.querySelector<HTMLElement>(
+			'[data-task-graph-current-node="true"]'
+		);
+		if (!currentNode) {
+			return;
+		}
+
+		const viewportRect = viewport.getBoundingClientRect();
+		const nodeRect = currentNode.getBoundingClientRect();
+		const top = viewport.scrollTop + (nodeRect.top - viewportRect.top) - (viewportRect.height - nodeRect.height) / 2;
+		const left = viewport.scrollLeft + (nodeRect.left - viewportRect.left) - (viewportRect.width - nodeRect.width) / 2;
+
+		viewport.scrollTo({ top: Math.max(0, top), left: Math.max(0, left), behavior: "smooth" });
+	}, [hasCurrentCommand, hasGraph, layout.height, layout.width, currentCommand, taskName, zoom]);
 
 	return (
 		<div className={styles.container}>
@@ -217,13 +279,13 @@ const TaskGraph = ({ graph, taskName, currentCommand }: TaskGraphProps) => {
 				</span>
 			</div>
 
-			<div className={styles.viewport}>
+			<div className={styles.viewport} ref={viewportRef}>
 				{hasGraph ? (
 					<div
 						className={styles.zoomWrap}
 						style={{ transform: `scale(${zoom})` }}
 					>
-						<FsmCanvas layout={layout} currentCommand={currentCommand} depth={0} />
+						<FsmCanvas layout={layout} taskName={taskName} currentCommand={currentCommand} depth={0} />
 					</div>
 				) : (
 					<div className={styles.placeholder}>No task graph received yet.</div>
