@@ -70,7 +70,7 @@ import {
 } from "../../utils/roverStateParser";
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
-import useRoverControls, { typeModal } from "../../hooks/roverControlsHooks";
+import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
@@ -213,6 +213,17 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 	]),
 	All: buildVisibility(WIDGET_KEYS as unknown as WidgetKey[]),
 };
+
+/**
+ * The two service-backed prompts send their answer back over the rosbridge websocket, which a
+ * reload destroys, and the rover does not re-issue the request. The browser's own beforeunload
+ * dialog cannot carry custom wording, so the operator has to read it here.
+ */
+const RefreshWarning = () => (
+	<div className={styles.refreshWarning}>
+		<p className={styles.refreshWarningText}>{HDS_REFRESH_WARNING}</p>
+	</div>
+);
 
 const NewControlPage = () => {
 	const [snackbar, showSnackbar] = useAlert();
@@ -717,6 +728,7 @@ const NewControlPage = () => {
 							<div className={styles.confirmation}>
 								<button className={styles.confirmBtn} onClick={() => hdStackLaunched(true)}>Acknowledge</button>
 							</div>
+							<RefreshWarning />
 						</div>
 					</div>
 					)}
@@ -729,6 +741,7 @@ const NewControlPage = () => {
 								setCoordinates={(x: number[], y: number[]) => hdConfirmationSelectElements(x, y)}
 								onClose={() => setImageToSelect(null)}
 							/>
+							<RefreshWarning />
 						</div>
 					)}
 
@@ -757,6 +770,7 @@ const NewControlPage = () => {
 										setQrCode(null)
 									}}>Cancel</button>
 								</div>
+								<RefreshWarning />
 							</div>
 						</div>
 						)}

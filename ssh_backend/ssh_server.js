@@ -697,6 +697,70 @@ app.get('/link-ping', async (req, res) => {
  * GET /wifi-signal — Signal strength (dBm) of the antenna mast (WIFI_ANTENNA_MAC)
  * as seen by the RouterOS AP's WiFi registration table.
  */
+/**
+ * Channel and width live on a different endpoint than the registration table, and they change
+ * essentially never — so they are cached rather than re-fetched on every 1 Hz poll. Without this
+ * the header's polling would triple the request rate against the router (and triple the login
+ * noise it writes to its own log).
+ */
+const WIFI_RADIO_CACHE_MS = 15000;
+let wifiRadioCache = { at: 0, byInterface: {} };
+
+async function getWifiRadioInfo(interfaceName) {
+  const now = Date.now();
+  if (now - wifiRadioCache.at < WIFI_RADIO_CACHE_MS) {
+    return wifiRadioCache.byInterface[interfaceName] || null;
+  }
+
+  try {
+    const response = await axios.get(`http://${WIFI_ROUTER_HOST}/rest/interface/wifi`, {
+      auth: WIFI_ROUTER_AUTH,
+      timeout: 3000,
+    });
+    const interfaces = Array.isArray(response.data) ? response.data : [];
+    const byInterface = {};
+
+    await Promise.all(
+      interfaces.map(async (iface) => {
+        const entry = {
+          ssid: iface['configuration.ssid'] || null,
+          mode: iface['configuration.mode'] || null,
+          width: iface['channel.width'] || null,
+          // Configured value; may be a range like "5745-5765".
+          frequency: iface['channel.frequency'] || null,
+          channel: null,
+          txPower: null,
+        };
+        try {
+          // `monitor` reports the channel actually in use. For a station-bridge that is dictated
+          // by the AP, so it can differ from the configured range above.
+          const monitor = await axios.post(
+            `http://${WIFI_ROUTER_HOST}/rest/interface/wifi/monitor`,
+            { '.id': iface['.id'], once: '' },
+            { auth: WIFI_ROUTER_AUTH, timeout: 3000 }
+          );
+          const status = Array.isArray(monitor.data) ? monitor.data[0] : null;
+          if (status) {
+            entry.channel = status.channel || null;
+            entry.txPower = status['tx-power'] || null;
+          }
+        } catch (_) {
+          // Fall back to the configured frequency.
+        }
+        if (iface.name) byInterface[iface.name] = entry;
+      })
+    );
+
+    wifiRadioCache = { at: now, byInterface };
+  } catch (_) {
+    // Keep serving the last good values, and throttle retries so a down router does not turn
+    // every poll into a fresh timeout.
+    wifiRadioCache = { at: now, byInterface: wifiRadioCache.byInterface };
+  }
+
+  return wifiRadioCache.byInterface[interfaceName] || null;
+}
+
 app.get('/wifi-signal', async (req, res) => {
   try {
     const response = await axios.get(
@@ -708,7 +772,8 @@ app.get('/wifi-signal', async (req, res) => {
     if (!device) {
       return res.json({ ok: false, detail: 'Antenna mast not registered on AP' });
     }
-    return res.json({ ok: true, signal: device.signal, raw: device });
+    const radio = device.interface ? await getWifiRadioInfo(device.interface) : null;
+    return res.json({ ok: true, signal: device.signal, raw: device, radio });
   } catch (e) {
     return res.json({ ok: false, detail: e instanceof Error ? e.message : String(e) });
   }

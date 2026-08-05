@@ -43,6 +43,24 @@ function formatWifiRate(rate: string | null): string | null {
 	return match ? `${Number(match[1]).toFixed(1)} Mbps` : rate;
 }
 
+/**
+ * RouterOS reports the live channel as "<freq>/<mode>" (e.g. "5745/ax"). Falls back to the
+ * configured `channel.frequency`, which may be a range like "5745-5765".
+ */
+function formatWifiChannel(channel: string | null, frequency: string | null): string | null {
+	const source = channel ?? frequency;
+	if (!source) return null;
+	const [freq, mode] = source.split("/");
+	return mode ? `${freq} MHz ${mode}` : `${freq} MHz`;
+}
+
+/** "20mhz" -> "20 MHz" */
+function formatWifiWidth(width: string | null): string | null {
+	if (!width) return null;
+	const match = width.match(/^(\d+(?:\/\d+)*)\s*mhz$/i);
+	return match ? `${match[1]} MHz` : width;
+}
+
 const WIFI_QUALITY_BANDS: { min: number; label: string; color: string }[] = [
 	{ min: -50, label: "Very Good", color: "#2e7d32" },
 	{ min: -60, label: "Good", color: "#8bc34a" },
@@ -61,10 +79,25 @@ type WifiInfo = {
 	signal: number | null;
 	txRate: string | null;
 	rxRate: string | null;
+	ssid: string | null;
+	channel: string | null;
+	width: string | null;
+	mode: string | null;
+	txPower: string | null;
 	raw: Record<string, unknown>;
 };
 
-const EMPTY_WIFI_INFO: WifiInfo = { signal: null, txRate: null, rxRate: null, raw: {} };
+const EMPTY_WIFI_INFO: WifiInfo = {
+	signal: null,
+	txRate: null,
+	rxRate: null,
+	ssid: null,
+	channel: null,
+	width: null,
+	mode: null,
+	txPower: null,
+	raw: {},
+};
 
 type LinkPingRow = {
 	host: string;
@@ -178,11 +211,30 @@ const Header = () => {
 					ok?: boolean;
 					signal?: number | string;
 					raw?: Record<string, unknown>;
+					radio?: {
+						ssid?: string | null;
+						width?: string | null;
+						frequency?: string | null;
+						channel?: string | null;
+						mode?: string | null;
+						txPower?: string | null;
+					} | null;
 				};
 				if (cancelled) return;
 
 				const signal = Number(j.signal);
 				const raw = j.raw ?? {};
+				const radio = j.radio ?? null;
+				// The registration table already carries the SSID we are associated with; the
+				// interface config is only a fallback.
+				const ssid =
+					typeof raw["ssid"] === "string" ? (raw["ssid"] as string) : radio?.ssid ?? null;
+				const channel = formatWifiChannel(radio?.channel ?? null, radio?.frequency ?? null);
+				const width = formatWifiWidth(radio?.width ?? null);
+				const mode = radio?.mode ?? null;
+				// RouterOS reports tx-power in dBm. Labelled "TX power" rather than "TX" so it is
+				// not read as the throughput shown alongside it.
+				const txPower = radio?.txPower != null ? `TX power ${radio.txPower} dBm` : null;
 				// Use live throughput (bits-per-second), not tx-rate/rx-rate — those report
 				// the negotiated PHY link rate, which stays pinned near the radio's max
 				// regardless of actual traffic.
@@ -194,7 +246,7 @@ const Header = () => {
 				);
 				setWifiInfo(
 					j.ok && Number.isFinite(signal)
-						? { signal, txRate, rxRate, raw }
+						? { signal, txRate, rxRate, ssid, channel, width, mode, txPower, raw }
 						: EMPTY_WIFI_INFO
 				);
 			} catch {
@@ -213,7 +265,8 @@ const Header = () => {
 	const rows: LinkPingRow[] =
 		linkPing.status === "ready" ? linkPing.rows : DEFAULT_ROWS;
 
-	const { signal, txRate, rxRate, raw } = wifiInfo;
+	const { signal, txRate, rxRate, ssid, channel, width, mode, txPower, raw } = wifiInfo;
+	const radioLabel = [ssid, channel, width, mode, txPower].filter(Boolean).join(" · ");
 	const quality = signal != null ? wifiQuality(signal) : null;
 	const milliwatts = signal != null ? dbmToMilliwatts(signal) : null;
 
@@ -262,6 +315,7 @@ const Header = () => {
 						{rxRate != null && `RX ${rxRate}`}
 					</p>
 				)}
+				{radioLabel !== "" && <p className={styles.wifiRadio}>{radioLabel}</p>}
 			</div>
 			<div className={styles.linkPingWrap} title={linkPingTitle}>
 				{linkPing.status === "loading" ? (

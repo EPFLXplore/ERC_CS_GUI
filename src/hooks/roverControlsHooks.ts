@@ -47,6 +47,35 @@ const HDS_CONFIRMATION_SUBSCRIBE_QOS = {
 	durability: "volatile",
 } as const;
 
+/**
+ * Shown on screen while a confirmation is pending. The `beforeunload` dialog cannot carry it —
+ * browsers have ignored custom text there since 2016 and show their own wording — so this is the
+ * only place the operator actually reads it.
+ */
+export const HDS_REFRESH_WARNING = "Warning dont refresh if HDS confirmation is pending";
+
+const HD_STACK_ACK_STORAGE_KEY = "erc-cs-hd-stack-ack-pending-v1";
+
+function readHdStackAckPending(): boolean {
+	try {
+		return window.localStorage.getItem(HD_STACK_ACK_STORAGE_KEY) === "1";
+	} catch {
+		return false;
+	}
+}
+
+function writeHdStackAckPending(pending: boolean): void {
+	try {
+		if (pending) {
+			window.localStorage.setItem(HD_STACK_ACK_STORAGE_KEY, "1");
+		} else {
+			window.localStorage.removeItem(HD_STACK_ACK_STORAGE_KEY);
+		}
+	} catch {
+		// Private-mode / quota failures must not break the prompt itself.
+	}
+}
+
 function patchTopicRosbridgeQoS(topic: ROSLIB.Topic<any>, qos: Record<string, unknown>): void {
 	const t = topic as ROSLIB.Topic<any> & {
 		callForSubscribeAndAdvertise: (msg: Record<string, unknown>) => void;
@@ -392,7 +421,6 @@ const useRoverControls = (
 			serviceType: "custom_msg/srv/ControlStationSelection",
 		});
 		let active = true;
-		let resolvePending: ((result: ImageSelectionResult) => void) | null = null;
 
 		const clearSelectionPrompt = () => {
 			setHDConfirmationSelectElements(null);
@@ -409,9 +437,7 @@ const useRoverControls = (
 			setNumberElementToSelect(request.number_element_to_select);
 
 			return await new Promise<ImageSelectionResult>((resolve) => {
-				resolvePending = resolve;
 				setHDConfirmationSelectElements(() => (x: number[], y: number[]) => {
-					resolvePending = null;
 					resolve({ x, y, success: true });
 					clearSelectionPrompt();
 				});
@@ -420,10 +446,11 @@ const useRoverControls = (
 
 		return () => {
 			active = false;
-			if (resolvePending) {
-				resolvePending({ x: [], y: [], success: false });
-				resolvePending = null;
-			}
+			// Deliberately do NOT resolve a pending request here. Answering { success: false }
+			// would tell the rover the operator declined, when in reality the page reloaded or
+			// the websocket reconnected. rosbridge aborts in-flight calls on unadvertise
+			// (advertise_service.py graceful_shutdown), so the rover sees an error instead of a
+			// human decision.
 			clearSelectionPrompt();
 			try {
 				imageSelectionService.unadvertise();
@@ -444,7 +471,6 @@ const useRoverControls = (
 			serviceType: "custom_msg/srv/HumanVerification",
 		});
 		let active = true;
-		let resolvePending: ((confirm: boolean) => void) | null = null;
 
 		const clearConfirmationPrompt = () => {
 			setHDConfirmation(null);
@@ -469,9 +495,7 @@ const useRoverControls = (
 			}
 
 			const result = await new Promise<boolean>((resolve) => {
-				resolvePending = resolve;
 				setHDConfirmation(() => (confirm: boolean) => {
-					resolvePending = null;
 					resolve(confirm);
 					clearConfirmationPrompt();
 				});
@@ -483,10 +507,8 @@ const useRoverControls = (
 
 		return () => {
 			active = false;
-			if (resolvePending) {
-				resolvePending(false);
-				resolvePending = null;
-			}
+			// See the image-selection service above: a page reload or websocket reconnect must not
+			// be reported to the rover as the operator answering "no".
 			clearConfirmationPrompt();
 			try {
 				askUserConfirmation.unadvertise();
@@ -512,17 +534,52 @@ const useRoverControls = (
 		patchTopicRosbridgeQoS(hdLaunchTopic, HDS_CONFIRMATION_SUBSCRIBE_QOS);
 
 		let dialogPending = false;
-		hdLaunchTopic.subscribe(() => {
+		const raisePrompt = () => {
 			if (dialogPending) return;
 			dialogPending = true;
-			setHdStackLaunched(() => (confirm: boolean) => {
+			setHdStackLaunched(() => () => {
 				dialogPending = false;
+				writeHdStackAckPending(false);
 				setHdStackLaunched(null);
 			});
+		};
+
+		// The prompt is only ever cleared by an operator click, so an unacknowledged one must
+		// survive a page reload. The topic is volatile, so DDS will not redeliver it to the new
+		// subscriber — the pending flag has to be remembered locally.
+		if (readHdStackAckPending()) raisePrompt();
+
+		hdLaunchTopic.subscribe(() => {
+			writeHdStackAckPending(true);
+			raisePrompt();
 		});
 
 		return () => hdLaunchTopic.unsubscribe();
 	}, [ros]);
+
+	/**
+	 * True while any dialog is waiting on an operator click. The two service-backed dialogs cannot
+	 * survive a reload — the rover's reply travels back over the websocket that the reload
+	 * destroys, and the rover does not re-issue the call — so the only real protection is to catch
+	 * the refresh before it happens.
+	 */
+	const confirmationPending =
+		hdStackLaunched !== null || hdConfirmationSelectElements !== null || hdConfirmation !== null;
+
+	useEffect(() => {
+		if (!confirmationPending) return;
+
+		const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+			event.preventDefault();
+			// Ignored by every current browser (they show their own wording), but required to
+			// trigger the prompt at all.
+			event.returnValue = HDS_REFRESH_WARNING;
+			return HDS_REFRESH_WARNING;
+		};
+
+		window.addEventListener("beforeunload", handleBeforeUnload);
+		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+	}, [confirmationPending]);
 
 	// ----------------------------------------------------------------------------
 	// ----------------------------------------------------------------------------
