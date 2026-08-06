@@ -46,18 +46,26 @@ export function saveJ1Speed(speed: J1Speed): void {
 }
 
 /**
- * Cubic expo curve for J1.
+ * Ceiling on J1 in slow mode: full stick deflection commands this fraction of full speed.
+ * Tune here — it is the one number an operator is likely to want changed.
+ */
+export const J1_SLOW_MAX = 0.7;
+
+/**
+ * Cubic expo curve for J1, scaled to J1_SLOW_MAX.
  *
- * x³ is an odd function, so (-a)³ === -(a³) carries the sign through with no Math.sign juggling,
- * and |x| = 1 maps to exactly ±1 — full deflection still commands full speed. Only the resolution
- * near centre changes: dy/dx = 3x², which is 0.03 at x = 0.1 against 1.0 for the linear curve.
+ * x³ is an odd function, so (-a)³ === -(a³) carries the sign through with no Math.sign juggling.
+ * Two separate effects combine here:
+ *   - the cube gives much finer resolution near centre (dy/dx = 3x², so 0.03 at x = 0.1 against
+ *     1.0 for the linear curve);
+ *   - the J1_SLOW_MAX factor caps the top end, so full deflection gives 0.7 rather than 1.0.
  *
  * The 0.05 deadzone in remapAxes is applied upstream, so this never sees input inside the
  * deadband; it makes the deadzone edge smoother rather than introducing a new discontinuity.
  *
- * If pure x³ ever proves too aggressive against a joint-level minimum-velocity deadband, the
- * escape hatch with the same signature and the same ±1 endpoints is a blend:
- *     const k = 0.85; return k * c * c * c + (1 - k) * c;
+ * If the curve ever proves too aggressive against a joint-level minimum-velocity deadband, the
+ * escape hatch with the same signature is a blend that keeps the same ceiling:
+ *     const k = 0.85; return J1_SLOW_MAX * (k * c * c * c + (1 - k) * c);
  *
  * "fast" is the identity so call sites can stay unconditional.
  */
@@ -72,5 +80,5 @@ export function applyJ1Curve(value: number, speed: J1Speed): number {
 	// Clamp defensively: a mis-profiled pad can emit slightly out-of-range values and cubing
 	// amplifies overshoot (1.05³ = 1.16).
 	const clamped = Math.max(-1, Math.min(1, value));
-	return clamped * clamped * clamped;
+	return J1_SLOW_MAX * clamped * clamped * clamped;
 }

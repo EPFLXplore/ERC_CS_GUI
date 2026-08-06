@@ -320,8 +320,8 @@ function BindingsModal({
 								<h3>Active ROS Message Preview ({activeMode.toUpperCase()})</h3>
 								{activeMode === "direct" && (
 									<p>
-										J1 curve: {j1Speed === "slow" ? "slow (x³ expo)" : "fast (linear)"} — set
-										with the J1 toggle under the HD dropdown.
+										J1 curve: {j1Speed === "slow" ? "slow (0.7·x³ expo)" : "fast (linear)"} —
+										set with the J1 toggle under the HD dropdown.
 									</p>
 								)}
 								<pre>{JSON.stringify(activeRosMessage, null, 2)}</pre>

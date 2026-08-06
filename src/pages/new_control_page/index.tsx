@@ -733,7 +733,7 @@ const NewControlPage = () => {
 							}`}
 							onClick={toggleJ1Speed}
 							aria-pressed={j1Speed === "slow"}
-							title="J1 sensitivity curve. Slow applies an x³ expo: same top speed at full deflection, much finer control near centre. Applies in Manual Direct only."
+							title="J1 sensitivity curve. Slow applies a 0.7·x³ expo: much finer control near centre, and full deflection is capped at 70% speed. Applies in Manual Direct only."
 						>
 							{j1Speed === "slow" ? "J1 slow" : "J1 fast"}
 						</button>
