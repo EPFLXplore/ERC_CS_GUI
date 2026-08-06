@@ -34,7 +34,12 @@
     flex-direction: row
     align-items: flex-end
     gap: 12px
-    z-index: 1
+    // Raised above .widgetsGrid (1), .actions (10), .widgetSidebar (30) and .expand (40) so the
+    // J1 toggle, which hangs below the header, stays clickable. Both this and .widgetsGrid used
+    // to be z-index 1, and the grid wins that tie by DOM order — at the 900px breakpoint the
+    // grid's top edge reaches the toggle and would have swallowed its clicks silently.
+    // Still below the modal layer (100) and .confirm (9999).
+    z-index: 45
 
 .logo
     object-fit: contain
@@ -62,6 +67,48 @@
     border-radius: 999px
     backdrop-filter: blur(10px)
     webkit-backdrop-filter: blur(10px)
+
+.hdModeGroup
+    position: relative
+    display: flex
+    flex-direction: column
+    align-items: center
+
+// Absolutely positioned on purpose: .leftHeader aligns children by their bottom edge, so a
+// toggle in normal flow would make the HD block taller and push its <select> out of line with
+// the NAV and DRL ones. Out of flow, the group's border box stays exactly the SystemMode box.
+// left/right: 0 matches the 108px select width so the two read as one control.
+.j1SpeedToggle
+    position: absolute
+    top: calc(100% + 6px)
+    left: 0
+    right: 0
+    color: white
+    font-family: 'Poppins', sans-serif
+    font-size: 0.78rem
+    font-weight: 500
+    line-height: 1.2em
+    white-space: nowrap
+    padding: 0.25rem 0.4rem
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    background: rgba(255, 255, 255, 0.06)
+    border-radius: 10px
+    cursor: pointer
+    backdrop-filter: blur(10px)
+    -webkit-backdrop-filter: blur(10px)
+    transition: background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease
+
+.j1SpeedToggle:hover
+    transform: translateY(-1px)
+
+// Lit state reuses the exact select blue so it reads as part of the HD control.
+.j1SpeedToggleSlow
+    background: #386aba
+    border-color: rgba(255, 255, 255, 0.45)
+
+// HD is not in Manual Direct, so the curve is not in effect right now.
+.j1SpeedToggleIdle
+    opacity: 0.5
 
 .control
     flex: 1

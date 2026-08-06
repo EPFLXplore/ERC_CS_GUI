@@ -1,0 +1,11 @@
+The frontend is a React app, not a ROS workspace. This marker stops colcon from crawling it.
+
+Without it colcon discovers packages it must not build:
+  - public/URDF_Full_description  is a web asset served to the browser by
+    src/components/data/Simulation/RobotVisual.tsx, not a package to install; the CRA
+    production bundle copies it to build/, so colcon saw it twice and refused to start
+    with "Duplicate package names not supported".
+  - node_modules/cpu-features/deps/cpu_features and node_modules/nan are CMake projects
+    vendored inside npm packages.
+
+Delete this file only if the frontend ever gains a real ROS package.

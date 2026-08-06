@@ -11,6 +11,7 @@ import {
 	loadHdBindingsConfig,
 	saveHdBindingsConfig,
 } from "../../../utils/hdBindingsConfig";
+import { J1Speed, applyJ1Curve, loadJ1Speed } from "../../../utils/hdSpeedConfig";
 
 type ModeKey = "direct" | "inverse";
 
@@ -137,6 +138,9 @@ function BindingsModal({
 	const [configDraft, setConfigDraft] = useState<HdBindingsConfig>(() => cloneConfig(loadHdBindingsConfig()));
 	const [activeMode, setActiveMode] = useState<ModeKey>("direct");
 	const [snapshot, setSnapshot] = useState<ControllerSnapshot>(() => createSnapshot());
+	// Read once: this modal renders above the header, so the J1 toggle cannot be clicked while
+	// it is open.
+	const [j1Speed] = useState<J1Speed>(() => loadJ1Speed());
 
 	const activeBindings = useMemo(() => configDraft[activeMode], [configDraft, activeMode]);
 	const axisTargets = activeMode === "direct" ? DIRECT_AXIS_TARGETS : INVERSE_AXIS_TARGETS;
@@ -164,7 +168,7 @@ function BindingsModal({
 		const j3 = mapped.buttons[5] ? -mapped.axes[5] : mapped.axes[5];
 		const j4 = mapped.buttons[4] ? -mapped.axes[4] : mapped.axes[4];
 		return {
-			J1: mapped.axes[2],
+			J1: applyJ1Curve(mapped.axes[2], j1Speed),
 			J2: mapped.axes[3],
 			J3: j3,
 			J4: j4,
@@ -172,7 +176,7 @@ function BindingsModal({
 			J6: mapped.axes[0],
 			Grip: (mapped.buttons[1] ? 1 : 0) - (mapped.buttons[2] ? 1 : 0) + (mapped.buttons[3] ? 0.1 : 0) - (mapped.buttons[0] ? 0.1 : 0),
 		};
-	}, [snapshot, configDraft.direct]);
+	}, [snapshot, configDraft.direct, j1Speed]);
 
 	const liveInverse = useMemo(() => {
 		const mapped = applyHdBindingMap(snapshot.buttons, snapshot.axes, configDraft.inverse);
@@ -195,7 +199,7 @@ function BindingsModal({
 			return {
 				mode: "direct",
 				axes: [
-					mapped.axes[2],
+					applyJ1Curve(mapped.axes[2], j1Speed),
 					mapped.axes[3],
 					mapped.buttons[5] ? -mapped.axes[5] : mapped.axes[5],
 					mapped.buttons[4] ? -mapped.axes[4] : mapped.axes[4],
@@ -246,7 +250,7 @@ function BindingsModal({
 				0,
 			],
 		};
-	}, [activeMode, snapshot, configDraft.direct, configDraft.inverse]);
+	}, [activeMode, snapshot, configDraft.direct, configDraft.inverse, j1Speed]);
 
 	const updateAxisBinding = (targetIndex: number, sourceIndex: number) => {
 		setConfigDraft((current) => ({
@@ -314,6 +318,12 @@ function BindingsModal({
 							</div>
 							<div className={styles.RosPreview}>
 								<h3>Active ROS Message Preview ({activeMode.toUpperCase()})</h3>
+								{activeMode === "direct" && (
+									<p>
+										J1 curve: {j1Speed === "slow" ? "slow (x³ expo)" : "fast (linear)"} — set
+										with the J1 toggle under the HD dropdown.
+									</p>
+								)}
 								<pre>{JSON.stringify(activeRosMessage, null, 2)}</pre>
 							</div>
 						</div>

@@ -71,6 +71,7 @@ import {
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
+import { J1Speed, loadJ1Speed, saveJ1Speed } from "../../utils/hdSpeedConfig";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
@@ -407,6 +408,15 @@ const NewControlPage = () => {
 
 	const [isWidgetMenuOpen, setIsWidgetMenuOpen] = useState(false);
 	const [activePreset, setActivePreset] = useState<TaskPreset | "Custom">("All");
+	const [j1Speed, setJ1Speed] = useState<J1Speed>(() => loadJ1Speed());
+
+	const toggleJ1Speed = useCallback(() => {
+		// Computed outside the updater: saveJ1Speed dispatches an event, and side effects must
+		// not run inside a setState updater.
+		const next: J1Speed = j1Speed === "slow" ? "fast" : "slow";
+		setJ1Speed(next);
+		saveJ1Speed(next);
+	}, [j1Speed]);
 	const [visibleWidgets, setVisibleWidgets] = useState<Record<WidgetKey, boolean>>(() => {
 		return WIDGET_KEYS.reduce((acc, key) => {
 			acc[key] = true;
@@ -484,6 +494,7 @@ const NewControlPage = () => {
 						{ info: { name: "Gripper", value: getJointsCurrent(roverState)[6] }, connected: getJointsStates(roverState)[6] },
 					]}
 					unit="rad/s"
+					decimals={3}
 				/>
 			),
 		},
@@ -704,12 +715,29 @@ const NewControlPage = () => {
 						modes={[States.AUTO, States.ACKERMANN, States.OMNI_DIRECTIONAL, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode, false)}
 					/>
-					<SystemMode
-						system={"HD"}
-						currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
-						modes={[States.AUTO, States.MANUAL_DIRECT, States.MANUAL_INVERSE, States.OFF]}
-						onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode, false)}
-					/>
+					<div className={styles.hdModeGroup}>
+						<SystemMode
+							system={"HD"}
+							currentMode={stateServices[SubSystems.HANDLING_DEVICE].service.state}
+							modes={[States.AUTO, States.MANUAL_DIRECT, States.MANUAL_INVERSE, States.OFF]}
+							onSelect={(mode) => startService(SubSystems.HANDLING_DEVICE, mode, false)}
+						/>
+						<button
+							type="button"
+							className={`${styles.j1SpeedToggle} ${
+								j1Speed === "slow" ? styles.j1SpeedToggleSlow : ""
+							} ${
+								stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
+									? ""
+									: styles.j1SpeedToggleIdle
+							}`}
+							onClick={toggleJ1Speed}
+							aria-pressed={j1Speed === "slow"}
+							title="J1 sensitivity curve. Slow applies an x³ expo: same top speed at full deflection, much finer control near centre. Applies in Manual Direct only."
+						>
+							{j1Speed === "slow" ? "J1 slow" : "J1 fast"}
+						</button>
+					</div>
 					<SystemMode
 						system={"DRL"}
 						currentMode={stateServices[SubSystems.DRILL].service.state}

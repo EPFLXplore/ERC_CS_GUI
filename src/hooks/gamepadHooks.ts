@@ -11,6 +11,7 @@ import {
 	applyHdBindingMap,
 	loadHdBindingsConfig,
 } from "../utils/hdBindingsConfig";
+import { J1_SPEED_EVENT, J1Speed, applyJ1Curve, loadJ1Speed } from "../utils/hdSpeedConfig";
 
 export enum GamepadCommandState {
 	UI,
@@ -31,6 +32,7 @@ function useGamepad(
 	);
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [hdBindingsConfig, setHdBindingsConfig] = useState<HdBindingsConfig>(() => loadHdBindingsConfig());
+	const [j1Speed, setJ1Speed] = useState<J1Speed>(() => loadJ1Speed());
 
 	const gamepadCommandStateRef = useRef(gamepadCommandState);
 	gamepadCommandStateRef.current = gamepadCommandState;
@@ -52,6 +54,12 @@ function useGamepad(
 	submodeRef.current = submode;
 	const hdBindingsConfigRef = useRef(hdBindingsConfig);
 	hdBindingsConfigRef.current = hdBindingsConfig;
+
+	// Via a ref, not a dependency: sendCommand is useCallback(..., []) and the 30 ms publish
+	// interval depends on its identity, so a dependency here would restart the interval on
+	// every toggle.
+	const j1SpeedRef = useRef(j1Speed);
+	j1SpeedRef.current = j1Speed;
 
 	const prevGamepadCommandStateRef = useRef(GamepadCommandState.UI);
 
@@ -144,6 +152,22 @@ function useGamepad(
 		};
 	}, []);
 
+	// Kept separate from the bindings sync above: that one always allocates a fresh config object
+	// and so always re-renders, whereas setJ1Speed bails out via Object.is when unchanged.
+	useEffect(() => {
+		const syncJ1Speed = () => {
+			setJ1Speed(loadJ1Speed());
+		};
+
+		window.addEventListener(J1_SPEED_EVENT, syncJ1Speed as EventListener);
+		window.addEventListener("storage", syncJ1Speed);
+
+		return () => {
+			window.removeEventListener(J1_SPEED_EVENT, syncJ1Speed as EventListener);
+			window.removeEventListener("storage", syncJ1Speed);
+		};
+	}, []);
+
 	// sendCommand reads everything via refs so its identity is stable after gamepad is set.
 	// The interval never needs to restart due to mode/publisher/submode changes.
 	const lastPublishRef = useRef<number>(0);
@@ -192,6 +216,10 @@ function useGamepad(
 				if (sm[1] === States.MANUAL_DIRECT) {
 					const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.direct);
 					const msg = gp.handleDirectArm(remappedState.buttons, remappedState.axes);
+					// J1 expo. Applied here rather than inside the profile handler so the
+					// MANUAL_INVERSE branch below — where axes[0] is TX, not J1 — cannot be
+					// affected. No-op when the toggle is "fast".
+					msg.axes[0] = applyJ1Curve(msg.axes[0], j1SpeedRef.current);
 					pub.publish(msg);
 				} else {
 					const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.inverse);

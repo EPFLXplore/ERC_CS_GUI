@@ -182,6 +182,23 @@
     color: white
     text-align: right
     margin: 0
+    // Unit pinned to the right edge, number in a fixed slot to its left, so neither moves as
+    // the value changes.
+    display: flex
+    justify-content: flex-end
+    align-items: baseline
+    gap: 0.3em
+
+// tabular-nums gives every digit the same advance width — without it the decimal point still
+// jitters even when the number of characters is constant. min-width (not width) reserves room
+// for the widest realistic reading, e.g. "-99.999", and still grows rather than clipping.
+.infoValueNumber
+    font-variant-numeric: tabular-nums
+    text-align: right
+    min-width: 4.2em
+
+.infoValueUnit
+    flex: none
 
 /* the little header for the CPU line */
 .cpuSectionTitle

@@ -130,7 +130,19 @@ const InfoBox: React.FC<InfoBoxProps> = ({
 	);
 };
 
-const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: WheelsInfo[]; unit?: string }) => {
+const ControllerInfoBox = ({
+	title,
+	infos,
+	unit,
+	decimals = 2,
+}: {
+	title: string;
+	infos: WheelsInfo[];
+	unit?: string;
+	/** Fixed decimal places for numeric values. Fixed, not rounded-and-trimmed: trailing zeros
+	 *  are what keep the digits from shifting as the value changes. */
+	decimals?: number;
+}) => {
 	const [isCollapsed, setIsCollapsed] = useState(false);
 
 	return (
@@ -148,6 +160,16 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 				</div>
 				{!isCollapsed && <div className={styles.infoArrangementController}>
 					{infos.map((info, index) => {
+						const rawValue = info.info.value;
+						let value = rawValue;
+						if (typeof rawValue === "number" && Number.isFinite(rawValue)) {
+							const fixed = rawValue.toFixed(decimals);
+							// A reading just below zero formats as "-0.000"; the sign then blinks
+							// in and out while the joint is at rest, which is the jitter we are
+							// removing. Collapse anything that rounds to zero onto "0.000".
+							value = Number(fixed) === 0 ? (0).toFixed(decimals) : fixed;
+						}
+						const unitLabel = unit ?? (info.info.unit ?? "");
 						return (
 							<div className={styles.info} key={index}>
 								<p className={styles.infoName}>{info.info.name}</p>
@@ -165,8 +187,12 @@ const ControllerInfoBox = ({ title, infos, unit }: { title: string; infos: Wheel
 									<p className={styles.infoNameColoredGreen}>{info.connected}</p>
 
 								: <p className={styles.infoNameWeirdState}>{info.connected}</p>}
-								<p className={styles.infoValueController}>{`${info.info.value} 
-								${unit ?? (info.info.unit ?? "")}`}</p>
+								<p className={styles.infoValueController}>
+									<span className={styles.infoValueNumber}>{`${value}`}</span>
+									{unitLabel ? (
+										<span className={styles.infoValueUnit}>{unitLabel}</span>
+									) : null}
+								</p>
 							</div>
 						);
 					})}
