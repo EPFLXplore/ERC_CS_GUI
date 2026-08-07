@@ -61,6 +61,10 @@ export enum Topics {
     EL_LED_COMMANDS = "/EL/led_req",             // LED control (publish)
     EL_MASS_TARE_HD = "/EL/mass_req_hd",        // Mass sensor tare HD
     EL_MASS_TARE_DRILL = "/EL/mass_req_drill",  // Mass sensor tare Drill
+    /** Load cell request (publish, `custom_msg/MassRequest`). id 0 = sand & rocks, id 1 = drill soil. */
+    EL_MASS_REQ = "/EL/mass_req",
+    /** Servo request (publish, `custom_msg/ServoRequest`). id 0 = ZED 2i front camera, id 1 = drill rail. */
+    EL_SERVO_REQ = "/EL/servo_req",
 
     // ============================================
     // Control Station (CS) Internal

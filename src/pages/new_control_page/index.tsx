@@ -21,6 +21,7 @@ import Screenshot from "../../assets/images/icons/screenshot.svg";
 import PreviousIcon from "../../assets/images/icons/previous.svg";
 import PauseIcon from "../../assets/images/icons/pause.svg";
 import NextIcon from "../../assets/images/icons/next.svg";
+import AvionicsIcon from "../../assets/images/icons/avionics.svg";
 
 import logo from "../../assets/images/logos/logo_XPlore.png";
 import useRosBridge from "../../hooks/rosbridgeHooks";
@@ -83,6 +84,7 @@ import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
 import SuspensionModal from "../../components/modals/SuspensionModal";
 import MicroscopeModal from "../../components/modals/MicroscopeModal";
+import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
@@ -945,6 +947,13 @@ const NewControlPage = () => {
 									icon={CameraIcon}
 									tooltip={"Microscope"}
 								/>
+								<QuickAction
+									onClick={() => displaySystemModal("avionics")}
+									selected={Boolean(systemsModalOpen["avionics"])}
+									running={States.OFF}
+									icon={AvionicsIcon}
+									tooltip={"Avionics"}
+								/>
 							</div>
 						</div>
 
@@ -1175,6 +1184,22 @@ const selectModal = (
 						setSystemsModalOpen((old: typeModal) => {
 							const newModalOpen = { ...old };
 							newModalOpen["microscope"] = false;
+							return newModalOpen;
+						});
+					}}
+					ros={ros}
+					snackBar={showSnackbar}
+				/>
+			);
+
+		case "avionics":
+			return (
+				<AvionicsModal
+					onClose={() => {
+						setModal(<></>);
+						setSystemsModalOpen((old: typeModal) => {
+							const newModalOpen = { ...old };
+							newModalOpen["avionics"] = false;
 							return newModalOpen;
 						});
 					}}

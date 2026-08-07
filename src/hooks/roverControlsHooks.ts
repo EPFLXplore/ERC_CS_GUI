@@ -116,6 +116,7 @@ const useRoverControls = (
 		[SubSystems.SCIENCE]: false,
 		microscope: false,
 		suspension: false,
+		avionics: false,
 		parameters: false,
 		cancel: false,
 	});
