@@ -12,9 +12,8 @@ Author: Ugo Balducci and Giovanni Ranieri
 Year: 2024
 Description: Drill Modal. You can send commands to the drill. Auto will execute the complete FSM
 
-Additionally, the modal implements small actions like step up and step down, where the drill will move
-up and down by a small amount. Clicking on the buttons will send directly the commands, without clicking on the
-"Set Task" button.
+Additionally, the modal implements small actions like step up and step down. Select the direction,
+adjust the step count with the slider, then press "Set Task".
 */
 
 enum DrillTask {
@@ -28,7 +27,8 @@ enum DrillTask {
 	CLOSE = "Close",
 	OPEN = "Open",
 	SEMI_RETURN = "semi_return",
-	TEST_AUTO = "test_auto"
+	TEST_AUTO = "test_auto",
+	RELEASE_AUTO = "release_auto"
 }
 
 enum DrillSmallActions {
@@ -39,8 +39,16 @@ enum DrillSmallActions {
 const MIN_DRILL_POSITION_CM = 0;
 const MAX_DRILL_POSITION_CM = 55;
 
+const MIN_STEPS = 0;
+const MAX_STEPS = 50;
+
 /** Matches `uint16` ceiling in `custom_msg/action/DrillCmd.action` (max 65535); UI cap per ops need. */
 const MAX_DRILL_STEP_INCREMENT = 64000;
+
+function clampSteps(n: number): number {
+	if (!Number.isFinite(n)) return MIN_STEPS;
+	return Math.min(MAX_STEPS, Math.max(MIN_STEPS, Math.trunc(n)));
+}
 
 function clampStepIncrement(n: number): number {
 	if (!Number.isFinite(n) || n <= 0) return 0;
@@ -71,7 +79,7 @@ function DrillGoalModal({
 	snackBar: (sev: AlertColor, mes: string) => void;
 }) {
 	const [positionCm, setPositionCm] = React.useState<number | null>(null);
-	const [commandMode, setCommandMode] = React.useState<"absolute" | "task" | "step">("absolute");
+	const [commandMode, setCommandMode] = React.useState<"absolute" | "task" | "step" | "resetHome">("absolute");
 
 	React.useEffect(() => {
 		if (!ros) {
@@ -115,11 +123,12 @@ function DrillGoalModal({
 	});
 	const [targetPositionCm, setTargetPositionCm] = React.useState<number>(0);
 
-	const handleSmallStepCountChange = (value: string) => {
+	const handleStepSliderChange = (value: string) => {
 		const parsedValue = Number.parseInt(value, 10);
+		setCommandMode("step");
 		setActionSmallTask((prev) => ({
 			...prev,
-			multiple_increment: clampStepIncrement(parsedValue),
+			multiple_increment: clampSteps(parsedValue),
 		}));
 	};
 
@@ -130,12 +139,21 @@ function DrillGoalModal({
 	};
 
 	const sendDrillGoal = () => {
+		if (commandMode === "resetHome") {
+			resetDrillHome(ros, snackBar);
+			return;
+		}
+
 		if (commandMode === "task" && task) {
 			onSetGoal(SubSystems.DRILL, { action: task.toLowerCase() });
 			return;
 		}
 
 		if (commandMode === "step") {
+			if (actionSmallTask.multiple_increment <= 0) {
+				snackBar("error", "Step count must be greater than 0");
+				return;
+			}
 			onSetGoal(SubSystems.DRILL, {
 				action: actionSmallTask.task.toLowerCase(),
 				multiple_increment: actionSmallTask.multiple_increment,
@@ -216,15 +234,6 @@ function DrillGoalModal({
 							{_task}
 						</button>
 					))}
-						<button
-							type="button"
-							className={styles.Choice}
-							onClick={() => {
-								onSetGoal(SubSystems.DRILL, { action: "release_auto" });
-							}}
-						>
-							Release Auto
-						</button>
 					</div>
 				</div>
 
@@ -237,20 +246,11 @@ function DrillGoalModal({
 							className={`${styles.Choice} ${commandMode === "step" && actionSmallTask.task === _action ? styles.Selected : ""}`}
 							onClick={() => {
 								setCommandMode("step");
-								if (actionSmallTask.task === _action) {
-									setActionSmallTask({
-										task: _action,
-										multiple_increment: Math.min(
-											MAX_DRILL_STEP_INCREMENT,
-											actionSmallTask.multiple_increment + 1
-										),
-									});
-								} else {
-									setActionSmallTask({
-										task: _action,
-										multiple_increment: 1
-									});
-								}
+								setActionSmallTask((prev) => ({
+									task: _action,
+									multiple_increment:
+										prev.task === _action ? prev.multiple_increment : Math.max(1, prev.multiple_increment),
+								}));
 							}}
 						>
 							{_action} : {actionSmallTask.task === _action ? actionSmallTask.multiple_increment : 0}
@@ -258,31 +258,39 @@ function DrillGoalModal({
 					))}
 					</div>
 
-					<div className={styles.StepInputRow}>
-						<label className={styles.StepLabel} htmlFor="drill-step-count">
-							Steps
-						</label>
-						<input
-							id="drill-step-count"
-							type="number"
-							min={0}
-							max={MAX_DRILL_STEP_INCREMENT}
-							step={1}
-							inputMode="numeric"
-							className={styles.StepInput}
-							value={actionSmallTask.multiple_increment}
-							onChange={(event) => handleSmallStepCountChange(event.target.value)}
-							aria-label="Drill step count"
-						/>
+					<div className={styles.StepSliderRow}>
+						<span className={styles.StepScaleLabel}>{MIN_STEPS}</span>
+						<div className={styles.StepSliderWrap}>
+							<input
+								className={styles.HorizontalSlider}
+								type="range"
+								min={MIN_STEPS}
+								max={MAX_STEPS}
+								step={1}
+								value={actionSmallTask.multiple_increment}
+								disabled={commandMode !== "step"}
+								onChange={(event) => handleStepSliderChange(event.target.value)}
+								aria-label={`${actionSmallTask.task} step count`}
+							/>
+						</div>
+						<span className={styles.StepScaleLabel}>{MAX_STEPS}</span>
 					</div>
+					{commandMode === "step" && (
+						<div className={styles.StepReadout}>
+							<span className={styles.StepReadoutLabel}>Selected</span>
+							<span className={styles.StepReadoutValue}>{actionSmallTask.task}</span>
+							<span className={styles.StepReadoutLabel}>Steps</span>
+							<span className={styles.StepReadoutValue}>{actionSmallTask.multiple_increment}</span>
+						</div>
+					)}
 				</div>
 
 				<div className={styles.ModalContent}>
 					<div className={styles.ChoiceGroup}>
 						<button
 							type="button"
-							className={styles.Choice}
-							onClick={() => resetDrillHome(ros, snackBar)}
+							className={`${styles.Choice} ${commandMode === "resetHome" ? styles.Selected : ""}`}
+							onClick={() => setCommandMode("resetHome")}
 						>
 							Home Drill Translation
 						</button>
