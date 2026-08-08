@@ -79,7 +79,7 @@ import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService, startHdDepthCameraService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
-import {resetFaults, resetHome} from "../../utils/navigationActions";
+import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
@@ -101,6 +101,7 @@ const WIDGET_KEYS = [
 	"hdData",
 	"currentPosition",
 	"scienceSensors",
+	"qrCodeScanner",
 ] as const;
 
 type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -135,6 +136,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	hdData: "HD Data",
 	currentPosition: "Current Position",
 	scienceSensors: "Science Sensors",
+	qrCodeScanner: "QR Code Scanner",
 };
 
 const buildVisibility = (enabledKeys: WidgetKey[]): Record<WidgetKey, boolean> => {
@@ -155,6 +157,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonNav",
 		"drill",
 		"currentPosition",
+		"qrCodeScanner",
 	]),
 	Manipulation: buildVisibility([
 		"drivingCurrents",
@@ -336,7 +339,8 @@ const NewControlPage = () => {
 						reset_leds,
 						sendHdNamedPose,
 						ros,
-						updateHdTaskCommand
+						updateHdTaskCommand,
+						handleQrCodeScan
 					)
 				);
 
@@ -368,6 +372,14 @@ const NewControlPage = () => {
 	const [isWidgetMenuOpen, setIsWidgetMenuOpen] = useState(false);
 	const [activePreset, setActivePreset] = useState<TaskPreset | "Custom">("All");
 	const [j1Speed, setJ1Speed] = useState<J1Speed>(() => loadJ1Speed());
+	const [qrCodeMessage, setQrCodeMessage] = useState<string>("NO DATA");
+
+	const handleQrCodeScan = useCallback(
+		(rosInstance: ROSLIB.Ros | null, snackBar: (severity: AlertColor, message: string) => void) => {
+			requestQrCodeScan(rosInstance, snackBar, setQrCodeMessage);
+		},
+		[],
+	);
 
 	const toggleJ1Speed = useCallback(() => {
 		// Computed outside the updater: saveJ1Speed dispatches an event, and side effects must
@@ -650,8 +662,19 @@ const NewControlPage = () => {
 				/>
 			),
 		},
+		{
+			key: "qrCodeScanner",
+			content: (
+				<InfoBox
+					title="QR Code Scanner"
+					infos={[
+						{ name: "Result", value: qrCodeMessage },
+					]}
+				/>
+			),
+		},
 	];
-	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [roverState, qrCodeMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -959,7 +982,8 @@ const selectModal = (
 	reset_leds: () => void,
 	sendHdNamedPose: (poseName: string) => void,
 	ros: ROSLIB.Ros | null,
-	updateHdTaskCommand: (mode: 0 | 1 | 2) => void
+	updateHdTaskCommand: (mode: 0 | 1 | 2) => void,
+	onQrCodeScan: (ros: ROSLIB.Ros | null, snackBar: (severity: AlertColor, message: string) => void) => void,
 ) => {
 	switch (system) {
 		case "commands":
@@ -1036,6 +1060,7 @@ const selectModal = (
 					snackBar={showSnackbar}
 					onResetFaults={resetFaults}
 					onResetHome={resetHome}
+					onQrCodeScan={onQrCodeScan}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {

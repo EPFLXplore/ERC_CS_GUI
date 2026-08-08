@@ -24,6 +24,7 @@ function NavigationGoalModal({
 	onCancelGoal,
 	onResetFaults,
 	onResetHome,
+	onQrCodeScan,
 	snackBar,
 	currentGoal = undefined,
 	pointOnMap,
@@ -35,6 +36,7 @@ function NavigationGoalModal({
 	onCancelGoal: (system: string) => void;
 	onResetFaults: (ros: ROSLIB.Ros | null, subsystem: string, snackBar: (severity: AlertColor, message: string) => void) => void;
 	onResetHome: (ros: ROSLIB.Ros | null, subsystem: string, snackBar: (severity: AlertColor, message: string) => void) => void;
+	onQrCodeScan: (ros: ROSLIB.Ros | null, snackBar: (severity: AlertColor, message: string) => void) => void;
 	snackBar: (severity: AlertColor, message: string) => void;
 	currentGoal?: { x: number; y: number; o: number };
 	pointOnMap: { x: number; y: number };
@@ -141,6 +143,21 @@ function NavigationGoalModal({
 							onClick={() => onResetHome(ros, SubSystems.NAGIVATION, snackBar)}
 						>
 							Reset Home
+						</button>
+					</div>
+				</div>
+
+				<div className={styles.ModalHeader}>
+					<h1>QR Code Scanner</h1>
+				</div>
+
+				<div className={styles.ModalContent}>
+					<div className={styles.ResetSection}>
+						<button
+							className={styles.Choice}
+							onClick={() => onQrCodeScan(ros, snackBar)}
+						>
+							Scan QR Code
 						</button>
 					</div>
 				</div>

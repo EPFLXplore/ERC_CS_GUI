@@ -21,6 +21,8 @@ export enum Topics {
     NAV_FRONT_CAMERA_COMPRESSED = "/zed/zed_node/rgb/color/rect/image/compressed",
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
+    /** `std_srvs/srv/Trigger` — request a QR code scan; response message is the scanned content. */
+    NAV_QR_CODE_REQUEST = "/NAV/qr_code_request",
 
     // ============================================
     // HANDLING DEVICE (HD) Subsystem Interface
