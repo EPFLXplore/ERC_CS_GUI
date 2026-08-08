@@ -36,12 +36,20 @@ enum DrillSmallActions {
     STEP_UP = "step_up"
 }
 
+const MIN_DRILL_POSITION_CM = 0;
+const MAX_DRILL_POSITION_CM = 55;
+
 /** Matches `uint16` ceiling in `custom_msg/action/DrillCmd.action` (max 65535); UI cap per ops need. */
 const MAX_DRILL_STEP_INCREMENT = 64000;
 
 function clampStepIncrement(n: number): number {
 	if (!Number.isFinite(n) || n <= 0) return 0;
 	return Math.min(Math.trunc(n), MAX_DRILL_STEP_INCREMENT);
+}
+
+function clampAbsolutePositionCm(n: number): number {
+	if (!Number.isFinite(n)) return MIN_DRILL_POSITION_CM;
+	return Math.min(MAX_DRILL_POSITION_CM, Math.max(MIN_DRILL_POSITION_CM, Math.round(n)));
 }
 
 interface DrillGoalModalProps {
@@ -63,6 +71,7 @@ function DrillGoalModal({
 	snackBar: (sev: AlertColor, mes: string) => void;
 }) {
 	const [positionCm, setPositionCm] = React.useState<number | null>(null);
+	const [commandMode, setCommandMode] = React.useState<"absolute" | "task" | "step">("absolute");
 
 	React.useEffect(() => {
 		if (!ros) {
@@ -97,13 +106,14 @@ function DrillGoalModal({
 		return () => listener.unsubscribe();
 	}, [ros]);
 
-	const positionLabel =
-		positionCm === null ? "NO DATA" : `${roundToTwoDecimals(positionCm)} cm`;
+	const currentAbsolutePositionCm =
+		positionCm === null ? null : clampAbsolutePositionCm(Math.abs(positionCm));
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 	const [actionSmallTask, setActionSmallTask] = React.useState<DrillGoalModalProps>({
 		task: DrillSmallActions.STEP_DOWN,
-		multiple_increment: 0
+		multiple_increment: 1
 	});
+	const [targetPositionCm, setTargetPositionCm] = React.useState<number>(0);
 
 	const handleSmallStepCountChange = (value: string) => {
 		const parsedValue = Number.parseInt(value, 10);
@@ -111,6 +121,45 @@ function DrillGoalModal({
 			...prev,
 			multiple_increment: clampStepIncrement(parsedValue),
 		}));
+	};
+
+	const handleAbsolutePositionChange = (value: string) => {
+		const parsedValue = Number.parseInt(value, 10);
+		setCommandMode("absolute");
+		setTargetPositionCm(clampAbsolutePositionCm(parsedValue));
+	};
+
+	const sendDrillGoal = () => {
+		if (commandMode === "task" && task) {
+			onSetGoal(SubSystems.DRILL, { action: task.toLowerCase() });
+			return;
+		}
+
+		if (commandMode === "step") {
+			onSetGoal(SubSystems.DRILL, {
+				action: actionSmallTask.task.toLowerCase(),
+				multiple_increment: actionSmallTask.multiple_increment,
+			});
+			return;
+		}
+
+		if (currentAbsolutePositionCm === null) {
+			snackBar("error", "Drill position data is not available");
+			return;
+		}
+
+		const targetAbsolutePositionCm = clampAbsolutePositionCm(targetPositionCm);
+		const deltaCm = targetAbsolutePositionCm - currentAbsolutePositionCm;
+
+		if (deltaCm === 0) {
+			snackBar("info", "Drill is already at the selected position");
+			return;
+		}
+
+		onSetGoal(SubSystems.DRILL, {
+			action: deltaCm > 0 ? DrillSmallActions.STEP_DOWN : DrillSmallActions.STEP_UP,
+			multiple_increment: Math.abs(deltaCm),
+		});
 	};
 
 	return (
@@ -124,9 +173,33 @@ function DrillGoalModal({
 				<div className={styles.ModalHeader}>
 					<h1>Drill Task</h1>
 				</div>
-				<div className={styles.StatusBar}>
-					<span className={styles.StatusLabel}>Position</span>
-					<span className={styles.StatusValue}>{positionLabel}</span>
+				<div className={styles.PositionPanel}>
+					<div className={styles.PositionPanelHeader}>
+						<span className={styles.PositionPanelTitle}>Absolute position</span>
+						<span className={styles.PositionPanelHint}>0 cm at the top, 55 cm at the bottom</span>
+					</div>
+					<div className={styles.PositionSliderRow}>
+						<div className={styles.PositionSliderWrap}>
+							<input
+								className={styles.VerticalSlider}
+								type="range"
+								min={MIN_DRILL_POSITION_CM}
+								max={MAX_DRILL_POSITION_CM}
+								step={1}
+								value={targetPositionCm}
+								onChange={(event) => handleAbsolutePositionChange(event.target.value)}
+								aria-label="Absolute drill position"
+							/>
+						</div>
+					</div>
+					<div className={styles.PositionReadout}>
+						<span className={styles.PositionReadoutLabel}>Current</span>
+						<span className={styles.PositionReadoutValue}>
+							{currentAbsolutePositionCm === null ? "NO DATA" : `${roundToTwoDecimals(currentAbsolutePositionCm)} cm`}
+						</span>
+						<span className={styles.PositionReadoutLabel}>Target</span>
+						<span className={styles.PositionReadoutValue}>{targetPositionCm} cm</span>
+					</div>
 				</div>
 				<div className={styles.ModalContent}>
 
@@ -134,12 +207,24 @@ function DrillGoalModal({
 					{Object.values(DrillTask).map((_task) => (
 						<button
 							key={_task}
-							className={`${styles.Choice} ${task === _task ? styles.Selected : ""}`}
-							onClick={() => setTask(_task)}
+							className={`${styles.Choice} ${commandMode === "task" && task === _task ? styles.Selected : ""}`}
+							onClick={() => {
+								setCommandMode("task");
+								setTask(_task);
+							}}
 						>
 							{_task}
 						</button>
 					))}
+						<button
+							type="button"
+							className={styles.Choice}
+							onClick={() => {
+								onSetGoal(SubSystems.DRILL, { action: "release_auto" });
+							}}
+						>
+							Release Auto
+						</button>
 					</div>
 				</div>
 
@@ -149,9 +234,9 @@ function DrillGoalModal({
 					{Object.values(DrillSmallActions).map((_action) => (
 						<button
 							key={_action}
-							className={`${styles.Choice}`}
+							className={`${styles.Choice} ${commandMode === "step" && actionSmallTask.task === _action ? styles.Selected : ""}`}
 							onClick={() => {
-
+								setCommandMode("step");
 								if (actionSmallTask.task === _action) {
 									setActionSmallTask({
 										task: _action,
@@ -166,10 +251,6 @@ function DrillGoalModal({
 										multiple_increment: 1
 									});
 								}
-
-								console.log("Action Small Task: ", actionSmallTask);
-
-								//onSetGoal(SubSystems.DRILL, { action: _action.toLowerCase() });
 							}}
 						>
 							{_action} : {actionSmallTask.task === _action ? actionSmallTask.multiple_increment : 0}
@@ -210,20 +291,9 @@ function DrillGoalModal({
 
 				<div className={styles.ModalFooter}>
 					<button
+						type="button"
 						onClick={() => {
-							if (task) {
-								onSetGoal(SubSystems.DRILL, { action: task.toLowerCase() });
-								onClose();
-							} else if (actionSmallTask.task) {
-								onSetGoal(SubSystems.DRILL, {
-									action: actionSmallTask.task.toLowerCase(),
-									multiple_increment: actionSmallTask.multiple_increment
-								});
-								onClose();
-							} else {
-								snackBar("error", "No task selected");
-								onClose();
-							}
+							sendDrillGoal();
 						}}
 						className={`${styles.PrimaryColor}`}
 					>
