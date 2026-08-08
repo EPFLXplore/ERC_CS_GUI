@@ -82,8 +82,6 @@ import Gamepad from "../../components/Controls/Gamepad";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
-import SuspensionModal from "../../components/modals/SuspensionModal";
-import MicroscopeModal from "../../components/modals/MicroscopeModal";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
@@ -278,7 +276,6 @@ const NewControlPage = () => {
 		setDisplayGif,
 		sendHdNamedPose,
 		screenshotAllCameras,
-		setSuspensionHeight,
 		updateHdTaskCommand
   	] = roverControls;
 
@@ -378,7 +375,6 @@ const NewControlPage = () => {
 						reset_leds,
 						sendHdNamedPose,
 						ros,
-						setSuspensionHeight,
 						updateHdTaskCommand
 					)
 				);
@@ -879,13 +875,6 @@ const NewControlPage = () => {
 									className={styles.drillAction}
 								/>
 								<QuickAction
-									onClick={() => displaySystemModal("suspension")}
-									selected={systemsModalOpen["suspension"]}
-									running={States.OFF}
-									icon={Suspension}
-									tooltip={"Active Suspension"}
-								/>
-								<QuickAction
 									onClick={() => displaySystemModal(SubSystems.SCIENCE)}
 									selected={systemsModalOpen[SubSystems.SCIENCE]}
 									running={States.OFF}
@@ -939,13 +928,6 @@ const NewControlPage = () => {
 									running={States.OFF}
 									icon={Screenshot}
 									tooltip={"Screenshot all Cameras"}
-								/>
-								<QuickAction
-									onClick={() => displaySystemModal("microscope")}
-									selected={Boolean(systemsModalOpen["microscope"])}
-									running={States.OFF}
-									icon={CameraIcon}
-									tooltip={"Microscope"}
 								/>
 								<QuickAction
 									onClick={() => displaySystemModal("avionics")}
@@ -1033,7 +1015,6 @@ const selectModal = (
 	reset_leds: () => void,
 	sendHdNamedPose: (poseName: string) => void,
 	ros: ROSLIB.Ros | null,
-	setSuspensionHeight: (value: number) => void,
 	updateHdTaskCommand: (mode: 0 | 1 | 2) => void
 ) => {
 	switch (system) {
@@ -1176,22 +1157,6 @@ const selectModal = (
 					resetSensors={resetSensors}
 				/>
 			);
-		case "microscope":
-			return (
-				<MicroscopeModal
-					onClose={() => {
-						setModal(<></>);
-						setSystemsModalOpen((old: typeModal) => {
-							const newModalOpen = { ...old };
-							newModalOpen["microscope"] = false;
-							return newModalOpen;
-						});
-					}}
-					ros={ros}
-					snackBar={showSnackbar}
-				/>
-			);
-
 		case "avionics":
 			return (
 				<AvionicsModal
@@ -1204,22 +1169,6 @@ const selectModal = (
 						});
 					}}
 					ros={ros}
-					snackBar={showSnackbar}
-				/>
-			);
-
-		case "suspension":
-			return (
-				<SuspensionModal
-					onClose={() => {
-						setModal(<></>);
-						setSystemsModalOpen((old: typeModal) => {
-							const newModalOpen = { ...old };
-							newModalOpen["suspension"] = false;
-							return newModalOpen;
-						});
-					}}
-					onSetHeight={setSuspensionHeight}
 					snackBar={showSnackbar}
 				/>
 			);

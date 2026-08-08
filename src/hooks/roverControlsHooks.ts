@@ -114,7 +114,6 @@ const useRoverControls = (
 		[SubSystems.HANDLING_DEVICE]: false,
 		[SubSystems.DRILL]: false,
 		[SubSystems.SCIENCE]: false,
-		microscope: false,
 		suspension: false,
 		avionics: false,
 		parameters: false,
@@ -123,7 +122,6 @@ const useRoverControls = (
 
 	const changeSpeedTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.NAV_CHANGE_SPEED, messageType: "std_msgs/Float32", queue_length: 1, queue_size: 1 }) : null, [ros]);
 	const namedJointTargetTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.HD_NAMED_JOINT_TARGET, messageType: "custom_msg/NamedPose", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const suspensionHeightTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.ACTIVE_SUSPENSION_HEIGHT, messageType: "std_msgs/Float32", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// HDS can send a requet to confirm something (continue a task for example)
 	// It can also send some string information, like a qr code value. The term qrCode is not write
@@ -145,10 +143,9 @@ const useRoverControls = (
 	// Confirmation when the HDS stack is launched.
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
-	const resetMassDrillTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_DRILL, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const resetMassHDTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_TARE_HD, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const resetMassTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_REQ, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
 	const screenshotTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.SCREENSHOT_ALL_CAMS, messageType: "std_msgs/Bool", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const ledCommandsTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
+	const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// When the user clicks on the button to record sensors, it sets the state to true and records the sensors in a csv file
 	// using HTTP requests to the backend ExpressJS server
@@ -379,19 +376,6 @@ const useRoverControls = (
 		}
 	}
 
-	const setSuspensionHeight = (height: number) => {
-		if(!ros) {
-			showSnackbar("error", "ROS connection not available");
-			return;
-		}
-
-		const clampedHeight = Math.max(0, Math.min(100, height));
-		suspensionHeightTopic?.publish({
-			data: clampedHeight,
-		});
-		showSnackbar("info", `Suspension height set to ${Math.round(clampedHeight)}%`);
-	};
-
 	// Publish a predefined named pose directly to the kinematics planner.
 	// HD must be in Auto mode for the planner to process it.
 	const sendHdNamedPose = (poseName: string) => {
@@ -589,18 +573,7 @@ const useRoverControls = (
 	const resetSensor = (sensor: Sensors) => {
 		if(ros) {
 			// load cell ids: HD=0, Drill=1
-			switch (sensor) {
-				case Sensors.MASS_HD:
-					resetMassHDTopic?.publish({ id: 0, tare: true, change_scale: false, scale: 0.0 })
-					break
-
-				case Sensors.MASS_DRILL:
-					resetMassDrillTopic?.publish({ id: 1, tare: true, change_scale: false, scale: 0.0 })
-					break
-
-				default:
-					break
-			}
+			resetMassTopic?.publish({ id: (sensor == Sensors.MASS_HD) ? 0 : 1, tare: true, change_scale: false, scale: 0.0 })
 		}
 	}
 
@@ -648,7 +621,7 @@ const useRoverControls = (
 		if(ros) {
 			// systems: NAV=0, HD=1, DRILL=2, AVIONICS=3 -- turn every system's LED off (mode=OFF)
 			[0, 1, 2, 3].forEach((system) => {
-				ledCommandsTopic?.publish({ system, mode: 0 })
+				ledRequestTopic?.publish({ system, mode: 0 })
 			})
 		}
 	}
@@ -656,102 +629,16 @@ const useRoverControls = (
 	const reset_motors = () => {
 		if(ros) {
 			// mode=EMERGENCY_MOTORS is not tied to a specific system
-			ledCommandsTopic?.publish({ system: 0, mode: 4 })
+			ledRequestTopic?.publish({ system: 0, mode: 4 })
 		}
 	}
 
 	const emergency_shutdown = () => {
 		if(ros) {
 			// mode=EMERGENCY_SHUTDOWN is not tied to a specific system
-			ledCommandsTopic?.publish({ system: 0, mode: 5 })
+			ledRequestTopic?.publish({ system: 0, mode: 5 })
 		}
 	}
-
-	// ----------------------------------------------------------------------------
-	// ----------------------------------------------------------------------------
-	// LED SYNC
-
-	// True if any wheel is reporting a steering or driving fault (roverState.navigation.wheels.*).
-	// This is the only live NAV fault signal currently published (see getSteeringState/getDrivingState
-	// in roverStateParser.ts for the equivalent per-wheel display logic).
-	const navHasFault = useMemo(() => {
-		const wheels = (roverState as any)?.navigation?.wheels;
-		if (!wheels) return false;
-		return Object.values(wheels).some((wheel: any) => wheel?.steering_fault || wheel?.driving_fault);
-	}, [roverState]);
-
-	// NAV: FAULT takes priority over mode display. AUTO -> BLINK, ACKERMANN/OMNI -> ON, OFF -> OFF.
-	// Republished periodically (not just once) in case the avionics node wasn't subscribed yet when
-	// the first message went out over rosbridge.
-	useEffect(() => {
-		const navState = stateServices[SubSystems.NAGIVATION].service.state;
-
-		let mode: number | null = null;
-		if (navHasFault) {
-			mode = 3; // FAULT
-		} else if (navState === States.AUTO) {
-			mode = 2; // BLINK
-		} else if (navState === States.ACKERMANN || navState === States.OMNI_DIRECTIONAL) {
-			mode = 1; // ON
-		} else if (navState === States.OFF) {
-			mode = 0; // OFF
-		}
-
-		if (mode === null) return;
-
-		ledCommandsTopic?.publish({ system: 0, mode })
-		const interval = setInterval(() => {
-			ledCommandsTopic?.publish({ system: 0, mode })
-		}, 2000)
-
-		return () => clearInterval(interval)
-	}, [stateServices[SubSystems.NAGIVATION].service.state, navHasFault, ledCommandsTopic])
-
-	// HD: AUTO -> BLINK. (HD FAULT isn't wired yet -- the interface no longer publishes a
-	// per-joint fault/mode_motor signal to key off of.)
-	useEffect(() => {
-		if (stateServices[SubSystems.HANDLING_DEVICE].service.state !== States.AUTO) {
-			return;
-		}
-
-		ledCommandsTopic?.publish({ system: 1, mode: 2 })
-		const interval = setInterval(() => {
-			ledCommandsTopic?.publish({ system: 1, mode: 2 })
-		}, 2000)
-
-		return () => clearInterval(interval)
-	}, [stateServices[SubSystems.HANDLING_DEVICE].service.state, ledCommandsTopic])
-
-	// DRILL: ON -> ON. (DRILL only has ON/OFF modes, no AUTO-equivalent to BLINK on; DRILL FAULT
-	// isn't wired yet -- no confirmed fault signal to key off of.)
-	useEffect(() => {
-		if (stateServices[SubSystems.DRILL].service.state !== States.ON) {
-			return;
-		}
-
-		ledCommandsTopic?.publish({ system: 2, mode: 1 })
-		const interval = setInterval(() => {
-			ledCommandsTopic?.publish({ system: 2, mode: 1 })
-		}, 2000)
-
-		return () => clearInterval(interval)
-	}, [stateServices[SubSystems.DRILL].service.state, ledCommandsTopic])
-
-	// AVIONICS: alive (heartbeat counter changing, see roverStateHooks) -> ON.
-	const avionicsAlive = getAvionicsAlive(roverState);
-	useEffect(() => {
-		if (!avionicsAlive) {
-			return;
-		}
-
-		ledCommandsTopic?.publish({ system: 3, mode: 1 })
-		const interval = setInterval(() => {
-			ledCommandsTopic?.publish({ system: 3, mode: 1 })
-		}, 2000)
-
-		return () => clearInterval(interval)
-	}, [avionicsAlive, ledCommandsTopic])
-
 
 	return [
 		roverState,
@@ -797,7 +684,6 @@ const useRoverControls = (
 		setDisplayGif,
 		sendHdNamedPose,
 		screenshotAllCameras,
-		setSuspensionHeight,
 		updateHdTaskCommand
 	] as const;
 };
