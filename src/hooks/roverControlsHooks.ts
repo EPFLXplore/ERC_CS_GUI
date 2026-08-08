@@ -135,20 +135,12 @@ const useRoverControls = (
 	const [numberElementToSelect, setNumberElementToSelect] = useState<number>(0);
 	const [imageToSelect, setImageToSelect] = useState<string | null>(null);
 
-	// PLease remove the displayGif after the ERC 2025, it was a joke for the competition
-	// It is used to display a gif when the user scans a QRCODE on an image.
-	const [displayGif, setDisplayGif] = useState<boolean | null>(null);
-
 	// Confirmation when the HDS stack is launched.
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
 	const resetMassTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_REQ, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
 	const screenshotTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.SCREENSHOT_ALL_CAMS, messageType: "std_msgs/Bool", queue_length: 1, queue_size: 1 }) : null, [ros]);
 	const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
-
-	// When the user clicks on the button to record sensors, it sets the state to true and records the sensors in a csv file
-	// using HTTP requests to the backend ExpressJS server
-	const [recordSensors, setRecordSensors] = useState(false)
 
 	// Panels of Control for ROS nodes. Which one is open on the control page
 	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
@@ -459,7 +451,6 @@ const useRoverControls = (
 		const clearConfirmationPrompt = () => {
 			setHDConfirmation(null);
 			setQrCode(null);
-			setDisplayGif(null);
 		};
 
 		// Use the advertise() method to indicate that we want to provide this service
@@ -470,13 +461,6 @@ const useRoverControls = (
 
 			const information = request.information;
 			setQrCode(information);
-
-			// TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION
-			if(information === "A" || information === "B" || information === "C"
-				|| information === "D" || information === "E" || information === "F"
-			) {
-				setDisplayGif(true);
-			}
 
 			const result = await new Promise<boolean>((resolve) => {
 				setHDConfirmation(() => (confirm: boolean) => {
@@ -677,10 +661,6 @@ const useRoverControls = (
 		reset_leds,
 		reset_motors,
 		emergency_shutdown,
-		recordSensors, 
-		setRecordSensors,
-		displayGif,
-		setDisplayGif,
 		sendHdNamedPose,
 		screenshotAllCameras,
 		updateHdTaskCommand

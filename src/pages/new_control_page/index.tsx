@@ -33,7 +33,6 @@ import ParametersModal from "../../components/modals/ParametersModal";
 import BindingsModal from "../../components/modals/BindingsModal";
 import NodeModal from "../../components/modals/NodeModal";
 import ImageSelection from "../../components/data/ImageSelection";
-import GifOverlay from "../../components/data/GifView/GifOverlay";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
@@ -270,10 +269,6 @@ const NewControlPage = () => {
 		reset_leds,
 		reset_motors,
 		emergency_shutdown,
-		recordSensors,
-		setRecordSensors,
-		displayGif,
-		setDisplayGif,
 		sendHdNamedPose,
 		screenshotAllCameras,
 		updateHdTaskCommand
@@ -299,37 +294,6 @@ const NewControlPage = () => {
 
 	const roverStateRef = useRef(roverState);
 	roverStateRef.current = roverState;
-	const recordSensorsRef = useRef(recordSensors);
-	recordSensorsRef.current = recordSensors;
-
-	const recordMassAndEnvSensors = useCallback(() => {
-		const state = roverStateRef.current;
-		if (getMassArmSensor(state) === "NO DATA" || !recordSensorsRef.current) return;
-		recordSensorData(SensorsType.MASS_HD,
-			getMassArmSensor(state).toString(),
-			getMassDrillSensor(state).toString(),
-			getForInOneSensor(state).temperature.toString(),
-			getForInOneSensor(state).humidity.toString(),
-			getForInOneSensor(state).conductivity.toString(),
-			getForInOneSensor(state).ph.toString(),
-			getDustSensor(state).pm1_0_std.toString(),
-			getDustSensor(state).pm2_5_std.toString(),
-			getDustSensor(state).pm10_std.toString(),
-			getDustSensor(state).pm1_0_atm.toString(),
-			getDustSensor(state).pm2_5_atm.toString(),
-			getDustSensor(state).pm10_atm.toString(),
-			getDustSensor(state).num_particles_0_3.toString(),
-			getDustSensor(state).num_particles_0_5.toString(),
-			getDustSensor(state).num_particles_1_0.toString(),
-			getDustSensor(state).num_particles_2_5.toString(),
-			getDustSensor(state).num_particles_5_0.toString(),
-			getDustSensor(state).num_particles_10.toString());
-	}, []);
-
-	useEffect(() => {
-		const interval = setInterval(recordMassAndEnvSensors, 500);
-		return () => clearInterval(interval);
-	}, [recordMassAndEnvSensors]);
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page
@@ -348,9 +312,6 @@ const NewControlPage = () => {
 				return newModalOpen;
 			} else if (system === "emergency_shutdown") {
 				emergency_shutdown();
-				return newModalOpen;
-			} else if (system === "record_sensors") {
-				setRecordSensors(!recordSensors);
 				return newModalOpen;
 			} else if (system === "screenshot") {
 				screenshotAllCameras();
@@ -770,17 +731,7 @@ const NewControlPage = () => {
 							<RefreshWarning />
 						</div>
 					)}
-
 					<>
-						{/*TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION*/}
-						{displayGif !== null && (
-							<GifOverlay
-								src={`gif/${qrCode}.gif`}
-								durationMs={5000}
-								onClose={() => setDisplayGif(null)}
-							/>
-						)}
-
 						{hdConfirmation !== null && (
 							<div className={styles.confirm}>
 							<div className={styles.confirmBox}>
@@ -914,13 +865,6 @@ const NewControlPage = () => {
 									running={States.OFF}
 									icon={BindingsIcon}
 									tooltip={"Bindings"}
-								/>
-								<QuickAction
-									onClick={() => displaySystemModal("record_sensors")}
-									selected={false}
-									running={recordSensors ? States.ON : States.OFF}
-									icon={Sensor}
-									tooltip={"Record Sensors"}
 								/>
 								<QuickAction
 									onClick={() => displaySystemModal("screenshot")}
