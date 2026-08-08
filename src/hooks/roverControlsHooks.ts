@@ -11,7 +11,6 @@ import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
-import { getAvionicsAlive } from "../utils/roverStateParser";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
