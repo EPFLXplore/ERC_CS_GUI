@@ -15,23 +15,34 @@ const LOAD_CELLS = [
 	{ id: 1, label: "Drill Soil", hint: "Drill load cell" },
 ] as const;
 
-/** ServoRequest `id` convention agreed with avionics. */
-const SERVOS = [
+/**
+ * ServoRequest `id` is the physical PWM channel (`Servos_ID` in the firmware's ServoThread.h):
+ * 0 = front camera, 1 = drill sand bowl.
+ */
+const CAMERA_SERVO = {
+	id: 0,
+	label: "ZED 2i Front Camera",
+	defaultAngle: 90,
+	minLabel: "0° pitch up",
+	midLabel: "90° straight ahead",
+	maxLabel: "180° pitch down",
+} as const;
+
+const BOWL_SERVO = { id: 1, label: "Drill Sand Bowl" } as const;
+
+/** The bowl is only ever driven to its two end stops, never parked in between. */
+const BOWL_POSITIONS = [
 	{
-		id: 0,
-		label: "ZED 2i Front Camera",
-		defaultAngle: 90,
-		minLabel: "0° pitch up",
-		midLabel: "90° straight ahead",
-		maxLabel: "180° pitch down",
+		angle: 0,
+		goToZero: true,
+		label: "Open to drill",
+		hint: "Bowl swung to the deep side of the culotte, clear of the drill",
 	},
 	{
-		id: 1,
-		label: "Drill Rail",
-		defaultAngle: 90,
-		minLabel: "0°",
-		midLabel: "90°",
-		maxLabel: "180°",
+		angle: 180,
+		goToZero: false,
+		label: "Close to measure",
+		hint: "Bowl under the drill to take the sand",
 	},
 ] as const;
 
@@ -54,12 +65,9 @@ function AvionicsModal({
 }) {
 	const [masses, setMasses] = useState<Record<number, MassReading>>({});
 	const [selectedCell, setSelectedCell] = useState<number>(LOAD_CELLS[0].id);
-	const [angles, setAngles] = useState<Record<number, number>>(() =>
-		SERVOS.reduce((acc, servo) => {
-			acc[servo.id] = servo.defaultAngle;
-			return acc;
-		}, {} as Record<number, number>)
-	);
+	const [cameraAngle, setCameraAngle] = useState<number>(CAMERA_SERVO.defaultAngle);
+	// The bowl has no feedback topic, so this is the last angle *we* commanded — null until then.
+	const [bowlAngle, setBowlAngle] = useState<number | null>(null);
 	// Freshness is a function of wall-clock time, so it needs its own tick to re-render.
 	const [now, setNow] = useState(() => Date.now());
 
@@ -218,78 +226,87 @@ function AvionicsModal({
 					<section className={styles.Section}>
 						<div className={styles.SectionHeader}>
 							<h2>Servos</h2>
-							<span className={styles.SectionHint}>
-								The angle is published when the slider is released, or with Send.
-							</span>
+							<span className={styles.SectionHint}>PWM channel = ServoRequest id.</span>
 						</div>
 
-						{SERVOS.map((servo) => (
-							<div className={styles.ServoRow} key={servo.id}>
-								<div className={styles.ServoTitleRow}>
-									<span className={styles.ServoTitle}>{servo.label}</span>
-									<span className={styles.CellId}>ID {servo.id}</span>
-									<span className={styles.AngleValue}>{angles[servo.id]}°</span>
-								</div>
-
-								<input
-									type="range"
-									min={ANGLE_MIN}
-									max={ANGLE_MAX}
-									step={1}
-									value={angles[servo.id]}
-									className={styles.Slider}
-									aria-label={`${servo.label} angle`}
-									onChange={(event) =>
-										setAngles((previous) => ({
-											...previous,
-											[servo.id]: Number(event.target.value),
-										}))
-									}
-									onPointerUp={() => sendServo(servo.id, angles[servo.id], false)}
-									onKeyUp={() => sendServo(servo.id, angles[servo.id], false)}
-								/>
-
-								<div className={styles.ScaleLabels}>
-									<span>{servo.minLabel}</span>
-									<span>{servo.midLabel}</span>
-									<span>{servo.maxLabel}</span>
-								</div>
-
-								<div className={styles.ServoActions}>
-									<button
-										type="button"
-										className={styles.ServoButton}
-										onClick={() => sendServo(servo.id, angles[servo.id], false)}
-									>
-										Send
-									</button>
-									<button
-										type="button"
-										className={styles.ServoButton}
-										onClick={() => {
-											setAngles((previous) => ({
-												...previous,
-												[servo.id]: servo.defaultAngle,
-											}));
-											sendServo(servo.id, servo.defaultAngle, false);
-										}}
-									>
-										Default ({servo.defaultAngle}°)
-									</button>
-									<button
-										type="button"
-										className={styles.ServoButton}
-										onClick={() => {
-											setAngles((previous) => ({ ...previous, [servo.id]: ANGLE_MIN }));
-											sendServo(servo.id, ANGLE_MIN, true);
-										}}
-										title="Sends go_to_zero"
-									>
-										Go To Zero
-									</button>
-								</div>
+						<div className={styles.ServoRow}>
+							<div className={styles.ServoTitleRow}>
+								<span className={styles.ServoTitle}>{CAMERA_SERVO.label}</span>
+								<span className={styles.CellId}>ID {CAMERA_SERVO.id}</span>
+								<span className={styles.AngleValue}>{cameraAngle}°</span>
 							</div>
-						))}
+
+							<input
+								type="range"
+								min={ANGLE_MIN}
+								max={ANGLE_MAX}
+								step={1}
+								value={cameraAngle}
+								className={styles.Slider}
+								aria-label={`${CAMERA_SERVO.label} angle`}
+								onChange={(event) => setCameraAngle(Number(event.target.value))}
+								onPointerUp={() => sendServo(CAMERA_SERVO.id, cameraAngle, false)}
+								onKeyUp={() => sendServo(CAMERA_SERVO.id, cameraAngle, false)}
+							/>
+
+							<div className={styles.ScaleLabels}>
+								<span>{CAMERA_SERVO.minLabel}</span>
+								<span>{CAMERA_SERVO.midLabel}</span>
+								<span>{CAMERA_SERVO.maxLabel}</span>
+							</div>
+
+							<div className={styles.ServoActions}>
+								<button
+									type="button"
+									className={styles.ServoButton}
+									onClick={() => sendServo(CAMERA_SERVO.id, cameraAngle, false)}
+								>
+									Send
+								</button>
+								<button
+									type="button"
+									className={styles.ServoButton}
+									onClick={() => {
+										setCameraAngle(CAMERA_SERVO.defaultAngle);
+										sendServo(CAMERA_SERVO.id, CAMERA_SERVO.defaultAngle, false);
+									}}
+								>
+									Straight Ahead ({CAMERA_SERVO.defaultAngle}°)
+								</button>
+							</div>
+						</div>
+
+						<div className={styles.ServoRow}>
+							<div className={styles.ServoTitleRow}>
+								<span className={styles.ServoTitle}>{BOWL_SERVO.label}</span>
+								<span className={styles.CellId}>ID {BOWL_SERVO.id}</span>
+								<span className={styles.AngleValue}>
+									{bowlAngle === null ? "—" : `${bowlAngle}°`}
+								</span>
+							</div>
+
+							<div className={styles.BowlActions}>
+								{BOWL_POSITIONS.map((position) => (
+									<button
+										type="button"
+										key={position.angle}
+										className={`${styles.BowlButton} ${
+											bowlAngle === position.angle ? styles.BowlButtonActive : ""
+										}`}
+										aria-pressed={bowlAngle === position.angle}
+										onClick={() => {
+											setBowlAngle(position.angle);
+											sendServo(BOWL_SERVO.id, position.angle, position.goToZero);
+										}}
+									>
+										<span className={styles.BowlButtonLabel}>
+											{position.label} ({position.angle}°)
+										</span>
+										<span className={styles.BowlButtonHint}>{position.hint}</span>
+									</button>
+								))}
+							</div>
+						</div>
 					</section>
 				</div>
 
