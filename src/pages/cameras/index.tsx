@@ -405,9 +405,11 @@ const CamerasPage = () => {
 	};
 	const removeCameraByIndex = useCallback((index: number) => removeCameraByIndexRef.current(index), []);
 
-	const saveCameraScreenshots = useCallback(async () => {
+	const saveCameraScreenshots = useCallback(async (): Promise<{ saved: number; failed: number }> => {
 		const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 		const backendUrl = getCameraBackendBaseUrl();
+		let saved = 0;
+		let failed = 0;
 		for (let i = 0; i < displayedCameras.length; i++) {
 			const camera = displayedCameras[i];
 			const source = cameraSources[camera.id];
@@ -443,8 +445,11 @@ const CamerasPage = () => {
 			} catch {
 				dataUrl = null;
 			}
-			if (!dataUrl) continue;
-			await fetch(`${backendUrl}/save-screenshot`, {
+			if (!dataUrl) {
+				failed++;
+				continue;
+			}
+			const written = await fetch(`${backendUrl}/save-screenshot`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
@@ -452,26 +457,63 @@ const CamerasPage = () => {
 					filename: `${ts}.jpg`,
 					imageData: dataUrl,
 				}),
-			}).catch((err) => console.error("[save-screenshot]", err));
+			})
+				.then((response) => response.ok)
+				.catch((err) => {
+					console.error("[save-screenshot]", err);
+					return false;
+				});
+			if (written) saved++;
+			else failed++;
 		}
+		return { saved, failed };
 	}, [displayedCameras, cameraSources, imagesByTopic]);
 
 	const drillCamera = CAMERA_DEFS.find((c) => c.id === "drill_inside")!;
 
+	/** The advertise callback is registered once per connection, so it must not close over a stale
+	 *  `saveCameraScreenshots` (which changes whenever the displayed cameras do). */
+	const saveCameraScreenshotsRef = useRef(saveCameraScreenshots);
+	saveCameraScreenshotsRef.current = saveCameraScreenshots;
+
+	/**
+	 * `/SC/take_picture_drill` is served *by* the control station: the drill node calls it, this page
+	 * captures every displayed feed. Only advertised while the cameras page is mounted — a call made
+	 * with the page closed fails on the drill side, which is the intended signal.
+	 */
 	useEffect(() => {
 		if (!ros) return;
-		const sub = new ROSLIB.Topic({
+		const srv = new ROSLIB.Service<
+			Record<string, never>,
+			{ success: boolean; message: string }
+		>({
 			ros,
 			name: "/SC/take_picture_drill",
-			messageType: "std_msgs/Bool",
-			queue_length: 1,
+			serviceType: "std_srvs/srv/Trigger",
 		});
-		sub.subscribe((msg: unknown) => {
-			if ((msg as { data?: boolean }).data === true) {
-				void saveCameraScreenshots();
+		// advertiseAsync, not advertise: the response must wait until the frames are on disk, so the
+		// drill learns whether the capture actually succeeded.
+		srv.advertiseAsync(async () => {
+			try {
+				const { saved, failed } = await saveCameraScreenshotsRef.current();
+				return {
+					success: saved > 0,
+					message:
+						saved > 0
+							? `saved ${saved} screenshot(s)${failed > 0 ? `, ${failed} failed` : ""}`
+							: "no camera frame could be captured",
+				};
+			} catch (err) {
+				return { success: false, message: `capture failed: ${String(err)}` };
 			}
 		});
-		return () => sub.unsubscribe();
+		return () => {
+			try {
+				srv.unadvertise();
+			} catch {
+				// Connection already torn down; rosbridge drops the advertisement with the client.
+			}
+		};
 	}, [ros]);
 
 	return (
