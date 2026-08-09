@@ -13,7 +13,7 @@ stringified and then converted to JSON again by us to access it easily.
 export interface SubsystemState {
     navigation: any;
     handling_device: any;
-    /** `undefined` until first `/DRILL/State` message (so UI can show NO DATA vs Disconnected). */
+    /** `undefined` until first `/SC/State` message (so UI can show NO DATA vs Disconnected). */
     drill?: any;
     electronics: any;
     rover: any;  // Keep for global info if needed
@@ -73,7 +73,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         const drillStateListener = new ROSLIB.Topic({
             ros: ros,
-            name: "/DRILL/State",
+            name: "/SC/State",
             messageType: "std_msgs/String",
             queue_length: 1,
             queue_size: 1,
@@ -150,7 +150,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
                     );
                 }
             } catch (e) {
-                console.warn("[roverState] /DRILL/State parse failed:", e);
+                console.warn("[roverState] /SC/State parse failed:", e);
             }
         });
 

@@ -9,7 +9,7 @@ import States from "../data/states.type";
  *	roverState = {
  *		navigation: { ... },        // From /NAV/State (1 Hz)
  *		handling_device: { ... },   // From /HD/State (1 Hz)
- *		drill: { ... } | undefined, // From /DRILL/State (1 Hz); undefined until first message
+ *		drill: { ... } | undefined, // From /SC/State (1 Hz); undefined until first message
  *		electronics: { ... },      // From /EL/State (1 Hz)
  *		rover: { ... }             // Optional: from aggregator
  *	}
@@ -758,7 +758,7 @@ const getDustSensor = (data: any) => {
 
 //////////////////////// DRILL ////////////////////////
 
-/** True after at least one valid `/DRILL/State` message was applied (`drill` is no longer `undefined`). */
+/** True after at least one valid `/SC/State` message was applied (`drill` is no longer `undefined`). */
 const drillStateTopicSeen = (roverState: any): boolean =>
 	roverState != null && roverState.drill !== undefined;
 
@@ -783,7 +783,7 @@ const getMotorModule = (data: any) => {
 		};
 	}
 
-	// Show telemetry from /DRILL/State even when subsystem mode is Off (interface still publishes motors).
+	// Show telemetry from /SC/State even when subsystem mode is Off (interface still publishes motors).
 	const subsystemOff =
 		drillData?.state?.mode === States.OFF || String(drillData?.state?.mode).toLowerCase() === "off";
 

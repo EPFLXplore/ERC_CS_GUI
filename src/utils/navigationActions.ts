@@ -80,4 +80,36 @@ const resetHome = (
     }
 };
 
-export { resetFaults, resetHome };
+const requestQrCodeScan = (
+    ros: ROSLIB.Ros | null,
+    snackBar: (severity: AlertColor, message: string) => void,
+    onSuccess: (message: string) => void,
+) => {
+    if (!ros) {
+        snackBar("error", "ROS connection not available");
+        return;
+    }
+
+    const qrCodeService = new ROSLIB.Service({
+        ros,
+        name: Topics.NAV_QR_CODE_REQUEST,
+        serviceType: "std_srvs/srv/Trigger",
+    });
+
+    qrCodeService.callService(
+        {},
+        (res) => {
+            if ((res as any)["success"]) {
+                onSuccess((res as any)["message"] ?? "");
+                snackBar("success", "QR code scan completed");
+            } else {
+                snackBar("error", (res as any)["message"] ?? "QR code scan failed");
+            }
+        },
+        (err) => {
+            snackBar("error", "Error: " + err);
+        },
+    );
+};
+
+export { resetFaults, resetHome, requestQrCodeScan };

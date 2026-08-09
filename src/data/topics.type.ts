@@ -7,7 +7,6 @@ export enum Topics {
     /** 1 Hz `std_msgs/String` JSON for the whole NAV subsystem UI — **not** a Nav2 topic. If missing while Nav2 topics exist, start the NAV interface / state publisher on the robot (or `REACT_APP_NAV_STATE_TOPIC`). */
     NAV_STATE = "/NAV/State",                         // 1Hz state summary (subscribe)
     NAV_GAMEPAD_CMDS = "/CS/GamepadCmdsNav",          // Gamepad commands (publish) - Direct to NAV interface
-    ACTIVE_SUSPENSION_HEIGHT = "/NAV/ActiveSuspensionHeight", // Active suspension height command (publish)
     NAV_CHANGE_SPEED = "/ROVER/change_NAV_speed", // NAV DisplacementCmds + rover_interface_names rover_change_nav_speed
     NAV_RESET_MOTORS = "/CS/ResetNavMotors",          // Service: reset motors
     NAV_RESET_HOME = "/CS/ResetHomeNavMotors",       // Service: reset to home
@@ -22,6 +21,8 @@ export enum Topics {
     NAV_FRONT_CAMERA_COMPRESSED = "/zed/zed_node/rgb/color/rect/image/compressed",
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
     SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
+    /** `std_srvs/srv/Trigger` — request a QR code scan; response message is the scanned content. */
+    NAV_QR_CODE_REQUEST = "/NAV/qr_code_request",
 
     // ============================================
     // HANDLING DEVICE (HD) Subsystem Interface
@@ -44,7 +45,7 @@ export enum Topics {
     // ============================================
     // DRILL Subsystem Interface
     // ============================================
-    DRILL_STATE = "/DRILL/State",                // 1Hz state summary (subscribe)
+    DRILL_STATE = "/SC/State",                // 1Hz state summary (subscribe)
     DRILL_CMD = "/CS/DrillTerrain",              // Action: drill commands
     DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode (DrillCSInterface)
     /** Legacy: same srv/DrillMode if interface node is old or only SC name is advertised */
@@ -59,11 +60,7 @@ export enum Topics {
     EL_BMS_TOPIC = "/EL/bms_topic",              // BMS status/voltage/current (subscribe)
     EL_MASS_PACKET = "/EL/mass_packet",          // Live mass sensor readings (subscribe)
     EL_LED_COMMANDS = "/EL/led_req",             // LED control (publish)
-    EL_MASS_TARE_HD = "/EL/mass_req_hd",        // Mass sensor tare HD
-    EL_MASS_TARE_DRILL = "/EL/mass_req_drill",  // Mass sensor tare Drill
-    /** Load cell request (publish, `custom_msg/MassRequest`). id 0 = sand & rocks, id 1 = drill soil. */
     EL_MASS_REQ = "/EL/mass_req",
-    /** Servo request (publish, `custom_msg/ServoRequest`). id 0 = ZED 2i front camera, id 1 = drill rail. */
     EL_SERVO_REQ = "/EL/servo_req",
 
     // ============================================
@@ -92,16 +89,10 @@ export enum Topics {
     
     // Navigation speed change - Already defined as NAV_CHANGE_SPEED but used differently
     CHANGE_SPEED_ROVER = "/ROVER/change_NAV_speed",
-    
-    // Mass sensor services - Assigned to EL (Electronics)
-    MASS_TARE_DRILL = "/EL/mass_req_drill",  // Already defined
-    MASS_TARE_HD = "/EL/mass_req_hd",  // Already defined
-    
+
     // Screenshot topic
     SCREENSHOT_ALL_CAMERAS = "/CS/ScreenshotAllCameras",
-    
-    // LED control - Assigned to EL (Electronics)  
-    LED_PUBLISHER = "/EL/led_req",  // Already defined
+
     
     // HD Services - Control station interaction
     REQUEST_SELECTION_IMAGE = "/HD/ImageSelection",  // Same as HD_IMAGE_SELECTION

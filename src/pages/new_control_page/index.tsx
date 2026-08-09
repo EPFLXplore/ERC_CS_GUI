@@ -33,7 +33,6 @@ import ParametersModal from "../../components/modals/ParametersModal";
 import BindingsModal from "../../components/modals/BindingsModal";
 import NodeModal from "../../components/modals/NodeModal";
 import ImageSelection from "../../components/data/ImageSelection";
-import GifOverlay from "../../components/data/GifView/GifOverlay";
 
 import SubSystems from "../../data/subsystems.type";
 import States from "../../data/states.type";
@@ -80,10 +79,8 @@ import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService, startHdDepthCameraService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
-import {resetFaults, resetHome} from "../../utils/navigationActions";
+import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
 import ScienceModal from "../../components/modals/ScienceModal";
-import SuspensionModal from "../../components/modals/SuspensionModal";
-import MicroscopeModal from "../../components/modals/MicroscopeModal";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import { Sensors, SensorsType } from "../../data/sensors.types";
@@ -104,6 +101,7 @@ const WIDGET_KEYS = [
 	"hdData",
 	"currentPosition",
 	"scienceSensors",
+	"qrCodeScanner",
 ] as const;
 
 type WidgetKey = (typeof WIDGET_KEYS)[number];
@@ -138,6 +136,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	hdData: "HD Data",
 	currentPosition: "Current Position",
 	scienceSensors: "Science Sensors",
+	qrCodeScanner: "QR Code Scanner",
 };
 
 const buildVisibility = (enabledKeys: WidgetKey[]): Record<WidgetKey, boolean> => {
@@ -158,6 +157,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonNav",
 		"drill",
 		"currentPosition",
+		"qrCodeScanner",
 	]),
 	Manipulation: buildVisibility([
 		"drivingCurrents",
@@ -272,13 +272,8 @@ const NewControlPage = () => {
 		reset_leds,
 		reset_motors,
 		emergency_shutdown,
-		recordSensors,
-		setRecordSensors,
-		displayGif,
-		setDisplayGif,
 		sendHdNamedPose,
 		screenshotAllCameras,
-		setSuspensionHeight,
 		updateHdTaskCommand
   	] = roverControls;
 
@@ -302,37 +297,6 @@ const NewControlPage = () => {
 
 	const roverStateRef = useRef(roverState);
 	roverStateRef.current = roverState;
-	const recordSensorsRef = useRef(recordSensors);
-	recordSensorsRef.current = recordSensors;
-
-	const recordMassAndEnvSensors = useCallback(() => {
-		const state = roverStateRef.current;
-		if (getMassArmSensor(state) === "NO DATA" || !recordSensorsRef.current) return;
-		recordSensorData(SensorsType.MASS_HD,
-			getMassArmSensor(state).toString(),
-			getMassDrillSensor(state).toString(),
-			getForInOneSensor(state).temperature.toString(),
-			getForInOneSensor(state).humidity.toString(),
-			getForInOneSensor(state).conductivity.toString(),
-			getForInOneSensor(state).ph.toString(),
-			getDustSensor(state).pm1_0_std.toString(),
-			getDustSensor(state).pm2_5_std.toString(),
-			getDustSensor(state).pm10_std.toString(),
-			getDustSensor(state).pm1_0_atm.toString(),
-			getDustSensor(state).pm2_5_atm.toString(),
-			getDustSensor(state).pm10_atm.toString(),
-			getDustSensor(state).num_particles_0_3.toString(),
-			getDustSensor(state).num_particles_0_5.toString(),
-			getDustSensor(state).num_particles_1_0.toString(),
-			getDustSensor(state).num_particles_2_5.toString(),
-			getDustSensor(state).num_particles_5_0.toString(),
-			getDustSensor(state).num_particles_10.toString());
-	}, []);
-
-	useEffect(() => {
-		const interval = setInterval(recordMassAndEnvSensors, 500);
-		return () => clearInterval(interval);
-	}, [recordMassAndEnvSensors]);
 
 	/**
 	 * Function handling the windows of actions at the bottom of the page
@@ -351,9 +315,6 @@ const NewControlPage = () => {
 				return newModalOpen;
 			} else if (system === "emergency_shutdown") {
 				emergency_shutdown();
-				return newModalOpen;
-			} else if (system === "record_sensors") {
-				setRecordSensors(!recordSensors);
 				return newModalOpen;
 			} else if (system === "screenshot") {
 				screenshotAllCameras();
@@ -378,8 +339,8 @@ const NewControlPage = () => {
 						reset_leds,
 						sendHdNamedPose,
 						ros,
-						setSuspensionHeight,
-						updateHdTaskCommand
+						updateHdTaskCommand,
+						handleQrCodeScan
 					)
 				);
 
@@ -411,6 +372,14 @@ const NewControlPage = () => {
 	const [isWidgetMenuOpen, setIsWidgetMenuOpen] = useState(false);
 	const [activePreset, setActivePreset] = useState<TaskPreset | "Custom">("All");
 	const [j1Speed, setJ1Speed] = useState<J1Speed>(() => loadJ1Speed());
+	const [qrCodeMessage, setQrCodeMessage] = useState<string>("NO DATA");
+
+	const handleQrCodeScan = useCallback(
+		(rosInstance: ROSLIB.Ros | null, snackBar: (severity: AlertColor, message: string) => void) => {
+			requestQrCodeScan(rosInstance, snackBar, setQrCodeMessage);
+		},
+		[],
+	);
 
 	const toggleJ1Speed = useCallback(() => {
 		// Computed outside the updater: saveJ1Speed dispatches an event, and side effects must
@@ -693,8 +662,19 @@ const NewControlPage = () => {
 				/>
 			),
 		},
+		{
+			key: "qrCodeScanner",
+			content: (
+				<InfoBox
+					title="QR Code Scanner"
+					infos={[
+						{ name: "Result", value: qrCodeMessage },
+					]}
+				/>
+			),
+		},
 	];
-	}, [roverState]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [roverState, qrCodeMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -774,17 +754,7 @@ const NewControlPage = () => {
 							<RefreshWarning />
 						</div>
 					)}
-
 					<>
-						{/*TODO REMOVE ME AFTER ERC 2025, IT WAS FOR A JOKE IN THE COMPETITION*/}
-						{displayGif !== null && (
-							<GifOverlay
-								src={`gif/${qrCode}.gif`}
-								durationMs={5000}
-								onClose={() => setDisplayGif(null)}
-							/>
-						)}
-
 						{hdConfirmation !== null && (
 							<div className={styles.confirm}>
 							<div className={styles.confirmBox}>
@@ -879,13 +849,6 @@ const NewControlPage = () => {
 									className={styles.drillAction}
 								/>
 								<QuickAction
-									onClick={() => displaySystemModal("suspension")}
-									selected={systemsModalOpen["suspension"]}
-									running={States.OFF}
-									icon={Suspension}
-									tooltip={"Active Suspension"}
-								/>
-								<QuickAction
 									onClick={() => displaySystemModal(SubSystems.SCIENCE)}
 									selected={systemsModalOpen[SubSystems.SCIENCE]}
 									running={States.OFF}
@@ -927,25 +890,11 @@ const NewControlPage = () => {
 									tooltip={"Bindings"}
 								/>
 								<QuickAction
-									onClick={() => displaySystemModal("record_sensors")}
-									selected={false}
-									running={recordSensors ? States.ON : States.OFF}
-									icon={Sensor}
-									tooltip={"Record Sensors"}
-								/>
-								<QuickAction
 									onClick={() => displaySystemModal("screenshot")}
 									selected={false}
 									running={States.OFF}
 									icon={Screenshot}
 									tooltip={"Screenshot all Cameras"}
-								/>
-								<QuickAction
-									onClick={() => displaySystemModal("microscope")}
-									selected={Boolean(systemsModalOpen["microscope"])}
-									running={States.OFF}
-									icon={CameraIcon}
-									tooltip={"Microscope"}
 								/>
 								<QuickAction
 									onClick={() => displaySystemModal("avionics")}
@@ -1033,8 +982,8 @@ const selectModal = (
 	reset_leds: () => void,
 	sendHdNamedPose: (poseName: string) => void,
 	ros: ROSLIB.Ros | null,
-	setSuspensionHeight: (value: number) => void,
-	updateHdTaskCommand: (mode: 0 | 1 | 2) => void
+	updateHdTaskCommand: (mode: 0 | 1 | 2) => void,
+	onQrCodeScan: (ros: ROSLIB.Ros | null, snackBar: (severity: AlertColor, message: string) => void) => void,
 ) => {
 	switch (system) {
 		case "commands":
@@ -1111,6 +1060,7 @@ const selectModal = (
 					snackBar={showSnackbar}
 					onResetFaults={resetFaults}
 					onResetHome={resetHome}
+					onQrCodeScan={onQrCodeScan}
 					onClose={() => {
 						setModal(<></>);
 						setSystemsModalOpen((old: typeModal) => {
@@ -1176,22 +1126,6 @@ const selectModal = (
 					resetSensors={resetSensors}
 				/>
 			);
-		case "microscope":
-			return (
-				<MicroscopeModal
-					onClose={() => {
-						setModal(<></>);
-						setSystemsModalOpen((old: typeModal) => {
-							const newModalOpen = { ...old };
-							newModalOpen["microscope"] = false;
-							return newModalOpen;
-						});
-					}}
-					ros={ros}
-					snackBar={showSnackbar}
-				/>
-			);
-
 		case "avionics":
 			return (
 				<AvionicsModal
@@ -1204,22 +1138,6 @@ const selectModal = (
 						});
 					}}
 					ros={ros}
-					snackBar={showSnackbar}
-				/>
-			);
-
-		case "suspension":
-			return (
-				<SuspensionModal
-					onClose={() => {
-						setModal(<></>);
-						setSystemsModalOpen((old: typeModal) => {
-							const newModalOpen = { ...old };
-							newModalOpen["suspension"] = false;
-							return newModalOpen;
-						});
-					}}
-					onSetHeight={setSuspensionHeight}
 					snackBar={showSnackbar}
 				/>
 			);

@@ -36,7 +36,7 @@ ROS URDf
 
 */
 
-/** `/DRILL/State` motor_module.position is in cm (0 = retracted, negative = extended). */
+/** `/SC/State` motor_module.position is in cm (0 = retracted, negative = extended). */
 const MIN_DRILL_CM = 0.0
 const MAX_DRILL_CM = -40.0
 const MAX_DRILL_STATE = -0.64
