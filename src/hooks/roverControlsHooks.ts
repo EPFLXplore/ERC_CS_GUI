@@ -139,8 +139,7 @@ const useRoverControls = (
 	const [hdStackLaunched, setHdStackLaunched] = useState<((confirm: boolean) => void) | null>(null);
 
 	const resetMassTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_MASS_REQ, messageType: "custom_msg/MassRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const screenshotTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.SCREENSHOT_ALL_CAMS, messageType: "std_msgs/Bool", queue_length: 1, queue_size: 1 }) : null, [ros]);
-	const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
+const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.EL_LED_COMMANDS, messageType: "custom_msg/LEDRequest", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// Panels of Control for ROS nodes. Which one is open on the control page
 	const [modalRosNodes, setModalRosNodes] = useState<ReactElement | null>(null);
@@ -560,15 +559,6 @@ const useRoverControls = (
 		}
 	}
 
-	const screenshotAllCameras = () => {
-		if(ros) {
-			const object = {
-				data: true
-			}
-			screenshotTopic?.publish(object);
-		}
-	}
-
 	const updateHdTaskCommand = (mode: 0 | 1 | 2) => {
 		if (!ros) {
 			showSnackbar("error", "ROS connection not available");
@@ -662,7 +652,6 @@ const useRoverControls = (
 		reset_motors,
 		emergency_shutdown,
 		sendHdNamedPose,
-		screenshotAllCameras,
 		updateHdTaskCommand
 	] as const;
 };

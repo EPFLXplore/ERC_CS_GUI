@@ -403,6 +403,55 @@ const CamerasPage = () => {
 	};
 	const removeCameraByIndex = useCallback((index: number) => removeCameraByIndexRef.current(index), []);
 
+	const downloadCameraScreenshots = useCallback(async () => {
+		const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+		for (let i = 0; i < displayedCameras.length; i++) {
+			const camera = displayedCameras[i];
+			const source = cameraSources[camera.id];
+			let dataUrl: string | null = null;
+			try {
+				if (source === "ros") {
+					dataUrl = imagesByTopic[camera.topic] ?? null;
+				} else {
+					const streamUrl = getCameraStreamUrl(camera);
+					dataUrl = await new Promise<string | null>((resolve) => {
+						const img = new Image();
+						const timer = setTimeout(() => { img.src = ""; resolve(null); }, 3000);
+						img.crossOrigin = "anonymous";
+						img.onload = () => {
+							clearTimeout(timer);
+							try {
+								const canvas = document.createElement("canvas");
+								canvas.width = img.naturalWidth || 640;
+								canvas.height = img.naturalHeight || 480;
+								const ctx = canvas.getContext("2d");
+								if (!ctx) { resolve(null); return; }
+								ctx.drawImage(img, 0, 0);
+								img.src = "";
+								resolve(canvas.toDataURL("image/jpeg", 0.9));
+							} catch {
+								resolve(null);
+							}
+						};
+						img.onerror = () => { clearTimeout(timer); resolve(null); };
+						img.src = streamUrl;
+					});
+				}
+			} catch {
+				dataUrl = null;
+			}
+			if (!dataUrl) continue;
+			const a = document.createElement("a");
+			a.href = dataUrl;
+			const camName = camera.name.replace(/\s+/g, "_");
+			a.download = `screenshots/${camName}/${ts}.jpg`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			await new Promise<void>((r) => setTimeout(r, 200));
+		}
+	}, [displayedCameras, cameraSources, imagesByTopic]);
+
 	return (
 		<div className={"page " + styles.mainPage}>
 			<Background />
@@ -477,6 +526,14 @@ const CamerasPage = () => {
 							<span className={styles.navPresetLabel}>{preset.label}</span>
 						</button>
 					))}
+					<div className={styles.hubDivider} />
+					<button
+						type="button"
+						className={styles.hubButton}
+						onClick={() => { void downloadCameraScreenshots(); }}
+					>
+						Download Screenshots
+					</button>
 					<div className={styles.hubDivider} />
 					<BitrateSlider label="RPI CS Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onCsBitrateChange} />
 					<BitrateSlider label="NAV Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onNavBitrateChange} />

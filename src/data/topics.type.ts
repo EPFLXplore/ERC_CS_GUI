@@ -20,8 +20,7 @@ export enum Topics {
     /** NAV front (ZED RGB rectified compressed); subscribed directly, not via `/CS/feed_camera_nav_*`. */
     NAV_FRONT_CAMERA_COMPRESSED = "/zed/zed_node/rgb/color/rect/image/compressed",
     NAV_CHANGE_ANGLE_FRONT_CAM = "/CS/ChangeAngleFrontCamera", //control the front camera servo position
-    SCREENSHOT_ALL_CAMS = "/NAV/ScreenshotAllCameras", // Service: screenshots
-    /** `std_srvs/srv/Trigger` — request a QR code scan; response message is the scanned content. */
+/** `std_srvs/srv/Trigger` — request a QR code scan; response message is the scanned content. */
     NAV_QR_CODE_REQUEST = "/NAV/qr_code_request",
 
     // ============================================
@@ -90,10 +89,6 @@ export enum Topics {
     // Navigation speed change - Already defined as NAV_CHANGE_SPEED but used differently
     CHANGE_SPEED_ROVER = "/ROVER/change_NAV_speed",
 
-    // Screenshot topic
-    SCREENSHOT_ALL_CAMERAS = "/CS/ScreenshotAllCameras",
-
-    
     // HD Services - Control station interaction
     REQUEST_SELECTION_IMAGE = "/HD/ImageSelection",  // Same as HD_IMAGE_SELECTION
     REQUEST_HUMAIN_VERIFICATION_HD = "/Rover/HD/human_verification",  // Same as HD_HUMAN_VERIFICATION
