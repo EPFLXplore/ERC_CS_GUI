@@ -19,6 +19,7 @@ const CAMERA_DEFS = [
 	{ id: "nav_back", name: "Back", topic: "/CS/feed_camera_nav_0", gstPort: 5000 },
 	{ id: "nav_left", name: "Top Right", topic: "/CS/feed_camera_nav_1", gstPort: 5002 },
 	{ id: "nav_right", name: "Top Left", topic: "/CS/feed_camera_nav_2", gstPort: 5004 },
+	{ id: "microscope", name: "Microscope", topic: "/microscope/image/compressed", gstPort: 5014 },
 ] as const;
 
 type CameraDef = (typeof CAMERA_DEFS)[number];
@@ -45,7 +46,7 @@ const DEFAULT_CAMERA_SOURCES = CAMERA_DEFS.reduce((acc, camera) => {
 const TASK_PRESETS = [
 	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_back", "nav_front"] },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
-	{ label: "Exploration", cameraIds: ["nav_front", "cs_top", "cs_right_steer", "cs_left_steer"] },
+	{ label: "Exploration", cameraIds: ["nav_front", "cs_top", "cs_right_steer", "cs_left_steer", "manipulation"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_top", "cs_right_steer", "nav_front"] },
 	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
 	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer"] },
