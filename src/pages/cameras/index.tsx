@@ -405,8 +405,9 @@ const CamerasPage = () => {
 	};
 	const removeCameraByIndex = useCallback((index: number) => removeCameraByIndexRef.current(index), []);
 
-	const downloadCameraScreenshots = useCallback(async () => {
+	const saveCameraScreenshots = useCallback(async () => {
 		const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+		const backendUrl = getCameraBackendBaseUrl();
 		for (let i = 0; i < displayedCameras.length; i++) {
 			const camera = displayedCameras[i];
 			const source = cameraSources[camera.id];
@@ -443,16 +444,78 @@ const CamerasPage = () => {
 				dataUrl = null;
 			}
 			if (!dataUrl) continue;
-			const a = document.createElement("a");
-			a.href = dataUrl;
-			const camName = camera.name.replace(/\s+/g, "_");
-			a.download = `screenshots/${camName}/${ts}.jpg`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			await new Promise<void>((r) => setTimeout(r, 200));
+			await fetch(`${backendUrl}/save-screenshot`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					cameraName: camera.name.replace(/\s+/g, "_"),
+					filename: `${ts}.jpg`,
+					imageData: dataUrl,
+				}),
+			}).catch((err) => console.error("[save-screenshot]", err));
 		}
 	}, [displayedCameras, cameraSources, imagesByTopic]);
+
+	const drillCamera = CAMERA_DEFS.find((c) => c.id === "drill_inside")!;
+
+	const saveDrillScreenshotRef = useRef(async () => {});
+	saveDrillScreenshotRef.current = async () => {
+		const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+		const backendUrl = getCameraBackendBaseUrl();
+		let dataUrl: string | null = imagesByTopic[drillCamera.topic] ?? null;
+		if (!dataUrl) {
+			const streamUrl = getCameraStreamUrl(drillCamera);
+			dataUrl = await new Promise<string | null>((resolve) => {
+				const img = new Image();
+				const timer = setTimeout(() => { img.src = ""; resolve(null); }, 3000);
+				img.crossOrigin = "anonymous";
+				img.onload = () => {
+					clearTimeout(timer);
+					try {
+						const canvas = document.createElement("canvas");
+						canvas.width = img.naturalWidth || 640;
+						canvas.height = img.naturalHeight || 480;
+						const ctx = canvas.getContext("2d");
+						if (!ctx) { resolve(null); return; }
+						ctx.drawImage(img, 0, 0);
+						img.src = "";
+						resolve(canvas.toDataURL("image/jpeg", 0.9));
+					} catch {
+						resolve(null);
+					}
+				};
+				img.onerror = () => { clearTimeout(timer); resolve(null); };
+				img.src = streamUrl;
+			});
+		}
+		if (!dataUrl) return;
+		await fetch(`${backendUrl}/save-screenshot`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				cameraName: drillCamera.name,
+				filename: `${ts}.jpg`,
+				imageData: dataUrl,
+			}),
+		}).catch((err) => console.error("[save-screenshot drill]", err));
+	};
+
+	useEffect(() => {
+		if (!ros) return;
+		const sub = new ROSLIB.Topic({
+			ros,
+			name: "/SC/take_picture_drill",
+			messageType: "std_msgs/Bool",
+			queue_length: 1,
+			queue_size: 1,
+		});
+		sub.subscribe((msg: unknown) => {
+			if ((msg as { data?: boolean }).data === true) {
+				void saveDrillScreenshotRef.current();
+			}
+		});
+		return () => sub.unsubscribe();
+	}, [ros]);
 
 	return (
 		<div className={"page " + styles.mainPage}>
@@ -532,7 +595,7 @@ const CamerasPage = () => {
 					<button
 						type="button"
 						className={styles.hubButton}
-						onClick={() => { void downloadCameraScreenshots(); }}
+						onClick={() => { void saveCameraScreenshots(); }}
 					>
 						Download Screenshots
 					</button>

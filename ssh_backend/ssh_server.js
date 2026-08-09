@@ -6,7 +6,10 @@ const connections = {}
 // Backup files
 const os = require('os');
 const fs = require('fs');
+const path = require('path');
 const homeDir = os.homedir();
+
+const SCREENSHOTS_DIR = path.join(__dirname, '..', '..', 'screenshots');
 const record = require('./record.js');
 
 const mass_arm = 'mass_arm';
@@ -883,6 +886,31 @@ app.post('/sensor-record', (req, res) => {
     default:
       return res.status(400).json({ error: 'Invalid sensor type' }).end();
   }
+});
+
+app.post('/save-screenshot', (req, res) => {
+  const { cameraName, filename, imageData } = req.body;
+  if (!cameraName || !filename || !imageData) {
+    return res.status(400).json({ error: 'Missing cameraName, filename, or imageData' });
+  }
+  const safeName = cameraName.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const safeFile = filename.replace(/[^a-zA-Z0-9_.-]/g, '_');
+  const dir = path.join(SCREENSHOTS_DIR, safeName);
+  fs.mkdir(dir, { recursive: true }, (mkdirErr) => {
+    if (mkdirErr) {
+      console.error('[save-screenshot] mkdir failed:', mkdirErr);
+      return res.status(500).json({ error: mkdirErr.message });
+    }
+    const base64 = imageData.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64, 'base64');
+    fs.writeFile(path.join(dir, safeFile), buffer, (writeErr) => {
+      if (writeErr) {
+        console.error('[save-screenshot] write failed:', writeErr);
+        return res.status(500).json({ error: writeErr.message });
+      }
+      res.status(200).json({ path: `screenshots/${safeName}/${safeFile}` });
+    });
+  });
 });
 
 function stopAllCameraStreams() {
