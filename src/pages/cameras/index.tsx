@@ -50,7 +50,7 @@ const TASK_PRESETS = [
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_top", "cs_right_steer", "cs_left_steer", "manipulation"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_top", "cs_right_steer", "nav_front"] },
 	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
-	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer"] },
+	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer", "drill_inside"], },
 ] as const;
 
 const getDefaultRotationByCameraId = (cameraId: string): number => {
@@ -507,7 +507,6 @@ const CamerasPage = () => {
 			name: "/SC/take_picture_drill",
 			messageType: "std_msgs/Bool",
 			queue_length: 1,
-			queue_size: 1,
 		});
 		sub.subscribe((msg: unknown) => {
 			if ((msg as { data?: boolean }).data === true) {
