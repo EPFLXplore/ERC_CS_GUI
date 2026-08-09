@@ -47,6 +47,7 @@ const CAMERA_GST_PORTS = {
   cs_right_steer: 5010,
   cs_left_steer: 5012,
   hd_gripper: 5013,
+  drill_inside: 5016,
 };
 
 const cameraStreams = new Map();

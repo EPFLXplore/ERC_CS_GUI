@@ -19,6 +19,7 @@ const CAMERA_DEFS = [
 	{ id: "nav_back", name: "Back", topic: "/CS/feed_camera_nav_0", gstPort: 5000 },
 	{ id: "nav_left", name: "Top Right", topic: "/CS/feed_camera_nav_1", gstPort: 5002 },
 	{ id: "nav_right", name: "Top Left", topic: "/CS/feed_camera_nav_2", gstPort: 5004 },
+	{ id: "drill_inside", name: "Drill Inside", topic: "/ROVER/feed_camera_cs_drill_inside", gstPort: 5016 },
 ] as const;
 
 type CameraDef = (typeof CAMERA_DEFS)[number];
