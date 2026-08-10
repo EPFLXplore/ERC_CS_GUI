@@ -104,6 +104,15 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             queue_size: 1,
         });
 
+        // Live pH readings
+        const phPacketListener = new ROSLIB.Topic({
+            ros: ros,
+            name: Topics.EL_PH_PACKET,
+            messageType: "custom_msg/PhPacket",
+            queue_length: 1,
+            queue_size: 1,
+        });
+
         // Avionics alive check: `dummy` is a free-running counter, avionics is
         // considered alive as long as it keeps changing.
         const heartbeatListener = new ROSLIB.Topic({
@@ -194,6 +203,23 @@ function useRoverState(ros: ROSLIB.Ros | null) {
 
         bmsStateListener.subscribe(handleBmsMessage);
 
+        // pH packet updates
+        phPacketListener.subscribe((message: any) => {
+            if (!message || typeof message.ph !== "number") return;
+            startTransition(() =>
+                setRoverState((prev) => ({
+                    ...prev,
+                    electronics: {
+                        ...(prev.electronics || {}),
+                        sensors: {
+                            ...((prev.electronics as any)?.sensors || {}),
+                            ph: message.ph,
+                        },
+                    },
+                }))
+            );
+        });
+
         // Mass packet updates (id 0 = HD arm, id 1 = Drill)
         massPacketListener.subscribe((message: any) => {
             if (!message || typeof message !== "object") return;
@@ -258,6 +284,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             elecStateListener.unsubscribe();
             bmsStateListener.unsubscribe();
             massPacketListener.unsubscribe();
+            phPacketListener.unsubscribe();
             heartbeatListener.unsubscribe();
             clearInterval(heartbeatWatchdog);
         };

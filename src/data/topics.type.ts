@@ -58,6 +58,7 @@ export enum Topics {
     EL_HEARTBEAT = "/EL/heartbeat",              // Avionics alive check, incrementing counter (subscribe)
     EL_BMS_TOPIC = "/EL/bms_topic",              // BMS status/voltage/current (subscribe)
     EL_MASS_PACKET = "/EL/mass_packet",          // Live mass sensor readings (subscribe)
+    EL_PH_PACKET = "/EL/ph_packet",             // Live pH readings (subscribe)
     EL_LED_COMMANDS = "/EL/led_req",             // LED control (publish)
     EL_MASS_REQ = "/EL/mass_req",
     EL_SERVO_REQ = "/EL/servo_req",

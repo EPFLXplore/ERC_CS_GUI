@@ -708,7 +708,6 @@ const getForInOneSensor = (data: any) => {
 			temperature: "NO DATA",
 			humidity: "NO DATA",
 			conductivity: "NO DATA",
-			ph: "NO DATA"
 		}
 	}
 
@@ -716,8 +715,13 @@ const getForInOneSensor = (data: any) => {
 		temperature: Number(elData['sensors']['four_in_one']['temperature']),
         humidity: Number(elData['sensors']['four_in_one']['humidity']),
         conductivity: Number(elData['sensors']['four_in_one']['conductivity']),
-        ph: Number(elData['sensors']['four_in_one']['ph'])
 	}
+}
+
+const getPH = (data: any): number | string => {
+	const elData = getSubsystemData(data, 'electronics');
+	const ph = elData?.['sensors']?.['ph'];
+	return ph !== undefined ? Number(ph) : "NO DATA";
 }
 
 const getDustSensor = (data: any) => {
@@ -874,6 +878,7 @@ export {
 	getMassDrillSensor,
 	getDustSensor,
 	getForInOneSensor,
+	getPH,
 	getCurrentHDCommand,
 	getCurrentHDTask,
 	getTotalJointsCurrent,

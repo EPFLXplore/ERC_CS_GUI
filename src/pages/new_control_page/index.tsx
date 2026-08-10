@@ -13,7 +13,6 @@ import ParametersIcon from "../../assets/images/icons/parameters.svg";
 import BindingsIcon from "../../assets/images/icons/bindings.svg";
 import Suspension from "../../assets/images/icons/suspension.svg";
 import SystemMode from "../../components/Controls/SystemMode";
-import Science from "../../assets/images/icons/science.svg";
 import Canceled from "../../assets/images/icons/cancelled.svg";
 import ResetMotors from "../../assets/images/icons/motors.svg";
 import Sensor from "../../assets/images/icons/sensor.svg";
@@ -63,6 +62,7 @@ import {
 	getMassDrillSensor,
 	getMassArmSensor,
 	getForInOneSensor,
+	getPH,
 	getAvionicsAlive,
 	getCameraStates
 	
@@ -79,10 +79,9 @@ import { startCamModeService, startHdDepthCameraService } from "../../utils/chan
 import Gamepad from "../../components/Controls/Gamepad";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
-import ScienceModal from "../../components/modals/ScienceModal";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
-import { Sensors, SensorsType } from "../../data/sensors.types";
+import { SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
 import axios from "axios";
 
@@ -99,7 +98,7 @@ const WIDGET_KEYS = [
 	"jetsonNav",
 	"hdData",
 	"currentPosition",
-	"scienceSensors",
+	"avionicsSensors",
 	"qrCodeScanner",
 ] as const;
 
@@ -134,7 +133,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	jetsonNav: "Jetson NAV",
 	hdData: "HD Data",
 	currentPosition: "Current Position",
-	scienceSensors: "Science Sensors",
+	avionicsSensors: "Avionics Sensors",
 	qrCodeScanner: "QR Code Scanner",
 };
 
@@ -211,7 +210,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"jetsonHd",
 		"jetsonNav",
 		"hdData",
-		"scienceSensors",
+		"avionicsSensors",
 	]),
 	All: buildVisibility(WIDGET_KEYS as unknown as WidgetKey[]),
 };
@@ -267,7 +266,7 @@ const NewControlPage = () => {
 		modalRosNodes,
 		setModalRosNodes,
 		changeSpeedRover,
-		resetSensors,
+		,
 		reset_leds,
 		reset_motors,
 		emergency_shutdown,
@@ -330,7 +329,6 @@ const NewControlPage = () => {
 						startService,
 						hdConfirmation,
 						changeSpeedRover,
-						resetSensors,
 						reset_leds,
 						sendHdNamedPose,
 						ros,
@@ -642,15 +640,12 @@ const NewControlPage = () => {
 			),
 		},
 		{
-			key: "scienceSensors",
+			key: "avionicsSensors",
 			content: (
 				<InfoBox
-					title="Sensors"
+					title="Avionics Sensors"
 					infos={[
-						{ name: "pH", value: getForInOneSensor(roverState).ph },
-						{ name: "Temperature", value: getForInOneSensor(roverState).temperature, unit: "°C" },
-						{ name: "Humidity", value: getForInOneSensor(roverState).humidity, unit: "%" },
-						{ name: "Conductivity", value: getForInOneSensor(roverState).conductivity, unit: "us/cm" },
+						{ name: "pH", value: getPH(roverState) },
 						{ name: "Mass Drill", value: getMassDrillSensor(roverState), unit: "g" },
 						{ name: "Mass HD", value: getMassArmSensor(roverState), unit: "g" },
 					]}
@@ -843,13 +838,6 @@ const NewControlPage = () => {
 									tooltip={"Drill"}
 									className={styles.drillAction}
 								/>
-								<QuickAction
-									onClick={() => displaySystemModal(SubSystems.SCIENCE)}
-									selected={systemsModalOpen[SubSystems.SCIENCE]}
-									running={States.OFF}
-									icon={Science}
-									tooltip={"Science"}
-								/>
 							</div>
 						</div>
 
@@ -966,7 +954,6 @@ const selectModal = (
 	startService: (system: string, mode: string, isCamera: boolean, active: boolean) => void,
 	resetHdConfirmation: ((value: boolean) => void) | null,
 	changeSpeedRover: (value: number) => void,
-	resetSensors: (name: Sensors) => void,
 	reset_leds: () => void,
 	sendHdNamedPose: (poseName: string) => void,
 	ros: ROSLIB.Ros | null,
@@ -1099,21 +1086,6 @@ const selectModal = (
 				/>
 			);
 
-		case SubSystems.SCIENCE:
-			return (
-				<ScienceModal
-					onClose={() => {
-						setModal(<></>);
-						setSystemsModalOpen((old: typeModal) => {
-							const newModalOpen = { ...old };
-							newModalOpen[SubSystems.SCIENCE] = false;
-							return newModalOpen;
-						});
-					}}
-					snackBar={showSnackbar}
-					resetSensors={resetSensors}
-				/>
-			);
 		case "avionics":
 			return (
 				<AvionicsModal

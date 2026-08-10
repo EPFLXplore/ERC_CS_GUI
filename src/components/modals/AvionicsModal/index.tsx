@@ -23,9 +23,9 @@ const CAMERA_SERVO = {
 	id: 0,
 	label: "ZED 2i Front Camera",
 	defaultAngle: 90,
-	minLabel: "0° pitch up",
+	minLabel: "35° pitch down",
 	midLabel: "90° straight ahead",
-	maxLabel: "180° pitch down",
+	maxLabel: "145° pitch up",
 } as const;
 
 const BOWL_SERVO = { id: 1, label: "Drill Sand Bowl" } as const;
@@ -46,13 +46,15 @@ const BOWL_POSITIONS = [
 	},
 ] as const;
 
-const ANGLE_MIN = 0;
-const ANGLE_MAX = 180;
+const ANGLE_MIN = 35;
+const ANGLE_MAX = 145;
 
 /** A load cell whose last packet is older than this is shown as stale. */
 const MASS_STALE_MS = 2000;
+const PH_STALE_MS = 5000;
 
 type MassReading = { mass: number; receivedAt: number };
+type PhReading = { ph: number; receivedAt: number };
 
 function AvionicsModal({
 	onClose,
@@ -64,6 +66,7 @@ function AvionicsModal({
 	snackBar: (severity: AlertColor, message: string) => void;
 }) {
 	const [masses, setMasses] = useState<Record<number, MassReading>>({});
+	const [phReading, setPhReading] = useState<PhReading | null>(null);
 	const [selectedCell, setSelectedCell] = useState<number>(LOAD_CELLS[0].id);
 	const [cameraAngle, setCameraAngle] = useState<number>(CAMERA_SERVO.defaultAngle);
 	// The bowl has no feedback topic, so this is the last angle *we* commanded — null until then.
@@ -118,7 +121,23 @@ function AvionicsModal({
 			}));
 		});
 
-		return () => massPacketTopic.unsubscribe();
+		const phPacketTopic = new ROSLIB.Topic<any>({
+			ros,
+			name: Topics.EL_PH_PACKET,
+			messageType: "custom_msg/PhPacket",
+			queue_length: 1,
+			queue_size: 1,
+		});
+
+		phPacketTopic.subscribe((message: any) => {
+			if (!message || typeof message.ph !== "number") return;
+			setPhReading({ ph: message.ph, receivedAt: Date.now() });
+		});
+
+		return () => {
+			massPacketTopic.unsubscribe();
+			phPacketTopic.unsubscribe();
+		};
 	}, [ros]);
 
 	useEffect(() => {
@@ -152,6 +171,8 @@ function AvionicsModal({
 				id,
 				angle: Math.round(angle),
 				go_to_zero: goToZero,
+				change_zero: false,
+				zero: 0,
 			});
 		},
 		[servoRequestTopic, snackBar]
@@ -221,6 +242,32 @@ function AvionicsModal({
 						<button type="button" className={styles.PrimaryColor} onClick={tareSelected}>
 							Tare {LOAD_CELLS.find((cell) => cell.id === selectedCell)?.label}
 						</button>
+					</section>
+
+					<section className={styles.Section}>
+						<div className={styles.SectionHeader}>
+							<h2>pH</h2>
+							<span className={styles.SectionHint}>{Topics.EL_PH_PACKET}</span>
+						</div>
+						<div className={styles.CellGrid}>
+							{(() => {
+								const fresh = phReading != null && now - phReading.receivedAt < PH_STALE_MS;
+								return (
+									<div className={styles.CellCard} style={{ cursor: "default" }}>
+										<div className={styles.CellTitleRow}>
+											<span
+												className={`${styles.LiveDot} ${fresh ? styles.LiveDotOn : ""}`}
+												title={fresh ? "Receiving packets" : "No recent packet"}
+											/>
+											<span className={styles.CellTitle}>pH</span>
+										</div>
+										<div className={`${styles.CellValue} ${fresh ? "" : styles.CellValueStale}`}>
+											{phReading != null ? phReading.ph.toFixed(2) : "NO DATA"}
+										</div>
+									</div>
+								);
+							})()}
+						</div>
 					</section>
 
 					<section className={styles.Section}>
