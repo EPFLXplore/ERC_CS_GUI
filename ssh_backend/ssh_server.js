@@ -56,7 +56,10 @@ const CAMERA_GST_PORTS = {
 
 const cameraStreams = new Map();
 const cameraStats = new Map();
-const FIRST_FRAME_TIMEOUT_MS = 2500;
+/** How long a client goes without a decoded frame before it is shown the "No signal" placeholder.
+ *  The response is never ended over this: the decoder can only start once the rover sends a
+ *  keyframe, and there is no way from here to ask for one, so the connection has to wait it out. */
+const NO_SIGNAL_AFTER_MS = 2500;
 const CAMERA_STATS_WINDOW_MS = 1000;
 const CAMERA_ACTIVE_TIMEOUT_MS = 2000;
 const INTERNAL_GST_PORT_OFFSET = 10000;
@@ -177,19 +180,25 @@ function buildCameraStatsSnapshot() {
  *  what distinguishes a healthy stream from one that merely traded latency for choppiness. */
 function buildRelaySnapshot(cameraId) {
   const stream = cameraStreams.get(cameraId);
-  if (!stream) return { clients: 0, framesSent: 0, framesDropped: 0, blockedMs: 0, queuedBytes: 0 };
+  if (!stream) {
+    return { clients: 0, framesSent: 0, framesDropped: 0, blockedMs: 0, queuedBytes: 0, waiting: false };
+  }
   let framesSent = 0;
   let framesDropped = 0;
   let blockedMs = 0;
   let queuedBytes = 0;
+  // `waiting` is what separates "the link is dead" from "the decoder has no keyframe yet" — the two
+  // look identical on screen, and only the second one resolves on its own.
+  let waiting = stream.clients.size > 0;
   const now = Date.now();
   for (const client of stream.clients) {
     framesSent += client.sent;
     framesDropped += client.dropped;
+    if (!client.showingPlaceholder) waiting = false;
     if (client.blocked) blockedMs = Math.max(blockedMs, now - client.blockedSince);
     if (client.res.socket) queuedBytes += client.res.socket.writableLength || 0;
   }
-  return { clients: stream.clients.size, framesSent, framesDropped, blockedMs, queuedBytes };
+  return { clients: stream.clients.size, framesSent, framesDropped, blockedMs, queuedBytes, waiting };
 }
 
 function startCameraUdpProxy(cameraId, publicPort) {
@@ -252,7 +261,37 @@ const CONTENT_LENGTH_RE = /content-length:\s*(\d+)/i;
 const MAX_HEADER_BYTES = 512;
 const MAX_PART_BYTES = 16 * 1024 * 1024;
 
-function buildGstReceiveArgs(port) {
+/** Pre-rendered from frontend/src/assets/images/NoCam.png so the browser shows the same "No signal"
+ *  placeholder for a stream that is up but has not decoded a frame yet as it does for a camera that
+ *  is off. Sent as a normal multipart part, so it is byte-identical in shape to a real frame. */
+const PLACEHOLDER_PART = (() => {
+  try {
+    const jpeg = fs.readFileSync(path.join(__dirname, 'assets', 'no-signal.jpg'));
+    return Buffer.concat([
+      Buffer.from(
+        `--${CAMERA_BOUNDARY}\r\nContent-Type: image/jpeg\r\nContent-Length: ${jpeg.length}\r\n\r\n`
+      ),
+      jpeg,
+      Buffer.from('\r\n'),
+    ]);
+  } catch (err) {
+    console.error(`[camera-streams] no-signal placeholder unavailable: ${err.message}`);
+    return null;
+  }
+})();
+
+/** rtpjitterbuffer defaults, tuned for the low-bitrate cameras: hold almost nothing and throw away
+ *  anything late. Cameras whose IDRs are too large to survive that budget override it below. */
+const DEFAULT_JITTER = { latency: 50, dropOnLatency: true };
+const CAMERA_JITTER = {
+  // The gripper runs at up to 4000 kbps, so its IDRs fragment across far more RTP packets than any
+  // other feed. Losing one of them to a 50 ms deadline costs the whole GOP, and with no way to ask
+  // the rover for a new keyframe that shows up as a stuck placeholder. Trading ~150 ms of latency
+  // for intact keyframes is what keeps a picture on screen here.
+  hd_gripper: { latency: 200, dropOnLatency: false },
+};
+
+function buildGstReceiveArgs(port, jitter = DEFAULT_JITTER) {
   return [
     '-q',
     'udpsrc',
@@ -269,8 +308,8 @@ function buildGstReceiveArgs(port) {
     'leaky=downstream',
     '!',
     'rtpjitterbuffer',
-    'latency=50',
-    'drop-on-latency=true',
+    `latency=${jitter.latency}`,
+    `drop-on-latency=${jitter.dropOnLatency}`,
     '!',
     'rtph264depay',
     '!',
@@ -371,8 +410,12 @@ function createMultipartParser(onPart, onDesync) {
  * healthy socket drain fires well within a frame interval, so nothing is dropped; frames are only
  * superseded when they genuinely arrive faster than the client can take them.
  */
-function writeFrame(client, part) {
+function writeFrame(client, part, isPlaceholder = false) {
   if (client.closed) return;
+  if (!isPlaceholder) {
+    client.lastFrameAt = coarseNowMs;
+    client.showingPlaceholder = false;
+  }
   if (client.blocked) {
     if (client.pending) client.dropped++;
     client.pending = part;
@@ -382,10 +425,6 @@ function writeFrame(client, part) {
 }
 
 function flushFrame(client, part) {
-  if (client.firstFrameTimer) {
-    clearTimeout(client.firstFrameTimer);
-    client.firstFrameTimer = null;
-  }
   if (!client.res.headersSent) {
     client.res.writeHead(200, {
       'Content-Type': `multipart/x-mixed-replace; boundary=${CAMERA_BOUNDARY}`,
@@ -399,6 +438,39 @@ function flushFrame(client, part) {
   if (!client.res.write(part)) {
     client.blocked = true;
     client.blockedSince = Date.now();
+  }
+}
+
+/** RTP arriving while nothing decodes means avdec_h264 is still waiting for SPS/PPS + an IDR. That
+ *  is indistinguishable from a dead link at the UI, and from a dead rover in the logs, unless it is
+ *  said out loud. Once per pipeline, so a long wait does not flood the console. */
+function logCameraStall(cameraId, stream) {
+  if (stream.stallLogged) return;
+  const stats = cameraStats.get(cameraId);
+  const receiving =
+    stats && stats.lastPacketAt > 0 && Date.now() - stats.lastPacketAt < CAMERA_ACTIVE_TIMEOUT_MS;
+  if (!receiving) return;
+  stream.stallLogged = true;
+  console.warn(
+    `[camera-streams] ${cameraId}: RTP arriving but no decoded frame — waiting for a keyframe from the rover`
+  );
+}
+
+/** Tears a client off a pipeline that has gone away. Once parts have been sent, a clean FIN only
+ *  makes the browser stop updating a multipart <img> — it keeps the last frame on screen and fires
+ *  no error, so nothing would ever reconnect. Aborting surfaces a load error, which is what lets
+ *  CameraImage retry and bring the feed back without a page reload. */
+function dropClient(client, statusIfUnstarted) {
+  if (client.idleTimer) {
+    clearInterval(client.idleTimer);
+    client.idleTimer = null;
+  }
+  if (!client.res.headersSent) {
+    client.res.status(statusIfUnstarted).end();
+  } else if (client.res.socket) {
+    client.res.socket.destroy();
+  } else {
+    client.res.end();
   }
 }
 
@@ -448,15 +520,18 @@ function getCameraStream(cameraId) {
   const proxy = startCameraUdpProxy(cameraId, port);
   const internalPort = proxy.internalPort;
 
-  const gst = spawn('gst-launch-1.0', buildGstReceiveArgs(internalPort), {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  const gst = spawn(
+    'gst-launch-1.0',
+    buildGstReceiveArgs(internalPort, CAMERA_JITTER[cameraId] || DEFAULT_JITTER),
+    { stdio: ['ignore', 'pipe', 'pipe'] }
+  );
   const stream = {
     process: gst,
     proxy,
     clients: new Set(),
     hasData: false,
     stopTimer: null,
+    stallLogged: false,
   };
   cameraStreams.set(cameraId, stream);
 
@@ -466,6 +541,7 @@ function getCameraStream(cameraId) {
     createMultipartParser(
       (part) => {
         stream.hasData = true;
+        stream.stallLogged = false;
         for (const client of stream.clients) {
           writeFrame(client, part);
           if (client.blocked && Date.now() - client.blockedSince > CAMERA_CLIENT_BLOCKED_WARN_MS) {
@@ -493,9 +569,7 @@ function getCameraStream(cameraId) {
   gst.on('error', (err) => {
     console.error(`[camera-streams] ${cameraId}: failed to start gst-launch-1.0: ${err.message}`);
     for (const client of stream.clients) {
-      if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
-      if (!client.res.headersSent) client.res.status(500);
-      client.res.end();
+      dropClient(client, 500);
     }
     cameraStreams.delete(cameraId);
   });
@@ -508,9 +582,7 @@ function getCameraStream(cameraId) {
       console.log(`[camera-streams] ${cameraId}: gst stopped code=${code} signal=${signal}`);
     }
     for (const client of stream.clients) {
-      if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
-      if (!client.res.headersSent) client.res.status(502);
-      client.res.end();
+      dropClient(client, 502);
     }
     stream.clients.clear();
   });
@@ -813,13 +885,15 @@ app.get('/camera-streams/:cameraId.mjpg', (req, res) => {
 
   const client = {
     res,
-    firstFrameTimer: null,
+    idleTimer: null,
     blocked: false,
     blockedSince: 0,
     pending: null,
     closed: false,
     sent: 0,
     dropped: 0,
+    lastFrameAt: 0,
+    showingPlaceholder: false,
     onDrain: null,
   };
   stream.clients.add(client);
@@ -832,23 +906,27 @@ app.get('/camera-streams/:cameraId.mjpg', (req, res) => {
   };
   res.on('drain', client.onDrain);
 
-  client.firstFrameTimer = setTimeout(() => {
-    // No frame within the timeout: 204 so CameraView shows its placeholder instead of a broken img.
-    cleanupClient();
-    if (!res.headersSent) {
-      res.status(204).end();
-    } else {
-      res.end();
-    }
-  }, FIRST_FRAME_TIMEOUT_MS);
+  // Ending the response here would be fatal rather than merely blank: the browser renders a failed
+  // <img> as its broken-image glyph and never re-requests a src it already has. Push the "No signal"
+  // placeholder into the open multipart stream instead, so the tile explains itself and the first
+  // real frame replaces it with no reconnect. Also covers a feed that dies mid-stream, which would
+  // otherwise leave the last decoded frame frozen on screen looking live.
+  client.idleTimer = setInterval(() => {
+    if (client.closed || client.showingPlaceholder || !PLACEHOLDER_PART) return;
+    const idleFor = client.lastFrameAt === 0 ? Infinity : coarseNowMs - client.lastFrameAt;
+    if (idleFor < NO_SIGNAL_AFTER_MS) return;
+    client.showingPlaceholder = true;
+    writeFrame(client, PLACEHOLDER_PART, true);
+    logCameraStall(cameraId, stream);
+  }, NO_SIGNAL_AFTER_MS);
 
   function cleanupClient() {
     if (client.closed) return;
     client.closed = true;
     client.pending = null;
-    if (client.firstFrameTimer) {
-      clearTimeout(client.firstFrameTimer);
-      client.firstFrameTimer = null;
+    if (client.idleTimer) {
+      clearInterval(client.idleTimer);
+      client.idleTimer = null;
     }
     res.removeListener('drain', client.onDrain);
     stream.clients.delete(client);

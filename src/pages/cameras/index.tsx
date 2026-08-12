@@ -35,6 +35,15 @@ type CameraStreamStats = {
 	overheadMbps: number;
 	active: boolean;
 	lastPacketAgeMs: number | null;
+	relay?: {
+		clients: number;
+		framesSent: number;
+		framesDropped: number;
+		blockedMs: number;
+		queuedBytes: number;
+		/** Packets are arriving but the decoder has produced nothing — it is waiting for a keyframe. */
+		waiting: boolean;
+	};
 };
 
 const CAMERA_SOURCE_STORAGE_KEY = "erc-cs-camera-feed-sources-v1";
@@ -321,6 +330,11 @@ const CamerasPage = () => {
 					const stats = gstStats[camera.id];
 					if (!stats || !stats.active) {
 						return `GStreamer UDP:${camera.gstPort} (no packets)`;
+					}
+					// Packets but no picture is the confusing case: it means the rover has not sent a
+					// keyframe yet, which resolves on its own, unlike a dead link.
+					if (stats.relay?.waiting) {
+						return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps, waiting for keyframe)`;
 					}
 					return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps wire, ${stats.overheadMbps.toFixed(2)} Mbps overhead)`;
 				}
