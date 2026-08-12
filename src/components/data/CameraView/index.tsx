@@ -1,74 +1,6 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo } from "react";
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
-
-/**
- * One <img> for every camera tile, with retry.
- *
- * The GStreamer feeds are `multipart/x-mixed-replace` connections, not files: the backend can drop
- * one (gst crash, restart, network blip) and a plain <img> never re-requests a src it already has,
- * so the tile would sit on the browser's broken-image glyph until someone reloads the page. Retrying
- * with a cache-busting suffix is what makes a feed come back on its own.
- */
-const CameraImage = ({
-	src,
-	alt,
-	className,
-	rotation = 0,
-	onDoubleClick,
-}: {
-	src?: string;
-	alt: string;
-	className: string;
-	rotation?: number;
-	onDoubleClick?: () => void;
-}) => {
-	const [attempt, setAttempt] = useState(0);
-	const failures = useRef(0);
-	const retryTimer = useRef<number | null>(null);
-	const hasSrc = Boolean(src && src.length > 0);
-
-	useEffect(() => {
-		failures.current = 0;
-		setAttempt(0);
-		return () => {
-			if (retryTimer.current !== null) {
-				window.clearTimeout(retryTimer.current);
-				retryTimer.current = null;
-			}
-		};
-	}, [src]);
-
-	// attempt is never reset on success: bumping it back to 0 would change the src and force a
-	// pointless reconnect on a stream that just started working.
-	const resolved = !hasSrc
-		? DefaultImage
-		: attempt === 0
-			? (src as string)
-			: `${src}${(src as string).includes("?") ? "&" : "?"}r=${attempt}`;
-
-	return (
-		<img
-			src={resolved}
-			alt={alt}
-			className={className}
-			style={{ transform: `rotate(${rotation}deg)` }}
-			onDoubleClick={onDoubleClick}
-			onLoad={() => {
-				failures.current = 0;
-			}}
-			onError={() => {
-				if (!hasSrc || retryTimer.current !== null) return;
-				const delay = Math.min(10000, 1000 * 2 ** Math.min(failures.current, 4));
-				failures.current += 1;
-				retryTimer.current = window.setTimeout(() => {
-					retryTimer.current = null;
-					setAttempt((n) => n + 1);
-				}, delay);
-			}}
-		/>
-	);
-};
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -154,11 +86,11 @@ const CameraView = ({
 				}
 			>
 				<div className={styles.GridImageWrapper}>
-					<CameraImage
-						src={images[i]}
+					<img
+						src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
 						alt={`Camera ${i + 1}`}
 						className={styles.GridImage}
-						rotation={rotate[i] ?? 0}
+						style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
 						onDoubleClick={() => bump(i)}
 					/>
 					{showRemoveButton && (
@@ -204,12 +136,12 @@ const CameraView = ({
 			<div className={styles.Container}>
 				{renderSelector()}
 				<div className={styles.ImageWrapper}>
-					<CameraImage
-						src={images[0]}
+					<img
+						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 						alt="Camera"
 						className={`${styles.Image} ${rotate[0] ? styles.Rotate180 : ""}`}
-						rotation={rotate[0] ?? 0}
-						onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
+						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+          				onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
 					/>
 					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
@@ -222,22 +154,22 @@ const CameraView = ({
 				{renderSelector()}
 
 				<div className={styles.HalfWrapper}>
-					<CameraImage
-						src={images[0]}
+					<img
+						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 						alt="Camera"
-						className={styles.HalfImage}
-						rotation={rotate[0] ?? 0}
-						onDoubleClick={() => bump(0)}
+						className={`${styles.HalfImage}`}
+						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            			onDoubleClick={() => bump(0)}
 					/>
 					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 				<div className={styles.HalfWrapper}>
-					<CameraImage
-						src={images[1]}
+					<img
+						src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
 						alt="Camera"
-						className={styles.HalfImage}
-						rotation={rotate[1] ?? 0}
-						onDoubleClick={() => bump(1)}
+						className={`${styles.HalfImage}`}
+						style={{ transform: `rotate(${rotate[1] ?? 0}deg)`}}
+            			onDoubleClick={() => bump(1)}
 					/>
 					{renderTopicMeta(1, styles.TopicMeta)}
 				</div>
@@ -250,34 +182,34 @@ const CameraView = ({
 				{renderSelector()}
 
 				<div className={styles.LeftHalf}>
-					<CameraImage
-						src={images[0]}
+					<img
+						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
 						alt="Camera"
-						className={styles.FullImage}
-						rotation={rotate[0] ?? 0}
-						onDoubleClick={() => bump(0)}
+						className={`${styles.FullImage}`}
+						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            			onDoubleClick={() => bump(0)}
 					/>
 					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 
 				<div className={styles.RightHalf}>
 					<div className={styles.TopHalf}>
-						<CameraImage
-							src={images[1]}
+						<img
+							src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
 							alt="Camera"
-							className={styles.HalfImage}
-							rotation={rotate[0] ?? 0}
-							onDoubleClick={() => bump(1)}
+							className={`${styles.HalfImage}`}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            				onDoubleClick={() => bump(1)}
 						/>
 						{renderTopicMeta(1, styles.TopicMeta)}
 					</div>
 					<div className={styles.BottomHalf}>
-						<CameraImage
-							src={images[2]}
+						<img
+							src={images[2] && images[2].length > 0 ? images[2] : DefaultImage}
 							alt="Camera"
-							className={styles.HalfImage}
-							rotation={rotate[0] ?? 0}
-							onDoubleClick={() => bump(2)}
+							className={`${styles.HalfImage}`}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+            				onDoubleClick={() => bump(2)}
 						/>
 						{renderTopicMeta(2, styles.TopicMeta)}
 					</div>
@@ -290,11 +222,11 @@ const CameraView = ({
 				{renderSelector()}
 				{[0, 1, 2, 3].map((i) => (
 				<div key={i} className={styles.QuarterWrapper}>
-					<CameraImage
-						src={images[i]}
+					<img
+						src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
 						alt="Camera"
 						className={styles.Quarter}
-						rotation={rotate[i] ?? 0}
+						style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
 						onDoubleClick={() => {
 							setRotateCams((old: number[]) => {
 								const r = Array.from({ length: 4 }, (_, k) => old?.[k] ?? 0);
@@ -323,11 +255,11 @@ const CameraView = ({
 					{Array.from({ length: cameraCount }, (_, i) => (
 						<div key={i} className={styles.GridItem}>
 							<div className={styles.GridImageWrapper}>
-								<CameraImage
-									src={images[i]}
+								<img
+									src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
 									alt={`Camera ${i + 1}`}
 									className={styles.GridImage}
-									rotation={rotate[i] ?? 0}
+									style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
 									onDoubleClick={() => bump(i)}
 								/>
 							</div>
