@@ -38,7 +38,9 @@ const WIFI_ANTENNA_MAC = 'D4:01:C3:DC:B9:78';
 
 // Cors
 const cors = require('cors');
-app.use(cors());
+// exposedHeaders: the MSE player has to read the codec string off the .mp4 response before it can
+// create a SourceBuffer, and CORS hides non-simple response headers from JS by default.
+app.use(cors({ exposedHeaders: ['X-Video-Codec'] }));
 
 /** Mirrored in frontend/src/pages/cameras/index.tsx (CAMERA_DEFS[].gstPort) — keep in sync. */
 const CAMERA_GST_PORTS = {
@@ -54,9 +56,40 @@ const CAMERA_GST_PORTS = {
   microscope: 5014,
 };
 
+/**
+ * Transport per camera. `mjpeg` is the original path: a Node UDP proxy counts packets, then gst
+ * decodes H.264 and re-encodes JPEG for an <img>.
+ *
+ * `fmp4` is the low-overhead path. It removes the proxy — gst's udpsrc binds the rover's port
+ * itself, so no JavaScript callback and no second syscall run per RTP packet — and it removes the
+ * transcode, muxing the original H.264 into fragmented MP4 for an MSE <video>. That matches, element
+ * for element, a bare `gst-launch ... ! avdec_h264 ! autovideosink` against the same port, which is
+ * stable where the CS was not.
+ *
+ * The two cannot coexist for one camera: a single pipeline owns the UDP port.
+ * Mirrored in frontend/src/pages/cameras/index.tsx (CAMERA_TRANSPORTS) — keep in sync.
+ */
+const CAMERA_TRANSPORTS = {
+  hd_gripper: 'fmp4',
+};
+
+function getCameraTransport(cameraId) {
+  return CAMERA_TRANSPORTS[cameraId] || 'mjpeg';
+}
+
 const cameraStreams = new Map();
 const cameraStats = new Map();
 const FIRST_FRAME_TIMEOUT_MS = 2500;
+/** An fmp4 client cannot be served until gst has emitted ftyp+moov. Bounded so a silent pipeline
+ *  ends the response instead of parking the client on it forever — an unbounded wait here is what
+ *  stops the linger timer from ever reclaiming a wedged stream. */
+const FMP4_INIT_TIMEOUT_MS = 5000;
+/** gst stdout silent this long with clients attached means the pipeline is wedged, not merely idle:
+ *  kill it so the next client reconnect rebuilds it. */
+const FMP4_STALL_TIMEOUT_MS = 5000;
+/** A client queued further behind than this cannot catch up on a live stream; drop it and let it
+ *  reconnect at the live edge. Roughly a second of the gripper at its 4000 kbps maximum. */
+const FMP4_MAX_CLIENT_BACKLOG_BYTES = 4 * 1024 * 1024;
 const CAMERA_STATS_WINDOW_MS = 1000;
 const CAMERA_ACTIVE_TIMEOUT_MS = 2000;
 const INTERNAL_GST_PORT_OFFSET = 10000;
@@ -140,11 +173,71 @@ function recordCameraPacket(stats, udpPayloadBytes, now) {
   stats.lastPacketAt = now;
 }
 
+/**
+ * Packets the kernel threw away because the receive buffer was full.
+ *
+ * This is the number that matters and that the CS has never shown. The proxy's own counters are
+ * incremented inside `rx.on('message')`, so anything dropped before that callback — exactly what
+ * happens when the event loop stalls — was invisible, and the UI would report a healthy Mbps while
+ * the stream was being shredded. udpsrc's socket has the same exposure, so read it from the kernel.
+ */
+function readUdpSocketDrops(port) {
+  const hexPort = port.toString(16).toUpperCase().padStart(4, '0');
+  for (const file of ['/proc/net/udp', '/proc/net/udp6']) {
+    let text;
+    try {
+      text = fs.readFileSync(file, 'utf8');
+    } catch (_) {
+      continue;
+    }
+    for (const line of text.split('\n').slice(1)) {
+      const cols = line.trim().split(/\s+/);
+      if (cols.length < 13) continue;
+      if (!cols[1].endsWith(`:${hexPort}`)) continue;
+      const drops = Number(cols[cols.length - 1]);
+      if (Number.isFinite(drops)) return drops;
+    }
+  }
+  return null;
+}
+
+/** fmp4 cameras have no proxy counting packets, so the readout comes from the muxed byte stream
+ *  instead. Payload rather than wire bytes — there is no per-packet accounting left to derive
+ *  Ethernet overhead from — plus the kernel drop counter, which is the more useful half anyway. */
+function buildFmp4StatsEntry(cameraId, port, now) {
+  const stream = cameraStreams.get(cameraId);
+  const elapsed = stream ? Math.max(1, now - (stream.bytesWindowAt || now)) : 1;
+  let mbps = 0;
+  if (stream) {
+    mbps = ((stream.bytesOut - (stream.bytesWindowBase || 0)) * 8) / elapsed / 1000;
+    stream.bytesWindowAt = now;
+    stream.bytesWindowBase = stream.bytesOut;
+  }
+  const lastAgeMs = stream && stream.lastSegmentAt > 0 ? now - stream.lastSegmentAt : null;
+  return {
+    port,
+    transport: 'fmp4',
+    mbps: Number(mbps.toFixed(3)),
+    packetsPerSec: 0,
+    payloadMbps: Number(mbps.toFixed(3)),
+    overheadMbps: 0,
+    active: lastAgeMs !== null && lastAgeMs <= CAMERA_ACTIVE_TIMEOUT_MS,
+    lastPacketAgeMs: lastAgeMs,
+    drops: readUdpSocketDrops(port),
+    codec: stream ? stream.codec : null,
+    relay: buildRelaySnapshot(cameraId),
+  };
+}
+
 function buildCameraStatsSnapshot() {
   const now = Date.now();
   const oldestBucketId = Math.floor(now / CAMERA_STATS_BUCKET_MS) - CAMERA_STATS_WINDOW_BUCKETS;
   const out = {};
   for (const [cameraId, port] of Object.entries(CAMERA_GST_PORTS)) {
+    if (getCameraTransport(cameraId) === 'fmp4') {
+      out[cameraId] = buildFmp4StatsEntry(cameraId, port, now);
+      continue;
+    }
     const stats = getCameraStats(cameraId);
     let packetCount = 0;
     let payloadBytes = 0;
@@ -167,6 +260,7 @@ function buildCameraStatsSnapshot() {
       overheadMbps: Number(((overheadBytes * 8) / CAMERA_STATS_WINDOW_MS / 1000).toFixed(3)),
       active,
       lastPacketAgeMs,
+      drops: readUdpSocketDrops(port),
       relay: buildRelaySnapshot(cameraId),
     };
   }
@@ -308,6 +402,123 @@ function buildGstReceiveArgs(port) {
 }
 
 /**
+ * fmp4 receive pipeline. The half above rtph264depay is deliberately identical to the mjpeg one —
+ * and to the bare gst-launch that runs stably by hand — so the only variable is what happens after
+ * depayloading. From there the H.264 is muxed, not decoded: no avdec_h264, no videoconvert, no
+ * jpegenc, which is the entire point.
+ *
+ * fragment-duration=20 (ms) is below one frame interval at 30 fps, so mp4mux emits one moof/mdat per
+ * frame and adds no batching latency of its own. Measured on GStreamer 1.20.3.
+ */
+function buildGstFmp4Args(port) {
+  return [
+    '-q',
+    'udpsrc',
+    `port=${port}`,
+    'buffer-size=2097152',
+    'caps=application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96',
+    '!',
+    'queue',
+    'max-size-buffers=1000',
+    'max-size-bytes=0',
+    'max-size-time=0',
+    'leaky=downstream',
+    '!',
+    'rtpjitterbuffer',
+    'latency=50',
+    'drop-on-latency=true',
+    '!',
+    'rtph264depay',
+    '!',
+    'h264parse',
+    '!',
+    'mp4mux',
+    'fragment-duration=20',
+    'streamable=true',
+    '!',
+    'fdsink',
+    'fd=1',
+    'sync=false',
+  ];
+}
+
+/**
+ * Splits gst's stdout into an MP4 init segment plus one media segment per fragment.
+ *
+ * ISO-BMFF boxes are length-prefixed (`size:u32, type:4cc`), so like the multipart parser this is
+ * pure arithmetic — no body byte is scanned. Everything before the first `moof` is ftyp+moov, the
+ * init segment every MSE client needs before any fragment; each `moof` and the boxes up to the next
+ * `moof` form one appendable media segment.
+ */
+function createFmp4Segmenter(onInit, onSegment) {
+  let buf = Buffer.alloc(0);
+  let sawInit = false;
+  let segStart = -1; // offset of the moof opening the segment being accumulated
+  let scan = 0; // boxes before this are already parsed; never walked twice
+
+  const reset = () => {
+    buf = Buffer.alloc(0);
+    segStart = -1;
+    scan = 0;
+  };
+
+  return function push(chunk) {
+    buf = buf.length === 0 ? chunk : Buffer.concat([buf, chunk]);
+
+    for (;;) {
+      if (buf.length - scan < 8) break;
+      let size = buf.readUInt32BE(scan);
+      const type = buf.toString('latin1', scan + 4, scan + 8);
+      let header = 8;
+      if (size === 1) {
+        // 64-bit largesize. mp4mux will not emit one at these fragment sizes, but a stream that is
+        // not what we think it is must not be able to spin this loop.
+        if (buf.length - scan < 16) break;
+        if (buf.readUInt32BE(scan + 8) !== 0) return reset();
+        size = buf.readUInt32BE(scan + 12);
+        header = 16;
+      }
+      if (size < header) return reset();
+      if (buf.length - scan < size) break;
+
+      if (type === 'moof') {
+        if (!sawInit) {
+          sawInit = true;
+          onInit(Buffer.from(buf.slice(0, scan))); // ftyp + moov
+        } else if (segStart >= 0) {
+          onSegment(Buffer.from(buf.slice(segStart, scan)));
+        }
+        segStart = scan;
+      }
+      scan += size;
+    }
+
+    // Drop what can never be needed again: bytes before the open segment, or before the scan cursor
+    // when no segment is open. Nothing may be dropped before the first moof — everything up to it
+    // *is* the init segment, and trimming ftyp/moov as they are parsed would leave it empty.
+    const keep = !sawInit ? 0 : segStart >= 0 ? segStart : scan;
+    if (keep > 0) {
+      buf = Buffer.from(buf.slice(keep));
+      scan -= keep;
+      if (segStart >= 0) segStart = 0;
+    }
+  };
+}
+
+/** avcC carries configurationVersion, then the three bytes MSE wants as `avc1.PPCCLL`. Without the
+ *  right profile/level string addSourceBuffer throws and nothing plays. */
+function parseAvcCodec(initSegment) {
+  const at = initSegment.indexOf('avcC', 0, 'latin1');
+  if (at < 0 || at + 8 > initSegment.length) return null;
+  const profile = initSegment[at + 5];
+  const compat = initSegment[at + 6];
+  const level = initSegment[at + 7];
+  return `avc1.${profile.toString(16).padStart(2, '0')}${compat
+    .toString(16)
+    .padStart(2, '0')}${level.toString(16).padStart(2, '0')}`;
+}
+
+/**
  * Splits gst's stdout into whole multipart parts so the relay can drop frames instead of queueing
  * them. multipartmux emits an authoritative Content-Length, so a part's end is arithmetic and no
  * body byte is ever scanned. Each emitted buffer is self-contained
@@ -402,6 +613,27 @@ function flushFrame(client, part) {
   }
 }
 
+/**
+ * fMP4 fragments are reference-dependent, so the latest-frame-wins trick `writeFrame` uses for JPEG
+ * is not available: dropping one fragment corrupts every frame that references it. Write straight
+ * through and let TCP apply backpressure. A client whose socket queue runs away is beyond catching
+ * up, so cut it loose — the player reconnects and resumes at the live edge, which is far better than
+ * feeding it an ever-growing backlog.
+ */
+function writeSegment(client, segment) {
+  if (client.closed) return;
+  const socket = client.res.socket;
+  if (socket && socket.writableLength > FMP4_MAX_CLIENT_BACKLOG_BYTES) {
+    console.warn(
+      `[camera-streams] ${client.cameraId}: fMP4 client ${socket.writableLength}B behind, dropping it`
+    );
+    socket.destroy();
+    return;
+  }
+  client.sent++;
+  client.res.write(segment);
+}
+
 function stopCameraStream(cameraId) {
   const stream = cameraStreams.get(cameraId);
   if (!stream) return;
@@ -409,6 +641,10 @@ function stopCameraStream(cameraId) {
   if (stream.stopTimer) {
     clearTimeout(stream.stopTimer);
     stream.stopTimer = null;
+  }
+  if (stream.stallTimer) {
+    clearInterval(stream.stallTimer);
+    stream.stallTimer = null;
   }
   if (stream.proxy) {
     for (const socket of [stream.proxy.socket, stream.proxy.tx]) {
@@ -445,45 +681,97 @@ function getCameraStream(cameraId) {
 
   const port = CAMERA_GST_PORTS[cameraId];
   if (!port) return null;
-  const proxy = startCameraUdpProxy(cameraId, port);
-  const internalPort = proxy.internalPort;
+  const transport = getCameraTransport(cameraId);
+  const fmp4 = transport === 'fmp4';
 
-  const gst = spawn('gst-launch-1.0', buildGstReceiveArgs(internalPort), {
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  // fmp4 has no proxy: gst binds the rover's port itself, which is the whole point — it takes the
+  // JS callback and the extra syscall per RTP packet out of the path. udpsrc sets SO_REUSEADDR by
+  // default, so respawning after a kill rebinds without the EADDRINUSE dance dgram needs.
+  const proxy = fmp4 ? null : startCameraUdpProxy(cameraId, port);
+  const gstPort = fmp4 ? port : proxy.internalPort;
+
+  const gst = spawn(
+    'gst-launch-1.0',
+    fmp4 ? buildGstFmp4Args(gstPort) : buildGstReceiveArgs(gstPort),
+    { stdio: ['ignore', 'pipe', 'pipe'] }
+  );
   const stream = {
     process: gst,
     proxy,
+    transport,
     clients: new Set(),
     hasData: false,
     stopTimer: null,
+    // fmp4 only
+    initSegment: null,
+    codec: null,
+    lastSegmentAt: 0,
+    stallTimer: null,
+    bytesOut: 0,
+    onInit: new Set(),
   };
   cameraStreams.set(cameraId, stream);
 
-  let lastDesyncLogAt = 0;
-  gst.stdout.on(
-    'data',
-    createMultipartParser(
-      (part) => {
-        stream.hasData = true;
-        for (const client of stream.clients) {
-          writeFrame(client, part);
-          if (client.blocked && Date.now() - client.blockedSince > CAMERA_CLIENT_BLOCKED_WARN_MS) {
-            console.warn(
-              `[camera-streams] ${cameraId}: client stalled for ${Date.now() - client.blockedSince}ms, dropping frames`
-            );
-            client.blockedSince = Date.now();
-          }
+  if (fmp4) {
+    stream.stallTimer = setInterval(() => {
+      if (stream.clients.size === 0) return;
+      if (Date.now() - stream.lastSegmentAt < FMP4_STALL_TIMEOUT_MS) return;
+      // Producing nothing while someone is watching means wedged, not idle. Kill it; the clients'
+      // reconnect rebuilds it. Without this a wedged pipeline would survive as long as a client
+      // stayed attached, because the linger timer only fires once the last client leaves.
+      console.warn(
+        `[camera-streams] ${cameraId}: no fMP4 output for ${FMP4_STALL_TIMEOUT_MS}ms, restarting pipeline`
+      );
+      stopCameraStream(cameraId);
+    }, FMP4_STALL_TIMEOUT_MS);
+
+    gst.stdout.on(
+      'data',
+      createFmp4Segmenter(
+        (init) => {
+          stream.initSegment = init;
+          stream.codec = parseAvcCodec(init);
+          stream.lastSegmentAt = Date.now();
+          console.log(
+            `[camera-streams] ${cameraId}: fMP4 init segment ${init.length}B, codec ${stream.codec}`
+          );
+          for (const waiter of stream.onInit) waiter();
+          stream.onInit.clear();
+        },
+        (segment) => {
+          stream.hasData = true;
+          stream.lastSegmentAt = Date.now();
+          stream.bytesOut += segment.length;
+          for (const client of stream.clients) writeSegment(client, segment);
         }
-      },
-      () => {
-        const now = Date.now();
-        if (now - lastDesyncLogAt < 1000) return;
-        lastDesyncLogAt = now;
-        console.warn(`[camera-streams] ${cameraId}: multipart desync, resyncing`);
-      }
-    )
-  );
+      )
+    );
+  } else {
+    let lastDesyncLogAt = 0;
+    gst.stdout.on(
+      'data',
+      createMultipartParser(
+        (part) => {
+          stream.hasData = true;
+          for (const client of stream.clients) {
+            writeFrame(client, part);
+            if (client.blocked && Date.now() - client.blockedSince > CAMERA_CLIENT_BLOCKED_WARN_MS) {
+              console.warn(
+                `[camera-streams] ${cameraId}: client stalled for ${Date.now() - client.blockedSince}ms, dropping frames`
+              );
+              client.blockedSince = Date.now();
+            }
+          }
+        },
+        () => {
+          const now = Date.now();
+          if (now - lastDesyncLogAt < 1000) return;
+          lastDesyncLogAt = now;
+          console.warn(`[camera-streams] ${cameraId}: multipart desync, resyncing`);
+        }
+      )
+    );
+  }
 
   gst.stderr.on('data', (chunk) => {
     const text = chunk.toString().trim();
@@ -492,11 +780,7 @@ function getCameraStream(cameraId) {
 
   gst.on('error', (err) => {
     console.error(`[camera-streams] ${cameraId}: failed to start gst-launch-1.0: ${err.message}`);
-    for (const client of stream.clients) {
-      if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
-      if (!client.res.headersSent) client.res.status(500);
-      client.res.end();
-    }
+    dropStreamClients(stream, 500);
     cameraStreams.delete(cameraId);
   });
 
@@ -504,19 +788,45 @@ function getCameraStream(cameraId) {
     if (cameraStreams.get(cameraId) === stream) {
       cameraStreams.delete(cameraId);
     }
+    if (stream.stallTimer) {
+      clearInterval(stream.stallTimer);
+      stream.stallTimer = null;
+    }
     if (stream.clients.size > 0) {
       console.log(`[camera-streams] ${cameraId}: gst stopped code=${code} signal=${signal}`);
     }
-    for (const client of stream.clients) {
-      if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
-      if (!client.res.headersSent) client.res.status(502);
-      client.res.end();
-    }
-    stream.clients.clear();
+    dropStreamClients(stream, 502);
   });
 
-  console.log(`[camera-streams] ${cameraId}: receiving RTP/H264 on UDP ${port}`);
+  console.log(
+    `[camera-streams] ${cameraId}: receiving RTP/H264 on UDP ${port} (${transport}${fmp4 ? ', no proxy' : ''})`
+  );
   return stream;
+}
+
+/**
+ * Detaches every client from a pipeline that has gone away, and wakes anyone still waiting for an
+ * init segment so no request is left parked on a dead stream.
+ *
+ * fmp4 clients are aborted rather than ended cleanly: a clean FIN on a chunked response is
+ * indistinguishable from a normal end-of-stream to fetch(), so the player would sit there believing
+ * all was well. An abort surfaces as an error it reconnects on.
+ */
+function dropStreamClients(stream, statusIfUnstarted) {
+  for (const waiter of stream.onInit) waiter();
+  stream.onInit.clear();
+  for (const client of stream.clients) {
+    if (client.firstFrameTimer) clearTimeout(client.firstFrameTimer);
+    if (client.initTimer) clearTimeout(client.initTimer);
+    if (!client.res.headersSent) {
+      client.res.status(statusIfUnstarted).end();
+    } else if (client.kind === 'fmp4' && client.res.socket) {
+      client.res.socket.destroy();
+    } else {
+      client.res.end();
+    }
+  }
+  stream.clients.clear();
 }
 
 // -----------------------------------------------------------------------
@@ -788,10 +1098,112 @@ app.get('/camera-streams/stats', (_req, res) => {
   res.json(buildCameraStatsSnapshot());
 });
 
+/**
+ * Fragmented MP4 for MSE. The browser gets the rover's H.264 exactly as sent — nothing decodes or
+ * re-encodes it anywhere in this process.
+ *
+ * Every client must receive the init segment (ftyp+moov) before any fragment, including one that
+ * joins an hour in, so it is cached off the first moof and replayed here.
+ */
+app.get('/camera-streams/:cameraId.mp4', (req, res) => {
+  const { cameraId } = req.params;
+  if (getCameraTransport(cameraId) !== 'fmp4') {
+    return res.status(404).json({ error: `Camera ${cameraId} does not serve fMP4` });
+  }
+
+  const stream = getCameraStream(cameraId);
+  if (!stream) {
+    return res.status(404).json({ error: `Unknown camera stream: ${cameraId}` });
+  }
+
+  req.socket.setNoDelay(true);
+  req.socket.setKeepAlive(true, 15000);
+  res.setTimeout(0);
+
+  const client = {
+    res,
+    cameraId,
+    kind: 'fmp4',
+    closed: false,
+    sent: 0,
+    dropped: 0,
+    blocked: false,
+    blockedSince: 0,
+    firstFrameTimer: null,
+    initTimer: null,
+  };
+
+  function cleanupClient() {
+    if (client.closed) return;
+    client.closed = true;
+    if (client.initTimer) {
+      clearTimeout(client.initTimer);
+      client.initTimer = null;
+    }
+    stream.onInit.delete(onInitReady);
+    stream.clients.delete(client);
+    if (stream.clients.size === 0) scheduleStopCameraStream(cameraId);
+  }
+
+  req.on('close', cleanupClient);
+  req.on('aborted', cleanupClient);
+  res.on('close', cleanupClient);
+  res.on('error', cleanupClient);
+
+  function start() {
+    if (client.closed) return;
+    res.writeHead(200, {
+      'Content-Type': 'video/mp4',
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      Pragma: 'no-cache',
+      Expires: '0',
+      Connection: 'close',
+      // The player cannot call addSourceBuffer until it knows the profile/level.
+      'X-Video-Codec': stream.codec || '',
+    });
+    res.write(stream.initSegment);
+    // Added only now: joining between two fragments is fine, but a client added before the init
+    // segment existed would have been sent mid-stream fragments with no moov to interpret them.
+    stream.clients.add(client);
+  }
+
+  function onInitReady() {
+    if (client.initTimer) {
+      clearTimeout(client.initTimer);
+      client.initTimer = null;
+    }
+    if (stream.initSegment) start();
+    else if (!client.closed) res.status(503).end();
+  }
+
+  if (stream.initSegment) {
+    start();
+    return;
+  }
+
+  // Bounded, always. Parking a client on a stream that never produces anything is precisely what
+  // stops the linger timer from ever reclaiming it.
+  stream.onInit.add(onInitReady);
+  client.initTimer = setTimeout(() => {
+    client.initTimer = null;
+    stream.onInit.delete(onInitReady);
+    if (!client.closed) {
+      cleanupClient();
+      res.status(503).end();
+    }
+  }, FMP4_INIT_TIMEOUT_MS);
+});
+
 app.get('/camera-streams/:cameraId.mjpg', (req, res) => {
   const { cameraId } = req.params;
   if (!Object.prototype.hasOwnProperty.call(CAMERA_GST_PORTS, cameraId)) {
     return res.status(404).json({ error: `Unknown camera stream: ${cameraId}` });
+  }
+  if (getCameraTransport(cameraId) === 'fmp4') {
+    // One pipeline owns the UDP port, so a camera cannot serve both transports at once.
+    return res
+      .status(409)
+      .json({ error: `Camera ${cameraId} streams fMP4; use /camera-streams/${cameraId}.mp4` });
   }
 
   if (req.method === 'HEAD') {

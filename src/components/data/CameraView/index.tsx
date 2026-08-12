@@ -1,6 +1,7 @@
 import { memo } from "react";
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
+import MseVideo from "./MseVideo";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -23,6 +24,8 @@ const CameraView = ({
 	showSelector = true,
 	showRemoveButton = false,
 	onRemoveCam,
+	streamKinds = [],
+	registerVideoEl,
 }: {
 	images: Array<string>;
 	rotate?: number[];
@@ -31,6 +34,12 @@ const CameraView = ({
 	currentCam: Array<string>;
 	topicNames?: Array<string>;
 	topicPaths?: Array<string>;
+	/** Positionally parallel to `images`: which entries are fragmented-MP4 streams needing a
+	 *  <video>/MSE player rather than an <img>. Absent entries default to "img". */
+	streamKinds?: Array<"img" | "video">;
+	/** Lets the page reach a live <video> element, which screenshots have to draw from — an MSE
+	 *  stream cannot be re-fetched into an Image() the way an MJPEG URL can. */
+	registerVideoEl?: (index: number, el: HTMLVideoElement | null) => void;
 	forceGrid?: boolean;
 	/** Top Left + Top Right on top row; Back + Front on bottom row (cameras page Navigation preset). */
 	navigationPanoramaLayout?: boolean;
@@ -86,13 +95,23 @@ const CameraView = ({
 				}
 			>
 				<div className={styles.GridImageWrapper}>
-					<img
-						src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
-						alt={`Camera ${i + 1}`}
-						className={styles.GridImage}
-						style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
-						onDoubleClick={() => bump(i)}
-					/>
+					{streamKinds[i] === "video" && images[i] ? (
+						<MseVideo
+							src={images[i]}
+							className={styles.GridImage}
+							rotation={rotate[i] ?? 0}
+							onDoubleClick={() => bump(i)}
+							registerEl={(el) => registerVideoEl?.(i, el)}
+						/>
+					) : (
+						<img
+							src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+							alt={`Camera ${i + 1}`}
+							className={styles.GridImage}
+							style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+							onDoubleClick={() => bump(i)}
+						/>
+					)}
 					{showRemoveButton && (
 						<button
 							type="button"

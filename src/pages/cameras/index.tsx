@@ -35,7 +35,22 @@ type CameraStreamStats = {
 	overheadMbps: number;
 	active: boolean;
 	lastPacketAgeMs: number | null;
+	transport?: "mjpeg" | "fmp4";
+	/** Packets the kernel discarded because the receive buffer was full. Anything above 0 means the
+	 *  feed is being corrupted upstream of everything this UI can otherwise see. */
+	drops?: number | null;
 };
+
+/**
+ * Cameras streamed as fragmented MP4 rather than MJPEG.
+ *
+ * These bypass the backend's UDP proxy (gst binds the rover's port directly, so no JS callback runs
+ * per RTP packet) and are not transcoded — the browser decodes the rover's H.264 itself. That costs
+ * one <video>/MSE player here but removes a decode and a JPEG re-encode per frame on the CS.
+ *
+ * Mirrored in frontend/ssh_backend/ssh_server.js (CAMERA_TRANSPORTS) — keep in sync.
+ */
+const FMP4_CAMERAS = new Set<string>(["hd_gripper"]);
 
 const CAMERA_SOURCE_STORAGE_KEY = "erc-cs-camera-feed-sources-v1";
 
@@ -87,7 +102,8 @@ const CAMERA_HTTP_PORT_OFFSET = 20000;
  * polls would otherwise fight over that budget and the surplus streams would never start.
  */
 function getCameraStreamUrl(camera: CameraDef): string {
-	return `${getCameraBackendBaseUrl(camera.gstPort + CAMERA_HTTP_PORT_OFFSET)}/camera-streams/${camera.id}.mjpg`;
+	const ext = FMP4_CAMERAS.has(camera.id) ? "mp4" : "mjpg";
+	return `${getCameraBackendBaseUrl(camera.gstPort + CAMERA_HTTP_PORT_OFFSET)}/camera-streams/${camera.id}.${ext}`;
 }
 
 function getCameraBackendBaseUrl(port: number = 5000): string {
@@ -310,6 +326,18 @@ const CamerasPage = () => {
 			),
 		[displayedCameras, cameraSources, imagesByTopic]
 	);
+	const streamKinds = useMemo<Array<"img" | "video">>(
+		() =>
+			displayedCameras.map((camera) =>
+				cameraSources[camera.id] === "gst" && FMP4_CAMERAS.has(camera.id) ? "video" : "img"
+			),
+		[displayedCameras, cameraSources]
+	);
+	const videoElsRef = useRef(new Map<number, HTMLVideoElement>());
+	const registerVideoEl = useCallback((index: number, el: HTMLVideoElement | null) => {
+		if (el) videoElsRef.current.set(index, el);
+		else videoElsRef.current.delete(index);
+	}, []);
 	const topicNames = useMemo(
 		() => displayedCameras.map((camera) => camera.name),
 		[displayedCameras]
@@ -319,10 +347,17 @@ const CamerasPage = () => {
 			displayedCameras.map((camera) => {
 				if (cameraSources[camera.id] === "gst") {
 					const stats = gstStats[camera.id];
+					// Kernel-level drops are the one failure this UI was previously blind to: they
+					// happen upstream of every counter the backend keeps, so a shredded feed could
+					// still report a healthy bitrate.
+					const drops = stats && stats.drops ? ` drops:${stats.drops}` : "";
 					if (!stats || !stats.active) {
-						return `GStreamer UDP:${camera.gstPort} (no packets)`;
+						return `GStreamer UDP:${camera.gstPort} (no packets)${drops}`;
 					}
-					return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps wire, ${stats.overheadMbps.toFixed(2)} Mbps overhead)`;
+					if (stats.transport === "fmp4") {
+						return `H.264 passthrough UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps)${drops}`;
+					}
+					return `GStreamer UDP:${camera.gstPort} (${stats.mbps.toFixed(2)} Mbps wire, ${stats.overheadMbps.toFixed(2)} Mbps overhead)${drops}`;
 				}
 
 				const topic = camera.topic;
@@ -417,6 +452,25 @@ const CamerasPage = () => {
 			try {
 				if (source === "ros") {
 					dataUrl = imagesByTopic[camera.topic] ?? null;
+				} else if (FMP4_CAMERAS.has(camera.id)) {
+					// An MSE stream cannot be re-opened into an Image() the way an MJPEG URL can —
+					// a second connection would only yield MP4 bytes. Grab the frame already on
+					// screen instead, which is also one fewer stream off the rover.
+					const video = videoElsRef.current.get(i);
+					if (video && video.videoWidth > 0) {
+						try {
+							const canvas = document.createElement("canvas");
+							canvas.width = video.videoWidth;
+							canvas.height = video.videoHeight;
+							const ctx = canvas.getContext("2d");
+							if (ctx) {
+								ctx.drawImage(video, 0, 0);
+								dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+							}
+						} catch {
+							dataUrl = null;
+						}
+					}
 				} else {
 					const streamUrl = getCameraStreamUrl(camera);
 					dataUrl = await new Promise<string | null>((resolve) => {
@@ -612,6 +666,8 @@ const CamerasPage = () => {
 						currentCam={currentCam}
 						topicNames={topicNames}
 						topicPaths={topicPaths}
+						streamKinds={streamKinds}
+						registerVideoEl={registerVideoEl}
 						changeCam={changeCam}
 						forceGrid={true}
 						navigationPanoramaLayout={navigationPanoramaLayout}
