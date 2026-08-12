@@ -11,7 +11,15 @@ import {
 	applyHdBindingMap,
 	loadHdBindingsConfig,
 } from "../utils/hdBindingsConfig";
-import { J1_SPEED_EVENT, J1Speed, applyJ1Curve, loadJ1Speed } from "../utils/hdSpeedConfig";
+import {
+	MANUAL_SLOW_FACTOR_EVENT,
+	MANUAL_SPEED_EVENT,
+	ManualSlowFactor,
+	ManualSpeed,
+	applyManualSlowCurveToDirectAxes,
+	loadManualSlowFactor,
+	loadManualSpeed,
+} from "../utils/hdSpeedConfig";
 
 export enum GamepadCommandState {
 	UI,
@@ -32,7 +40,10 @@ function useGamepad(
 	);
 	const [publisher, setPublisher] = useState<ROSLIB.Topic<any> | null>(null);
 	const [hdBindingsConfig, setHdBindingsConfig] = useState<HdBindingsConfig>(() => loadHdBindingsConfig());
-	const [j1Speed, setJ1Speed] = useState<J1Speed>(() => loadJ1Speed());
+	const [manualSpeed, setManualSpeed] = useState<ManualSpeed>(() => loadManualSpeed());
+	const [manualSlowFactor, setManualSlowFactor] = useState<ManualSlowFactor>(() =>
+		loadManualSlowFactor()
+	);
 
 	const gamepadCommandStateRef = useRef(gamepadCommandState);
 	gamepadCommandStateRef.current = gamepadCommandState;
@@ -58,8 +69,11 @@ function useGamepad(
 	// Via a ref, not a dependency: sendCommand is useCallback(..., []) and the 30 ms publish
 	// interval depends on its identity, so a dependency here would restart the interval on
 	// every toggle.
-	const j1SpeedRef = useRef(j1Speed);
-	j1SpeedRef.current = j1Speed;
+	const manualSpeedRef = useRef(manualSpeed);
+	manualSpeedRef.current = manualSpeed;
+
+	const manualSlowFactorRef = useRef(manualSlowFactor);
+	manualSlowFactorRef.current = manualSlowFactor;
 
 	const prevGamepadCommandStateRef = useRef(GamepadCommandState.UI);
 
@@ -153,18 +167,22 @@ function useGamepad(
 	}, []);
 
 	// Kept separate from the bindings sync above: that one always allocates a fresh config object
-	// and so always re-renders, whereas setJ1Speed bails out via Object.is when unchanged.
+	// and so always re-renders, whereas both setters here bail out via Object.is when unchanged —
+	// which is also why re-reading both settings on either event is free.
 	useEffect(() => {
-		const syncJ1Speed = () => {
-			setJ1Speed(loadJ1Speed());
+		const syncManualSettings = () => {
+			setManualSpeed(loadManualSpeed());
+			setManualSlowFactor(loadManualSlowFactor());
 		};
 
-		window.addEventListener(J1_SPEED_EVENT, syncJ1Speed as EventListener);
-		window.addEventListener("storage", syncJ1Speed);
+		window.addEventListener(MANUAL_SPEED_EVENT, syncManualSettings as EventListener);
+		window.addEventListener(MANUAL_SLOW_FACTOR_EVENT, syncManualSettings as EventListener);
+		window.addEventListener("storage", syncManualSettings);
 
 		return () => {
-			window.removeEventListener(J1_SPEED_EVENT, syncJ1Speed as EventListener);
-			window.removeEventListener("storage", syncJ1Speed);
+			window.removeEventListener(MANUAL_SPEED_EVENT, syncManualSettings as EventListener);
+			window.removeEventListener(MANUAL_SLOW_FACTOR_EVENT, syncManualSettings as EventListener);
+			window.removeEventListener("storage", syncManualSettings);
 		};
 	}, []);
 
@@ -216,10 +234,14 @@ function useGamepad(
 				if (sm[1] === States.MANUAL_DIRECT) {
 					const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.direct);
 					const msg = gp.handleDirectArm(remappedState.buttons, remappedState.axes);
-					// J1 expo. Applied here rather than inside the profile handler so the
-					// MANUAL_INVERSE branch below — where axes[0] is TX, not J1 — cannot be
-					// affected. No-op when the toggle is "fast".
-					msg.axes[0] = applyJ1Curve(msg.axes[0], j1SpeedRef.current);
+					// Maintenance expo on J1…J6 (the gripper keeps full speed). Applied here rather
+					// than inside the profile handler so the MANUAL_INVERSE branch below — where the
+					// axes are cartesian, not joints — cannot be affected. No-op when "fast".
+					applyManualSlowCurveToDirectAxes(
+						msg.axes,
+						manualSpeedRef.current,
+						manualSlowFactorRef.current
+					);
 					pub.publish(msg);
 				} else {
 					const remappedState = applyHdBindingMap(s.buttons, s.axes, bindings.inverse);

@@ -70,7 +70,15 @@ import {
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
-import { J1Speed, loadJ1Speed, saveJ1Speed } from "../../utils/hdSpeedConfig";
+import {
+	MANUAL_SLOW_FACTORS,
+	ManualSlowFactor,
+	ManualSpeed,
+	loadManualSlowFactor,
+	loadManualSpeed,
+	saveManualSlowFactor,
+	saveManualSpeed,
+} from "../../utils/hdSpeedConfig";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
@@ -364,7 +372,10 @@ const NewControlPage = () => {
 
 	const [isWidgetMenuOpen, setIsWidgetMenuOpen] = useState(false);
 	const [activePreset, setActivePreset] = useState<TaskPreset | "Custom">("All");
-	const [j1Speed, setJ1Speed] = useState<J1Speed>(() => loadJ1Speed());
+	const [manualSpeed, setManualSpeed] = useState<ManualSpeed>(() => loadManualSpeed());
+	const [manualSlowFactor, setManualSlowFactor] = useState<ManualSlowFactor>(() =>
+		loadManualSlowFactor()
+	);
 	const [qrCodeMessage, setQrCodeMessage] = useState<string>("NO DATA");
 
 	const handleQrCodeScan = useCallback(
@@ -374,13 +385,19 @@ const NewControlPage = () => {
 		[],
 	);
 
-	const toggleJ1Speed = useCallback(() => {
-		// Computed outside the updater: saveJ1Speed dispatches an event, and side effects must
+	const toggleManualSpeed = useCallback(() => {
+		// Computed outside the updater: saveManualSpeed dispatches an event, and side effects must
 		// not run inside a setState updater.
-		const next: J1Speed = j1Speed === "slow" ? "fast" : "slow";
-		setJ1Speed(next);
-		saveJ1Speed(next);
-	}, [j1Speed]);
+		const next: ManualSpeed = manualSpeed === "slow" ? "fast" : "slow";
+		setManualSpeed(next);
+		saveManualSpeed(next);
+	}, [manualSpeed]);
+
+	// Only sets the factor — never arms slow mode. A stray click in the header must not slow the arm.
+	const selectManualSlowFactor = useCallback((factor: ManualSlowFactor) => {
+		setManualSlowFactor(factor);
+		saveManualSlowFactor(factor);
+	}, []);
 	const [visibleWidgets, setVisibleWidgets] = useState<Record<WidgetKey, boolean>>(() => {
 		return WIDGET_KEYS.reduce((acc, key) => {
 			acc[key] = true;
@@ -696,18 +713,20 @@ const NewControlPage = () => {
 						/>
 						<button
 							type="button"
-							className={`${styles.j1SpeedToggle} ${
-								j1Speed === "slow" ? styles.j1SpeedToggleSlow : ""
+							className={`${styles.manualSpeedToggle} ${
+								manualSpeed === "slow" ? styles.manualSpeedToggleSlow : ""
 							} ${
 								stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
 									? ""
-									: styles.j1SpeedToggleIdle
+									: styles.manualSpeedToggleIdle
 							}`}
-							onClick={toggleJ1Speed}
-							aria-pressed={j1Speed === "slow"}
-							title="J1 sensitivity curve. Slow applies a 0.7·x³ expo: much finer control near centre, and full deflection is capped at 70% speed. Applies in Manual Direct only."
+							onClick={toggleManualSpeed}
+							aria-pressed={manualSpeed === "slow"}
+							title={`Manual Direct joint speed. Slow applies a ${manualSlowFactor}·x⁴ curve to J1–J6 for maintenance work: much finer control near centre, and full deflection is capped at ${Math.round(
+								manualSlowFactor * 100
+							)}% speed. The gripper is unaffected. Change the factor with the SLOW × buttons next to DRL.`}
 						>
-							{j1Speed === "slow" ? "J1 slow" : "J1 fast"}
+							{manualSpeed === "slow" ? `Slow: maintenance (${manualSlowFactor})` : "Fast"}
 						</button>
 					</div>
 					<SystemMode
@@ -716,6 +735,31 @@ const NewControlPage = () => {
 						modes={[States.ON, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.DRILL, mode, false)}
 					/>
+					<div
+						className={styles.slowFactorGroup}
+						title="Ceiling of the Manual Direct slow curve: full stick deflection commands this fraction of full joint speed. Only takes effect while the HD toggle is on Slow."
+					>
+						<span className={styles.slowFactorLabel}>SLOW ×</span>
+						<div className={styles.slowFactorButtons}>
+							{MANUAL_SLOW_FACTORS.map((factor) => (
+								<button
+									key={factor}
+									type="button"
+									className={`${styles.slowFactorButton} ${
+										manualSlowFactor === factor ? styles.slowFactorButtonActive : ""
+									} ${
+										stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
+											? ""
+											: styles.slowFactorButtonIdle
+									}`}
+									onClick={() => selectManualSlowFactor(factor)}
+									aria-pressed={manualSlowFactor === factor}
+								>
+									{factor}
+								</button>
+							))}
+						</div>
+					</div>
 				</div>
 			</div>
 			<div className={styles.control}>

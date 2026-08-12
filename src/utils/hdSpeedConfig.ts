@@ -1,5 +1,5 @@
 /*
-J1 sensitivity curve for the Handling Device in MANUAL_DIRECT.
+Manual-mode joint sensitivity curve for the Handling Device in MANUAL_DIRECT.
 
 Decoupled from the gamepad hook the same way hdBindingsConfig is: localStorage is the source of
 truth, a CustomEvent notifies live consumers in this tab, and the native "storage" event covers
@@ -7,69 +7,116 @@ other tabs. The toggle lives in the control page header while the consumer lives
 <Gamepad>, so there is no useful component boundary to pass this through.
 */
 
-export type J1Speed = "fast" | "slow";
+export type ManualSpeed = "fast" | "slow";
 
-export const J1_SPEED_STORAGE_KEY = "erc-cs-hd-j1-speed-v1";
-export const J1_SPEED_EVENT = "erc-cs-hd-j1-speed-updated";
+/* New key, deliberately not the old erc-cs-hd-j1-speed-v1: that setting slowed J1 alone with a
+   gentler curve, so reusing it would silently promote an operator's stored "slow" into a much
+   stronger, arm-wide slowdown on first load. */
+export const MANUAL_SPEED_STORAGE_KEY = "erc-cs-hd-manual-speed-v1";
+export const MANUAL_SPEED_EVENT = "erc-cs-hd-manual-speed-updated";
 
 /** Linear, i.e. the behaviour before this setting existed. */
-export const DEFAULT_J1_SPEED: J1Speed = "fast";
+export const DEFAULT_MANUAL_SPEED: ManualSpeed = "fast";
 
-function sanitizeJ1Speed(raw: unknown): J1Speed {
-	return raw === "slow" ? "slow" : DEFAULT_J1_SPEED;
+function sanitizeManualSpeed(raw: unknown): ManualSpeed {
+	return raw === "slow" ? "slow" : DEFAULT_MANUAL_SPEED;
 }
 
-export function loadJ1Speed(): J1Speed {
+export function loadManualSpeed(): ManualSpeed {
 	if (typeof window === "undefined") {
-		return DEFAULT_J1_SPEED;
+		return DEFAULT_MANUAL_SPEED;
 	}
 
 	try {
-		return sanitizeJ1Speed(window.localStorage.getItem(J1_SPEED_STORAGE_KEY));
+		return sanitizeManualSpeed(window.localStorage.getItem(MANUAL_SPEED_STORAGE_KEY));
 	} catch {
-		return DEFAULT_J1_SPEED;
+		return DEFAULT_MANUAL_SPEED;
 	}
 }
 
-export function saveJ1Speed(speed: J1Speed): void {
+export function saveManualSpeed(speed: ManualSpeed): void {
 	if (typeof window === "undefined") {
 		return;
 	}
 
-	const sanitized = sanitizeJ1Speed(speed);
+	const sanitized = sanitizeManualSpeed(speed);
 	try {
-		window.localStorage.setItem(J1_SPEED_STORAGE_KEY, sanitized);
+		window.localStorage.setItem(MANUAL_SPEED_STORAGE_KEY, sanitized);
 	} catch {
 		// Quota / private mode: the in-memory toggle still applies for this session.
 	}
-	window.dispatchEvent(new CustomEvent(J1_SPEED_EVENT, { detail: sanitized }));
+	window.dispatchEvent(new CustomEvent(MANUAL_SPEED_EVENT, { detail: sanitized }));
 }
 
 /**
- * Ceiling on J1 in slow mode: full stick deflection commands this fraction of full speed.
- * Tune here — it is the one number an operator is likely to want changed.
+ * Ceiling in slow mode: full stick deflection commands this fraction of full speed. Operator
+ * selectable, because how slow "slow" needs to be depends on the task.
  */
-export const J1_SLOW_MAX = 0.7;
+export const MANUAL_SLOW_FACTORS = [0.3, 0.4, 0.5, 0.6] as const;
+
+export type ManualSlowFactor = (typeof MANUAL_SLOW_FACTORS)[number];
+
+export const DEFAULT_MANUAL_SLOW_FACTOR: ManualSlowFactor = 0.5;
+
+export const MANUAL_SLOW_FACTOR_STORAGE_KEY = "erc-cs-hd-manual-slow-factor-v1";
+export const MANUAL_SLOW_FACTOR_EVENT = "erc-cs-hd-manual-slow-factor-updated";
+
+/** Whitelist rather than a range check: this multiplies commands sent to a live arm, so a hand
+ *  edited localStorage entry of "5" must not become a 5× multiplier. */
+export function sanitizeManualSlowFactor(raw: unknown): ManualSlowFactor {
+	const value = typeof raw === "string" ? Number(raw) : raw;
+	return MANUAL_SLOW_FACTORS.includes(value as ManualSlowFactor)
+		? (value as ManualSlowFactor)
+		: DEFAULT_MANUAL_SLOW_FACTOR;
+}
+
+export function loadManualSlowFactor(): ManualSlowFactor {
+	if (typeof window === "undefined") {
+		return DEFAULT_MANUAL_SLOW_FACTOR;
+	}
+
+	try {
+		return sanitizeManualSlowFactor(window.localStorage.getItem(MANUAL_SLOW_FACTOR_STORAGE_KEY));
+	} catch {
+		return DEFAULT_MANUAL_SLOW_FACTOR;
+	}
+}
+
+export function saveManualSlowFactor(factor: ManualSlowFactor): void {
+	if (typeof window === "undefined") {
+		return;
+	}
+
+	const sanitized = sanitizeManualSlowFactor(factor);
+	try {
+		window.localStorage.setItem(MANUAL_SLOW_FACTOR_STORAGE_KEY, String(sanitized));
+	} catch {
+		// Quota / private mode: the in-memory selection still applies for this session.
+	}
+	window.dispatchEvent(new CustomEvent(MANUAL_SLOW_FACTOR_EVENT, { detail: sanitized }));
+}
 
 /**
- * Cubic expo curve for J1, scaled to J1_SLOW_MAX.
+ * Quartic expo, scaled to the selected factor — the "maintenance" curve.
  *
- * x³ is an odd function, so (-a)³ === -(a³) carries the sign through with no Math.sign juggling.
  * Two separate effects combine here:
- *   - the cube gives much finer resolution near centre (dy/dx = 3x², so 0.03 at x = 0.1 against
- *     1.0 for the linear curve);
- *   - the J1_SLOW_MAX factor caps the top end, so full deflection gives 0.7 rather than 1.0.
+ *   - the fourth power gives very fine resolution near centre (factor/16 of full speed at half
+ *     deflection, against 0.5 for the linear curve);
+ *   - the factor caps the top end, so full deflection gives `factor` rather than 1.0.
+ *
+ * Math.sign is load-bearing: x⁴ is an *even* function, unlike the x³ this replaces, so without it
+ * a negative stick deflection would command a positive joint velocity.
  *
  * The 0.05 deadzone in remapAxes is applied upstream, so this never sees input inside the
  * deadband; it makes the deadzone edge smoother rather than introducing a new discontinuity.
  *
- * If the curve ever proves too aggressive against a joint-level minimum-velocity deadband, the
- * escape hatch with the same signature is a blend that keeps the same ceiling:
- *     const k = 0.85; return J1_SLOW_MAX * (k * c * c * c + (1 - k) * c);
- *
  * "fast" is the identity so call sites can stay unconditional.
  */
-export function applyJ1Curve(value: number, speed: J1Speed): number {
+export function applyManualSlowCurve(
+	value: number,
+	speed: ManualSpeed,
+	factor: ManualSlowFactor
+): number {
 	if (!Number.isFinite(value)) {
 		return 0;
 	}
@@ -77,8 +124,32 @@ export function applyJ1Curve(value: number, speed: J1Speed): number {
 		return value;
 	}
 
-	// Clamp defensively: a mis-profiled pad can emit slightly out-of-range values and cubing
-	// amplifies overshoot (1.05³ = 1.16).
+	// Clamp defensively: a mis-profiled pad can emit slightly out-of-range values and the fourth
+	// power amplifies overshoot (1.05⁴ = 1.22).
 	const clamped = Math.max(-1, Math.min(1, value));
-	return J1_SLOW_MAX * clamped * clamped * clamped;
+	return factor * Math.sign(clamped) * clamped * clamped * clamped * clamped;
+}
+
+/** MANUAL_DIRECT `msg.axes` is [J1…J6, gripper]; the gripper is deliberately left at full speed. */
+export const DIRECT_ARM_JOINT_AXIS_COUNT = 6;
+
+/**
+ * Slows every joint of a MANUAL_DIRECT command in place, leaving the gripper alone. Lives here
+ * rather than at the call site so the live command path and the bindings preview cannot disagree
+ * about which axes are joints.
+ */
+export function applyManualSlowCurveToDirectAxes(
+	axes: number[],
+	speed: ManualSpeed,
+	factor: ManualSlowFactor
+): number[] {
+	if (speed !== "slow") {
+		return axes;
+	}
+
+	const end = Math.min(DIRECT_ARM_JOINT_AXIS_COUNT, axes.length);
+	for (let i = 0; i < end; i++) {
+		axes[i] = applyManualSlowCurve(axes[i], speed, factor);
+	}
+	return axes;
 }

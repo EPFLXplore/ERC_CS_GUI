@@ -1,43 +1,103 @@
-import { J1_SLOW_MAX, applyJ1Curve } from "./hdSpeedConfig";
+import {
+	DEFAULT_MANUAL_SLOW_FACTOR,
+	MANUAL_SLOW_FACTORS,
+	ManualSlowFactor,
+	applyManualSlowCurve,
+	applyManualSlowCurveToDirectAxes,
+	sanitizeManualSlowFactor,
+} from "./hdSpeedConfig";
 
-describe("applyJ1Curve", () => {
+describe.each(MANUAL_SLOW_FACTORS)("applyManualSlowCurve at factor %p", (factor) => {
 	it("is the identity in fast mode", () => {
 		[1, 0.5, 0.05, 0, -0.5, -1].forEach((x) => {
-			expect(applyJ1Curve(x, "fast")).toBe(x);
+			expect(applyManualSlowCurve(x, "fast", factor)).toBe(x);
 		});
 	});
 
-	it("caps slow mode at J1_SLOW_MAX on full deflection", () => {
-		expect(applyJ1Curve(1, "slow")).toBeCloseTo(J1_SLOW_MAX, 10);
-		expect(applyJ1Curve(-1, "slow")).toBeCloseTo(-J1_SLOW_MAX, 10);
+	it("caps slow mode at the factor on full deflection", () => {
+		expect(applyManualSlowCurve(1, "slow", factor)).toBeCloseTo(factor, 10);
+		expect(applyManualSlowCurve(-1, "slow", factor)).toBeCloseTo(-factor, 10);
 	});
 
-	it("preserves sign without Math.sign juggling", () => {
-		expect(applyJ1Curve(-0.5, "slow")).toBeCloseTo(-J1_SLOW_MAX * 0.125, 10);
-		expect(applyJ1Curve(0.5, "slow")).toBeCloseTo(J1_SLOW_MAX * 0.125, 10);
+	// x⁴ is even, so this is the regression the quartic is most likely to introduce: without
+	// Math.sign a negative deflection would command a positive joint velocity.
+	it("preserves the sign of the input", () => {
+		expect(applyManualSlowCurve(-0.5, "slow", factor)).toBeCloseTo(-factor * 0.0625, 10);
+		expect(applyManualSlowCurve(0.5, "slow", factor)).toBeCloseTo(factor * 0.0625, 10);
+		expect(applyManualSlowCurve(-0.75, "slow", factor)).toBeLessThan(0);
+		expect(applyManualSlowCurve(-1.05, "slow", factor)).toBeLessThan(0);
 	});
 
 	it("gives finer resolution near centre", () => {
-		expect(applyJ1Curve(0.5, "slow")).toBeCloseTo(0.0875, 10);
-		expect(applyJ1Curve(0.25, "slow")).toBeCloseTo(0.0109375, 10);
-		expect(applyJ1Curve(0.05, "slow")).toBeCloseTo(0.0000875, 10);
+		expect(applyManualSlowCurve(0.5, "slow", factor)).toBeCloseTo(factor * 0.0625, 10);
+		expect(applyManualSlowCurve(0.25, "slow", factor)).toBeCloseTo(factor * 0.00390625, 10);
+		expect(applyManualSlowCurve(0.05, "slow", factor)).toBeCloseTo(factor * 0.00000625, 10);
 	});
 
 	it("is monotonic, so more stick is always more speed", () => {
-		const xs = [0, 0.1, 0.25, 0.5, 0.75, 1];
-		const ys = xs.map((x) => applyJ1Curve(x, "slow"));
+		const xs = [-1, -0.75, -0.5, -0.25, 0, 0.1, 0.25, 0.5, 0.75, 1];
+		const ys = xs.map((x) => applyManualSlowCurve(x, "slow", factor));
 		ys.forEach((y, i) => {
 			if (i > 0) expect(y).toBeGreaterThan(ys[i - 1]);
 		});
 	});
 
 	it("never exceeds the cap, even on out-of-range input", () => {
-		expect(applyJ1Curve(1.05, "slow")).toBeCloseTo(J1_SLOW_MAX, 10);
-		expect(applyJ1Curve(-1.05, "slow")).toBeCloseTo(-J1_SLOW_MAX, 10);
+		expect(applyManualSlowCurve(1.05, "slow", factor)).toBeCloseTo(factor, 10);
+		expect(applyManualSlowCurve(-1.05, "slow", factor)).toBeCloseTo(-factor, 10);
 	});
 
 	it("treats non-finite input as zero", () => {
-		expect(applyJ1Curve(NaN, "slow")).toBe(0);
-		expect(applyJ1Curve(Infinity, "fast")).toBe(0);
+		expect(applyManualSlowCurve(NaN, "slow", factor)).toBe(0);
+		expect(applyManualSlowCurve(Infinity, "fast", factor)).toBe(0);
+	});
+});
+
+describe("applyManualSlowCurveToDirectAxes", () => {
+	/** MANUAL_DIRECT layout: [J1…J6, gripper]. */
+	const axes = () => [1, -1, 0.5, -0.5, 0.25, 0.75, 1];
+
+	it.each(MANUAL_SLOW_FACTORS)(
+		"slows every joint by factor %p but leaves the gripper at full speed",
+		(factor) => {
+			const out = applyManualSlowCurveToDirectAxes(axes(), "slow", factor);
+
+			expect(out[0]).toBeCloseTo(factor, 10);
+			expect(out[1]).toBeCloseTo(-factor, 10);
+			expect(out[2]).toBeCloseTo(factor * 0.0625, 10);
+			expect(out[3]).toBeCloseTo(-factor * 0.0625, 10);
+			expect(out[4]).toBeCloseTo(factor * 0.00390625, 10);
+			expect(out[5]).toBeCloseTo(factor * 0.31640625, 10);
+			expect(out[6]).toBe(1);
+		}
+	);
+
+	it("leaves every axis untouched in fast mode", () => {
+		expect(applyManualSlowCurveToDirectAxes(axes(), "fast", 0.3)).toEqual(axes());
+	});
+
+	it("does not read past the end of a short array", () => {
+		expect(applyManualSlowCurveToDirectAxes([1, -1], "slow", 0.4)).toEqual([0.4, -0.4]);
+	});
+});
+
+describe("sanitizeManualSlowFactor", () => {
+	it("accepts every offered factor, as a number or as its stored string", () => {
+		MANUAL_SLOW_FACTORS.forEach((factor) => {
+			expect(sanitizeManualSlowFactor(factor)).toBe(factor);
+			expect(sanitizeManualSlowFactor(String(factor))).toBe(factor);
+		});
+	});
+
+	// This multiplies commands sent to a live arm, so anything off the whitelist must fall back
+	// rather than pass through.
+	it("falls back to the default for anything off the whitelist", () => {
+		[5, "5", 0.35, 0, -0.5, null, undefined, "", "fast", NaN, {}].forEach((raw) => {
+			expect(sanitizeManualSlowFactor(raw)).toBe(DEFAULT_MANUAL_SLOW_FACTOR);
+		});
+	});
+
+	it("keeps the default inside the offered set", () => {
+		expect(MANUAL_SLOW_FACTORS).toContain(DEFAULT_MANUAL_SLOW_FACTOR as ManualSlowFactor);
 	});
 });
