@@ -416,8 +416,18 @@ function buildGstReceiveArgs(port) {
  * depayloading. From there the H.264 is muxed, not decoded: no avdec_h264, no videoconvert, no
  * jpegenc, which is the entire point.
  *
- * fragment-duration=20 (ms) is below one frame interval at 30 fps, so mp4mux emits one moof/mdat per
- * frame and adds no batching latency of its own. Measured on GStreamer 1.20.3.
+ * fragment-duration=20 (ms) is below one frame interval at the rover's 15 fps, so mp4mux emits one
+ * moof/mdat per frame and adds no batching latency of its own. Measured on GStreamer 1.20.3.
+ *
+ * Deliberately NOT set here: `rtph264depay wait-for-keyframe=true`. Paired with do-lost it makes the
+ * depayloader discard everything until an intact keyframe, and a keyframe spans enough RTP packets
+ * that on a lossy link the condition is rarely met. Measured against an identical impaired stream it
+ * cost 86 % of frames at 2 % loss and produced no output at all at 5 %, where the settings below
+ * were unaffected.
+ *
+ * `latency=50` is unchanged pending measurement on the real link: rtpjitterbuffer's `stats` property
+ * reports num-late and avg-jitter, and that — not a guess about frame intervals — is what should
+ * decide the budget. Raising it without evidence is pure added delay on a teleoperation feed.
  */
 function buildGstFmp4Args(port) {
   return [
@@ -427,8 +437,11 @@ function buildGstFmp4Args(port) {
     'buffer-size=2097152',
     'caps=application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96',
     '!',
+    // Memory guard between the socket and the jitterbuffer, not a drop point. 200 buffers is ample
+    // for a stream that fragments frames into ~11 packets at mtu=1200, and bounds the damage a leak
+    // can do — leaked RTP corrupts H.264 until the next IDR.
     'queue',
-    'max-size-buffers=1000',
+    'max-size-buffers=200',
     'max-size-bytes=0',
     'max-size-time=0',
     'leaky=downstream',
@@ -436,8 +449,14 @@ function buildGstFmp4Args(port) {
     'rtpjitterbuffer',
     'latency=50',
     'drop-on-latency=true',
+    // Emits a gap event downstream on loss instead of silently splicing across the hole.
+    'do-lost=true',
     '!',
     'rtph264depay',
+    '!',
+    // rtph264depay already advertises alignment=au; stating it makes the contract mp4mux depends on
+    // explicit, since the muxer needs whole access units and fails hard rather than degrading.
+    'video/x-h264,alignment=au',
     '!',
     'h264parse',
     '!',
