@@ -80,13 +80,22 @@ function getCameraTransport(cameraId) {
 const cameraStreams = new Map();
 const cameraStats = new Map();
 const FIRST_FRAME_TIMEOUT_MS = 2500;
-/** An fmp4 client cannot be served until gst has emitted ftyp+moov. Bounded so a silent pipeline
- *  ends the response instead of parking the client on it forever — an unbounded wait here is what
- *  stops the linger timer from ever reclaiming a wedged stream. */
-const FMP4_INIT_TIMEOUT_MS = 5000;
-/** gst stdout silent this long with clients attached means the pipeline is wedged, not merely idle:
- *  kill it so the next client reconnect rebuilds it. */
+/**
+ * An fmp4 client cannot be served until gst has emitted ftyp+moov, and mp4mux cannot emit those
+ * until the rover sends a keyframe — so the honest bound here is "longer than the worst plausible
+ * GOP", not "a couple of seconds". At 5 s any rover with a keyframe interval above that would 503
+ * every client forever while the stream was perfectly healthy.
+ *
+ * Still bounded, because parking a client on a stream that genuinely never produces anything is what
+ * stops the linger timer from ever reclaiming it.
+ */
+const FMP4_INIT_TIMEOUT_MS = 30000;
+/** Output stopped after it had been flowing: the pipeline is wedged, kill it so a reconnect rebuilds
+ *  it. Only meaningful once a first segment exists — see FMP4_FIRST_SEGMENT_TIMEOUT_MS. */
 const FMP4_STALL_TIMEOUT_MS = 5000;
+/** Nothing produced *yet*. Distinct from the above because waiting on the first keyframe of a long
+ *  GOP is normal, and killing the pipeline for it restarts the wait — forever. */
+const FMP4_FIRST_SEGMENT_TIMEOUT_MS = 30000;
 /** A client queued further behind than this cannot catch up on a live stream; drop it and let it
  *  reconnect at the live edge. Roughly a second of the gripper at its 4000 kbps maximum. */
 const FMP4_MAX_CLIENT_BACKLOG_BYTES = 4 * 1024 * 1024;
@@ -705,6 +714,7 @@ function getCameraStream(cameraId) {
     // fmp4 only
     initSegment: null,
     codec: null,
+    startedAt: Date.now(),
     lastSegmentAt: 0,
     stallTimer: null,
     bytesOut: 0,
@@ -715,15 +725,21 @@ function getCameraStream(cameraId) {
   if (fmp4) {
     stream.stallTimer = setInterval(() => {
       if (stream.clients.size === 0) return;
-      if (Date.now() - stream.lastSegmentAt < FMP4_STALL_TIMEOUT_MS) return;
-      // Producing nothing while someone is watching means wedged, not idle. Kill it; the clients'
-      // reconnect rebuilds it. Without this a wedged pipeline would survive as long as a client
-      // stayed attached, because the linger timer only fires once the last client leaves.
+      // Two different situations, and conflating them is fatal: a pipeline that has never produced
+      // anything is usually just waiting for the rover's next keyframe, and killing it restarts
+      // that wait from zero — a loop that never resolves on a long GOP. Only a pipeline that was
+      // producing and then stopped is actually wedged.
+      const waitingForFirst = stream.lastSegmentAt === 0;
+      const since = Date.now() - (waitingForFirst ? stream.startedAt : stream.lastSegmentAt);
+      const budget = waitingForFirst ? FMP4_FIRST_SEGMENT_TIMEOUT_MS : FMP4_STALL_TIMEOUT_MS;
+      if (since < budget) return;
       console.warn(
-        `[camera-streams] ${cameraId}: no fMP4 output for ${FMP4_STALL_TIMEOUT_MS}ms, restarting pipeline`
+        `[camera-streams] ${cameraId}: no fMP4 output for ${since}ms (${
+          waitingForFirst ? 'never started' : 'stalled'
+        }), restarting pipeline`
       );
       stopCameraStream(cameraId);
-    }, FMP4_STALL_TIMEOUT_MS);
+    }, 1000);
 
     gst.stdout.on(
       'data',
