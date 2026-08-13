@@ -3,6 +3,13 @@ import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import styles from "./style.module.sass";
 import { Topics } from "../../../data/topics.type";
+import {
+	ANGLE_MAX,
+	ANGLE_MIN,
+	CAMERA_SERVO_DEFAULT_ANGLE,
+	CAMERA_SERVO_ID,
+	useCameraServoContext,
+} from "../../../hooks/cameraServoHooks";
 
 /*
 Description: Avionics dock applet. Reads the load cells published on /EL/mass_packet,
@@ -18,11 +25,13 @@ const LOAD_CELLS = [
 /**
  * ServoRequest `id` is the physical PWM channel (`Servos_ID` in the firmware's ServoThread.h):
  * 0 = front camera, 1 = drill sand bowl.
+ *
+ * The camera servo's id and angle range live in hooks/cameraServoHooks so this modal and the
+ * gamepad's D-pad control cannot drift apart; only the display strings belong here.
  */
 const CAMERA_SERVO = {
-	id: 0,
+	id: CAMERA_SERVO_ID,
 	label: "ZED 2i Front Camera",
-	defaultAngle: 90,
 	minLabel: "35° pitch down",
 	midLabel: "90° straight ahead",
 	maxLabel: "145° pitch up",
@@ -46,9 +55,6 @@ const BOWL_POSITIONS = [
 	},
 ] as const;
 
-const ANGLE_MIN = 35;
-const ANGLE_MAX = 145;
-
 /** A load cell whose last packet is older than this is shown as stale. */
 const MASS_STALE_MS = 2000;
 const PH_STALE_MS = 5000;
@@ -65,10 +71,16 @@ function AvionicsModal({
 	ros: ROSLIB.Ros | null;
 	snackBar: (severity: AlertColor, message: string) => void;
 }) {
+	// Owned above this modal so the gamepad D-pad can drive the same servo while it is closed, and
+	// so the slider reflects that when reopened.
+	const {
+		angle: cameraAngle,
+		setAngle: setCameraAngle,
+		sendServo: publishServo,
+	} = useCameraServoContext();
 	const [masses, setMasses] = useState<Record<number, MassReading>>({});
 	const [phReading, setPhReading] = useState<PhReading | null>(null);
 	const [selectedCell, setSelectedCell] = useState<number>(LOAD_CELLS[0].id);
-	const [cameraAngle, setCameraAngle] = useState<number>(CAMERA_SERVO.defaultAngle);
 	// The bowl has no feedback topic, so this is the last angle *we* commanded — null until then.
 	const [bowlAngle, setBowlAngle] = useState<number | null>(null);
 	// Freshness is a function of wall-clock time, so it needs its own tick to re-render.
@@ -88,19 +100,6 @@ function AvionicsModal({
 		[ros]
 	);
 
-	const servoRequestTopic = useMemo(
-		() =>
-			ros
-				? new ROSLIB.Topic<any>({
-						ros,
-						name: Topics.EL_SERVO_REQ,
-						messageType: "custom_msg/ServoRequest",
-						queue_length: 1,
-						queue_size: 1,
-					})
-				: null,
-		[ros]
-	);
 
 	useEffect(() => {
 		if (!ros) return;
@@ -161,21 +160,15 @@ function AvionicsModal({
 		snackBar("success", `Tare sent to ${cell?.label ?? `id ${selectedCell}`}.`);
 	}, [massRequestTopic, selectedCell, snackBar]);
 
+	/** Both servos publish through the shared hook's topic; this wrapper only adds the snackbar,
+	 *  which suits a deliberate click here but not the gamepad's repeated taps. */
 	const sendServo = useCallback(
 		(id: number, angle: number, goToZero: boolean) => {
-			if (!servoRequestTopic) {
+			if (!publishServo(id, angle, goToZero)) {
 				snackBar("error", "ROS not connected, servo request not sent.");
-				return;
 			}
-			servoRequestTopic.publish({
-				id,
-				angle: Math.round(angle),
-				go_to_zero: goToZero,
-				change_zero: false,
-				zero: 0,
-			});
 		},
-		[servoRequestTopic, snackBar]
+		[publishServo, snackBar]
 	);
 
 	const formatMass = (reading: MassReading | undefined) => {
@@ -314,11 +307,11 @@ function AvionicsModal({
 									type="button"
 									className={styles.ServoButton}
 									onClick={() => {
-										setCameraAngle(CAMERA_SERVO.defaultAngle);
-										sendServo(CAMERA_SERVO.id, CAMERA_SERVO.defaultAngle, false);
+										setCameraAngle(CAMERA_SERVO_DEFAULT_ANGLE);
+										sendServo(CAMERA_SERVO.id, CAMERA_SERVO_DEFAULT_ANGLE, false);
 									}}
 								>
-									Straight Ahead ({CAMERA_SERVO.defaultAngle}°)
+									Straight Ahead ({CAMERA_SERVO_DEFAULT_ANGLE}°)
 								</button>
 							</div>
 						</div>

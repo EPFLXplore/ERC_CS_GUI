@@ -70,6 +70,7 @@ import {
 import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
+import useCameraServo, { CameraServoProvider } from "../../hooks/cameraServoHooks";
 import {
 	MANUAL_SLOW_FACTORS,
 	ManualSlowFactor,
@@ -238,6 +239,9 @@ const NewControlPage = () => {
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
+	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
+	// than in the Avionics modal because the D-pad has to keep working while that modal is closed.
+	const cameraServo = useCameraServo(ros);
 
   	// Destructure:
   	const [
@@ -684,6 +688,7 @@ const NewControlPage = () => {
 	}, [roverState, qrCodeMessage]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
+		<CameraServoProvider value={cameraServo}>
 		<div className={"page " + styles.mainPage}>
 			<Background />
 			<div className={styles.header}>
@@ -983,6 +988,7 @@ const NewControlPage = () => {
 				<Header />
 			</div>
 		</div>
+		</CameraServoProvider>
 	);
 };
 
