@@ -1012,6 +1012,37 @@ async function measureAllLinkPings() {
   return { ok, hosts };
 }
 
+const LOOPBACK_IPS = new Set(['127.0.0.1', '::1']);
+
+/** Express sees IPv4 peers in IPv6-mapped form (`::ffff:127.0.0.1`) on a dual-stack socket. */
+function normalizeIp(ip) {
+  if (!ip) return '';
+  return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
+}
+
+function ownInterfaceIps() {
+  const out = new Set();
+  for (const list of Object.values(os.networkInterfaces())) {
+    for (const iface of list || []) out.add(normalizeIp(iface.address));
+  }
+  return out;
+}
+
+/**
+ * GET /operator-role — is the requesting browser running on this same machine (the NUC)?
+ *
+ * Only that browser shows the HD confirmation dialogs and advertises the confirmation services;
+ * every other viewer of the page stays silent. See frontend/src/hooks/operatorRoleHooks.ts.
+ *
+ * Deliberately reads `req.socket.remoteAddress` and not `req.ip`: `trust proxy` is off today, but
+ * turning it on would make `req.ip` spoofable from an `X-Forwarded-For` header, and this decides
+ * who is allowed to answer the rover.
+ */
+app.get('/operator-role', (req, res) => {
+  const ip = normalizeIp(req.socket.remoteAddress);
+  res.json({ operator: LOOPBACK_IPS.has(ip) || ownInterfaceIps().has(ip), clientIp: ip });
+});
+
 /**
  * GET /link-ping — Per-host ICMP (else TCP RTT) for LINK_PING_HOSTS.
  * Response includes `hosts` array in display order (CS header shows each row).

@@ -11,6 +11,7 @@ import * as ROSLIB from "roslib";
 import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
+import useOperatorRole from "./operatorRoleHooks";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -92,6 +93,11 @@ const useRoverControls = (
 	ros: ROSLIB.Ros | null,
 	showSnackbar: (sev: AlertColor, mes: string) => void
 ) => {
+
+	// Only the browser running on the NUC handles HD confirmations. Extra viewers of the page must
+	// not get blocking overlays (the reflex is to refresh, which drops their rosbridge socket and
+	// the HD camera stream), and must not advertise a second copy of the confirmation services.
+	const { isOperator, status: operatorRoleStatus } = useOperatorRole();
 
 	// RoverState
 	const [roverState] = useRoverState(ros);
@@ -388,7 +394,7 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 	// Service that triggers Human verification for selecting a something on an image that needs to be collected
 	// The name with rocks it not right, please rename it at some point.
 	useEffect(() => {
-		if (!ros) return;
+		if (!ros || !isOperator) return;
 
 		const imageSelectionService = new ROSLIB.Service({
 			ros: ros,
@@ -434,10 +440,10 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 			}
 		};
 
-	}, [ros]);
+	}, [ros, isOperator]);
 
 	useEffect(() => {
-		if (!ros) return;
+		if (!ros || !isOperator) return;
 
 		// The Service object does double duty for both calling and advertising services
 		const askUserConfirmation = new ROSLIB.Service({
@@ -483,10 +489,10 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 				console.warn("[rosbridge] HD confirmation service cleanup failed:", error);
 			}
 		};
-	}, [ros]);
+	}, [ros, isOperator]);
 
 	useEffect(() => {
-		if (!ros) return;
+		if (!ros || !isOperator) return;
 
 		const hdLaunchTopic = new ROSLIB.Topic({
 			ros: ros,
@@ -522,7 +528,22 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 		});
 
 		return () => hdLaunchTopic.unsubscribe();
-	}, [ros]);
+	}, [ros, isOperator]);
+
+	/**
+	 * The one case the role check cannot cover on its own: the NUC opened on its own LAN IP while
+	 * the backend on :5000 is down. Nobody is then the operator and the rover would block on a
+	 * confirmation no screen can answer, silently. A viewer that the backend positively answered
+	 * `operator: false` for is the normal case and stays quiet.
+	 */
+	useEffect(() => {
+		if (isOperator || operatorRoleStatus !== "unreachable") return;
+		showSnackbar(
+			"warning",
+			"Operator role unknown (backend :5000 unreachable) — HD confirmations disabled on this screen. Open the CS on the NUC, or append ?operator=1."
+		);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [isOperator, operatorRoleStatus]);
 
 	/**
 	 * True while any dialog is waiting on an operator click. The two service-backed dialogs cannot
