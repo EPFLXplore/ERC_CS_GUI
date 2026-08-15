@@ -13,9 +13,25 @@ a corrupt fragment can kill playback outright, and MSE has several ways to stall
 healthy from the outside. Every one of those is a reconnect trigger below.
 */
 
-/** Above this much buffered-ahead, jump to the live edge. MSE will happily play a growing backlog
- *  in real time forever, which on a teleoperation feed is worse than a visible skip. */
-const LIVE_EDGE_MAX_S = 0.3;
+/**
+ * How far behind the live edge the playhead is held, in seconds.
+ *
+ * MSE will happily play a growing backlog in real time forever, so something has to pull the
+ * playhead forward. What that something must NOT be is a threshold that only acts once the lag is
+ * already unacceptable: whatever backlog the browser accumulates while it starts up then becomes
+ * the permanent latency, because it sits just under the threshold and nothing ever trims it.
+ * Measured on a loopback replica of the rover's encoder, a 0.3 s trigger settled at 175-285 ms of
+ * standing delay across runs; holding 0.15 s continuously settles at ~85 ms.
+ */
+const LIVE_EDGE_TARGET_S = 0.15;
+/** Past this, playback is so far behind that catching up at 1.15x would take longer than the skip
+ *  is worth — a backgrounded tab, or a long stall. Only here is a visible jump the right answer. */
+const LIVE_EDGE_HARD_S = 0.75;
+/** Slow enough to be invisible on a muted video, fast enough to absorb a 0.3 s excursion in ~2 s. */
+const CATCH_UP_RATE = 1.15;
+/** The controller cannot run on `updateend` alone: appends stop while the rover is between
+ *  keyframes or the link hiccups, which is exactly when the playhead falls behind. */
+const LIVE_EDGE_TICK_MS = 250;
 /** Buffered history to keep behind the playhead. Bounds SourceBuffer memory on a stream that never
  *  ends. */
 const BUFFER_KEEP_S = 5;
@@ -72,6 +88,7 @@ const MseVideo = ({
 			let sourceBuffer: SourceBuffer | null = null;
 			let objectUrl: string | null = null;
 			let stallTimer: number | null = null;
+			let edgeTimer: number | null = null;
 			let lastPosition = -1;
 			let lastProgressAt = Date.now();
 			let started = false;
@@ -82,6 +99,13 @@ const MseVideo = ({
 					window.clearInterval(stallTimer);
 					stallTimer = null;
 				}
+				if (edgeTimer !== null) {
+					window.clearInterval(edgeTimer);
+					edgeTimer = null;
+				}
+				// playbackRate persists on the element, so a session torn down mid-catch-up would
+				// hand the next one a 1.15x video with nothing left to reset it.
+				video.playbackRate = 1;
 				document.removeEventListener("visibilitychange", onVisible);
 				video.removeEventListener("error", onVideoError);
 				try {
@@ -121,19 +145,31 @@ const MseVideo = ({
 				fail();
 			}
 
-			function seekToLive() {
+			/**
+			 * Holds the playhead near the live edge. Small excesses are absorbed by playing slightly
+			 * fast, which is imperceptible; only a gross desync is worth a seek. Seeking for the
+			 * small ones is not merely uglier — issuing them at frame rate makes MSE stop advancing
+			 * altogether, and the lag then grows without bound.
+			 */
+			function holdLiveEdge() {
 				const el = videoRef.current;
 				if (!el || !sourceBuffer || sourceBuffer.buffered.length === 0) return;
 				const end = sourceBuffer.buffered.end(sourceBuffer.buffered.length - 1);
-				if (end - el.currentTime > LIVE_EDGE_MAX_S) {
-					el.currentTime = Math.max(0, end - 0.05);
+				const lag = end - el.currentTime;
+				if (lag > LIVE_EDGE_HARD_S) {
+					el.currentTime = Math.max(0, end - LIVE_EDGE_TARGET_S);
+					el.playbackRate = 1;
+				} else if (lag > LIVE_EDGE_TARGET_S) {
+					if (el.playbackRate !== CATCH_UP_RATE) el.playbackRate = CATCH_UP_RATE;
+				} else if (el.playbackRate !== 1) {
+					el.playbackRate = 1;
 				}
 			}
 
 			function onVisible() {
 				// A backgrounded tab keeps buffering but stops rendering, so it returns holding a
 				// backlog. Snap forward rather than replaying it.
-				if (!document.hidden) seekToLive();
+				if (!document.hidden) holdLiveEdge();
 			}
 
 			const pump = () => {
@@ -199,7 +235,7 @@ const MseVideo = ({
 				sourceBuffer.mode = "sequence";
 				sourceBuffer.addEventListener("updateend", () => {
 					if (finished) return;
-					seekToLive();
+					holdLiveEdge();
 					if (
 						sourceBuffer &&
 						!sourceBuffer.updating &&
@@ -221,6 +257,10 @@ const MseVideo = ({
 				void video.play().catch(() => {
 					/* autoplay policy; muted + playsInline should prevent this */
 				});
+
+				edgeTimer = window.setInterval(() => {
+					if (!finished) holdLiveEdge();
+				}, LIVE_EDGE_TICK_MS);
 
 				// Only armed once data is actually flowing: before that the backend may legitimately
 				// take a few seconds to produce an init segment, and failing here would loop.
