@@ -133,7 +133,11 @@ function ArmGoalModal({
 		  { name: "Sad Arm", msg: "above_ground" },
 		  { name: "Rangement", msg: "rangement" },
 		  { name: "Front Panel", msg: "front_panel" },
-		  { name: "Align Metal Bar", msg: "align_metal_bar" },
+		  { name: "Above Steering Right", msg: "above_steering_right" },
+		  { name: "Above Tool changing", msg: "above_container_tool_drop_rvt_1" },
+		  { name: "Above Sand Dune", msg: "above_ground_sand_dune" },
+		  { name: "Above Sand Flat", msg: "above_ground_sand" },
+		  { name: "Above Container Rock/Sand", msg: "intermediate_rock_3" },
 		]},
 		{ category: "Tasks", items: [
 		  { name: "debug", msg: "debug" },
@@ -151,9 +155,7 @@ function ArmGoalModal({
 		  { name: "Probe 1 UP", msg: "probe_u_1"},
 		  { name: "Probe 2 UP", msg: "probe_u_2"},
 		  { name: "Probe 3 UP", msg: "probe_u_3"},
-		  { name: "Probe 1 SIDE", msg: "probe_s_1"},
-		  { name: "Probe 2 SIDE", msg: "probe_s_2"},
-		  { name: "Probe 3 SIDE", msg: "probe_s_3"}
+		  { name: "Probe SIDE", msg: "probe_s_1"},
 		]},
 		{ category: "SAM Approach", items: [
 		  { name: "Control Switch", msg: "model_small_rotation_switch" },

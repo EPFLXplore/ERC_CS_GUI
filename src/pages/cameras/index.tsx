@@ -61,11 +61,11 @@ const DEFAULT_CAMERA_SOURCES = CAMERA_DEFS.reduce((acc, camera) => {
 
 const TASK_PRESETS = [
 	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_back", "nav_front"] },
-	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
+	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer", "cs_left_steer"] },
 	{ label: "Exploration", cameraIds: ["nav_front", "cs_top", "cs_right_steer", "cs_left_steer", "manipulation"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_top", "cs_right_steer", "nav_front"] },
 	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
-	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer", "drill_inside"], },
+	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer", "drill_inside", "nav_front"], },
 ] as const;
 
 const getDefaultRotationByCameraId = (cameraId: string): number => {

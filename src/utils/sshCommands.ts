@@ -66,34 +66,34 @@ const StopWheelsControl: SSHCommands = {
 
 const ActivateHdMotorControl: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './run_motors.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_motors.sh']
 };
 
 const StopHdMotorControl: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_motors.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_motors.sh']
 };
 
 const ActivateHdStack: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_hd_stack.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './erc_run_hd_stack.sh']
 };
 
 // Stops the FSM and other stuff. 
 const StopHdStack: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/debug_torch', './stop_hd_stack.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './erc_stop_hd_stack.sh']
 };
 
 const ActivateElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/src/docker_humble_jetson', './start_elec_stack.sh']
+    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/2026/docker', './erc_run_avionics.sh']
 };
 
 // Stops the FSM and other stuff. 
 const StopElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/src/docker_humble_jetson', './stop_elec_stack.sh']
+    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/2026/docker', './erc_stop_avionics.sh']
 };
 
 const CommandsSSH = {
