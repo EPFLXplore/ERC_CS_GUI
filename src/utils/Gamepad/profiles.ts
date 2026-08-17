@@ -73,10 +73,10 @@ const computeDirectArmCommandClassicGamepad = (
 				: axes[ClassicalGamepad.Axis.LT], // J4
 			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // J5
 			axes[ClassicalGamepad.Axis.LEFT_STICK_X], // J6
-			(buttons[ClassicalGamepad.Button.B] ? 1 : 0) -
-				(buttons[ClassicalGamepad.Button.X] ? 1 : 0) +
-				(buttons[ClassicalGamepad.Button.Y] ? 0.1 : 0) -
-				(buttons[ClassicalGamepad.Button.A] ? 0.1 : 0), // Gripper
+			(buttons[ClassicalGamepad.Button.B] ? 1.0 : 0) - // Gripper high torque value scaling
+				(buttons[ClassicalGamepad.Button.X] ? 1.0 : 0) +
+				(buttons[ClassicalGamepad.Button.Y] ? 0.40 : 0) - // gripper low torque value scaling
+				(buttons[ClassicalGamepad.Button.A] ? 0.40 : 0), // Gripper
 		],
 		buttons: [
 			2, // DO NOT CHANGE THIS. It's a value that tells arm command
