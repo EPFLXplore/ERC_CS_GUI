@@ -28,8 +28,14 @@ enum DrillTask {
 	OPEN = "Open",
 	SEMI_RETURN = "semi_return",
 	TEST_AUTO = "test_auto",
-	RELEASE_AUTO = "release_auto"
+	RELEASE_AUTO = "release_auto",
+	MANUAL = "manual"
 }
+
+/** Button captions for tasks whose on-screen name differs from the `action` string sent to the drill. */
+const DRILL_TASK_LABELS: Partial<Record<DrillTask, string>> = {
+	[DrillTask.MANUAL]: "Microscope Manual",
+};
 
 enum DrillSmallActions {
 	STEP_DOWN = "step_down",
@@ -231,7 +237,7 @@ function DrillGoalModal({
 								setTask(_task);
 							}}
 						>
-							{_task}
+							{DRILL_TASK_LABELS[_task] ?? _task}
 						</button>
 					))}
 					</div>
