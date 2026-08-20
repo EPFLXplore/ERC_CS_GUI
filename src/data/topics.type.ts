@@ -46,6 +46,7 @@ export enum Topics {
     // ============================================
     DRILL_STATE = "/SC/State",                // 1Hz state summary (subscribe)
     DRILL_CMD = "/CS/DrillTerrain",              // Action: drill commands
+    DRILL_GAMEPAD_CMDS = "/CS/GamepadCmdsMicroscope",  // Gamepad commands (publish) - same bindings as NAV
     DRILL_CHANGE_MODE = "/DRILL/ChangeModeSystem",  // Service: change mode (DrillCSInterface)
     /** Legacy: same srv/DrillMode if interface node is old or only SC name is advertised */
     DRILL_CHANGE_MODE_LEGACY = "/SC/drill_mode_srv",

@@ -342,6 +342,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 		setManualMode((old) => {
 			if (old === PublishTo.NAVIGATION) {
 				return PublishTo.HANDLING_DEVICE;
+			} else if (old === PublishTo.HANDLING_DEVICE) {
+				return PublishTo.DRILL;
 			} else {
 				return PublishTo.NAVIGATION;
 			}

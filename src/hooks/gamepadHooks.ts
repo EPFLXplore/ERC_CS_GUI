@@ -85,7 +85,9 @@ function useGamepad(
 		setGamepadCommandState((prev) => {
 			if (
 				prev === GamepadCommandState.UI &&
-				(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE)
+				(mode === PublishTo.NAVIGATION ||
+					mode === PublishTo.HANDLING_DEVICE ||
+					mode === PublishTo.DRILL)
 			) {
 				return GamepadCommandState.CONTROL;
 			}
@@ -130,6 +132,8 @@ function useGamepad(
 		const topicName =
 			mode === PublishTo.NAVIGATION
 			? Topics.NAV_GAMEPAD_CMDS
+			: mode === PublishTo.DRILL
+			? Topics.DRILL_GAMEPAD_CMDS
 			: Topics.HD_GAMEPAD_CMDS;
 
 		const t = new ROSLIB.Topic<any>({
@@ -222,7 +226,8 @@ function useGamepad(
 		lastAttemptRef.current = Date.now();
 
 		try {
-			if (currentMode === PublishTo.NAVIGATION) {
+			if (currentMode === PublishTo.NAVIGATION || currentMode === PublishTo.DRILL) {
+				// DRILL reuses the NAV bindings — only the publish topic differs.
 				const msg = gp.handleNavigation(s.buttons, s.axes);
 				pub.publish(msg);
 				lastPublishRef.current = Date.now();
@@ -252,7 +257,7 @@ function useGamepad(
 
 			} else {
 				const gap = Date.now() - lastPublishRef.current;
-				if (gap > 200) console.warn(`[gamepad] mode=${currentMode} is not NAV/HD — gap ${gap}ms`);
+				if (gap > 200) console.warn(`[gamepad] mode=${currentMode} is not NAV/HD/DRILL — gap ${gap}ms`);
 			}
 		} catch (e) {
 			console.error('[gamepad] publish threw:', e);
@@ -265,7 +270,9 @@ function useGamepad(
 		const canPublishNeutral =
 			publisher &&
 			gamepad &&
-			(mode === PublishTo.NAVIGATION || mode === PublishTo.HANDLING_DEVICE);
+			(mode === PublishTo.NAVIGATION ||
+				mode === PublishTo.HANDLING_DEVICE ||
+				mode === PublishTo.DRILL);
 
 		if (
 			prev === GamepadCommandState.CONTROL &&
@@ -280,7 +287,7 @@ function useGamepad(
 			const sm = submodeRef.current;
 			const bindings = hdBindingsConfigRef.current;
 			try {
-				if (mode === PublishTo.NAVIGATION) {
+				if (mode === PublishTo.NAVIGATION || mode === PublishTo.DRILL) {
 					publisher.publish(gamepad.handleNavigation(neutralButtons, neutralAxes));
 				} else if (mode === PublishTo.HANDLING_DEVICE) {
 					if (sm[1] === States.MANUAL_DIRECT) {
