@@ -19,7 +19,7 @@ with the servo's true position until a slider or D-pad command reasserts it.
 
 /** Physical PWM channel — `Servos_ID` in the firmware's ServoThread.h. 0 = front camera. */
 export const CAMERA_SERVO_ID = 0;
-export const CAMERA_SERVO_DEFAULT_ANGLE = 90;
+export const CAMERA_SERVO_DEFAULT_ANGLE = 106;
 export const ANGLE_MIN = 35;
 export const ANGLE_MAX = 145;
 
