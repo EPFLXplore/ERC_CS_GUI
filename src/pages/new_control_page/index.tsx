@@ -71,14 +71,17 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
 import useCameraServo, { CameraServoProvider } from "../../hooks/cameraServoHooks";
+import useHdGamepadMode from "../../hooks/hdGamepadModeHooks";
 import {
-	MANUAL_SLOW_FACTORS,
+	MANUAL_SLOW_FACTOR_EVENT,
+	MANUAL_SPEED_EVENT,
 	ManualSlowFactor,
 	ManualSpeed,
 	loadManualSlowFactor,
 	loadManualSpeed,
 	saveManualSlowFactor,
 	saveManualSpeed,
+	stepManualSlowFactor,
 } from "../../utils/hdSpeedConfig";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -239,9 +242,6 @@ const NewControlPage = () => {
 	const [snackbar, showSnackbar] = useAlert();
 	const [ros] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
-	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
-	// than in the Avionics modal because the D-pad has to keep working while that modal is closed.
-	const cameraServo = useCameraServo(ros);
 
   	// Destructure:
   	const [
@@ -285,6 +285,15 @@ const NewControlPage = () => {
 		sendHdNamedPose,
 		updateHdTaskCommand
   	] = roverControls;
+
+	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
+	// than in the Avionics modal because the D-pad has to keep working while that modal is closed.
+	const cameraServo = useCameraServo(ros, manualMode);
+	useHdGamepadMode(
+		manualMode,
+		stateServices[SubSystems.HANDLING_DEVICE].service.state,
+		startService
+	);
 
 	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
     
@@ -401,6 +410,23 @@ const NewControlPage = () => {
 	const selectManualSlowFactor = useCallback((factor: ManualSlowFactor) => {
 		setManualSlowFactor(factor);
 		saveManualSlowFactor(factor);
+	}, []);
+
+	useEffect(() => {
+		const syncManualSettings = () => {
+			setManualSpeed(loadManualSpeed());
+			setManualSlowFactor(loadManualSlowFactor());
+		};
+
+		window.addEventListener(MANUAL_SPEED_EVENT, syncManualSettings as EventListener);
+		window.addEventListener(MANUAL_SLOW_FACTOR_EVENT, syncManualSettings as EventListener);
+		window.addEventListener("storage", syncManualSettings);
+
+		return () => {
+			window.removeEventListener(MANUAL_SPEED_EVENT, syncManualSettings as EventListener);
+			window.removeEventListener(MANUAL_SLOW_FACTOR_EVENT, syncManualSettings as EventListener);
+			window.removeEventListener("storage", syncManualSettings);
+		};
 	}, []);
 	const [visibleWidgets, setVisibleWidgets] = useState<Record<WidgetKey, boolean>>(() => {
 		return WIDGET_KEYS.reduce((acc, key) => {
@@ -727,9 +753,9 @@ const NewControlPage = () => {
 							}`}
 							onClick={toggleManualSpeed}
 							aria-pressed={manualSpeed === "slow"}
-							title={`Manual Direct joint speed. Slow applies a ${manualSlowFactor}·x⁴ curve to J1–J6 for maintenance work: much finer control near centre, and full deflection is capped at ${Math.round(
+							title={`Manual Direct joint speed. Slow applies a ${manualSlowFactor}·x⁴ curve to J1–J6 for maintenance work, with J1 scaled by another 0.5x. Full deflection is capped at ${Math.round(
 								manualSlowFactor * 100
-							)}% speed. The gripper is unaffected. Change the factor with the SLOW × buttons next to DRL.`}
+							)}% speed before the J1 scale. The gripper is unaffected. Step the factor with D-pad LEFT/RIGHT or the SLOW controls next to DRL.`}
 						>
 							{manualSpeed === "slow" ? `Slow: maintenance (${manualSlowFactor})` : "Fast"}
 						</button>
@@ -742,27 +768,35 @@ const NewControlPage = () => {
 					/>
 					<div
 						className={styles.slowFactorGroup}
-						title="Ceiling of the Manual Direct slow curve: full stick deflection commands this fraction of full joint speed. Only takes effect while the HD toggle is on Slow."
+						title="Ceiling of the Manual Direct slow curve: full stick deflection commands this fraction of full joint speed, with J1 scaled by another 0.5x. Only takes effect while the HD toggle is on Slow. D-pad LEFT/RIGHT steps this value."
 					>
 						<span className={styles.slowFactorLabel}>SLOW ×</span>
 						<div className={styles.slowFactorButtons}>
-							{MANUAL_SLOW_FACTORS.map((factor) => (
-								<button
-									key={factor}
-									type="button"
-									className={`${styles.slowFactorButton} ${
-										manualSlowFactor === factor ? styles.slowFactorButtonActive : ""
-									} ${
-										stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
-											? ""
-											: styles.slowFactorButtonIdle
-									}`}
-									onClick={() => selectManualSlowFactor(factor)}
-									aria-pressed={manualSlowFactor === factor}
-								>
-									{factor}
-								</button>
-							))}
+							<button
+								type="button"
+								className={`${styles.slowFactorButton} ${
+									stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
+										? ""
+										: styles.slowFactorButtonIdle
+								}`}
+								onClick={() => selectManualSlowFactor(stepManualSlowFactor(manualSlowFactor, -1))}
+								aria-label="Decrease manual slow factor"
+							>
+								-
+							</button>
+							<span className={styles.slowFactorValue}>{manualSlowFactor}</span>
+							<button
+								type="button"
+								className={`${styles.slowFactorButton} ${
+									stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
+										? ""
+										: styles.slowFactorButtonIdle
+								}`}
+								onClick={() => selectManualSlowFactor(stepManualSlowFactor(manualSlowFactor, 1))}
+								aria-label="Increase manual slow factor"
+							>
+								+
+							</button>
 						</div>
 					</div>
 				</div>

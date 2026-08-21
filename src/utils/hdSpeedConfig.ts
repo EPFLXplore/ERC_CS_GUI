@@ -52,11 +52,15 @@ export function saveManualSpeed(speed: ManualSpeed): void {
  * Ceiling in slow mode: full stick deflection commands this fraction of full speed. Operator
  * selectable, because how slow "slow" needs to be depends on the task.
  */
-export const MANUAL_SLOW_FACTORS = [0.3, 0.4, 0.5, 0.6] as const;
+export const MANUAL_SLOW_FACTORS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0] as const;
 
 export type ManualSlowFactor = (typeof MANUAL_SLOW_FACTORS)[number];
 
-export const DEFAULT_MANUAL_SLOW_FACTOR: ManualSlowFactor = 0.5;
+export const DEFAULT_MANUAL_SLOW_FACTOR: ManualSlowFactor = 0.4;
+
+/** J1 (arm base) carries the most inertia, so the maintenance curve slows it a further 0.5x
+ *  on top of the selected factor. Slow mode only; "fast" is untouched. */
+export const J1_SLOW_SCALE = 0.5;
 
 export const MANUAL_SLOW_FACTOR_STORAGE_KEY = "erc-cs-hd-manual-slow-factor-v1";
 export const MANUAL_SLOW_FACTOR_EVENT = "erc-cs-hd-manual-slow-factor-updated";
@@ -96,6 +100,15 @@ export function saveManualSlowFactor(factor: ManualSlowFactor): void {
 	window.dispatchEvent(new CustomEvent(MANUAL_SLOW_FACTOR_EVENT, { detail: sanitized }));
 }
 
+/** Clamped, not wrapped: holding RIGHT at the top must not drop a live arm back to 0.1. */
+export function stepManualSlowFactor(current: ManualSlowFactor, delta: number): ManualSlowFactor {
+	const currentIndex = MANUAL_SLOW_FACTORS.indexOf(current);
+	const defaultIndex = MANUAL_SLOW_FACTORS.indexOf(DEFAULT_MANUAL_SLOW_FACTOR);
+	const baseIndex = currentIndex >= 0 ? currentIndex : defaultIndex;
+	const nextIndex = Math.max(0, Math.min(MANUAL_SLOW_FACTORS.length - 1, baseIndex + delta));
+	return MANUAL_SLOW_FACTORS[nextIndex];
+}
+
 /**
  * Quartic expo, scaled to the selected factor — the "maintenance" curve.
  *
@@ -115,7 +128,8 @@ export function saveManualSlowFactor(factor: ManualSlowFactor): void {
 export function applyManualSlowCurve(
 	value: number,
 	speed: ManualSpeed,
-	factor: ManualSlowFactor
+	factor: ManualSlowFactor,
+	extraScale = 1
 ): number {
 	if (!Number.isFinite(value)) {
 		return 0;
@@ -127,7 +141,7 @@ export function applyManualSlowCurve(
 	// Clamp defensively: a mis-profiled pad can emit slightly out-of-range values and the fourth
 	// power amplifies overshoot (1.05⁴ = 1.22).
 	const clamped = Math.max(-1, Math.min(1, value));
-	return factor * Math.sign(clamped) * clamped * clamped * clamped * clamped;
+	return factor * extraScale * Math.sign(clamped) * clamped * clamped * clamped * clamped;
 }
 
 /** MANUAL_DIRECT `msg.axes` is [J1…J6, gripper]; the gripper is deliberately left at full speed. */
@@ -149,7 +163,7 @@ export function applyManualSlowCurveToDirectAxes(
 
 	const end = Math.min(DIRECT_ARM_JOINT_AXIS_COUNT, axes.length);
 	for (let i = 0; i < end; i++) {
-		axes[i] = applyManualSlowCurve(axes[i], speed, factor);
+		axes[i] = applyManualSlowCurve(axes[i], speed, factor, i === 0 ? J1_SLOW_SCALE : 1);
 	}
 	return axes;
 }

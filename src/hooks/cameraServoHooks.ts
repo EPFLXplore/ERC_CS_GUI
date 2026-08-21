@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
+import { PublishTo, PublishToType } from "../data/publishTo.type";
 import { Topics } from "../data/topics.type";
 import { ClassicalGamepad } from "../utils/Gamepad/bindings";
 
@@ -31,7 +32,7 @@ const CAMERA_SERVO_STEP_DEG = 5;
 
 const clampAngle = (angle: number) => Math.min(ANGLE_MAX, Math.max(ANGLE_MIN, Math.round(angle)));
 
-function useCameraServo(ros: ROSLIB.Ros | null) {
+function useCameraServo(ros: ROSLIB.Ros | null, gamepadMode: PublishToType) {
 	const [angle, setAngleState] = useState<number>(CAMERA_SERVO_DEFAULT_ANGLE);
 
 	const servoRequestTopic = useMemo(
@@ -71,6 +72,8 @@ function useCameraServo(ros: ROSLIB.Ros | null) {
 	angleRef.current = angle;
 	const sendServoRef = useRef(sendServo);
 	sendServoRef.current = sendServo;
+	const gamepadModeRef = useRef(gamepadMode);
+	gamepadModeRef.current = gamepadMode;
 
 	const nudge = useCallback((delta: number) => {
 		const next = clampAngle(angleRef.current + delta);
@@ -84,9 +87,11 @@ function useCameraServo(ros: ROSLIB.Ros | null) {
 
 	useEffect(() => {
 		const onButtonPressed = (event: Event) => {
+			if (gamepadModeRef.current === PublishTo.HANDLING_DEVICE) return;
+
 			const index = (event as CustomEvent).detail?.buttonIndex;
-			// UP/DOWN only. LEFT is already "change mode" in every Joy handler, and these two appear
-			// in no handler at all, so stepping the servo cannot perturb the Joy stream.
+			// UP/DOWN only, and only outside HD where those buttons switch Manual Direct/Inverse.
+			// LEFT remains navigation's Joy-stream "change mode" flag.
 			if (index === ClassicalGamepad.Button.UP) nudge(CAMERA_SERVO_STEP_DEG);
 			else if (index === ClassicalGamepad.Button.DOWN) nudge(-CAMERA_SERVO_STEP_DEG);
 		};

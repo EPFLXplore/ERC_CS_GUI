@@ -19,6 +19,8 @@ import {
 	applyManualSlowCurveToDirectAxes,
 	loadManualSlowFactor,
 	loadManualSpeed,
+	saveManualSlowFactor,
+	stepManualSlowFactor,
 } from "../utils/hdSpeedConfig";
 
 export enum GamepadCommandState {
@@ -112,6 +114,12 @@ function useGamepad(
 				selectorCallbackRef.current?.();
 			} else if (idx === ClassicalGamepad.Button.BACK) {
 				togglePublishingRef.current();
+			} else if (idx === ClassicalGamepad.Button.LEFT || idx === ClassicalGamepad.Button.RIGHT) {
+				// HD only, and only while the maintenance curve is armed. Otherwise the factor is
+				// inert, so a stray tap would silently change a setting the operator cannot feel.
+				if (modeRef.current !== PublishTo.HANDLING_DEVICE || manualSpeedRef.current !== "slow") return;
+				const delta = idx === ClassicalGamepad.Button.RIGHT ? 1 : -1;
+				saveManualSlowFactor(stepManualSlowFactor(manualSlowFactorRef.current, delta));
 			}
 		};
 
