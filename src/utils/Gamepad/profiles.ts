@@ -80,7 +80,7 @@ const computeDirectArmCommandClassicGamepad = (
 		],
 		buttons: [
 			2, // DO NOT CHANGE THIS. It's a value that tells arm command
-			buttons[ClassicalGamepad.Button.LEFT] ? 1 : 0, // change mode,
+			0, // HD D-pad LEFT/RIGHT steps slow factor; UP/DOWN changes Manual Direct/Inverse.
 			0,
 			0,
 			0,
@@ -125,7 +125,7 @@ const computeInverseArmCommandClassicGamepad = (
 		],
 		buttons: [
 			2, // DO NOT CHANGE THIS. It's a value that tells arm command
-			buttons[ClassicalGamepad.Button.LEFT] ? 1 : 0, // change mode,,
+			0, // HD D-pad LEFT/RIGHT steps slow factor; UP/DOWN changes Manual Direct/Inverse.
 			0,
 			0,
 			0,

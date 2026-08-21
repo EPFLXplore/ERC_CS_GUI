@@ -1,10 +1,12 @@
 import {
 	DEFAULT_MANUAL_SLOW_FACTOR,
+	J1_SLOW_SCALE,
 	MANUAL_SLOW_FACTORS,
 	ManualSlowFactor,
 	applyManualSlowCurve,
 	applyManualSlowCurveToDirectAxes,
 	sanitizeManualSlowFactor,
+	stepManualSlowFactor,
 } from "./hdSpeedConfig";
 
 describe.each(MANUAL_SLOW_FACTORS)("applyManualSlowCurve at factor %p", (factor) => {
@@ -62,7 +64,7 @@ describe("applyManualSlowCurveToDirectAxes", () => {
 		(factor) => {
 			const out = applyManualSlowCurveToDirectAxes(axes(), "slow", factor);
 
-			expect(out[0]).toBeCloseTo(factor, 10);
+			expect(out[0]).toBeCloseTo(factor * J1_SLOW_SCALE, 10);
 			expect(out[1]).toBeCloseTo(-factor, 10);
 			expect(out[2]).toBeCloseTo(factor * 0.0625, 10);
 			expect(out[3]).toBeCloseTo(-factor * 0.0625, 10);
@@ -76,8 +78,35 @@ describe("applyManualSlowCurveToDirectAxes", () => {
 		expect(applyManualSlowCurveToDirectAxes(axes(), "fast", 0.3)).toEqual(axes());
 	});
 
+	it("slows J1 to exactly half of J2 for the same input in slow mode", () => {
+		const out = applyManualSlowCurveToDirectAxes([1, 1], "slow", 0.4);
+
+		expect(out[0]).toBeCloseTo(out[1] * J1_SLOW_SCALE, 10);
+	});
+
+	it("does not apply the J1 scale in fast mode", () => {
+		expect(applyManualSlowCurveToDirectAxes([1, 1], "fast", 0.4)).toEqual([1, 1]);
+	});
+
 	it("does not read past the end of a short array", () => {
-		expect(applyManualSlowCurveToDirectAxes([1, -1], "slow", 0.4)).toEqual([0.4, -0.4]);
+		expect(applyManualSlowCurveToDirectAxes([1, -1], "slow", 0.4)).toEqual([0.2, -0.4]);
+	});
+});
+
+describe("stepManualSlowFactor", () => {
+	it("steps by one slot", () => {
+		expect(stepManualSlowFactor(0.4, 1)).toBe(0.5);
+		expect(stepManualSlowFactor(0.4, -1)).toBe(0.3);
+	});
+
+	it("clamps at the offered extremes", () => {
+		expect(stepManualSlowFactor(0.1, -1)).toBe(0.1);
+		expect(stepManualSlowFactor(1.0, 1)).toBe(1.0);
+	});
+
+	it("recovers from an off-list current value via the default index", () => {
+		expect(stepManualSlowFactor(0.35 as ManualSlowFactor, 1)).toBe(0.5);
+		expect(stepManualSlowFactor(0.35 as ManualSlowFactor, -1)).toBe(0.3);
 	});
 });
 

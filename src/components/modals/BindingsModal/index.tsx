@@ -14,6 +14,7 @@ import {
 import {
 	ManualSlowFactor,
 	ManualSpeed,
+	J1_SLOW_SCALE,
 	applyManualSlowCurve,
 	applyManualSlowCurveToDirectAxes,
 	loadManualSlowFactor,
@@ -178,7 +179,7 @@ function BindingsModal({
 		// The curve applies to the joint values, not to the canonical axis slots they are read
 		// from, and never to the gripper.
 		return {
-			J1: applyManualSlowCurve(mapped.axes[2], manualSpeed, manualSlowFactor),
+			J1: applyManualSlowCurve(mapped.axes[2], manualSpeed, manualSlowFactor, J1_SLOW_SCALE),
 			J2: applyManualSlowCurve(mapped.axes[3], manualSpeed, manualSlowFactor),
 			J3: applyManualSlowCurve(j3, manualSpeed, manualSlowFactor),
 			J4: applyManualSlowCurve(j4, manualSpeed, manualSlowFactor),
@@ -226,7 +227,7 @@ function BindingsModal({
 				),
 				buttons: [
 					2,
-					mapped.buttons[12] ? 1 : 0,
+					0,
 					0,
 					0,
 					0,
@@ -255,7 +256,7 @@ function BindingsModal({
 			],
 			buttons: [
 				2,
-				mapped.buttons[12] ? 1 : 0,
+				0,
 				0,
 				0,
 				0,

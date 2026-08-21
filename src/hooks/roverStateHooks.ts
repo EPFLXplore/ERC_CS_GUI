@@ -24,6 +24,9 @@ const NAV_STATE_TOPIC =
 	(typeof process !== "undefined" && process.env.REACT_APP_NAV_STATE_TOPIC?.trim()) ||
 	Topics.NAV_STATE;
 
+const STATE_TOPIC_RESUBSCRIBE_STALE_MS = 4000;
+const STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS = 2500;
+
 function useRoverState(ros: ROSLIB.Ros | null) {
     const [roverState, setRoverState] = useState<SubsystemState>({
         navigation: {},
@@ -54,38 +57,97 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             }
         };
 
-        // Subscribe to each subsystem's 1Hz state topic
-        const navStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: NAV_STATE_TOPIC,
-            messageType: "std_msgs/String",  // or your custom message type
-            queue_length: 1,
-            queue_size: 1,
-        });
+        const createStateListener = (topicName: string, onData: (data: any) => void) => {
+            let lastMessageAt = 0;
+            let listener: ROSLIB.Topic<any> | null = null;
 
-        const hdStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: "/HD/State",
-            messageType: "std_msgs/String",
-            queue_length: 1,
-            queue_size: 1,
-        });
+            const handleMessage = (message: any) => {
+                const data = parseStateMessage(message, topicName);
+                if (data) {
+                    lastMessageAt = Date.now();
+                    startTransition(() => onData(data));
+                }
+            };
 
-        const drillStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: "/SC/State",
-            messageType: "std_msgs/String",
-            queue_length: 1,
-            queue_size: 1,
-        });
+            const unsubscribe = () => {
+                if (!listener) return;
+                try {
+                    listener.unsubscribe(handleMessage);
+                } catch {
+                    try { listener.unsubscribe(); } catch {}
+                }
+                listener = null;
+            };
 
-        const elecStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: "/EL/State",
-            messageType: "std_msgs/String",
-            queue_length: 1,
-            queue_size: 1,
-        });
+            const subscribe = () => {
+                listener = new ROSLIB.Topic({
+                    ros: ros,
+                    name: topicName,
+                    messageType: "std_msgs/String",
+                    queue_length: 1,
+                    queue_size: 1,
+                });
+                listener.subscribe(handleMessage);
+            };
+
+            const refresh = () => {
+                unsubscribe();
+                subscribe();
+            };
+
+            subscribe();
+
+            return {
+                topicName,
+                getLastMessageAt: () => lastMessageAt,
+                refresh,
+                unsubscribe,
+            };
+        };
+
+        // ROS 2 discovery can miss a publisher that appears after the browser subscribed through
+        // rosbridge. Refresh quiet state subscriptions so stack relaunches recover after a CS reload.
+        const stateListeners = [
+            createStateListener(NAV_STATE_TOPIC, (data) =>
+                setRoverState((prev) => ({ ...prev, navigation: data }))
+            ),
+            createStateListener(Topics.HD_STATE, (data) =>
+                setRoverState((prev) => ({ ...prev, handling_device: data }))
+            ),
+            createStateListener(Topics.DRILL_STATE, (data) =>
+                setRoverState((prev) => ({ ...prev, drill: data }))
+            ),
+            createStateListener(Topics.EL_STATE, (data) =>
+                setRoverState((prev) => ({
+                    ...prev,
+                    electronics: {
+                        ...data,
+                        bms: (prev.electronics as any)?.bms ?? (data as any)?.bms,
+                        avionicsAlive: (prev.electronics as any)?.avionicsAlive,
+                        sensors: {
+                            ...(data as any)?.sensors,
+                            mass_sensors: {
+                                ...(data as any)?.sensors?.mass_sensors,
+                                ...(prev.electronics as any)?.sensors?.mass_sensors,
+                            },
+                        },
+                    },
+                }))
+            ),
+        ];
+
+        const stateTopicWatchdog = setInterval(() => {
+            if (!ros.isConnected) return;
+
+            const now = Date.now();
+            stateListeners.forEach((listener) => {
+                const lastMessageAt = listener.getLastMessageAt();
+                if (lastMessageAt !== 0 && now - lastMessageAt <= STATE_TOPIC_RESUBSCRIBE_STALE_MS) {
+                    return;
+                }
+                listener.refresh();
+            });
+        }, STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS);
 
         const bmsStateListener = new ROSLIB.Topic({
             ros: ros,
@@ -121,70 +183,6 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             messageType: "custom_msg/Heartbeat",
             queue_length: 1,
             queue_size: 1,
-        });
-
-        // Navigation state updates
-        navStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, NAV_STATE_TOPIC);
-            if (data) {
-                startTransition(() =>
-                    setRoverState((prev) => ({ ...prev, navigation: data }))
-                );
-            }
-        });
-
-        // Handling Device state updates
-        hdStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, "/HD/State");
-            if (data) {
-                startTransition(() =>
-                    setRoverState((prev) => ({ ...prev, handling_device: data }))
-                );
-            }
-        });
-
-        // Drill state updates
-        drillStateListener.subscribe((message) => {
-            try {
-                const raw = (message as any).data;
-                const data =
-                    typeof raw === "string"
-                        ? JSON.parse(raw)
-                        : raw && typeof raw === "object"
-                          ? raw
-                          : JSON.parse(String(raw));
-                if (data && typeof data === "object") {
-                    startTransition(() =>
-                        setRoverState((prev) => ({ ...prev, drill: data }))
-                    );
-                }
-            } catch (e) {
-                console.warn("[roverState] /SC/State parse failed:", e);
-            }
-        });
-
-        // Electronics state updates
-        elecStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, "/EL/State");
-            if (data) {
-                startTransition(() =>
-                    setRoverState((prev) => ({
-                        ...prev,
-                        electronics: {
-                            ...data,
-                            bms: (prev.electronics as any)?.bms ?? (data as any)?.bms,
-                            avionicsAlive: (prev.electronics as any)?.avionicsAlive,
-                            sensors: {
-                                ...(data as any)?.sensors,
-                                mass_sensors: {
-                                    ...(data as any)?.sensors?.mass_sensors,
-                                    ...(prev.electronics as any)?.sensors?.mass_sensors,
-                                },
-                            },
-                        },
-                    }))
-                );
-            }
         });
 
         // BMS updates (voltage/current/status)
@@ -278,15 +276,13 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         }, 1000);
 
         return () => {
-            navStateListener.unsubscribe();
-            hdStateListener.unsubscribe();
-            drillStateListener.unsubscribe();
-            elecStateListener.unsubscribe();
+            stateListeners.forEach((listener) => listener.unsubscribe());
             bmsStateListener.unsubscribe();
             massPacketListener.unsubscribe();
             phPacketListener.unsubscribe();
             heartbeatListener.unsubscribe();
             clearInterval(heartbeatWatchdog);
+            clearInterval(stateTopicWatchdog);
         };
     }, [ros]);
 
