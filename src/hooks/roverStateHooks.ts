@@ -19,10 +19,25 @@ export interface SubsystemState {
     rover: any;  // Keep for global info if needed
 }
 
+export interface StateTopicDiagnostic {
+    label: string;
+    topicName: string;
+    lastMessageAt: number;
+    lastParsedAt: number;
+    lastErrorAt: number;
+}
+
 /** CS expects a 1 Hz JSON `std_msgs/String` summary; default `/NAV/State`. Override with REACT_APP_NAV_STATE_TOPIC if your stack uses another name. */
 const NAV_STATE_TOPIC =
 	(typeof process !== "undefined" && process.env.REACT_APP_NAV_STATE_TOPIC?.trim()) ||
 	Topics.NAV_STATE;
+
+const STATE_TOPIC_DEFINITIONS = [
+    { label: "NAV", topicName: NAV_STATE_TOPIC },
+    { label: "HD", topicName: Topics.HD_STATE },
+    { label: "DRILL", topicName: Topics.DRILL_STATE },
+    { label: "EL", topicName: Topics.EL_STATE },
+];
 
 const STATE_TOPIC_RESUBSCRIBE_STALE_MS = 4000;
 const STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS = 2500;
@@ -35,9 +50,43 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         electronics: {},
         rover: {}
     });
+    const [stateTopicDiagnostics, setStateTopicDiagnostics] = useState<StateTopicDiagnostic[]>(() =>
+        STATE_TOPIC_DEFINITIONS.map(({ label, topicName }) => ({
+            label,
+            topicName,
+            lastMessageAt: 0,
+            lastParsedAt: 0,
+            lastErrorAt: 0,
+        }))
+    );
 
     useEffect(() => {
         if (!ros) return;
+
+        setStateTopicDiagnostics((previous) =>
+            STATE_TOPIC_DEFINITIONS.map(({ label, topicName }) => {
+                const existing = previous.find((item) => item.topicName === topicName);
+                return {
+                    label,
+                    topicName,
+                    lastMessageAt: existing?.lastMessageAt ?? 0,
+                    lastParsedAt: existing?.lastParsedAt ?? 0,
+                    lastErrorAt: existing?.lastErrorAt ?? 0,
+                };
+            })
+        );
+
+        const updateStateTopicDiagnostic = (
+            topicName: string,
+            field: "lastMessageAt" | "lastParsedAt" | "lastErrorAt",
+            timestamp: number
+        ) => {
+            setStateTopicDiagnostics((previous) =>
+                previous.map((item) =>
+                    item.topicName === topicName ? { ...item, [field]: timestamp } : item
+                )
+            );
+        };
 
         const parseStateMessage = (message: any, topicName: string) => {
             try {
@@ -53,6 +102,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
                 return JSON.parse(String(raw));
             } catch (error) {
                 console.warn(`[roverState] ${topicName} parse failed:`, error, message);
+                updateStateTopicDiagnostic(topicName, "lastErrorAt", Date.now());
                 return null;
             }
         };
@@ -62,9 +112,12 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             let listener: ROSLIB.Topic<any> | null = null;
 
             const handleMessage = (message: any) => {
+                const receivedAt = Date.now();
+                updateStateTopicDiagnostic(topicName, "lastMessageAt", receivedAt);
                 const data = parseStateMessage(message, topicName);
                 if (data) {
-                    lastMessageAt = Date.now();
+                    lastMessageAt = receivedAt;
+                    updateStateTopicDiagnostic(topicName, "lastParsedAt", receivedAt);
                     startTransition(() => onData(data));
                 }
             };
@@ -286,7 +339,7 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         };
     }, [ros]);
 
-    return [roverState] as const;
+    return [roverState, stateTopicDiagnostics] as const;
 }
 
 export default useRoverState;

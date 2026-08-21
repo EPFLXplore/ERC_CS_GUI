@@ -100,7 +100,7 @@ const useRoverControls = (
 	const { isOperator, status: operatorRoleStatus } = useOperatorRole();
 
 	// RoverState
-	const [roverState] = useRoverState(ros);
+	const [roverState, stateTopicDiagnostics] = useRoverState(ros);
 
 	// Services ROS
 	const [stateServices] = useService(
@@ -675,7 +675,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 		reset_motors,
 		emergency_shutdown,
 		sendHdNamedPose,
-		updateHdTaskCommand
+		updateHdTaskCommand,
+		stateTopicDiagnostics
 	] as const;
 };
 

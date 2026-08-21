@@ -240,7 +240,7 @@ const RefreshWarning = () => (
 
 const NewControlPage = () => {
 	const [snackbar, showSnackbar] = useAlert();
-	const [ros] = useRosBridge(showSnackbar);
+	const [ros, rosConnected] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
 
   	// Destructure:
@@ -283,7 +283,8 @@ const NewControlPage = () => {
 		reset_motors,
 		emergency_shutdown,
 		sendHdNamedPose,
-		updateHdTaskCommand
+		updateHdTaskCommand,
+		stateTopicDiagnostics
   	] = roverControls;
 
 	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
@@ -728,7 +729,10 @@ const NewControlPage = () => {
 							● Avionics {getAvionicsAlive(roverState) ? "Alive" : "Dead"}
 						</span>
 					</div>
-					<RosDdsDevBanner />
+					<RosDdsDevBanner
+						rosConnected={rosConnected}
+						stateTopics={stateTopicDiagnostics}
+					/>
 					<SystemMode
 						system={"NAV"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
