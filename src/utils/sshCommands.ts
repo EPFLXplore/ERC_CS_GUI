@@ -134,11 +134,11 @@ const CommandsSSH = {
 
     "nav": [
     {
-        name: "Start Wheels Control",
+        name: "Start Manual Nav no IMU",
         action: ActivateWheelsControl,
     },
     {
-        name: "Stop Wheels Control",
+        name: "Stop Nav",
         action: StopWheelsControl,
     }],
 
