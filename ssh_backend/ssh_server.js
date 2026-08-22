@@ -963,6 +963,15 @@ const sshResults = {};
 /** Keep the tail, not the head: the error is at the end of a long build log. */
 const SSH_RESULT_MAX_BYTES = 64 * 1024;
 const SSH_RESULT_TTL_MS = 30 * 60 * 1000;
+/**
+ * How many lines of a command's output reach the CS terminal before it goes quiet.
+ *
+ * A start script that ends in a foreground `docker run` streams that container's logs for as long
+ * as it runs, and mirroring all of it buries everything else the CS prints. These first lines are
+ * what tell you whether the script got going; the rest is still captured in full (up to
+ * SSH_RESULT_MAX_BYTES) and readable over /ssh-result/:id, so muting the terminal costs nothing.
+ */
+const SSH_CONSOLE_ECHO_LINES = 20;
 
 function appendCapped(existing, chunk) {
   const next = existing + chunk;
@@ -1030,10 +1039,36 @@ function createSSHConnection(req) {
           return;
         }
 
+        let echoedLines = 0;
+        let echoTruncated = false;
+
+        // Echo to the CS terminal only up to the budget, then say so once. Everything keeps going
+        // into `result` either way, so muting the terminal costs no diagnostic information.
+        // Counted per line rather than per chunk: one SSH data event can carry many lines, and it
+        // is lines that flood the terminal.
+        const echo = (log, marker, text) => {
+          if (echoTruncated) return;
+
+          const lines = text.replace(/\r/g, '').split('\n').filter((line) => line.length > 0);
+
+          for (const line of lines) {
+            if (echoedLines >= SSH_CONSOLE_ECHO_LINES) {
+              echoTruncated = true;
+              console.log(
+                `[ssh] ${id}: further output suppressed — read it with ` +
+                `curl -s localhost:5000/ssh-result/${encodeURIComponent(id)}`
+              );
+              return;
+            }
+            echoedLines++;
+            log(`[ssh] ${id} ${marker}| ${line}`);
+          }
+        };
+
         stream.on('data', (data) => {
           const text = data.toString();
           result.stdout = appendCapped(result.stdout, text);
-          console.log(`[ssh] ${id} out| ${text.trimEnd()}`);
+          echo(console.log, 'out', text);
         });
 
         // Where every "No such file or directory" and "Permission denied" goes. Reading this is
@@ -1041,7 +1076,7 @@ function createSSHConnection(req) {
         stream.stderr.on('data', (data) => {
           const text = data.toString();
           result.stderr = appendCapped(result.stderr, text);
-          console.error(`[ssh] ${id} err| ${text.trimEnd()}`);
+          echo(console.error, 'err', text);
         });
 
         stream.on('close', (code, signal) => {
