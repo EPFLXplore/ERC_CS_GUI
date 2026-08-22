@@ -98,76 +98,90 @@ function ArmGoalModal({
 	const [tasks, setTasks] = React.useState<ArmTask[] | null>(null);
 
 	const armTasks = [
-		{ category: "Switches", items: [
-		  { name: "Main Switch", msg: "switch_main" },
-		  { name: "Switch 1", msg: "switch_1" },
-		  { name: "Switch 2", msg: "switch_2" },
-		  { name: "Switch 3", msg: "switch_3" },
-		  { name: "Switch 4", msg: "switch_4" },
-		  { name: "Switch 5", msg: "switch_5" },
-		  { name: "Switch 6", msg: "switch_6" },
-		  { name: "Switch 7", msg: "switch_7" },
-		  { name: "Switch 8", msg: "switch_8" },
-		  { name: "Switch 9", msg: "switch_9" },
-		  { name: "Switch 10", msg: "switch_10" },
-		  { name: "Switch 11", msg: "switch_11" },
-		  { name: "Switch 12", msg: "switch_12" },
-		  { name: "Switch 13", msg: "switch_13" },
-		]},
-		{ category: "Objects", items: [
-		  { name: "Electromagnet", msg: "electromagnet" },
-		]},
-		{ category: "Control and Power Switches", items: [
-		  { name: "Control Switch 1", msg: "small_rotation_switch_1" },
-		  { name: "Control Switch 2", msg: "small_rotation_switch_2" },
-		  { name: "Control Switch 3", msg: "small_rotation_switch_3" },
-		  { name: "Control Switch 4", msg: "small_rotation_switch_4" },
-		  { name: "Control Switch 5", msg: "small_rotation_switch_5" },
-		  { name: "Power Switch 1", msg: "big_rotation_switch_1" },
-		  { name: "Power Switch 2", msg: "big_rotation_switch_2" },
-		]},
-		{ category: "Predefined Positions", isPredefined: true, items: [
-		  { name: "Home Position", msg: "home" },
-		  { name: "Zero", msg: "zero" },
-		  { name: "cobra_test_j2", msg: "cobra_test_j2" },
-		  { name: "Cobra", msg: "cobra" },
-		  { name: "Sad Arm", msg: "above_ground" },
-		  { name: "Rangement", msg: "rangement" },
-		  { name: "Front Panel", msg: "front_panel" },
-		  { name: "Above Steering Right", msg: "above_steering_right" },
-		  { name: "Above Tool changing", msg: "above_container_tool_drop_rvt_1" },
-		  { name: "Above Sand Dune", msg: "above_ground_sand_dune" },
-		  { name: "Above Sand Flat", msg: "above_ground_sand" },
-		  { name: "Above Container Rock/Sand", msg: "intermediate_rock_3" },
-		]},
-		{ category: "Tasks", items: [
-		  { name: "debug", msg: "debug" },
-		  { name: "Pick Rock", msg: "rocks" },
-		  { name: "Approach Aruco", msg: "aruco_approach" },
-		  { name: "Grab Sand", msg: "sand_collect" },
-		  { name: "Maintenance", msg: "maintenance"},
-		  { name: "ASTROBIO", msg: "astro_bio"},
-		  { name: "CHANGE TOOL GC", msg: "change_tool_gc"},
-		  { name: "CHANGE TOOL CG", msg: "change_tool_cg"},
-		  { name: "APPROACH SOCKET", msg: "approach_socket"},
-		  { name: "APPROACH CABLE", msg: "approach_cable"},
-		  { name: "Turn J6 30° POS", msg: "turn_j6_30_pos"},
-		  { name: "Turn J6 45° POS", msg: "turn_j6_45_pos"},
-		  { name: "Turn J6 90° POS", msg: "turn_j6_90_pos"},
-		  { name: "Turn J6 30° NEG", msg: "turn_j6_30_neg"},
-		  { name: "Turn J6 45° NEG", msg: "turn_j6_45_neg"},
-		  { name: "Turn J6 90° NEG", msg: "turn_j6_90_neg"},
-		  { name: "Probe 1 UP", msg: "probe_u_1"},
-		  { name: "Probe 2 UP", msg: "probe_u_2"}, 
-		  { name: "Probe 3 UP", msg: "probe_u_3"},
-		  { name: "Probe SIDE", msg: "probe_s_1"},
-		]},
-		{ category: "SAM Approach", items: [
-		  { name: "Control Switch", msg: "model_small_rotation_switch" },
-		  { name: "Power Switch", msg: "model_big_rotation_switch" }
-		]}
-	  ];
-	  
+		{
+			category: "Switches",
+			items: [
+				{ name: "Main Switch", msg: "switch_main" },
+				{ name: "Switch 1", msg: "switch_1" },
+				{ name: "Switch 2", msg: "switch_2" },
+				{ name: "Switch 3", msg: "switch_3" },
+				{ name: "Switch 4", msg: "switch_4" },
+				{ name: "Switch 5", msg: "switch_5" },
+				{ name: "Switch 6", msg: "switch_6" },
+				{ name: "Switch 7", msg: "switch_7" },
+				{ name: "Switch 8", msg: "switch_8" },
+				{ name: "Switch 9", msg: "switch_9" },
+				{ name: "Switch 10", msg: "switch_10" },
+				{ name: "Switch 11", msg: "switch_11" },
+				{ name: "Switch 12", msg: "switch_12" },
+				{ name: "Switch 13", msg: "switch_13" },
+			],
+		},
+		{ category: "Objects", items: [{ name: "Electromagnet", msg: "electromagnet" }] },
+		{
+			category: "Control and Power Switches",
+			items: [
+				{ name: "Control Switch 1", msg: "small_rotation_switch_1" },
+				{ name: "Control Switch 2", msg: "small_rotation_switch_2" },
+				{ name: "Control Switch 3", msg: "small_rotation_switch_3" },
+				{ name: "Control Switch 4", msg: "small_rotation_switch_4" },
+				{ name: "Control Switch 5", msg: "small_rotation_switch_5" },
+				{ name: "Power Switch 1", msg: "big_rotation_switch_1" },
+				{ name: "Power Switch 2", msg: "big_rotation_switch_2" },
+			],
+		},
+		{
+			category: "Predefined Positions",
+			isPredefined: true,
+			items: [
+				{ name: "Home Position", msg: "home" },
+				{ name: "Zero", msg: "zero" },
+				{ name: "Cobra", msg: "cobra" },
+				{ name: "Sad Arm", msg: "above_ground" },
+				{ name: "Rangement", msg: "rangement" },
+				{ name: "Front Panel", msg: "front_panel" },
+				{ name: "Above Steering Right", msg: "above_steering_right" },
+				{ name: "Above Tool changing", msg: "above_container_tool_drop_rvt_1" },
+				{ name: "Above Sand Dune", msg: "above_ground_sand_dune" },
+				{ name: "Above Sand Flat", msg: "above_ground_sand" },
+				{ name: "Above Container Rock/Sand", msg: "intermediate_rock_3" },
+			],
+		},
+		{
+			category: "Tasks",
+			items: [
+				{ name: "debug", msg: "debug" },
+				{ name: "Pick Rock", msg: "rocks" },
+				{ name: "Approach Aruco", msg: "aruco_approach" },
+				{ name: "Grab Sand", msg: "sand_collect" },
+				{ name: "Maintenance", msg: "maintenance" },
+				{ name: "socket approach", msg: "approach_socket" },
+				{ name: "cable approach", msg: "approach_cable" },
+				{ name: "ASTROBIO", msg: "astro_bio" },
+				{ name: "CHANGE_TOOL_GC", msg: "change_tool_gc" },
+				{ name: "CHANGE_TOOL_CG", msg: "change_tool_cg" },
+				{ name: "APPROACH SOCKET", msg: "approach_socket"},
+				{ name: "APPROACH CABLE", msg: "approach_cable"},
+				{ name: "Turn J6 30° POS", msg: "turn_j6_30_pos" },
+				{ name: "Turn J6 45° POS", msg: "turn_j6_45_pos" },
+				{ name: "Turn J6 90° POS", msg: "turn_j6_90_pos" },
+				{ name: "Turn J6 30° NEG", msg: "turn_j6_30_neg" },
+				{ name: "Turn J6 45° NEG", msg: "turn_j6_45_neg" },
+				{ name: "Turn J6 90° NEG", msg: "turn_j6_90_neg" },
+				{ name: "Probe 1 UP", msg: "probe_u_1" },
+				{ name: "Probe 2 UP", msg: "probe_u_2" },
+				{ name: "Probe 3 UP", msg: "probe_u_3" },
+				{ name: "Probe SIDE", msg: "probe_s_1" },
+			],
+		},
+		{
+			category: "SAM Approach",
+			items: [
+				{ name: "Control Switch", msg: "model_small_rotation_switch" },
+				{ name: "Power Switch", msg: "model_big_rotation_switch" },
+			],
+		},
+	];
 
 	return (
 		<div className={styles.Background} onClick={onClose}>
@@ -213,33 +227,38 @@ function ArmGoalModal({
 					<div className={styles.ChoiceGroup}>
 						{armTasks.map((group) => (
 							<React.Fragment key={group.category}>
-							<p className={styles.ChoiceCategory}>{group.category}</p>
-							{group.items.map((item) => (
-								<button
-								key={item.name}
-								className={`${styles.Choice} ${!group.isPredefined && tasks?.some(t => t.name === item.name) ? styles.Selected : ""}`}
-								onClick={() => {
-									if (group.isPredefined) {
-										onSendNamedPose(item.msg);
-										onClose();
-									} else {
-										setTasks((old: ArmTask[] | null) => {
-											if(old === null) {
-												return [{ name: item.name, msg: item.msg }];
+								<p className={styles.ChoiceCategory}>{group.category}</p>
+								{group.items.map((item) => (
+									<button
+										key={item.name}
+										className={`${styles.Choice} ${!group.isPredefined && tasks?.some((t) => t.name === item.name) ? styles.Selected : ""}`}
+										onClick={() => {
+											if (group.isPredefined) {
+												onSendNamedPose(item.msg);
+												onClose();
+											} else {
+												setTasks((old: ArmTask[] | null) => {
+													if (old === null) {
+														return [{ name: item.name, msg: item.msg }];
+													}
+													if (old.some((t) => t.name === item.name)) {
+														return old.filter(
+															(t) => t.name !== item.name
+														);
+													}
+													const newTasks = [...old];
+													newTasks.push({
+														name: item.name,
+														msg: item.msg,
+													});
+													return newTasks;
+												});
 											}
-											if (old.some(t => t.name === item.name)) {
-												return old.filter(t => t.name !== item.name);
-											}
-											const newTasks = [...old];
-											newTasks.push({ name: item.name, msg: item.msg});
-											return newTasks;
-										});
-									}
-								}}
-								>
-								{item.name}
-								</button>
-							))}
+										}}
+									>
+										{item.name}
+									</button>
+								))}
 							</React.Fragment>
 						))}
 					</div>
@@ -253,7 +272,7 @@ function ArmGoalModal({
 								onSetGoal(SubSystems.HANDLING_DEVICE, {
 									goals,
 								});
-								
+
 								onClose();
 							} else {
 								snackBar("error", "No task selected");
@@ -266,7 +285,7 @@ function ArmGoalModal({
 					<button
 						onClick={() => {
 							onCancelGoal(SubSystems.HANDLING_DEVICE);
-							if(resetHdConfirmation) {
+							if (resetHdConfirmation) {
 								resetHdConfirmation(false);
 							}
 						}}
