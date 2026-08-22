@@ -411,6 +411,80 @@ function buildGstReceiveArgs(port) {
 }
 
 /**
+ * nav_front (ZED) receive pipeline: same shape as buildGstReceiveArgs, tuned to hide packet loss
+ * rather than to minimise latency.
+ *
+ * What differs, and why:
+ * - no queue between udpsrc and rtpjitterbuffer. The jitterbuffer is the thing that reorders and
+ *   times out RTP, so buffering ahead of it only delays that decision; the shared pipeline keeps
+ *   its 1000-buffer queue as a memory guard, this one lets the jitterbuffer own the socket side.
+ * - latency=100 (vs 50) plus do-lost/max-dropout-time/max-misorder-time: twice the reordering
+ *   window, and explicit GAP events downstream so the decoder is told a packet is gone instead of
+ *   inferring it from a broken bitstream.
+ * - wait-for-keyframe + output-corrupt=false: after a loss, show nothing until the next IDR rather
+ *   than the smeared macroblocks the shared pipeline would push through. Costs up to one GOP of
+ *   black on recovery, which is the trade this camera wants.
+ *
+ * Keep the two in sync when changing anything that is not on that list.
+ */
+function buildGstFrontReceiveArgs(port) {
+  return [
+    '-q',
+    'udpsrc',
+    `port=${port}`,
+    'buffer-size=2097152',
+    'caps=application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96',
+    '!',
+    'rtpjitterbuffer',
+    'latency=100',
+    'drop-on-latency=true',
+    'do-lost=true',
+    'max-dropout-time=1000',
+    'max-misorder-time=100',
+    '!',
+    'rtph264depay',
+    'wait-for-keyframe=true',
+    '!',
+    'h264parse',
+    '!',
+    'avdec_h264',
+    'output-corrupt=false',
+    '!',
+    // The real drop point, as in the shared pipeline: decoded frames carry no reference
+    // dependencies, so dropping the oldest when jpegenc falls behind is visually free.
+    'queue',
+    'max-size-buffers=2',
+    'max-size-bytes=0',
+    'max-size-time=0',
+    'leaky=downstream',
+    '!',
+    'videoconvert',
+    '!',
+    'jpegenc',
+    'quality=60',
+    '!',
+    'queue',
+    'max-size-buffers=2',
+    'max-size-bytes=0',
+    'max-size-time=0',
+    'leaky=downstream',
+    '!',
+    'multipartmux',
+    `boundary=${CAMERA_BOUNDARY}`,
+    '!',
+    'fdsink',
+    'fd=1',
+    'sync=false',
+  ];
+}
+
+/** Only nav_front has its own mjpeg tuning; every other camera uses the shared pipeline. */
+function buildGstMjpegArgs(cameraId, port) {
+  if (cameraId === 'nav_front') return buildGstFrontReceiveArgs(port);
+  return buildGstReceiveArgs(port);
+}
+
+/**
  * fmp4 receive pipeline. The half above rtph264depay is deliberately identical to the mjpeg one —
  * and to the bare gst-launch that runs stably by hand — so the only variable is what happens after
  * depayloading. From there the H.264 is muxed, not decoded: no avdec_h264, no videoconvert, no
@@ -720,7 +794,7 @@ function getCameraStream(cameraId) {
 
   const gst = spawn(
     'gst-launch-1.0',
-    fmp4 ? buildGstFmp4Args(gstPort) : buildGstReceiveArgs(gstPort),
+    fmp4 ? buildGstFmp4Args(gstPort) : buildGstMjpegArgs(cameraId, gstPort),
     { stdio: ['ignore', 'pipe', 'pipe'] }
   );
   const stream = {
