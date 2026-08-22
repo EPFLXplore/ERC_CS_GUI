@@ -28,6 +28,13 @@ export default function RosDdsDevBanner({
 	const domain = process.env.REACT_APP_ROS_DOMAIN_ID?.trim();
 	const rmw = process.env.REACT_APP_RMW_IMPLEMENTATION?.trim();
 	const uri = process.env.REACT_APP_CYCLONEDDS_URI?.trim();
+	/**
+	 * The host config is bind-mounted onto /etc/cyclonedds.xml, so CYCLONEDDS_URI is identical for
+	 * every profile and cannot tell you which one is loaded. The run scripts pass the host file
+	 * name separately; fall back to the URI when it is absent (container started before that env
+	 * var existed) rather than inventing a name.
+	 */
+	const configFile = process.env.REACT_APP_CYCLONEDDS_FILE?.trim();
 	const [now, setNow] = useState(() => Date.now());
 
 	useEffect(() => {
@@ -40,6 +47,8 @@ export default function RosDdsDevBanner({
 		domain !== undefined && domain !== null && domain.length > 0 ? domain : "0";
 	const rmwLabel = rmw && rmw.length > 0 ? rmw : "—";
 	const uriLabel = uri && uri.length > 0 ? uri : "—";
+	const configLabel =
+		configFile && configFile.length > 0 ? configFile : uriLabel;
 	const rosbridgeStatus = rosConnected ? "connected" : "disconnected";
 
 	const topicRows = useMemo(
@@ -70,6 +79,7 @@ export default function RosDdsDevBanner({
 	const tooltip = [
 		`rosbridge: ${rosbridgeStatus}`,
 		`DDS profile: ${profileLabel}`,
+		`Cyclone config: ${configLabel}`,
 		`CYCLONEDDS_URI: ${uriLabel}`,
 		`RMW: ${rmwLabel}`,
 		`ROS_DOMAIN_ID: ${domainLabel}`,
@@ -106,7 +116,7 @@ export default function RosDdsDevBanner({
 				<strong>profile</strong> {profileLabel}
 			</div>
 			<div className={styles.row}>
-				<strong>URI</strong> {uriLabel}
+				<strong>config</strong> {configLabel}
 			</div>
 			<div className={styles.row}>
 				<strong>RMW</strong> {rmwLabel} · <strong>DOMAIN</strong> {domainLabel}
