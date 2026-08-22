@@ -88,9 +88,13 @@ const StopHdStack: SSHCommands = {
 // The entry point is the wrapper in the home directory, not the script it forwards to under
 // Documents/Avionics_ROS/2026/docker. Invoking the inner one directly is what "Start Avionics"
 // used to do, and it did not bring avionics up.
+//
+// pty: the script ends in `docker run -it`, which aborts with "the input device is not a TTY"
+// without one. The drill/HD/NAV scripts do not need it, so it stays opt-in.
 const ActivateElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['/home/xplore-avionics/erc_run_avionics.sh']
+    commands: ['/home/xplore-avionics/erc_run_avionics.sh'],
+    pty: true
 };
 
 // Stops the FSM and other stuff. 
@@ -208,6 +212,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
             username: command.device.hostname,
             password: command.device.password,
             commands: command.commands,
+            pty: command.pty === true,
             name: name
         })
         connectionID = data.connectionID

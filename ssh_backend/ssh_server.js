@@ -979,10 +979,11 @@ function pruneSSHResults() {
 }
 
 function createSSHConnection(req) {
-    const { host, username, password, commands, name } = req.body;
+    const { host, username, password, commands, name, pty } = req.body;
     const conn = new Client();
     const id = generateUniqueID(name);
     const commandString = Array.isArray(commands) ? commands.join(' && ') : String(commands === undefined || commands === null ? '' : commands);
+    const wantsPty = pty === true;
 
     pruneSSHResults();
 
@@ -992,6 +993,7 @@ function createSSHConnection(req) {
       host,
       username,
       command: commandString,
+      pty: wantsPty,
       running: true,
       exitCode: null,
       signal: null,
@@ -1008,15 +1010,19 @@ function createSSHConnection(req) {
       Object.assign(result, extra, { running: false, finishedAt: Date.now() });
     };
 
-    console.log(`[ssh] ${id}: connecting ${username}@${host}`);
+    console.log(`[ssh] ${id}: connecting ${username}@${host}${wantsPty ? ' (pty)' : ''}`);
     console.log(`[ssh] ${id}: $ ${commandString}`);
 
     conn.on('ready', () => {
       // conn.exec runs a non-login, non-interactive shell: nothing from .bashrc / .profile applies,
-      // PATH is the bare default, aliases do not exist, and there is no TTY — a script that runs
-      // `docker run -it` fails here with "the input device is not a TTY" while working by hand.
-      // The working directory is $HOME, so commands must be absolute or relative to it.
-      conn.exec(commandString, (err, stream) => {
+      // PATH is the bare default, and aliases do not exist. The working directory is $HOME, so
+      // commands must be absolute or relative to it.
+      //
+      // Without `pty` there is also no terminal, and a script that runs `docker run -it` aborts
+      // with "the input device is not a TTY" even though it works by hand. Callers opt in per
+      // command. Note that a PTY merges stderr into stdout, so with pty:true everything shows up
+      // under `out|` and `result.stderr` stays empty — that is the terminal's doing, not a bug.
+      conn.exec(commandString, { pty: wantsPty }, (err, stream) => {
         if (err) {
           console.error(`[ssh] ${id}: exec failed: ${err.message}`);
           finish({ error: err.message });
