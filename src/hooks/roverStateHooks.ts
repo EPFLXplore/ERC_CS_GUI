@@ -32,11 +32,20 @@ const NAV_STATE_TOPIC =
 	(typeof process !== "undefined" && process.env.REACT_APP_NAV_STATE_TOPIC?.trim()) ||
 	Topics.NAV_STATE;
 
+/**
+ * Rows of the Data Path panel.
+ *
+ * EL watches `/EL/heartbeat` rather than `/EL/State`: the electronics stack does not publish a
+ * state summary, so that row could only ever read "no data" and told us nothing about whether
+ * avionics was up. The heartbeat is the signal that actually exists. `/EL/State` is still
+ * subscribed below for `power` / `four_in_one` / `dust` in case a build starts publishing it —
+ * it just no longer has a row of its own.
+ */
 const STATE_TOPIC_DEFINITIONS = [
     { label: "NAV", topicName: NAV_STATE_TOPIC },
     { label: "HD", topicName: Topics.HD_STATE },
     { label: "DRILL", topicName: Topics.DRILL_STATE },
-    { label: "EL", topicName: Topics.EL_STATE },
+    { label: "EL", topicName: Topics.EL_HEARTBEAT },
 ];
 
 // A refresh destroys and recreates the DDS reader (rosbridge unregisters the rclpy subscription
@@ -174,6 +183,9 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             createStateListener(Topics.DRILL_STATE, (data) =>
                 setRoverState((prev) => ({ ...prev, drill: data }))
             ),
+            // Nothing publishes /EL/State today, so this listener is purely the recovery path for
+            // a build that starts doing so; its diagnostic updates address a row that no longer
+            // exists (see STATE_TOPIC_DEFINITIONS) and are harmless no-ops until then.
             createStateListener(Topics.EL_STATE, (data) =>
                 setRoverState((prev) => ({
                     ...prev,
@@ -296,11 +308,15 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             );
         });
 
-        // Heartbeat: mark alive as soon as the counter changes, mark dead if it
-        // hasn't changed (or nothing arrived) within HEARTBEAT_STALE_MS.
+        // Heartbeat: liveness is message *arrival*, not a changing value. `Heartbeat.msg` carries
+        // only `board_id`, which identifies the board and never changes (the rover publishes a
+        // constant `board_id: 0`), so the older "counter moved" test could never pass. Any
+        // heartbeat from any board counts as alive.
+        //
+        // HEARTBEAT_STALE_MS must stay above the publish period of /EL/heartbeat, or the banner
+        // flickers between beats.
         const HEARTBEAT_STALE_MS = 3000;
-        let lastHeartbeatValue: number | null = null;
-        let lastHeartbeatChangeTime = Date.now();
+        let lastHeartbeatAt = Date.now();
         let avionicsAlive = false;
 
         const setAvionicsAlive = (alive: boolean) => {
@@ -318,16 +334,20 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         };
 
         heartbeatListener.subscribe((message: any) => {
-            if (!message || typeof message.dummy !== "number") return;
-            if (message.dummy !== lastHeartbeatValue) {
-                lastHeartbeatValue = message.dummy;
-                lastHeartbeatChangeTime = Date.now();
-                setAvionicsAlive(true);
-            }
+            // board_id 0 is a valid id, so test the type rather than the truthiness of the value.
+            if (!message || typeof message.board_id !== "number") return;
+            const receivedAt = Date.now();
+            lastHeartbeatAt = receivedAt;
+            setAvionicsAlive(true);
+            // Feeds the EL row of the Data Path panel. A well-formed Heartbeat needs no parsing
+            // step, so arrival counts as both received and parsed and the row reads as healthy
+            // rather than "raw only".
+            updateStateTopicDiagnostic(Topics.EL_HEARTBEAT, "lastMessageAt", receivedAt);
+            updateStateTopicDiagnostic(Topics.EL_HEARTBEAT, "lastParsedAt", receivedAt);
         });
 
         const heartbeatWatchdog = setInterval(() => {
-            if (Date.now() - lastHeartbeatChangeTime > HEARTBEAT_STALE_MS) {
+            if (Date.now() - lastHeartbeatAt > HEARTBEAT_STALE_MS) {
                 setAvionicsAlive(false);
             }
         }, 1000);
