@@ -85,9 +85,12 @@ const StopHdStack: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './erc_stop_hd_stack.sh']
 };
 
+// The entry point is the wrapper in the home directory, not the script it forwards to under
+// Documents/Avionics_ROS/2026/docker. Invoking the inner one directly is what "Start Avionics"
+// used to do, and it did not bring avionics up.
 const ActivateElecStack: SSHCommands = {
     device: RPI_ELEC,
-    commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/2026/docker', './erc_run_avionics.sh']
+    commands: ['/home/xplore-avionics/erc_run_avionics.sh']
 };
 
 // Stops the FSM and other stuff. 
@@ -149,33 +152,93 @@ const CommandsSSH = {
 
 let IDConnections: Connection = {}
 
-const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: AlertColor, message: string) => void, 
+/** One SSH command's outcome, as reported by ssh_backend's /ssh-result/:id. */
+interface SSHResult {
+    running: boolean;
+    exitCode: number | null;
+    signal: string | null;
+    error: string | null;
+    stdout: string;
+    stderr: string;
+    command: string;
+}
+
+const SSH_POLL_INTERVAL_MS = 500;
+/** Long enough for a docker image to come up on the RPi. */
+const SSH_MAX_WAIT_MS = 120000;
+
+/** First non-empty line, for a snackbar that has room for one. */
+const firstLine = (text: string): string =>
+    text.split("\n").map((line) => line.trim()).filter(Boolean)[0] ?? "";
+
+/** Polls until the command finishes. Returns null if it is still running at the cap. */
+const waitForSSHResult = async (connectionID: string): Promise<SSHResult | null> => {
+    const deadline = Date.now() + SSH_MAX_WAIT_MS;
+
+    while (Date.now() < deadline) {
+        try {
+            const { data } = await axios.get<SSHResult>(
+                `http://localhost:5000/ssh-result/${connectionID}`
+            );
+            if (!data.running) return data;
+        } catch (error) {
+            // The result endpoint is missing on an older ssh_backend; fall back to the previous
+            // fire-and-forget behaviour rather than blocking the operator.
+            console.warn("[ssh] result endpoint unavailable:", error);
+            return null;
+        }
+        await sleep(SSH_POLL_INTERVAL_MS);
+    }
+
+    return null;
+};
+
+const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: AlertColor, message: string) => void,
             name: string, resetLeds: () => void) => {
 
     if(name === "Stop Avionics") {
         resetLeds()
     }
-    
-    await axios.post('http://localhost:5000/ssh', {
-        host: command.device.ip, 
-        username: command.device.hostname,
-        password: command.device.password,
-        commands: command.commands,
-        name: name
-    })
-    .then(async data => {
-        let connectionID = data.data.connectionID
-        snackBar('success', "SSH command to " + command.device.name + ": " + connectionID)
 
-        IDConnections[name] = connectionID
-        await sleep(10000)
-        closeSSH(name, connectionID)
-        
-    })
-    .catch(error => {
-        snackBar('error', error)
-    })
-    
+    let connectionID: string;
+
+    try {
+        const { data } = await axios.post('http://localhost:5000/ssh', {
+            host: command.device.ip,
+            username: command.device.hostname,
+            password: command.device.password,
+            commands: command.commands,
+            name: name
+        })
+        connectionID = data.connectionID
+    } catch (error) {
+        snackBar('error', `${name}: could not reach the SSH backend — ${String(error)}`)
+        return
+    }
+
+    IDConnections[name] = connectionID
+    snackBar('info', `${name}: running on ${command.device.name}…`)
+
+    const result = await waitForSSHResult(connectionID)
+
+    if (!result) {
+        // Do not close the connection here: the command may still be running, and ending the
+        // channel would take the remote process with it. This is what the old fixed 10 s
+        // `sleep` then `closeSSH` did on every slow script.
+        snackBar('warning', `${name}: still running on ${command.device.name}; check the CS terminal for [ssh] logs`)
+        return
+    }
+
+    if (result.error) {
+        snackBar('error', `${name} failed on ${command.device.name}: ${result.error}`)
+    } else if (result.exitCode !== 0) {
+        const detail = firstLine(result.stderr) || firstLine(result.stdout) || "no output"
+        snackBar('error', `${name} exited ${result.exitCode} on ${command.device.name}: ${detail}`)
+    } else {
+        snackBar('success', `${name} OK on ${command.device.name}`)
+    }
+
+    closeSSH(name, connectionID)
 }
 
 const closeSSH = async (name: string, id: string) => {

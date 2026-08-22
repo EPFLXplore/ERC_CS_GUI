@@ -949,33 +949,117 @@ function generateUniqueID(name) {
   return `${name}-${Math.floor(Math.random() * 1000)}`;
 }
 
-function createSSHConnection(req, res) {
+/**
+ * What each SSH command actually did, keyed by connection id.
+ *
+ * This exists because the previous implementation could not report a failure even in principle:
+ * it piped the command's stdout into the same `res` that /ssh had already answered with
+ * `res.json({connectionID})`, so every byte was written after the response had ended and was
+ * discarded; stderr was never read at all, and the exit code was never looked at. A script that
+ * could not be found looked exactly like one that ran. Everything lands here instead, is logged
+ * with an [ssh] prefix, and is readable over /ssh-result/:id.
+ */
+const sshResults = {};
+/** Keep the tail, not the head: the error is at the end of a long build log. */
+const SSH_RESULT_MAX_BYTES = 64 * 1024;
+const SSH_RESULT_TTL_MS = 30 * 60 * 1000;
+
+function appendCapped(existing, chunk) {
+  const next = existing + chunk;
+  return next.length > SSH_RESULT_MAX_BYTES ? next.slice(next.length - SSH_RESULT_MAX_BYTES) : next;
+}
+
+function pruneSSHResults() {
+  const cutoff = Date.now() - SSH_RESULT_TTL_MS;
+  for (const [id, result] of Object.entries(sshResults)) {
+    if (!result.running && result.finishedAt && result.finishedAt < cutoff) {
+      delete sshResults[id];
+    }
+  }
+}
+
+function createSSHConnection(req) {
     const { host, username, password, commands, name } = req.body;
     const conn = new Client();
     const id = generateUniqueID(name);
+    const commandString = Array.isArray(commands) ? commands.join(' && ') : String(commands === undefined || commands === null ? '' : commands);
 
-    res.setHeader('Content-Type', 'text/plain');
-    res.setHeader('Transfer-Encoding', 'chunked');
+    pruneSSHResults();
+
+    const result = {
+      id,
+      name,
+      host,
+      username,
+      command: commandString,
+      running: true,
+      exitCode: null,
+      signal: null,
+      error: null,
+      stdout: '',
+      stderr: '',
+      startedAt: Date.now(),
+      finishedAt: null,
+    };
+    sshResults[id] = result;
+
+    const finish = (extra) => {
+      if (!result.running) return;
+      Object.assign(result, extra, { running: false, finishedAt: Date.now() });
+    };
+
+    console.log(`[ssh] ${id}: connecting ${username}@${host}`);
+    console.log(`[ssh] ${id}: $ ${commandString}`);
 
     conn.on('ready', () => {
-      const commandString = commands.join(' && ');
+      // conn.exec runs a non-login, non-interactive shell: nothing from .bashrc / .profile applies,
+      // PATH is the bare default, aliases do not exist, and there is no TTY — a script that runs
+      // `docker run -it` fails here with "the input device is not a TTY" while working by hand.
+      // The working directory is $HOME, so commands must be absolute or relative to it.
       conn.exec(commandString, (err, stream) => {
         if (err) {
-            console.log('Execution error:', err);
-            return res.status(500).json({ error: 'SSH command failed' }).end()
+          console.error(`[ssh] ${id}: exec failed: ${err.message}`);
+          finish({ error: err.message });
+          conn.end();
+          return;
         }
-        
+
         stream.on('data', (data) => {
-          res.write(data.toString());
+          const text = data.toString();
+          result.stdout = appendCapped(result.stdout, text);
+          console.log(`[ssh] ${id} out| ${text.trimEnd()}`);
         });
-        
+
+        // Where every "No such file or directory" and "Permission denied" goes. Reading this is
+        // the whole point: it was previously never read.
+        stream.stderr.on('data', (data) => {
+          const text = data.toString();
+          result.stderr = appendCapped(result.stderr, text);
+          console.error(`[ssh] ${id} err| ${text.trimEnd()}`);
+        });
+
+        stream.on('close', (code, signal) => {
+          const ms = Date.now() - result.startedAt;
+          console.log(`[ssh] ${id}: exit code=${code} signal=${signal || '-'} after ${ms}ms`);
+          finish({
+            exitCode: code === undefined ? null : code,
+            signal: signal === undefined ? null : signal,
+          });
+          conn.end();
+        });
       });
     })
     .on('error', (err) => {
-      console.log(err.message)
-      res.status(500).json({ error: err.message }).end()
+      console.error(`[ssh] ${id}: connection error: ${err.message}`);
+      finish({ error: err.message });
     })
-    
+    .on('close', () => {
+      // Covers the peer dropping the connection before the command reported a close.
+      finish({
+        error: result.error || 'connection closed before the command finished',
+      });
+    });
+
     conn.connect({ host, username, password });
     activeConnection++;
     connections[id] = conn;
@@ -984,9 +1068,37 @@ function createSSHConnection(req, res) {
 }
 
 app.post('/ssh', (req, res) => {
-  const id = createSSHConnection(req, res);
+  const id = createSSHConnection(req);
 
   res.json({ connectionID: id });
+});
+
+/**
+ * Result of one SSH command. Poll until `running` is false, then read `exitCode` / `stderr`.
+ * Usable straight from a shell:  curl -s localhost:5000/ssh-result/<id> | jq
+ */
+app.get('/ssh-result/:id', (req, res) => {
+  const result = sshResults[req.params.id];
+
+  if (!result) {
+    res.status(404).json({ error: `No SSH result for ${req.params.id}` }).end();
+    return;
+  }
+
+  res.json(result);
+});
+
+/** Every command this server has run, newest last, without the output bodies. */
+app.get('/ssh-results', (_req, res) => {
+  res.json(
+    Object.values(sshResults)
+      .sort((a, b) => a.startedAt - b.startedAt)
+      .map(({ stdout, stderr, ...summary }) => ({
+        ...summary,
+        stdoutBytes: stdout.length,
+        stderrBytes: stderr.length,
+      }))
+  );
 });
 
 app.get('/close-connection/:id', (req, res) => {
@@ -994,10 +1106,12 @@ app.get('/close-connection/:id', (req, res) => {
 
   if (connections[id]) {
       connections[id].end();
+      delete connections[id];
       activeConnection--;
+      console.log(`[ssh] ${id}: connection closed by the CS`);
       res.json({status: true}).end()
   } else {
-    console.log("error 404 id not found")
+    console.log(`[ssh] ${id}: close requested but no such connection (already finished?)`)
       res.status(404).json({ status: false, error: `Connection ${id} not found` }).end()
   }
 });
