@@ -58,6 +58,7 @@ import {
 	getBatteryState,
 	getTorqueGripper,
 	getBatteryVoltage,
+	isBatteryLow,
 	getDustSensor,
 	getMassDrillSensor,
 	getMassArmSensor,
@@ -71,14 +72,17 @@ import AlertSnackbar from "../../components/ui/Snackbar";
 import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
 import useCameraServo, { CameraServoProvider } from "../../hooks/cameraServoHooks";
+import useHdGamepadMode from "../../hooks/hdGamepadModeHooks";
 import {
-	MANUAL_SLOW_FACTORS,
+	MANUAL_SLOW_FACTOR_EVENT,
+	MANUAL_SPEED_EVENT,
 	ManualSlowFactor,
 	ManualSpeed,
 	loadManualSlowFactor,
 	loadManualSpeed,
 	saveManualSlowFactor,
 	saveManualSpeed,
+	stepManualSlowFactor,
 } from "../../utils/hdSpeedConfig";
 import { AlertColor } from "@mui/material";
 import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -90,9 +94,7 @@ import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
-import { SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
-import axios from "axios";
 
 const WIDGET_KEYS = [
 	"drivingCurrents",
@@ -127,6 +129,29 @@ const TASK_PRESETS: TaskPreset[] = [
 	"Sampling",
 	"Astro-Bio Exploration",
 	"All",
+];
+
+/**
+ * Subsystem states that keep the gamepad on screen.
+ *
+ * AUTO is on both lists so the operator can grab the sticks and take over from autonomy without
+ * having to change mode first. The widget was previously hidden in AUTO while the hook kept
+ * publishing regardless of visibility (see gamepadHooks: the publish loop gates on
+ * GamepadCommandState, never on the subsystem state), so the commands were going out with nothing
+ * on screen to show it.
+ */
+const GAMEPAD_VISIBLE_NAV_STATES: string[] = [
+	States.AUTO,
+	States.ACKERMANN,
+	States.OMNI_DIRECTIONAL,
+	States.OFF,
+];
+
+/** HD OFF stays off the list, as before: nothing to take over when the arm is disabled. */
+const GAMEPAD_VISIBLE_HD_STATES: string[] = [
+	States.AUTO,
+	States.MANUAL_DIRECT,
+	States.MANUAL_INVERSE,
 ];
 
 const WIDGET_LABELS: Record<WidgetKey, string> = {
@@ -237,11 +262,8 @@ const RefreshWarning = () => (
 
 const NewControlPage = () => {
 	const [snackbar, showSnackbar] = useAlert();
-	const [ros] = useRosBridge(showSnackbar);
+	const [ros, rosConnected] = useRosBridge(showSnackbar);
 	const roverControls = useRoverControls(ros, showSnackbar);
-	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
-	// than in the Avionics modal because the D-pad has to keep working while that modal is closed.
-	const cameraServo = useCameraServo(ros);
 
   	// Destructure:
   	const [
@@ -283,26 +305,18 @@ const NewControlPage = () => {
 		reset_motors,
 		emergency_shutdown,
 		sendHdNamedPose,
-		updateHdTaskCommand
+		updateHdTaskCommand,
+		stateTopicDiagnostics
   	] = roverControls;
 
-	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
-    
-		await axios.post('http://localhost:5000/sensor-record', {
-			type_sensor: type_sensor, 
-			timestamp: new Date().toISOString(),
-			values: values
-		})
-		.then(async data => {
-			
-			console.log("Sensor data recorded successfully:", data);
-			
-		})
-		.catch(error => {
-			console.error("Error recording sensor data:", error);
-		})
-		
-	}
+	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
+	// than in the Avionics modal because the D-pad has to keep working while that modal is closed.
+	const cameraServo = useCameraServo(ros, manualMode);
+	useHdGamepadMode(
+		manualMode,
+		stateServices[SubSystems.HANDLING_DEVICE].service.state,
+		startService
+	);
 
 	const roverStateRef = useRef(roverState);
 	roverStateRef.current = roverState;
@@ -402,6 +416,23 @@ const NewControlPage = () => {
 		setManualSlowFactor(factor);
 		saveManualSlowFactor(factor);
 	}, []);
+
+	useEffect(() => {
+		const syncManualSettings = () => {
+			setManualSpeed(loadManualSpeed());
+			setManualSlowFactor(loadManualSlowFactor());
+		};
+
+		window.addEventListener(MANUAL_SPEED_EVENT, syncManualSettings as EventListener);
+		window.addEventListener(MANUAL_SLOW_FACTOR_EVENT, syncManualSettings as EventListener);
+		window.addEventListener("storage", syncManualSettings);
+
+		return () => {
+			window.removeEventListener(MANUAL_SPEED_EVENT, syncManualSettings as EventListener);
+			window.removeEventListener(MANUAL_SLOW_FACTOR_EVENT, syncManualSettings as EventListener);
+			window.removeEventListener("storage", syncManualSettings);
+		};
+	}, []);
 	const [visibleWidgets, setVisibleWidgets] = useState<Record<WidgetKey, boolean>>(() => {
 		return WIDGET_KEYS.reduce((acc, key) => {
 			acc[key] = true;
@@ -440,10 +471,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Driving Currents"
 					infos={[
-						{ info: { name: "FRONT_LEFT_DRIVE", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
-						{ info: { name: "FRONT_RIGHT_DRIVE", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
-						{ info: { name: "BACK_RIGHT_DRIVE", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
-						{ info: { name: "BACK_LEFT_DRIVE", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
+						{ info: { name: "FRONT LEFT DRIVE", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
+						{ info: { name: "FRONT RIGHT DRIVE", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
+						{ info: { name: "BACK RIGHT DRIVE", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
+						{ info: { name: "BACK LEFT DRIVE", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -455,10 +486,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Steering Currents"
 					infos={[
-						{ info: { name: "FRONT_LEFT_STEER", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
-						{ info: { name: "FRONT_RIGHT_STEER", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
-						{ info: { name: "BACK_RIGHT_STEER", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
-						{ info: { name: "BACK_LEFT_STEER", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
+						{ info: { name: "FRONT LEFT STEER", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
+						{ info: { name: "FRONT RIGHT STEER", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
+						{ info: { name: "BACK RIGHT STEER", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
+						{ info: { name: "BACK LEFT STEER", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -696,13 +727,23 @@ const NewControlPage = () => {
 					<img src={logo} className={styles.logo} alt="Logo Xplore" />
 					<div className={styles.powerHeader}>
 						<span className={styles.powerItem}>I: {getCurrentOutput(roverState)} A</span>
-						<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
+						<div className={styles.voltageCell}>
+							<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
+							{isBatteryLow(roverState) && (
+								<span className={styles.batteryWarning} role="alert">
+									⚠ WARNING BATTERY LOW
+								</span>
+							)}
+						</div>
 						<span className={styles.powerItem}>State: {getBatteryState(roverState)}</span>
 						<span className={styles.powerItem} style={{ color: getAvionicsAlive(roverState) ? "#4caf50" : "#f44336" }}>
 							● Avionics {getAvionicsAlive(roverState) ? "Alive" : "Dead"}
 						</span>
 					</div>
-					<RosDdsDevBanner />
+					<RosDdsDevBanner
+						rosConnected={rosConnected}
+						stateTopics={stateTopicDiagnostics}
+					/>
 					<SystemMode
 						system={"NAV"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
@@ -727,9 +768,9 @@ const NewControlPage = () => {
 							}`}
 							onClick={toggleManualSpeed}
 							aria-pressed={manualSpeed === "slow"}
-							title={`Manual Direct joint speed. Slow applies a ${manualSlowFactor}·x⁴ curve to J1–J6 for maintenance work: much finer control near centre, and full deflection is capped at ${Math.round(
+							title={`Manual Direct joint speed. Slow applies a ${manualSlowFactor}·x⁴ curve to J1–J6 for maintenance work, with J1 scaled by another 0.5x. Full deflection is capped at ${Math.round(
 								manualSlowFactor * 100
-							)}% speed. The gripper is unaffected. Change the factor with the SLOW × buttons next to DRL.`}
+							)}% speed before the J1 scale. The gripper is unaffected. Step the factor with D-pad LEFT/RIGHT or the SLOW controls next to DRL.`}
 						>
 							{manualSpeed === "slow" ? `Slow: maintenance (${manualSlowFactor})` : "Fast"}
 						</button>
@@ -742,27 +783,35 @@ const NewControlPage = () => {
 					/>
 					<div
 						className={styles.slowFactorGroup}
-						title="Ceiling of the Manual Direct slow curve: full stick deflection commands this fraction of full joint speed. Only takes effect while the HD toggle is on Slow."
+						title="Ceiling of the Manual Direct slow curve: full stick deflection commands this fraction of full joint speed, with J1 scaled by another 0.5x. Only takes effect while the HD toggle is on Slow. D-pad LEFT/RIGHT steps this value."
 					>
 						<span className={styles.slowFactorLabel}>SLOW ×</span>
 						<div className={styles.slowFactorButtons}>
-							{MANUAL_SLOW_FACTORS.map((factor) => (
-								<button
-									key={factor}
-									type="button"
-									className={`${styles.slowFactorButton} ${
-										manualSlowFactor === factor ? styles.slowFactorButtonActive : ""
-									} ${
-										stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
-											? ""
-											: styles.slowFactorButtonIdle
-									}`}
-									onClick={() => selectManualSlowFactor(factor)}
-									aria-pressed={manualSlowFactor === factor}
-								>
-									{factor}
-								</button>
-							))}
+							<button
+								type="button"
+								className={`${styles.slowFactorButton} ${
+									stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
+										? ""
+										: styles.slowFactorButtonIdle
+								}`}
+								onClick={() => selectManualSlowFactor(stepManualSlowFactor(manualSlowFactor, -1))}
+								aria-label="Decrease manual slow factor"
+							>
+								-
+							</button>
+							<span className={styles.slowFactorValue}>{manualSlowFactor}</span>
+							<button
+								type="button"
+								className={`${styles.slowFactorButton} ${
+									stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT
+										? ""
+										: styles.slowFactorButtonIdle
+								}`}
+								onClick={() => selectManualSlowFactor(stepManualSlowFactor(manualSlowFactor, 1))}
+								aria-label="Increase manual slow factor"
+							>
+								+
+							</button>
 						</div>
 					</div>
 				</div>
@@ -969,16 +1018,12 @@ const NewControlPage = () => {
 						submode={[stateServices[SubSystems.NAGIVATION].service.state, stateServices[SubSystems.HANDLING_DEVICE].service.state]}
 						selectorCallback={changeMode}
 						visible={
-							stateServices[SubSystems.NAGIVATION].service.state ===
-								States.ACKERMANN || 
-								stateServices[SubSystems.NAGIVATION].service.state ===
-								States.OFF ||
-							stateServices[SubSystems.NAGIVATION].service.state ===
-								States.OMNI_DIRECTIONAL ||
-							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_DIRECT ||
-							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_INVERSE
+							GAMEPAD_VISIBLE_NAV_STATES.includes(
+								stateServices[SubSystems.NAGIVATION].service.state
+							) ||
+							GAMEPAD_VISIBLE_HD_STATES.includes(
+								stateServices[SubSystems.HANDLING_DEVICE].service.state
+							)
 						}
 						ros={ros}
 					/>

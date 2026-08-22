@@ -9,9 +9,4 @@ enum Sensors {
     MASS_HD = "Tare Mass HD",
 }
 
-enum SensorsType {
-    MASS_DRILL = "mass_drill",
-    MASS_HD = "mass_arm",
-}
-
-export {Sensors, SensorsType}
+export {Sensors}

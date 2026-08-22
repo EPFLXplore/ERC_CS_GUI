@@ -9,6 +9,7 @@ import SubSystems from "./subsystems.type"
 export const PublishTo = {
     NAVIGATION: SubSystems.NAGIVATION,
     HANDLING_DEVICE: SubSystems.HANDLING_DEVICE,
+    DRILL: SubSystems.DRILL,
 } as const;
 
 export type PublishToType = typeof PublishTo[keyof typeof PublishTo];

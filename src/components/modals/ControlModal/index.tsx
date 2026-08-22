@@ -31,7 +31,7 @@ function ControlModal({
       	<div className={styles.Modal} onClick={(e) => e.stopPropagation()}>
 
 			<div className={styles.ModalHeader}>
-				<h1>Docker Control</h1>
+				<h1>Docker Launch Scripts</h1>
 			</div>
 
 			<div className={styles.ModalContent}>

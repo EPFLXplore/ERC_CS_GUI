@@ -19,10 +19,34 @@ export interface SubsystemState {
     rover: any;  // Keep for global info if needed
 }
 
+export interface StateTopicDiagnostic {
+    label: string;
+    topicName: string;
+    lastMessageAt: number;
+    lastParsedAt: number;
+    lastErrorAt: number;
+}
+
 /** CS expects a 1 Hz JSON `std_msgs/String` summary; default `/NAV/State`. Override with REACT_APP_NAV_STATE_TOPIC if your stack uses another name. */
 const NAV_STATE_TOPIC =
 	(typeof process !== "undefined" && process.env.REACT_APP_NAV_STATE_TOPIC?.trim()) ||
 	Topics.NAV_STATE;
+
+/**
+ * Rows of the Data Path panel.
+ *
+ * EL watches `/EL/heartbeat` rather than `/EL/State`: the electronics stack does not publish a
+ * state summary, so that row could only ever read "no data" and told us nothing about whether
+ * avionics was up. The heartbeat is the signal that actually exists. `/EL/State` is still
+ * subscribed below for `power` / `four_in_one` / `dust` in case a build starts publishing it —
+ * it just no longer has a row of its own.
+ */
+const STATE_TOPIC_DEFINITIONS = [
+    { label: "NAV", topicName: NAV_STATE_TOPIC },
+    { label: "HD", topicName: Topics.HD_STATE },
+    { label: "DRILL", topicName: Topics.DRILL_STATE },
+    { label: "EL", topicName: Topics.EL_HEARTBEAT },
+];
 
 function useRoverState(ros: ROSLIB.Ros | null) {
     const [roverState, setRoverState] = useState<SubsystemState>({
@@ -32,9 +56,43 @@ function useRoverState(ros: ROSLIB.Ros | null) {
         electronics: {},
         rover: {}
     });
+    const [stateTopicDiagnostics, setStateTopicDiagnostics] = useState<StateTopicDiagnostic[]>(() =>
+        STATE_TOPIC_DEFINITIONS.map(({ label, topicName }) => ({
+            label,
+            topicName,
+            lastMessageAt: 0,
+            lastParsedAt: 0,
+            lastErrorAt: 0,
+        }))
+    );
 
     useEffect(() => {
         if (!ros) return;
+
+        setStateTopicDiagnostics((previous) =>
+            STATE_TOPIC_DEFINITIONS.map(({ label, topicName }) => {
+                const existing = previous.find((item) => item.topicName === topicName);
+                return {
+                    label,
+                    topicName,
+                    lastMessageAt: existing?.lastMessageAt ?? 0,
+                    lastParsedAt: existing?.lastParsedAt ?? 0,
+                    lastErrorAt: existing?.lastErrorAt ?? 0,
+                };
+            })
+        );
+
+        const updateStateTopicDiagnostic = (
+            topicName: string,
+            field: "lastMessageAt" | "lastParsedAt" | "lastErrorAt",
+            timestamp: number
+        ) => {
+            setStateTopicDiagnostics((previous) =>
+                previous.map((item) =>
+                    item.topicName === topicName ? { ...item, [field]: timestamp } : item
+                )
+            );
+        };
 
         const parseStateMessage = (message: any, topicName: string) => {
             try {
@@ -50,202 +108,167 @@ function useRoverState(ros: ROSLIB.Ros | null) {
                 return JSON.parse(String(raw));
             } catch (error) {
                 console.warn(`[roverState] ${topicName} parse failed:`, error, message);
+                updateStateTopicDiagnostic(topicName, "lastErrorAt", Date.now());
                 return null;
             }
         };
 
-        // Subscribe to each subsystem's 1Hz state topic
-        const navStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: NAV_STATE_TOPIC,
-            messageType: "std_msgs/String",  // or your custom message type
-            queue_length: 1,
-            queue_size: 1,
-        });
+        /** Subscribes now and hands back the teardown, so callers below stay one line each. */
+        const createSubscription = (
+            topicName: string,
+            messageType: string,
+            handleMessage: (message: any) => void
+        ) => {
+            const listener: ROSLIB.Topic<any> = new ROSLIB.Topic({
+                ros: ros,
+                name: topicName,
+                messageType,
+                queue_length: 1,
+                queue_size: 1,
+            });
 
-        const hdStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: "/HD/State",
-            messageType: "std_msgs/String",
-            queue_length: 1,
-            queue_size: 1,
-        });
+            listener.subscribe(handleMessage);
 
-        const drillStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: "/SC/State",
-            messageType: "std_msgs/String",
-            queue_length: 1,
-            queue_size: 1,
-        });
+            return {
+                unsubscribe: () => {
+                    try {
+                        listener.unsubscribe(handleMessage);
+                    } catch {
+                        try { listener.unsubscribe(); } catch {}
+                    }
+                },
+            };
+        };
 
-        const elecStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: "/EL/State",
-            messageType: "std_msgs/String",
-            queue_length: 1,
-            queue_size: 1,
-        });
-
-        const bmsStateListener = new ROSLIB.Topic({
-            ros: ros,
-            name: Topics.EL_BMS_TOPIC,
-            messageType: "custom_msg/msg/BMS",
-            queue_length: 1,
-            queue_size: 1,
-        });
-
-        // Live mass sensor readings (id: 0 = HD, 1 = Drill)
-        const massPacketListener = new ROSLIB.Topic({
-            ros: ros,
-            name: Topics.EL_MASS_PACKET,
-            messageType: "custom_msg/MassPacket",
-            queue_length: 1,
-            queue_size: 1,
-        });
-
-        // Live pH readings
-        const phPacketListener = new ROSLIB.Topic({
-            ros: ros,
-            name: Topics.EL_PH_PACKET,
-            messageType: "custom_msg/PhPacket",
-            queue_length: 1,
-            queue_size: 1,
-        });
-
-        // Avionics alive check: `dummy` is a free-running counter, avionics is
-        // considered alive as long as it keeps changing.
-        const heartbeatListener = new ROSLIB.Topic({
-            ros: ros,
-            name: Topics.EL_HEARTBEAT,
-            messageType: "custom_msg/Heartbeat",
-            queue_length: 1,
-            queue_size: 1,
-        });
-
-        // Navigation state updates
-        navStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, NAV_STATE_TOPIC);
-            if (data) {
-                startTransition(() =>
-                    setRoverState((prev) => ({ ...prev, navigation: data }))
-                );
-            }
-        });
-
-        // Handling Device state updates
-        hdStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, "/HD/State");
-            if (data) {
-                startTransition(() =>
-                    setRoverState((prev) => ({ ...prev, handling_device: data }))
-                );
-            }
-        });
-
-        // Drill state updates
-        drillStateListener.subscribe((message) => {
-            try {
-                const raw = (message as any).data;
-                const data =
-                    typeof raw === "string"
-                        ? JSON.parse(raw)
-                        : raw && typeof raw === "object"
-                          ? raw
-                          : JSON.parse(String(raw));
-                if (data && typeof data === "object") {
-                    startTransition(() =>
-                        setRoverState((prev) => ({ ...prev, drill: data }))
-                    );
+        const createStateListener = (topicName: string, onData: (data: any) => void) => {
+            const handleMessage = (message: any) => {
+                const receivedAt = Date.now();
+                updateStateTopicDiagnostic(topicName, "lastMessageAt", receivedAt);
+                const data = parseStateMessage(message, topicName);
+                if (data) {
+                    updateStateTopicDiagnostic(topicName, "lastParsedAt", receivedAt);
+                    startTransition(() => onData(data));
                 }
-            } catch (e) {
-                console.warn("[roverState] /SC/State parse failed:", e);
-            }
-        });
+            };
 
-        // Electronics state updates
-        elecStateListener.subscribe((message) => {
-            const data = parseStateMessage(message, "/EL/State");
-            if (data) {
+            return createSubscription(topicName, "std_msgs/String", handleMessage);
+        };
+
+        /** Same contract as createStateListener, for the typed avionics packets (no JSON parse). */
+        const createPacketListener = (
+            topicName: string,
+            messageType: string,
+            onMessage: (message: any, receivedAt: number) => void
+        ) =>
+            createSubscription(topicName, messageType, (message: any) =>
+                onMessage(message, Date.now())
+            );
+
+        const stateListeners = [
+            createStateListener(NAV_STATE_TOPIC, (data) =>
+                setRoverState((prev) => ({ ...prev, navigation: data }))
+            ),
+            createStateListener(Topics.HD_STATE, (data) =>
+                setRoverState((prev) => ({ ...prev, handling_device: data }))
+            ),
+            createStateListener(Topics.DRILL_STATE, (data) =>
+                setRoverState((prev) => ({ ...prev, drill: data }))
+            ),
+            // Nothing publishes /EL/State today; this stays so a build that starts doing so is
+            // picked up. Its diagnostic updates address a row that no longer exists (see
+            // STATE_TOPIC_DEFINITIONS) and are harmless no-ops until then.
+            createStateListener(Topics.EL_STATE, (data) =>
+                setRoverState((prev) => ({
+                    ...prev,
+                    electronics: {
+                        ...data,
+                        bms: (prev.electronics as any)?.bms ?? (data as any)?.bms,
+                        avionicsAlive: (prev.electronics as any)?.avionicsAlive,
+                        sensors: {
+                            ...(data as any)?.sensors,
+                            mass_sensors: {
+                                ...(data as any)?.sensors?.mass_sensors,
+                                ...(prev.electronics as any)?.sensors?.mass_sensors,
+                            },
+                        },
+                    },
+                }))
+            ),
+        ];
+
+        // BMS updates (voltage/current/status)
+        const bmsStateListener = createPacketListener(
+            Topics.EL_BMS_TOPIC,
+            "custom_msg/msg/BMS",
+            (message: any) => {
+                if (!message || typeof message !== "object") return;
                 startTransition(() =>
                     setRoverState((prev) => ({
                         ...prev,
                         electronics: {
-                            ...data,
-                            bms: (prev.electronics as any)?.bms ?? (data as any)?.bms,
-                            avionicsAlive: (prev.electronics as any)?.avionicsAlive,
+                            ...(prev.electronics || {}),
+                            bms: message,
+                        },
+                    }))
+                );
+            }
+        );
+
+        // Live pH readings
+        const phPacketListener = createPacketListener(
+            Topics.EL_PH_PACKET,
+            "custom_msg/PhPacket",
+            (message: any) => {
+                if (!message || typeof message.ph !== "number") return;
+                startTransition(() =>
+                    setRoverState((prev) => ({
+                        ...prev,
+                        electronics: {
+                            ...(prev.electronics || {}),
                             sensors: {
-                                ...(data as any)?.sensors,
+                                ...((prev.electronics as any)?.sensors || {}),
+                                ph: message.ph,
+                            },
+                        },
+                    }))
+                );
+            }
+        );
+
+        // Mass packet updates (id 0 = HD arm, id 1 = Drill)
+        const massPacketListener = createPacketListener(
+            Topics.EL_MASS_PACKET,
+            "custom_msg/MassPacket",
+            (message: any) => {
+                if (!message || typeof message !== "object") return;
+                const key = message.id === 1 ? "mass_drill" : "mass_container";
+                startTransition(() =>
+                    setRoverState((prev) => ({
+                        ...prev,
+                        electronics: {
+                            ...(prev.electronics || {}),
+                            sensors: {
+                                ...((prev.electronics as any)?.sensors || {}),
                                 mass_sensors: {
-                                    ...(data as any)?.sensors?.mass_sensors,
-                                    ...(prev.electronics as any)?.sensors?.mass_sensors,
+                                    ...((prev.electronics as any)?.sensors?.mass_sensors || {}),
+                                    [key]: message.mass,
                                 },
                             },
                         },
                     }))
                 );
             }
-        });
+        );
 
-        // BMS updates (voltage/current/status)
-        const handleBmsMessage = (message: any) => {
-            if (!message || typeof message !== "object") return;
-            startTransition(() =>
-                setRoverState((prev) => ({
-                    ...prev,
-                    electronics: {
-                        ...(prev.electronics || {}),
-                        bms: message,
-                    },
-                }))
-            );
-        };
-
-        bmsStateListener.subscribe(handleBmsMessage);
-
-        // pH packet updates
-        phPacketListener.subscribe((message: any) => {
-            if (!message || typeof message.ph !== "number") return;
-            startTransition(() =>
-                setRoverState((prev) => ({
-                    ...prev,
-                    electronics: {
-                        ...(prev.electronics || {}),
-                        sensors: {
-                            ...((prev.electronics as any)?.sensors || {}),
-                            ph: message.ph,
-                        },
-                    },
-                }))
-            );
-        });
-
-        // Mass packet updates (id 0 = HD arm, id 1 = Drill)
-        massPacketListener.subscribe((message: any) => {
-            if (!message || typeof message !== "object") return;
-            const key = message.id === 1 ? "mass_drill" : "mass_container";
-            startTransition(() =>
-                setRoverState((prev) => ({
-                    ...prev,
-                    electronics: {
-                        ...(prev.electronics || {}),
-                        sensors: {
-                            ...((prev.electronics as any)?.sensors || {}),
-                            mass_sensors: {
-                                ...((prev.electronics as any)?.sensors?.mass_sensors || {}),
-                                [key]: message.mass,
-                            },
-                        },
-                    },
-                }))
-            );
-        });
-
-        // Heartbeat: mark alive as soon as the counter changes, mark dead if it
-        // hasn't changed (or nothing arrived) within HEARTBEAT_STALE_MS.
+        // Heartbeat: liveness is message *arrival*, not a changing value. `Heartbeat.msg` carries
+        // only `board_id`, which identifies the board and never changes (the rover publishes a
+        // constant `board_id: 0`), so the older "counter moved" test could never pass. Any
+        // heartbeat from any board counts as alive.
+        //
+        // HEARTBEAT_STALE_MS must stay above the publish period of /EL/heartbeat, or the banner
+        // flickers between beats.
         const HEARTBEAT_STALE_MS = 3000;
-        let lastHeartbeatValue: number | null = null;
-        let lastHeartbeatChangeTime = Date.now();
+        let lastHeartbeatAt = Date.now();
         let avionicsAlive = false;
 
         const setAvionicsAlive = (alive: boolean) => {
@@ -262,35 +285,48 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             );
         };
 
-        heartbeatListener.subscribe((message: any) => {
-            if (!message || typeof message.dummy !== "number") return;
-            if (message.dummy !== lastHeartbeatValue) {
-                lastHeartbeatValue = message.dummy;
-                lastHeartbeatChangeTime = Date.now();
+        const heartbeatListener = createPacketListener(
+            Topics.EL_HEARTBEAT,
+            "custom_msg/Heartbeat",
+            (message: any, receivedAt: number) => {
+                // board_id 0 is a valid id, so test the type rather than the value's truthiness.
+                if (!message || typeof message.board_id !== "number") return;
+                lastHeartbeatAt = receivedAt;
                 setAvionicsAlive(true);
+                // Feeds the EL row of the Data Path panel. A well-formed Heartbeat needs no
+                // parsing step, so arrival counts as both received and parsed and the row reads
+                // as healthy rather than "raw only".
+                updateStateTopicDiagnostic(Topics.EL_HEARTBEAT, "lastMessageAt", receivedAt);
+                updateStateTopicDiagnostic(Topics.EL_HEARTBEAT, "lastParsedAt", receivedAt);
             }
-        });
+        );
 
         const heartbeatWatchdog = setInterval(() => {
-            if (Date.now() - lastHeartbeatChangeTime > HEARTBEAT_STALE_MS) {
+            if (Date.now() - lastHeartbeatAt > HEARTBEAT_STALE_MS) {
                 setAvionicsAlive(false);
             }
         }, 1000);
 
+        // No resubscribe watchdog here on purpose. DDS matches a publisher that appears after the
+        // browser subscribed on its own, and the QoS that used to stay wrong in that case is now
+        // renegotiated by rosbridge itself (MultiSubscriber._renegotiate_qos), for every topic on
+        // every page rather than only the ones listed here. Periodically dropping and recreating
+        // these subscriptions bought nothing and cost a full DDS rediscovery each time.
+        const listeners = [
+            ...stateListeners,
+            bmsStateListener,
+            phPacketListener,
+            massPacketListener,
+            heartbeatListener,
+        ];
+
         return () => {
-            navStateListener.unsubscribe();
-            hdStateListener.unsubscribe();
-            drillStateListener.unsubscribe();
-            elecStateListener.unsubscribe();
-            bmsStateListener.unsubscribe();
-            massPacketListener.unsubscribe();
-            phPacketListener.unsubscribe();
-            heartbeatListener.unsubscribe();
+            listeners.forEach((listener) => listener.unsubscribe());
             clearInterval(heartbeatWatchdog);
         };
     }, [ros]);
 
-    return [roverState] as const;
+    return [roverState, stateTopicDiagnostics] as const;
 }
 
 export default useRoverState;

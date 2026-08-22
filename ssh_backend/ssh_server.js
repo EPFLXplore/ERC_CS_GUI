@@ -3,20 +3,11 @@ const { Client } = require('ssh2');
 let activeConnection = 0
 const connections = {}
 
-// Backup files
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const homeDir = os.homedir();
 
 const SCREENSHOTS_DIR = path.join(__dirname, '..', '..', 'screenshots');
-const record = require('./record.js');
-
-const mass_arm = 'mass_arm';
-const mass_arm_file = `${mass_arm}_data`;
-const mass_arm_format_line = 'timestamp, mass_hd, mass_dr, temperature, humidity, conductivity, ph, pm1_0_std, pm2_5_std, pm10_std, pm1_0_atm, pm2_5_atm, pm10_atm, num_particles_0_3, num_particles_0_5, num_particles_1_0, num_particles_2_5, num_particles_5_0, num_particles_10\n'
-
-record.checkCSVFileExists(homeDir, mass_arm_file, mass_arm_format_line);
 
 // ExpressJS
 const express = require('express');
@@ -411,6 +402,80 @@ function buildGstReceiveArgs(port) {
 }
 
 /**
+ * nav_front (ZED) receive pipeline: same shape as buildGstReceiveArgs, tuned to hide packet loss
+ * rather than to minimise latency.
+ *
+ * What differs, and why:
+ * - no queue between udpsrc and rtpjitterbuffer. The jitterbuffer is the thing that reorders and
+ *   times out RTP, so buffering ahead of it only delays that decision; the shared pipeline keeps
+ *   its 1000-buffer queue as a memory guard, this one lets the jitterbuffer own the socket side.
+ * - latency=100 (vs 50) plus do-lost/max-dropout-time/max-misorder-time: twice the reordering
+ *   window, and explicit GAP events downstream so the decoder is told a packet is gone instead of
+ *   inferring it from a broken bitstream.
+ * - wait-for-keyframe + output-corrupt=false: after a loss, show nothing until the next IDR rather
+ *   than the smeared macroblocks the shared pipeline would push through. Costs up to one GOP of
+ *   black on recovery, which is the trade this camera wants.
+ *
+ * Keep the two in sync when changing anything that is not on that list.
+ */
+function buildGstFrontReceiveArgs(port) {
+  return [
+    '-q',
+    'udpsrc',
+    `port=${port}`,
+    'buffer-size=2097152',
+    'caps=application/x-rtp,media=video,clock-rate=90000,encoding-name=H264,payload=96',
+    '!',
+    'rtpjitterbuffer',
+    'latency=100',
+    'drop-on-latency=true',
+    'do-lost=true',
+    'max-dropout-time=1000',
+    'max-misorder-time=100',
+    '!',
+    'rtph264depay',
+    'wait-for-keyframe=true',
+    '!',
+    'h264parse',
+    '!',
+    'avdec_h264',
+    'output-corrupt=false',
+    '!',
+    // The real drop point, as in the shared pipeline: decoded frames carry no reference
+    // dependencies, so dropping the oldest when jpegenc falls behind is visually free.
+    'queue',
+    'max-size-buffers=2',
+    'max-size-bytes=0',
+    'max-size-time=0',
+    'leaky=downstream',
+    '!',
+    'videoconvert',
+    '!',
+    'jpegenc',
+    'quality=60',
+    '!',
+    'queue',
+    'max-size-buffers=2',
+    'max-size-bytes=0',
+    'max-size-time=0',
+    'leaky=downstream',
+    '!',
+    'multipartmux',
+    `boundary=${CAMERA_BOUNDARY}`,
+    '!',
+    'fdsink',
+    'fd=1',
+    'sync=false',
+  ];
+}
+
+/** Only nav_front has its own mjpeg tuning; every other camera uses the shared pipeline. */
+function buildGstMjpegArgs(cameraId, port) {
+  if (cameraId === 'nav_front') return buildGstFrontReceiveArgs(port);
+  return buildGstReceiveArgs(port);
+}
+
+/**
  * fmp4 receive pipeline. The half above rtph264depay is deliberately identical to the mjpeg one —
  * and to the bare gst-launch that runs stably by hand — so the only variable is what happens after
  * depayloading. From there the H.264 is muxed, not decoded: no avdec_h264, no videoconvert, no
@@ -720,7 +785,7 @@ function getCameraStream(cameraId) {
 
   const gst = spawn(
     'gst-launch-1.0',
-    fmp4 ? buildGstFmp4Args(gstPort) : buildGstReceiveArgs(gstPort),
+    fmp4 ? buildGstFmp4Args(gstPort) : buildGstMjpegArgs(cameraId, gstPort),
     { stdio: ['ignore', 'pipe', 'pipe'] }
   );
   const stream = {
@@ -875,33 +940,158 @@ function generateUniqueID(name) {
   return `${name}-${Math.floor(Math.random() * 1000)}`;
 }
 
-function createSSHConnection(req, res) {
-    const { host, username, password, commands, name } = req.body;
+/**
+ * What each SSH command actually did, keyed by connection id.
+ *
+ * This exists because the previous implementation could not report a failure even in principle:
+ * it piped the command's stdout into the same `res` that /ssh had already answered with
+ * `res.json({connectionID})`, so every byte was written after the response had ended and was
+ * discarded; stderr was never read at all, and the exit code was never looked at. A script that
+ * could not be found looked exactly like one that ran. Everything lands here instead, is logged
+ * with an [ssh] prefix, and is readable over /ssh-result/:id.
+ */
+const sshResults = {};
+/** Keep the tail, not the head: the error is at the end of a long build log. */
+const SSH_RESULT_MAX_BYTES = 64 * 1024;
+const SSH_RESULT_TTL_MS = 30 * 60 * 1000;
+/**
+ * How many lines of a command's output reach the CS terminal before it goes quiet.
+ *
+ * A start script that ends in a foreground `docker run` streams that container's logs for as long
+ * as it runs, and mirroring all of it buries everything else the CS prints. These first lines are
+ * what tell you whether the script got going; the rest is still captured in full (up to
+ * SSH_RESULT_MAX_BYTES) and readable over /ssh-result/:id, so muting the terminal costs nothing.
+ */
+const SSH_CONSOLE_ECHO_LINES = 20;
+
+function appendCapped(existing, chunk) {
+  const next = existing + chunk;
+  return next.length > SSH_RESULT_MAX_BYTES ? next.slice(next.length - SSH_RESULT_MAX_BYTES) : next;
+}
+
+function pruneSSHResults() {
+  const cutoff = Date.now() - SSH_RESULT_TTL_MS;
+  for (const [id, result] of Object.entries(sshResults)) {
+    if (!result.running && result.finishedAt && result.finishedAt < cutoff) {
+      delete sshResults[id];
+    }
+  }
+}
+
+function createSSHConnection(req) {
+    const { host, username, password, commands, name, pty } = req.body;
     const conn = new Client();
     const id = generateUniqueID(name);
+    const commandString = Array.isArray(commands) ? commands.join(' && ') : String(commands === undefined || commands === null ? '' : commands);
+    const wantsPty = pty === true;
 
-    res.setHeader('Content-Type', 'text/plain');
-    res.setHeader('Transfer-Encoding', 'chunked');
+    pruneSSHResults();
+
+    const result = {
+      id,
+      name,
+      host,
+      username,
+      command: commandString,
+      pty: wantsPty,
+      running: true,
+      exitCode: null,
+      signal: null,
+      error: null,
+      stdout: '',
+      stderr: '',
+      startedAt: Date.now(),
+      finishedAt: null,
+    };
+    sshResults[id] = result;
+
+    const finish = (extra) => {
+      if (!result.running) return;
+      Object.assign(result, extra, { running: false, finishedAt: Date.now() });
+    };
+
+    console.log(`[ssh] ${id}: connecting ${username}@${host}${wantsPty ? ' (pty)' : ''}`);
+    console.log(`[ssh] ${id}: $ ${commandString}`);
 
     conn.on('ready', () => {
-      const commandString = commands.join(' && ');
-      conn.exec(commandString, (err, stream) => {
+      // conn.exec runs a non-login, non-interactive shell: nothing from .bashrc / .profile applies,
+      // PATH is the bare default, and aliases do not exist. The working directory is $HOME, so
+      // commands must be absolute or relative to it.
+      //
+      // Without `pty` there is also no terminal, and a script that runs `docker run -it` aborts
+      // with "the input device is not a TTY" even though it works by hand. Callers opt in per
+      // command. Note that a PTY merges stderr into stdout, so with pty:true everything shows up
+      // under `out|` and `result.stderr` stays empty — that is the terminal's doing, not a bug.
+      conn.exec(commandString, { pty: wantsPty }, (err, stream) => {
         if (err) {
-            console.log('Execution error:', err);
-            return res.status(500).json({ error: 'SSH command failed' }).end()
+          console.error(`[ssh] ${id}: exec failed: ${err.message}`);
+          finish({ error: err.message });
+          conn.end();
+          return;
         }
-        
+
+        let echoedLines = 0;
+        let echoTruncated = false;
+
+        // Echo to the CS terminal only up to the budget, then say so once. Everything keeps going
+        // into `result` either way, so muting the terminal costs no diagnostic information.
+        // Counted per line rather than per chunk: one SSH data event can carry many lines, and it
+        // is lines that flood the terminal.
+        const echo = (log, marker, text) => {
+          if (echoTruncated) return;
+
+          const lines = text.replace(/\r/g, '').split('\n').filter((line) => line.length > 0);
+
+          for (const line of lines) {
+            if (echoedLines >= SSH_CONSOLE_ECHO_LINES) {
+              echoTruncated = true;
+              console.log(
+                `[ssh] ${id}: further output suppressed — read it with ` +
+                `curl -s localhost:5000/ssh-result/${encodeURIComponent(id)}`
+              );
+              return;
+            }
+            echoedLines++;
+            log(`[ssh] ${id} ${marker}| ${line}`);
+          }
+        };
+
         stream.on('data', (data) => {
-          res.write(data.toString());
+          const text = data.toString();
+          result.stdout = appendCapped(result.stdout, text);
+          echo(console.log, 'out', text);
         });
-        
+
+        // Where every "No such file or directory" and "Permission denied" goes. Reading this is
+        // the whole point: it was previously never read.
+        stream.stderr.on('data', (data) => {
+          const text = data.toString();
+          result.stderr = appendCapped(result.stderr, text);
+          echo(console.error, 'err', text);
+        });
+
+        stream.on('close', (code, signal) => {
+          const ms = Date.now() - result.startedAt;
+          console.log(`[ssh] ${id}: exit code=${code} signal=${signal || '-'} after ${ms}ms`);
+          finish({
+            exitCode: code === undefined ? null : code,
+            signal: signal === undefined ? null : signal,
+          });
+          conn.end();
+        });
       });
     })
     .on('error', (err) => {
-      console.log(err.message)
-      res.status(500).json({ error: err.message }).end()
+      console.error(`[ssh] ${id}: connection error: ${err.message}`);
+      finish({ error: err.message });
     })
-    
+    .on('close', () => {
+      // Covers the peer dropping the connection before the command reported a close.
+      finish({
+        error: result.error || 'connection closed before the command finished',
+      });
+    });
+
     conn.connect({ host, username, password });
     activeConnection++;
     connections[id] = conn;
@@ -910,9 +1100,37 @@ function createSSHConnection(req, res) {
 }
 
 app.post('/ssh', (req, res) => {
-  const id = createSSHConnection(req, res);
+  const id = createSSHConnection(req);
 
   res.json({ connectionID: id });
+});
+
+/**
+ * Result of one SSH command. Poll until `running` is false, then read `exitCode` / `stderr`.
+ * Usable straight from a shell:  curl -s localhost:5000/ssh-result/<id> | jq
+ */
+app.get('/ssh-result/:id', (req, res) => {
+  const result = sshResults[req.params.id];
+
+  if (!result) {
+    res.status(404).json({ error: `No SSH result for ${req.params.id}` }).end();
+    return;
+  }
+
+  res.json(result);
+});
+
+/** Every command this server has run, newest last, without the output bodies. */
+app.get('/ssh-results', (_req, res) => {
+  res.json(
+    Object.values(sshResults)
+      .sort((a, b) => a.startedAt - b.startedAt)
+      .map(({ stdout, stderr, ...summary }) => ({
+        ...summary,
+        stdoutBytes: stdout.length,
+        stderrBytes: stderr.length,
+      }))
+  );
 });
 
 app.get('/close-connection/:id', (req, res) => {
@@ -920,10 +1138,12 @@ app.get('/close-connection/:id', (req, res) => {
 
   if (connections[id]) {
       connections[id].end();
+      delete connections[id];
       activeConnection--;
+      console.log(`[ssh] ${id}: connection closed by the CS`);
       res.json({status: true}).end()
   } else {
-    console.log("error 404 id not found")
+    console.log(`[ssh] ${id}: close requested but no such connection (already finished?)`)
       res.status(404).json({ status: false, error: `Connection ${id} not found` }).end()
   }
 });
@@ -1342,30 +1562,6 @@ app.get('/camera-streams/:cameraId.mjpg', (req, res) => {
   res.on('error', cleanupClient);
 });
 
-app.post('/sensor-record', (req, res) => {
-  const {type_sensor, timestamp, values} = req.body;
-
-  const line = [timestamp, ...values].join(',') + '\n';
-
-  switch (type_sensor) {
-    case mass_arm:
-      if(fs.existsSync(`${mass_arm_file}.csv`)) {
-        fs.appendFile(`${mass_arm_file}.csv`, line, (err) => {
-          if (err) {
-            console.error('Write error:', err);
-            return res.sendStatus(500);
-          }
-          
-        });
-      }
-      res.sendStatus(200);
-      break;
-
-    default:
-      return res.status(400).json({ error: 'Invalid sensor type' }).end();
-  }
-});
-
 app.post('/save-screenshot', (req, res) => {
   const { cameraName, filename, imageData } = req.body;
   if (!cameraName || !filename || !imageData) {
@@ -1401,14 +1597,12 @@ function stopAllCameraStreams() {
 process.on('SIGINT', () => {
   console.log('Gracefully shutting down...');
   stopAllCameraStreams();
-  record.backupCSV(homeDir, mass_arm_file);
   process.exit();
 });
 
 process.on('SIGTERM', () => {
   console.log('Process terminated.');
   stopAllCameraStreams();
-  record.backupCSV(homeDir, mass_arm_file);
   process.exit();
 });
 

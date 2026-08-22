@@ -205,7 +205,13 @@ const Gamepad = ({
 					isControlling={gamepadCommandState === GamepadCommandState.CONTROL}
 				/>
 				<div className={styles.GamepadMode}>
-					<p>{mode === PublishTo.NAVIGATION ? "NAV" : "HD"}</p>
+					<p>
+						{mode === PublishTo.NAVIGATION
+							? "NAV"
+							: mode === PublishTo.DRILL
+								? "DRILL"
+								: "HD"}
+					</p>
 				</div>
 				</div>
 			</div>

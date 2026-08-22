@@ -663,6 +663,39 @@ const getBatteryVoltage = (data: any) => {
 	return Number(elData["power"]["voltage"]).toFixed(2);
 };
 
+/** Below this, the header shows WARNING BATTERY LOW next to the voltage. */
+const BATTERY_LOW_WARNING_VOLTAGE = 24.3;
+
+/**
+ * True when the avionics BMS reports a pack voltage whose magnitude is under
+ * BATTERY_LOW_WARNING_VOLTAGE.
+ *
+ * Only `bms.v_bat` counts — the `/EL/State` `power.voltage` fallback that getBatteryVoltage uses
+ * is not the avionics measurement, and nothing publishes it on the current stack.
+ *
+ * Magnitude, because the BMS reports the pack voltage signed according to how the shunt is wired.
+ *
+ * A missing or zero reading is *not* low: v_bat is 0 before the BMS has measured anything, and
+ * getBatteryLevel already treats 0 as "no reading". Warning on absence would pin the banner on
+ * whenever avionics is down, which is exactly when it would be ignored.
+ */
+const isBatteryLow = (data: any): boolean => {
+	const elData = getSubsystemData(data, 'electronics');
+	const vBat = elData?.bms?.v_bat;
+
+	if (vBat == null) {
+		return false;
+	}
+
+	const magnitude = Math.abs(Number(vBat));
+
+	if (!Number.isFinite(magnitude) || magnitude === 0) {
+		return false;
+	}
+
+	return magnitude < BATTERY_LOW_WARNING_VOLTAGE;
+};
+
 const getCurrentOutput = (data: any) => {
 	const elData = getSubsystemData(data, 'electronics');
 
@@ -885,6 +918,7 @@ export {
 	getBatteryState,
 	getTorqueGripper,
 	getBatteryVoltage,
+	isBatteryLow,
 	getAvionicsAlive,
 	getCameraStates
 };

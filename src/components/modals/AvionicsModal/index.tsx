@@ -33,7 +33,7 @@ const CAMERA_SERVO = {
 	id: CAMERA_SERVO_ID,
 	label: "ZED 2i Front Camera",
 	minLabel: "35° pitch down",
-	midLabel: "90° straight ahead",
+	midLabel: "106° straight ahead",
 	maxLabel: "145° pitch up",
 } as const;
 
