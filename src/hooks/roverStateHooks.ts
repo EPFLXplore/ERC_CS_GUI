@@ -39,8 +39,12 @@ const STATE_TOPIC_DEFINITIONS = [
     { label: "EL", topicName: Topics.EL_STATE },
 ];
 
-const STATE_TOPIC_RESUBSCRIBE_STALE_MS = 4000;
-const STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS = 2500;
+// A refresh destroys and recreates the DDS reader (rosbridge unregisters the rclpy subscription
+// as soon as the last client unsubscribes), which costs a full endpoint-discovery round trip with
+// the Jetson. Refreshing faster than that discovery takes turns a single missed 1 Hz message into
+// a resubscribe loop that never settles, so keep the thresholds well above it.
+const STATE_TOPIC_RESUBSCRIBE_STALE_MS = 12000;
+const STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS = 20000;
 
 function useRoverState(ros: ROSLIB.Ros | null) {
     const [roverState, setRoverState] = useState<SubsystemState>({
