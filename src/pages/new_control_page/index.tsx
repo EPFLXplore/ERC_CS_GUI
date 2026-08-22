@@ -131,6 +131,29 @@ const TASK_PRESETS: TaskPreset[] = [
 	"All",
 ];
 
+/**
+ * Subsystem states that keep the gamepad on screen.
+ *
+ * AUTO is on both lists so the operator can grab the sticks and take over from autonomy without
+ * having to change mode first. The widget was previously hidden in AUTO while the hook kept
+ * publishing regardless of visibility (see gamepadHooks: the publish loop gates on
+ * GamepadCommandState, never on the subsystem state), so the commands were going out with nothing
+ * on screen to show it.
+ */
+const GAMEPAD_VISIBLE_NAV_STATES: string[] = [
+	States.AUTO,
+	States.ACKERMANN,
+	States.OMNI_DIRECTIONAL,
+	States.OFF,
+];
+
+/** HD OFF stays off the list, as before: nothing to take over when the arm is disabled. */
+const GAMEPAD_VISIBLE_HD_STATES: string[] = [
+	States.AUTO,
+	States.MANUAL_DIRECT,
+	States.MANUAL_INVERSE,
+];
+
 const WIDGET_LABELS: Record<WidgetKey, string> = {
 	drivingCurrents: "Driving Currents",
 	steeringCurrents: "Steering Currents",
@@ -995,16 +1018,12 @@ const NewControlPage = () => {
 						submode={[stateServices[SubSystems.NAGIVATION].service.state, stateServices[SubSystems.HANDLING_DEVICE].service.state]}
 						selectorCallback={changeMode}
 						visible={
-							stateServices[SubSystems.NAGIVATION].service.state ===
-								States.ACKERMANN || 
-								stateServices[SubSystems.NAGIVATION].service.state ===
-								States.OFF ||
-							stateServices[SubSystems.NAGIVATION].service.state ===
-								States.OMNI_DIRECTIONAL ||
-							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_DIRECT ||
-							stateServices[SubSystems.HANDLING_DEVICE].service.state ===
-								States.MANUAL_INVERSE
+							GAMEPAD_VISIBLE_NAV_STATES.includes(
+								stateServices[SubSystems.NAGIVATION].service.state
+							) ||
+							GAMEPAD_VISIBLE_HD_STATES.includes(
+								stateServices[SubSystems.HANDLING_DEVICE].service.state
+							)
 						}
 						ros={ros}
 					/>
