@@ -58,6 +58,7 @@ import {
 	getBatteryState,
 	getTorqueGripper,
 	getBatteryVoltage,
+	isBatteryLow,
 	getDustSensor,
 	getMassDrillSensor,
 	getMassArmSensor,
@@ -467,10 +468,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Driving Currents"
 					infos={[
-						{ info: { name: "FRONT_LEFT_DRIVE", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
-						{ info: { name: "FRONT_RIGHT_DRIVE", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
-						{ info: { name: "BACK_RIGHT_DRIVE", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
-						{ info: { name: "BACK_LEFT_DRIVE", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
+						{ info: { name: "FRONT LEFT DRIVE", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
+						{ info: { name: "FRONT RIGHT DRIVE", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
+						{ info: { name: "BACK RIGHT DRIVE", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
+						{ info: { name: "BACK LEFT DRIVE", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -482,10 +483,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Steering Currents"
 					infos={[
-						{ info: { name: "FRONT_LEFT_STEER", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
-						{ info: { name: "FRONT_RIGHT_STEER", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
-						{ info: { name: "BACK_RIGHT_STEER", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
-						{ info: { name: "BACK_LEFT_STEER", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
+						{ info: { name: "FRONT LEFT STEER", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
+						{ info: { name: "FRONT RIGHT STEER", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
+						{ info: { name: "BACK RIGHT STEER", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
+						{ info: { name: "BACK LEFT STEER", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -723,7 +724,14 @@ const NewControlPage = () => {
 					<img src={logo} className={styles.logo} alt="Logo Xplore" />
 					<div className={styles.powerHeader}>
 						<span className={styles.powerItem}>I: {getCurrentOutput(roverState)} A</span>
-						<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
+						<div className={styles.voltageCell}>
+							<span className={styles.powerItem}>V: {getBatteryVoltage(roverState)} V</span>
+							{isBatteryLow(roverState) && (
+								<span className={styles.batteryWarning} role="alert">
+									⚠ WARNING BATTERY LOW
+								</span>
+							)}
+						</div>
 						<span className={styles.powerItem}>State: {getBatteryState(roverState)}</span>
 						<span className={styles.powerItem} style={{ color: getAvionicsAlive(roverState) ? "#4caf50" : "#f44336" }}>
 							● Avionics {getAvionicsAlive(roverState) ? "Alive" : "Dead"}

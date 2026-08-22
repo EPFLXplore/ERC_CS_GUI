@@ -68,6 +68,27 @@
     backdrop-filter: blur(10px)
     webkit-backdrop-filter: blur(10px)
 
+// Stacks the low-battery warning under the voltage pill without breaking the flex row the rest
+// of the power header lays out in.
+.voltageCell
+    display: flex
+    flex-direction: column
+    align-items: center
+    gap: 3px
+
+// Solid red against the translucent white pills around it, so it reads as an alarm rather than
+// as another status field.
+.batteryWarning
+    color: white
+    background: #f44336
+    font-size: 0.72rem
+    font-weight: 700
+    letter-spacing: 0.03em
+    padding: 0.15rem 0.55rem
+    border: 1px solid #ff8a80
+    border-radius: 999px
+    white-space: nowrap
+
 .hdModeGroup
     position: relative
     display: flex

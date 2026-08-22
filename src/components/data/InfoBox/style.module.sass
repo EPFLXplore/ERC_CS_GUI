@@ -83,7 +83,12 @@
 .infoArrangementController
     #display: flex
     display: grid
-    grid-template-columns: repeat(3, 1fr)  // Three equal columns
+    // Not three equal columns: the state and value columns size to their content and the name
+    // column absorbs what is left. With `1fr` each, a long name (FRONT RIGHT STEER) widened its
+    // track past its share and pushed the value column under the `overflow: hidden` below, which
+    // clipped the reading off the right edge. minmax(0, 1fr) also overrides the `min-width: auto`
+    // that grid items get by default, which is what let the name push at all.
+    grid-template-columns: minmax(0, 1fr) auto auto
     #flex-direction: column
     gap: 10px
     margin-top: 10px
@@ -131,6 +136,10 @@
     font-size: 1em
     font-weight: 300
     margin: 0
+    // Wrap onto a second line when the card is too narrow, rather than overflowing the track and
+    // stealing width from the value column.
+    min-width: 0
+    overflow-wrap: anywhere
 
 .infoNameColoredGreen
     grid-column: 2
