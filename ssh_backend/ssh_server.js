@@ -3,20 +3,11 @@ const { Client } = require('ssh2');
 let activeConnection = 0
 const connections = {}
 
-// Backup files
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const homeDir = os.homedir();
 
 const SCREENSHOTS_DIR = path.join(__dirname, '..', '..', 'screenshots');
-const record = require('./record.js');
-
-const mass_arm = 'mass_arm';
-const mass_arm_file = `${mass_arm}_data`;
-const mass_arm_format_line = 'timestamp, mass_hd, mass_dr, temperature, humidity, conductivity, ph, pm1_0_std, pm2_5_std, pm10_std, pm1_0_atm, pm2_5_atm, pm10_atm, num_particles_0_3, num_particles_0_5, num_particles_1_0, num_particles_2_5, num_particles_5_0, num_particles_10\n'
-
-record.checkCSVFileExists(homeDir, mass_arm_file, mass_arm_format_line);
 
 // ExpressJS
 const express = require('express');
@@ -1571,30 +1562,6 @@ app.get('/camera-streams/:cameraId.mjpg', (req, res) => {
   res.on('error', cleanupClient);
 });
 
-app.post('/sensor-record', (req, res) => {
-  const {type_sensor, timestamp, values} = req.body;
-
-  const line = [timestamp, ...values].join(',') + '\n';
-
-  switch (type_sensor) {
-    case mass_arm:
-      if(fs.existsSync(`${mass_arm_file}.csv`)) {
-        fs.appendFile(`${mass_arm_file}.csv`, line, (err) => {
-          if (err) {
-            console.error('Write error:', err);
-            return res.sendStatus(500);
-          }
-          
-        });
-      }
-      res.sendStatus(200);
-      break;
-
-    default:
-      return res.status(400).json({ error: 'Invalid sensor type' }).end();
-  }
-});
-
 app.post('/save-screenshot', (req, res) => {
   const { cameraName, filename, imageData } = req.body;
   if (!cameraName || !filename || !imageData) {
@@ -1630,14 +1597,12 @@ function stopAllCameraStreams() {
 process.on('SIGINT', () => {
   console.log('Gracefully shutting down...');
   stopAllCameraStreams();
-  record.backupCSV(homeDir, mass_arm_file);
   process.exit();
 });
 
 process.on('SIGTERM', () => {
   console.log('Process terminated.');
   stopAllCameraStreams();
-  record.backupCSV(homeDir, mass_arm_file);
   process.exit();
 });
 

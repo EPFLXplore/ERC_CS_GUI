@@ -48,13 +48,6 @@ const STATE_TOPIC_DEFINITIONS = [
     { label: "EL", topicName: Topics.EL_HEARTBEAT },
 ];
 
-// A refresh destroys and recreates the DDS reader (rosbridge unregisters the rclpy subscription
-// as soon as the last client unsubscribes), which costs a full endpoint-discovery round trip with
-// the Jetson. Refreshing faster than that discovery takes turns a single missed 1 Hz message into
-// a resubscribe loop that never settles, so keep the thresholds well above it.
-const STATE_TOPIC_RESUBSCRIBE_STALE_MS = 12000;
-const STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS = 20000;
-
 function useRoverState(ros: ROSLIB.Ros | null) {
     const [roverState, setRoverState] = useState<SubsystemState>({
         navigation: {},
@@ -120,81 +113,45 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             }
         };
 
-        /**
-         * A subscription that can be torn down and recreated.
-         *
-         * Recreating it is the only way the CS picks up a publisher that appeared *after* the
-         * browser subscribed: rosbridge fixes a topic's QoS when it first creates the reader, so a
-         * topic with no publisher at that moment is stuck on the best-effort/volatile fallback and
-         * never sees a latched value. Re-subscribing re-negotiates against whatever is publishing
-         * now — which is exactly what reloading the page used to do by hand after starting a stack
-         * from the Dockers popup.
-         */
-        const createRefreshableSubscription = (
+        /** Subscribes now and hands back the teardown, so callers below stay one line each. */
+        const createSubscription = (
             topicName: string,
             messageType: string,
             handleMessage: (message: any) => void
         ) => {
-            let listener: ROSLIB.Topic<any> | null = null;
+            const listener: ROSLIB.Topic<any> = new ROSLIB.Topic({
+                ros: ros,
+                name: topicName,
+                messageType,
+                queue_length: 1,
+                queue_size: 1,
+            });
 
-            const unsubscribe = () => {
-                if (!listener) return;
-                try {
-                    listener.unsubscribe(handleMessage);
-                } catch {
-                    try { listener.unsubscribe(); } catch {}
-                }
-                listener = null;
-            };
-
-            const subscribe = () => {
-                listener = new ROSLIB.Topic({
-                    ros: ros,
-                    name: topicName,
-                    messageType,
-                    queue_length: 1,
-                    queue_size: 1,
-                });
-                listener.subscribe(handleMessage);
-            };
-
-            subscribe();
+            listener.subscribe(handleMessage);
 
             return {
-                unsubscribe,
-                refresh: () => {
-                    unsubscribe();
-                    subscribe();
+                unsubscribe: () => {
+                    try {
+                        listener.unsubscribe(handleMessage);
+                    } catch {
+                        try { listener.unsubscribe(); } catch {}
+                    }
                 },
             };
         };
 
         const createStateListener = (topicName: string, onData: (data: any) => void) => {
-            let lastMessageAt = 0;
-
             const handleMessage = (message: any) => {
                 const receivedAt = Date.now();
                 updateStateTopicDiagnostic(topicName, "lastMessageAt", receivedAt);
                 const data = parseStateMessage(message, topicName);
                 if (data) {
-                    lastMessageAt = receivedAt;
                     updateStateTopicDiagnostic(topicName, "lastParsedAt", receivedAt);
                     startTransition(() => onData(data));
                 }
             };
 
-            const subscription = createRefreshableSubscription(
-                topicName,
-                "std_msgs/String",
-                handleMessage
-            );
-
-            return {
-                topicName,
-                getLastMessageAt: () => lastMessageAt,
-                refresh: subscription.refresh,
-                unsubscribe: subscription.unsubscribe,
-            };
+            return createSubscription(topicName, "std_msgs/String", handleMessage);
         };
 
         /** Same contract as createStateListener, for the typed avionics packets (no JSON parse). */
@@ -202,25 +159,11 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             topicName: string,
             messageType: string,
             onMessage: (message: any, receivedAt: number) => void
-        ) => {
-            let lastMessageAt = 0;
+        ) =>
+            createSubscription(topicName, messageType, (message: any) =>
+                onMessage(message, Date.now())
+            );
 
-            const subscription = createRefreshableSubscription(topicName, messageType, (message) => {
-                const receivedAt = Date.now();
-                lastMessageAt = receivedAt;
-                onMessage(message, receivedAt);
-            });
-
-            return {
-                topicName,
-                getLastMessageAt: () => lastMessageAt,
-                refresh: subscription.refresh,
-                unsubscribe: subscription.unsubscribe,
-            };
-        };
-
-        // ROS 2 discovery can miss a publisher that appears after the browser subscribed through
-        // rosbridge. Refresh quiet state subscriptions so stack relaunches recover after a CS reload.
         const stateListeners = [
             createStateListener(NAV_STATE_TOPIC, (data) =>
                 setRoverState((prev) => ({ ...prev, navigation: data }))
@@ -231,9 +174,9 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             createStateListener(Topics.DRILL_STATE, (data) =>
                 setRoverState((prev) => ({ ...prev, drill: data }))
             ),
-            // Nothing publishes /EL/State today, so this listener is purely the recovery path for
-            // a build that starts doing so; its diagnostic updates address a row that no longer
-            // exists (see STATE_TOPIC_DEFINITIONS) and are harmless no-ops until then.
+            // Nothing publishes /EL/State today; this stays so a build that starts doing so is
+            // picked up. Its diagnostic updates address a row that no longer exists (see
+            // STATE_TOPIC_DEFINITIONS) and are harmless no-ops until then.
             createStateListener(Topics.EL_STATE, (data) =>
                 setRoverState((prev) => ({
                     ...prev,
@@ -364,10 +307,12 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             }
         }, 1000);
 
-        // The avionics packets are in here too, not just the state summaries: they are the
-        // subscriptions that were silently stuck when avionics was started from the Dockers popup
-        // after the page had loaded, and re-subscribing is what a manual page reload was doing.
-        const refreshableListeners = [
+        // No resubscribe watchdog here on purpose. DDS matches a publisher that appears after the
+        // browser subscribed on its own, and the QoS that used to stay wrong in that case is now
+        // renegotiated by rosbridge itself (MultiSubscriber._renegotiate_qos), for every topic on
+        // every page rather than only the ones listed here. Periodically dropping and recreating
+        // these subscriptions bought nothing and cost a full DDS rediscovery each time.
+        const listeners = [
             ...stateListeners,
             bmsStateListener,
             phPacketListener,
@@ -375,23 +320,9 @@ function useRoverState(ros: ROSLIB.Ros | null) {
             heartbeatListener,
         ];
 
-        const stateTopicWatchdog = setInterval(() => {
-            if (!ros.isConnected) return;
-
-            const now = Date.now();
-            refreshableListeners.forEach((listener) => {
-                const lastMessageAt = listener.getLastMessageAt();
-                if (lastMessageAt !== 0 && now - lastMessageAt <= STATE_TOPIC_RESUBSCRIBE_STALE_MS) {
-                    return;
-                }
-                listener.refresh();
-            });
-        }, STATE_TOPIC_RESUBSCRIBE_INTERVAL_MS);
-
         return () => {
-            refreshableListeners.forEach((listener) => listener.unsubscribe());
+            listeners.forEach((listener) => listener.unsubscribe());
             clearInterval(heartbeatWatchdog);
-            clearInterval(stateTopicWatchdog);
         };
     }, [ros]);
 

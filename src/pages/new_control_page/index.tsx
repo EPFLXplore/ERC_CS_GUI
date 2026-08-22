@@ -94,9 +94,7 @@ import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
-import { SensorsType } from "../../data/sensors.types";
 import { CameraType } from "../../data/cameras.type";
-import axios from "axios";
 
 const WIDGET_KEYS = [
 	"drivingCurrents",
@@ -296,24 +294,6 @@ const NewControlPage = () => {
 		stateServices[SubSystems.HANDLING_DEVICE].service.state,
 		startService
 	);
-
-	const recordSensorData = async (type_sensor: SensorsType, ...values: string[]) => {
-    
-		await axios.post('http://localhost:5000/sensor-record', {
-			type_sensor: type_sensor, 
-			timestamp: new Date().toISOString(),
-			values: values
-		})
-		.then(async data => {
-			
-			console.log("Sensor data recorded successfully:", data);
-			
-		})
-		.catch(error => {
-			console.error("Error recording sensor data:", error);
-		})
-		
-	}
 
 	const roverStateRef = useRef(roverState);
 	roverStateRef.current = roverState;
