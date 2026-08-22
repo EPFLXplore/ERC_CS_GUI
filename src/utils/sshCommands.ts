@@ -133,6 +133,11 @@ const ActivateZEDRgbOnly: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_rgb_only.sh']
 };
 
+const StopZed: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './kill_zed_docker.sh']
+};
+
 
 const CommandsSSH = {
     "science": [
@@ -177,7 +182,7 @@ const CommandsSSH = {
         action: ActivateWheelsControl,
     },
     {
-        name: "Stop Nav",
+        name: "Stop Nav docker",
         action: StopWheelsControl,
     },
     {
@@ -187,6 +192,10 @@ const CommandsSSH = {
     {
         name: "Start ZED RGB Only",
         action: ActivateZEDRgbOnly,
+    },
+    {
+        name: "Stop ZED docker",
+        action: StopZed,
     }],
 
     "hd": [
@@ -309,6 +318,6 @@ const closeSSH = async (name: string, id: string) => {
     })
 }
 
-export {executeSSHCommand, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
+export {executeSSHCommand, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))
