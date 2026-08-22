@@ -3,9 +3,9 @@ import { AlertColor } from "@mui/material"
 import { SSHCommands, EndSystem, Connection } from "../data/ssh.type"
 
 
-const RPI_ROVER_DRILL: EndSystem = {
+const RPI_ROVER_CS: EndSystem = {
     ip: '169.254.55.240',
-    hostname: 'xplore',
+    hostname: 'xplore-cs',
     password: 'xplore',
     name: 'RPI Rover/Drill'
 }
@@ -34,14 +34,15 @@ const RPI_ELEC: EndSystem = {
 // Inside each run file, there is a check if the docker is already running. If yes, then nothing is run
 // and a message will be printed on the screen.
 
-const ActivateRoverNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './run_rover.sh']
-};
 
 const ActivateDrillNode: SSHCommands = {
     device: JETSON_HD,
     commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './run_drill.sh']
+};
+
+const ActivateMicroscopeDrillNode: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './run_microscope.sh']
 };
 
 const StopDrillNode: SSHCommands = {
@@ -49,9 +50,9 @@ const StopDrillNode: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './stop_docker_drill.sh']
 };
 
-const StopRoverNode: SSHCommands = {
-    device: RPI_ROVER_DRILL,
-    commands: ['cd /home/xplore/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
+const StopRPiCs: SSHCommands = {
+    device: RPI_ROVER_CS,
+    commands: ['cd /home/xplore-cs/ERC_CS_Rover/docker_humble_jetson', './stop_docker_rover.sh']
 };
 
 const ActivateWheelsControl: SSHCommands = {
@@ -103,6 +104,36 @@ const StopElecStack: SSHCommands = {
     commands: ['cd /home/xplore-avionics/Documents/Avionics_ROS/2026/docker', './erc_stop_avionics.sh']
 };
 
+
+const ActivateCSRpiTopCamNavTask: SSHCommands = {
+    device: RPI_ROVER_CS,
+    commands: ['cd /home/xplore-cs/ERC_CS_Rover/docker_humble_jetson', './launch_rpi_top_cam_nav_task.sh'],
+    pty: true
+};
+
+const ActivateCSRpiTopSteeringDrillCams: SSHCommands = {
+    device: RPI_ROVER_CS,
+    commands: ['cd /home/xplore-cs/ERC_CS_Rover/docker_humble_jetson', './launch_rpi_cs_cams.sh'],
+    pty: true
+};
+
+
+const ActivateZEDMaintenance: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_maintenance.sh']
+};
+
+const ActivateZEDNav: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_nav.sh']
+};
+
+const ActivateZEDRgbOnly: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_rgb_only.sh']
+};
+
+
 const CommandsSSH = {
     "science": [
     {
@@ -110,8 +141,12 @@ const CommandsSSH = {
         action: ActivateDrillNode,
     },
     {
-        name: "Stop Drill",
+        name: "Stop Drill and Microscope",
         action: StopDrillNode,
+    },
+    {
+        name: "Start Microscope Drill",
+        action: ActivateMicroscopeDrillNode,
     }],
     "avionics": [
     {
@@ -124,12 +159,16 @@ const CommandsSSH = {
     }],
     "rover": [
     {
-        name: "Start Rover",
-        action: ActivateRoverNode,
+        name: "Start Top Cam for Nav task",
+        action: ActivateCSRpiTopCamNavTask,
     },
     {
-        name: "Stop Rover",
-        action: StopRoverNode,
+        name: "Start Top Steering and Drill Cams",
+        action: ActivateCSRpiTopSteeringDrillCams,
+    },
+    {
+        name: "Stop RPi CS camera dockers",
+        action: StopRPiCs,
     }],
 
     "nav": [
@@ -140,6 +179,14 @@ const CommandsSSH = {
     {
         name: "Stop Nav",
         action: StopWheelsControl,
+    },
+    {
+        name: "Start ZED Nav Task",
+        action: ActivateZEDNav,
+    },
+    {
+        name: "Start ZED RGB Only",
+        action: ActivateZEDRgbOnly,
     }],
 
     "hd": [
@@ -150,6 +197,10 @@ const CommandsSSH = {
     {
         name: "Stop HD Stack",
         action: StopHdStack,
+    },
+    {
+        name: "Start ZED Maintenance Task",
+        action: ActivateZEDMaintenance,
     },
     ]
 };
@@ -258,6 +309,6 @@ const closeSSH = async (name: string, id: string) => {
     })
 }
 
-export {executeSSHCommand, ActivateRoverNode, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
+export {executeSSHCommand, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))
