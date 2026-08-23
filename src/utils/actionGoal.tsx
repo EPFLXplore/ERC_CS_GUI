@@ -11,7 +11,9 @@ const actionGoal = (
 	action: Action,
 	updateActions: (states: any) => void,
 	snackBar: (sev: AlertColor, mes: string) => void,
-	actionArgs: Object
+	actionArgs: Object,
+	/** Current action state, so the cancel branch can decide without writing from an updater. */
+	states: ActionType
 ) => {
 	if (!start) {
 		// cancel action
@@ -20,27 +22,53 @@ const actionGoal = (
 			return;
 		}
 
-		updateActions((old: ActionType) => {
-			let newStates = { ...old };
+		const entry = states[system];
 
-			if (newStates[system].ros_object !== null && newStates[system].goal_object !== undefined) {
+		if (entry.ros_object === null || entry.goal_object === undefined) {
+			snackBar("info", "No action for " + system + " is running");
+			return;
+		}
 
-				newStates[system].ros_object.cancelGoal(newStates[system].goal_object)
-
-				// TODO: checker d'une certaine manière dans le rover state que y'a plus d'action car on a pas
-				// de callback sur le cancelGoal(). 
-
+		if (entry.cancel_requested) {
+			// Second press: the rover has not answered the first cancel. Clear the CS state so the
+			// operator is not locked out, but be explicit that this is a local reset only -- the
+			// arm may well still be moving.
+			updateActions((old: ActionType) => {
+				const newStates = { ...old };
 				newStates[system].goal_params = null;
 				newStates[system].goal_object = undefined;
 				newStates[system].action.state = States.OFF;
 				newStates[system].ros_object = null;
-				snackBar("success", "Action for " + system + "has been canceled (correctly we need to check the status on the rover state of the subsystem)");
-			} else {
-				snackBar("info", "No action for " + system + "is running");
-			}
+				newStates[system].cancel_requested = false;
+				return newStates;
+			});
+			snackBar(
+				"warning",
+				system +
+					": cleared on the control station only. The rover never confirmed the cancel, so assume the task is STILL RUNNING."
+			);
+			return;
+		}
 
+		// cancelGoal has no callback, so a cancel is a request, not a fact. Reporting "canceled"
+		// here and clearing the state (which is what this used to do) tells the operator the arm
+		// has stopped when the rover may not have accepted the cancel at all -- and a goal that is
+		// still being accepted cannot be cancelled yet, which is exactly when an operator reaches
+		// for this button. Keep the action ON until the result callback in the start branch fires,
+		// which is what actually reports how the goal ended.
+		entry.ros_object.cancelGoal(entry.goal_object);
+		console.log("[actionGoal] cancel requested", system, entry.goal_object);
+
+		updateActions((old: ActionType) => {
+			const newStates = { ...old };
+			newStates[system].cancel_requested = true;
 			return newStates;
 		});
+
+		snackBar(
+			"warning",
+			system + ": cancel sent, waiting for the rover to confirm. The task is still running until it does."
+		);
 	} else {
 		// start action
 		if (ros === null) {
@@ -69,6 +97,7 @@ const actionGoal = (
 				newStates[system].goal_params = null;
 				newStates[system].goal_object = undefined;
 				newStates[system].ros_object = null;
+				newStates[system].cancel_requested = false;
 				return newStates;
 			});
 		};
@@ -76,6 +105,15 @@ const actionGoal = (
 		// Logged so the field can tell "the browser never sent it" apart from "the rover never
 		// answered" without opening the websocket inspector. Pair it with the goal id below.
 		console.log("[actionGoal] sending", action.path_action, actionArgs);
+
+		// Feedback arrives continuously once the rover accepts, so log the first one with how long
+		// acceptance took -- that number is the click-to-accept delay, and it separates a slow
+		// rover from a slow control station -- then throttle the rest instead of flooding the
+		// console, which makes every other message impossible to find.
+		const sentAt = Date.now();
+		let firstFeedbackSeen = false;
+		let lastFeedbackLoggedAt = 0;
+		const FEEDBACK_LOG_INTERVAL_MS = 2000;
 
 		const goalHandle = actionClient.sendGoal(
 			actionArgs,
@@ -90,8 +128,17 @@ const actionGoal = (
 				}
 			},
 			(feedback: any) => {
-				console.log(feedback);
-
+				const now = Date.now();
+				if (!firstFeedbackSeen) {
+					firstFeedbackSeen = true;
+					lastFeedbackLoggedAt = now;
+					console.log(`[actionGoal] ${system} accepted after ${now - sentAt}ms`, feedback);
+					return;
+				}
+				if (now - lastFeedbackLoggedAt >= FEEDBACK_LOG_INTERVAL_MS) {
+					lastFeedbackLoggedAt = now;
+					console.log("[actionGoal] feedback", feedback);
+				}
 			},
 			(error: string) => {
 				console.log(error)

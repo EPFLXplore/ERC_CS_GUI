@@ -17,6 +17,15 @@ interface ActionElement {
 	goal_params: Object | null;
 	goal_object: string | undefined;
 	ros_object: any;
+	/**
+	 * A cancel has been sent to the rover and we are waiting for it to confirm.
+	 *
+	 * The action stays ON while this is set: cancelGoal has no callback, so until the rover
+	 * returns a result the honest answer is "still running". A second cancel while this is set
+	 * clears the CS state locally, which is the operator's escape hatch if the rover never
+	 * answers -- and says so, rather than claiming the task stopped.
+	 */
+	cancel_requested: boolean;
 }
 
 export type ActionType = { [key: string]: ActionElement };
@@ -40,6 +49,7 @@ function useActions(
             goal_params: null,
             goal_object: undefined,
             ros_object: null,
+            cancel_requested: false,
         },
         [SubSystems.HANDLING_DEVICE]: {
             action: new Action(
@@ -51,6 +61,7 @@ function useActions(
             goal_params: null,
             goal_object: undefined,
             ros_object: null,
+            cancel_requested: false,
         },
         [SubSystems.DRILL]: {
             action: new Action(
@@ -62,6 +73,7 @@ function useActions(
             goal_params: null,
             goal_object: undefined,
             ros_object: null,
+            cancel_requested: false,
         },
     });
 

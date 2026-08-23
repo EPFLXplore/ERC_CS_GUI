@@ -189,7 +189,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 			stateActions[system].action,
 			(actions: ActionType) => setStateActions(actions),
 			showSnackbar,
-			systemsModalOpen
+			systemsModalOpen,
+			stateActions
 		);
 	};
 
@@ -206,14 +207,20 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 			return;
 		}
 
+		// Same rule as the per-subsystem cancel in actionGoal: cancelGoal has no callback, so the
+		// actions stay ON until each one's result callback reports how it really ended. Clearing
+		// them here and reporting success told the operator the rover had stopped when it may not
+		// even have accepted the cancel. Pressing Cancel Task again on a subsystem is the escape
+		// hatch if the rover never answers.
+		cancellableKeys.forEach((key) => {
+			stateActions[key].ros_object.cancelGoal(stateActions[key].goal_object);
+			console.log("[cancelAllActions] cancel requested", key, stateActions[key].goal_object);
+		});
+
 		setStateActions((old) => {
 			const newStates = { ...old };
 			cancellableKeys.forEach((key) => {
-				newStates[key].ros_object.cancelGoal(newStates[key].goal_object);
-				newStates[key].goal_params = null;
-				newStates[key].goal_object = undefined;
-				newStates[key].action.state = States.OFF;
-				newStates[key].ros_object = null;
+				newStates[key].cancel_requested = true;
 			});
 			return newStates;
 		});
@@ -223,8 +230,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 			...Object.fromEntries(cancellableKeys.map((key) => [key, false])),
 		}));
 		showSnackbar(
-			"success",
-			"All actions for have been canceled (correctly we need to check the status on the rover state of the subsystem)"
+			"warning",
+			`Cancel sent for ${cancellableKeys.join(", ")}. Waiting for the rover to confirm — assume they are still running until it does.`
 		);
 	};
 
@@ -264,7 +271,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 			stateActions[system].action,
 			(actions: ActionType) => setStateActions(actions),
 			showSnackbar,
-			actionArgs
+			actionArgs,
+			stateActions
 		);
 	};
 
