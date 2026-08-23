@@ -48,18 +48,26 @@ const actionGoal = (
 			actionType: "custom_msg/action/" + action.name_action_file,
 		});
 
+		// Marking the action finished has to happen on every way a goal can end, not just on a
+		// result. launchAction refuses a new goal while action.state is not OFF, so a single
+		// rejected or errored goal that left it ON would block every later task for this system
+		// until the operator hit Cancel Task or reloaded the page.
+		const markFinished = () => {
+			updateActions((old: ActionType) => {
+				const newStates = { ...old };
+
+				newStates[system].action.state = States.OFF;
+				newStates[system].goal_params = null;
+				newStates[system].goal_object = undefined;
+				newStates[system].ros_object = null;
+				return newStates;
+			});
+		};
+
 		const goalHandle = actionClient.sendGoal(
 			actionArgs,
 			(result: any) => {
-				updateActions((old: ActionType) => {
-					const newStates = { ...old };			
-
-					newStates[system].action.state = States.OFF;
-					newStates[system].goal_params = null;
-					newStates[system].goal_object = undefined;
-					newStates[system].ros_object = null;
-					return newStates;
-				});
+				markFinished();
 
 				console.log(result)
 				if(result.error_type === 0) {
@@ -70,11 +78,12 @@ const actionGoal = (
 			},
 			(feedback: any) => {
 				console.log(feedback);
-				
+
 			},
 			(error: string) => {
 				console.log(error)
-				snackBar("error", error)
+				markFinished()
+				snackBar("error", system + ": " + error)
 			}
 		);
 		updateActions((old: ActionType) => {

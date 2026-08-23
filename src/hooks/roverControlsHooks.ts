@@ -169,28 +169,28 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 	// Methods
 	// ------------------------------------------------------------------------------------
 
-	// Cancel an action for a subsystem. If no action is running, it does nothing
+	// Cancel an action for a subsystem. If no action is running, it does nothing.
+	//
+	// The check and the side effects run here rather than inside a setStateActions updater. React
+	// calls updaters during the render phase, so raising a snackbar from inside one is an update
+	// to another component mid-render: React warns and the snackbar never appears, which turns
+	// every rejection below into a button that silently does nothing. cancelAllActions already
+	// reads stateActions directly like this.
 	const cancelAction = (system: string) => {
-		setStateActions((old) => {
-			let newStates = { ...old };
+		if (stateActions[system].action.state === States.OFF) {
+			showSnackbar("error", "No action is running for the system " + system);
+			return;
+		}
 
-			if (newStates[system].action.state === States.OFF) {
-				showSnackbar("error", "No action is running for the system " + system);
-				return newStates;
-			}
-
-			actionGoal(
-				ros,
-				system,
-				false,
-				newStates[system].action,
-				(actions: ActionType) => setStateActions(actions),
-				showSnackbar,
-				systemsModalOpen
-			);
-
-			return newStates;
-		});
+		actionGoal(
+			ros,
+			system,
+			false,
+			stateActions[system].action,
+			(actions: ActionType) => setStateActions(actions),
+			showSnackbar,
+			systemsModalOpen
+		);
 	};
 
 	// Cancel all actions. If no actions are running, it does nothing.
@@ -230,50 +230,42 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 
 	// Launch an action for a subsystem with the arguments for ROS. If the system is not enabled, 
 	// it shows a snack bar. If an action is already running it's similar.
+	// Same reasoning as cancelAction above: gates and side effects belong in the event handler,
+	// not in a setStateActions updater that React runs during render.
 	const launchAction = (system: string, actionArgs: Object) => {
-		setStateActions((old) => {
-			let newStates = { ...old };
-
-			if (stateServices[system].service.state === States.OFF
-				
-			) {
-				// the system is not ON
-				showSnackbar(
-					"error",
-					"The system " +
-						stateServices[system].service.name +
-						" needs to be on to start an action"
-				);
-				return newStates;
-			}
-
-			if (
-				system === SubSystems.HANDLING_DEVICE &&
-				stateServices[SubSystems.HANDLING_DEVICE].service.state !== States.AUTO
-			) {
-				showSnackbar(
-					"error",
-					"Handling Device must be in Auto mode to launch this task"
-				);
-				return newStates;
-			}
-
-			if (newStates[system].action.state !== States.OFF) {
-				showSnackbar("error", "An action is already running for the system " + system);
-				return newStates;
-			}
-
-			actionGoal(
-				ros,
-				system,
-				true,
-				newStates[system].action,
-				(actions: ActionType) => setStateActions(actions),
-				showSnackbar,
-				actionArgs
+		if (stateServices[system].service.state === States.OFF) {
+			// the system is not ON
+			showSnackbar(
+				"error",
+				"The system " +
+					stateServices[system].service.name +
+					" needs to be on to start an action"
 			);
-			return newStates;
-		});
+			return;
+		}
+
+		if (
+			system === SubSystems.HANDLING_DEVICE &&
+			stateServices[SubSystems.HANDLING_DEVICE].service.state !== States.AUTO
+		) {
+			showSnackbar("error", "Handling Device must be in Auto mode to launch this task");
+			return;
+		}
+
+		if (stateActions[system].action.state !== States.OFF) {
+			showSnackbar("error", "An action is already running for the system " + system);
+			return;
+		}
+
+		actionGoal(
+			ros,
+			system,
+			true,
+			stateActions[system].action,
+			(actions: ActionType) => setStateActions(actions),
+			showSnackbar,
+			actionArgs
+		);
 	};
 
 	// Launch a service for either a subystem, or the cameras. If isCamera is true, then it is used
