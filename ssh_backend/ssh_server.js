@@ -17,6 +17,17 @@ const net = require('net');
 const http = require('http');
 const axios = require('axios');
 const app = express();
+
+// Screenshots are posted as a base64 data URL, which busts express.json()'s 100kb default: a
+// 1080p canvas.toDataURL("image/jpeg", 0.9) is a few hundred kB before base64 adds a further
+// third, so the save failed with PayloadTooLarge on any frame with real detail in it.
+//
+// Mounted BEFORE the global parser on purpose. express.json() marks the request as parsed, so
+// whichever parser runs first wins -- leaving this until the route is declared would just let the
+// 100kb parser below reject the body first. Scoped to the one path that needs it so every other
+// endpoint keeps the tight default.
+app.use('/save-screenshot', express.json({ limit: '25mb' }));
+
 app.use(express.json());
 
 /** Shown top → bottom in the CS header (ping every host each poll). */
