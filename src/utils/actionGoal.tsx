@@ -15,7 +15,10 @@ const actionGoal = (
 ) => {
 	if (!start) {
 		// cancel action
-		if (ros === null) return;
+		if (ros === null) {
+			snackBar("error", system + ": not connected to rosbridge, cancel not sent");
+			return;
+		}
 
 		updateActions((old: ActionType) => {
 			let newStates = { ...old };
@@ -40,7 +43,13 @@ const actionGoal = (
 		});
 	} else {
 		// start action
-		if (ros === null) return;
+		if (ros === null) {
+			// Used to return silently, which looks exactly like the button doing nothing: no goal
+			// sent, no error, nothing in the console. ros is null whenever the websocket is down
+			// or reconnecting, so say so rather than leaving the operator to guess.
+			snackBar("error", system + ": not connected to rosbridge, task not sent");
+			return;
+		}
 
 		const actionClient = new ROSLIB.Action({
 			ros: ros,
@@ -64,6 +73,10 @@ const actionGoal = (
 			});
 		};
 
+		// Logged so the field can tell "the browser never sent it" apart from "the rover never
+		// answered" without opening the websocket inspector. Pair it with the goal id below.
+		console.log("[actionGoal] sending", action.path_action, actionArgs);
+
 		const goalHandle = actionClient.sendGoal(
 			actionArgs,
 			(result: any) => {
@@ -86,6 +99,16 @@ const actionGoal = (
 				snackBar("error", system + ": " + error)
 			}
 		);
+		if (goalHandle === undefined) {
+			// roslib returns undefined without sending anything. Marking the action ON here would
+			// wedge the subsystem: launchAction refuses new goals while it is ON, and Cancel Task
+			// only clears state when goal_object is set, so nothing short of a page reload
+			// recovers it.
+			console.error("[actionGoal] sendGoal returned no goal handle", action.path_action);
+			snackBar("error", system + ": task was not sent (no goal handle)");
+			return;
+		}
+
 		updateActions((old: ActionType) => {
 			const newStates = { ...old };
 			newStates[system].action.state = States.ON;
