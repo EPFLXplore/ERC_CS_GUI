@@ -138,6 +138,18 @@ const StopZed: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './kill_zed_docker.sh']
 };
 
+const ActivateNavCamOpti: SSHCommands = {
+    device: JETSON_NAV,
+    commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './launch_cam_opti.sh'],
+    pty: true
+};
+
+const StopNavCamOpti: SSHCommands = {
+    device: JETSON_NAV,
+    commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './stop_cam_opti.sh'],
+    pty: true
+};
+
 
 const CommandsSSH = {
     "science": [
@@ -196,6 +208,14 @@ const CommandsSSH = {
     {
         name: "Stop ZED docker",
         action: StopZed,
+    },
+    {
+        name: "Start Nav Cam Opti",
+        action: ActivateNavCamOpti,
+    },
+    {
+        name: "Stop Nav Cam Opti",
+        action: StopNavCamOpti,
     }],
 
     "hd": [
@@ -210,6 +230,14 @@ const CommandsSSH = {
     {
         name: "Start ZED Maintenance Task",
         action: ActivateZEDMaintenance,
+    },
+    {
+        name: "Start HD Motors",
+        action: ActivateHdMotorControl,
+    },
+    {
+        name: "Stop HD Motors",
+        action: StopHdMotorControl,
     },
     ]
 };
@@ -318,6 +346,6 @@ const closeSSH = async (name: string, id: string) => {
     })
 }
 
-export {executeSSHCommand, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
+export {executeSSHCommand,StopNavCamOpti, ActivateNavCamOpti, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))

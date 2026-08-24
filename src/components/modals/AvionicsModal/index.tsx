@@ -34,7 +34,7 @@ const CAMERA_SERVO = {
 	label: "ZED 2i Front Camera",
 	minLabel: "35° pitch down",
 	midLabel: "106° straight ahead",
-	maxLabel: "145° pitch up",
+	maxLabel: "180° pitch up",
 } as const;
 
 const BOWL_SERVO = { id: 1, label: "Drill Sand Bowl" } as const;

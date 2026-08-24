@@ -22,7 +22,7 @@ with the servo's true position until a slider or D-pad command reasserts it.
 export const CAMERA_SERVO_ID = 0;
 export const CAMERA_SERVO_DEFAULT_ANGLE = 106;
 export const ANGLE_MIN = 35;
-export const ANGLE_MAX = 145;
+export const ANGLE_MAX = 180;
 
 /**
  * Degrees per D-pad tap. The slider's own step of 1° is unusable by tapping, and the RB/LB path's
