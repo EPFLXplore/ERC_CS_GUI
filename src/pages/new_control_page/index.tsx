@@ -94,6 +94,8 @@ import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
+import ArucoTags from "../../components/data/ArucoTags";
+import useArucoTags from "../../hooks/arucoTagsHooks";
 import { CameraType } from "../../data/cameras.type";
 
 const WIDGET_KEYS = [
@@ -105,6 +107,7 @@ const WIDGET_KEYS = [
 	"steeringAngles",
 	"jointsHd",
 	"wheelConfiguration",
+	"arucoTags",
 	"jetsonHd",
 	"jetsonNav",
 	"hdData",
@@ -163,6 +166,7 @@ const WIDGET_LABELS: Record<WidgetKey, string> = {
 	steeringAngles: "Steering Angles",
 	jointsHd: "Joints HD",
 	wheelConfiguration: "Wheel Configuration",
+	arucoTags: "Maintenance ArUco Tags",
 	jetsonHd: "Jetson HD",
 	jetsonNav: "Jetson NAV",
 	hdData: "HD Data",
@@ -199,6 +203,7 @@ const PRESET_VISIBILITY: Record<TaskPreset, Record<WidgetKey, boolean>> = {
 		"wheelsSpeed",
 		"steeringAngles",
 		"wheelConfiguration",
+		"arucoTags",
 		"jetsonHd",
 		"jetsonNav",
 		"hdData",
@@ -312,6 +317,8 @@ const NewControlPage = () => {
 	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
 	// than in the Avionics modal because the D-pad has to keep working while that modal is closed.
 	const cameraServo = useCameraServo(ros, manualMode);
+	// Maintenance panel tag ids, accumulated across frames — see arucoTagsHooks for why.
+	const { sightings: arucoSightings, reset: resetArucoSightings } = useArucoTags(ros);
 	useHdGamepadMode(
 		manualMode,
 		stateServices[SubSystems.HANDLING_DEVICE].service.state,
@@ -602,6 +609,10 @@ const NewControlPage = () => {
 			),
 		},
 		{
+			key: "arucoTags",
+			content: <ArucoTags sightings={arucoSightings} onReset={resetArucoSightings} />,
+		},
+		{
 			key: "jetsonHd",
 			content: (
 				<InfoBox
@@ -716,7 +727,7 @@ const NewControlPage = () => {
 			),
 		},
 	];
-	}, [roverState, qrCodeMessage]); // eslint-disable-line react-hooks/exhaustive-deps
+	}, [roverState, qrCodeMessage, arucoSightings, resetArucoSightings]); // eslint-disable-line react-hooks/exhaustive-deps
 
 	return (
 		<CameraServoProvider value={cameraServo}>

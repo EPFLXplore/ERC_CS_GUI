@@ -53,6 +53,15 @@ export enum Topics {
     DRILL_RESET_HOME = "/SC/ResetHomeDrillMotors",  // Service: reset drill motors to home
 
     // ============================================
+    // MAINTENANCE Task Interface
+    // ============================================
+    /** `std_msgs/Int32MultiArray` — ArUco ids seen in the current ZED frame, published by the
+     *  maintenance_aruco_detector node only when at least one whitelisted tag was found. */
+    MAINTENANCE_ARUCO_ID = "/MAINTENANCE/aruco_id",
+    /** `geometry_msgs/PoseArray` — pose per id above, same index order. */
+    MAINTENANCE_ARUCO_POSE = "/MAINTENANCE/aruco_pose",
+
+    // ============================================
     // ELECTRONICS (EL) Subsystem Interface
     // ============================================
     EL_STATE = "/EL/State",                      // 1Hz state summary (subscribe)
