@@ -15,6 +15,62 @@
     display: flex
     align-items: center
     justify-content: center
+    overflow: hidden
+
+// Catches the wheel and the drag for one cell, and clips whatever the zoom pushes past its edges.
+.ZoomContainer
+    position: absolute
+    inset: 0
+    overflow: hidden
+    touch-action: none
+
+.ZoomContainerZoomed
+    cursor: grab
+
+.ZoomContainerPanning
+    cursor: grabbing
+
+// Zoom/pan lives here rather than on the media itself, so it composes *outside* the per-feed
+// rotate() and the two never interfere. inset: 0 keeps the media sizing against the same box as
+// before, so nothing shifts at 1x.
+.ZoomLayer
+    position: absolute
+    inset: 0
+    display: flex
+    align-items: center
+    justify-content: center
+    transform-origin: 50% 50%
+    will-change: transform
+    user-select: none
+
+.ZoomControls
+    position: absolute
+    bottom: 2px
+    right: 2px
+    display: flex
+    align-items: center
+    gap: 4px
+    z-index: 12
+
+.ZoomBadge
+    background: rgba(0, 0, 0, 0.75)
+    color: white
+    font-family: monospace
+    font-size: 10px
+    line-height: 14px
+    padding: 2px 6px
+    border-radius: 4px
+    pointer-events: none
+
+.ZoomResetButton
+    border: none
+    border-radius: 4px
+    background: rgba(0, 0, 0, 0.75)
+    color: white
+    font-size: 12px
+    line-height: 14px
+    padding: 2px 6px
+    cursor: pointer
 
 .TopicMeta
     position: absolute
@@ -172,6 +228,7 @@
   align-items: center
   background-color: black
   position: relative
+  overflow: hidden
 
 .RightHalf
   width: 50%
@@ -235,6 +292,7 @@
   display: flex
   align-items: center
   justify-content: center
+  overflow: hidden
 
 .GridImage
   width: 100%

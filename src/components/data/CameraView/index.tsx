@@ -2,6 +2,7 @@ import { memo, useState } from "react";
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 import MseVideo from "./MseVideo";
+import ZoomableFeed from "./ZoomableFeed";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -86,30 +87,32 @@ const CameraView = ({
 	const toggleAlignOverlay = (overlay: string) =>
 		setAlignOverlayShown((previous) => ({ ...previous, [overlay]: !previous[overlay] }));
 
-	const renderAlignOverlay = (idx: number) => {
+	// The wireframe is drawn on top of the feed it annotates, so it lives *inside* the zoom layer and
+	// scales with it; its toggle is a normal control and stays outside, at a fixed size.
+	const renderAlignOverlayImage = (idx: number) => {
+		const overlay = alignOverlays[idx];
+		if (!overlay || !(alignOverlayShown[overlay] ?? false)) return null;
+		return <img src={overlay} alt="" aria-hidden className={styles.AlignOverlayImage} />;
+	};
+
+	const renderAlignOverlayButton = (idx: number) => {
 		const overlay = alignOverlays[idx];
 		if (!overlay) return null;
 		const shown = alignOverlayShown[overlay] ?? false;
 		return (
-			<>
-				{shown && (
-					<img
-						src={overlay}
-						alt=""
-						aria-hidden
-						className={styles.AlignOverlayImage}
-					/>
-				)}
-				<button
-					type="button"
-					className={`${styles.AlignOverlayButton} ${shown ? styles.AlignOverlayButtonActive : ""}`}
-					onClick={() => toggleAlignOverlay(overlay)}
-				>
-					Maintenance align
-				</button>
-			</>
+			<button
+				type="button"
+				className={`${styles.AlignOverlayButton} ${shown ? styles.AlignOverlayButtonActive : ""}`}
+				onClick={() => toggleAlignOverlay(overlay)}
+			>
+				Maintenance align
+			</button>
 		);
 	};
+
+	/** What the zoom of a cell is tied to: reshuffling the cameras must not hand one feed's zoom to
+	 *  whichever one takes over its slot. */
+	const feedKey = (idx: number) => topicPaths[idx] ?? topicNames[idx] ?? String(idx);
 
 	const bump = (idx: number) => {
 		// make sure we have one rotation entry per image
@@ -130,23 +133,27 @@ const CameraView = ({
 				}
 			>
 				<div className={styles.GridImageWrapper}>
-					{streamKinds[i] === "video" && images[i] ? (
-						<MseVideo
-							src={images[i]}
-							className={styles.GridImage}
-							rotation={rotate[i] ?? 0}
-							onDoubleClick={() => bump(i)}
-							registerEl={(el) => registerVideoEl?.(i, el)}
-						/>
-					) : (
-						<img
-							src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
-							alt={`Camera ${i + 1}`}
-							className={styles.GridImage}
-							style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
-							onDoubleClick={() => bump(i)}
-						/>
-					)}
+					<ZoomableFeed resetKey={feedKey(i)}>
+						{streamKinds[i] === "video" && images[i] ? (
+							<MseVideo
+								src={images[i]}
+								className={styles.GridImage}
+								rotation={rotate[i] ?? 0}
+								onDoubleClick={() => bump(i)}
+								registerEl={(el) => registerVideoEl?.(i, el)}
+							/>
+						) : (
+							<img
+								src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+								alt={`Camera ${i + 1}`}
+								className={styles.GridImage}
+								draggable={false}
+								style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+								onDoubleClick={() => bump(i)}
+							/>
+						)}
+						{renderAlignOverlayImage(i)}
+					</ZoomableFeed>
 					{showRemoveButton && (
 						<button
 							type="button"
@@ -156,7 +163,7 @@ const CameraView = ({
 							×
 						</button>
 					)}
-					{renderAlignOverlay(i)}
+					{renderAlignOverlayButton(i)}
 				</div>
 				{renderTopicMeta(i, styles.GridTopicMeta)}
 			</div>
@@ -191,13 +198,16 @@ const CameraView = ({
 			<div className={styles.Container}>
 				{renderSelector()}
 				<div className={styles.ImageWrapper}>
-					<img
-						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
-						alt="Camera"
-						className={`${styles.Image} ${rotate[0] ? styles.Rotate180 : ""}`}
-						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
-          				onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
-					/>
+					<ZoomableFeed resetKey={feedKey(0)}>
+						<img
+							src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+							alt="Camera"
+							className={`${styles.Image} ${rotate[0] ? styles.Rotate180 : ""}`}
+							draggable={false}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+							onDoubleClick={() => setRotateCams([next90(rotate[0] ?? 0)])}
+						/>
+					</ZoomableFeed>
 					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 			</div>
@@ -209,23 +219,29 @@ const CameraView = ({
 				{renderSelector()}
 
 				<div className={styles.HalfWrapper}>
-					<img
-						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
-						alt="Camera"
-						className={`${styles.HalfImage}`}
-						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
-            			onDoubleClick={() => bump(0)}
-					/>
+					<ZoomableFeed resetKey={feedKey(0)}>
+						<img
+							src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+							alt="Camera"
+							className={`${styles.HalfImage}`}
+							draggable={false}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+							onDoubleClick={() => bump(0)}
+						/>
+					</ZoomableFeed>
 					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 				<div className={styles.HalfWrapper}>
-					<img
-						src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
-						alt="Camera"
-						className={`${styles.HalfImage}`}
-						style={{ transform: `rotate(${rotate[1] ?? 0}deg)`}}
-            			onDoubleClick={() => bump(1)}
-					/>
+					<ZoomableFeed resetKey={feedKey(1)}>
+						<img
+							src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
+							alt="Camera"
+							className={`${styles.HalfImage}`}
+							draggable={false}
+							style={{ transform: `rotate(${rotate[1] ?? 0}deg)`}}
+							onDoubleClick={() => bump(1)}
+						/>
+					</ZoomableFeed>
 					{renderTopicMeta(1, styles.TopicMeta)}
 				</div>
 			</div>
@@ -237,35 +253,44 @@ const CameraView = ({
 				{renderSelector()}
 
 				<div className={styles.LeftHalf}>
-					<img
-						src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
-						alt="Camera"
-						className={`${styles.FullImage}`}
-						style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
-            			onDoubleClick={() => bump(0)}
-					/>
+					<ZoomableFeed resetKey={feedKey(0)}>
+						<img
+							src={images[0] && images[0].length > 0 ? images[0] : DefaultImage}
+							alt="Camera"
+							className={`${styles.FullImage}`}
+							draggable={false}
+							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+							onDoubleClick={() => bump(0)}
+						/>
+					</ZoomableFeed>
 					{renderTopicMeta(0, styles.TopicMeta)}
 				</div>
 
 				<div className={styles.RightHalf}>
 					<div className={styles.TopHalf}>
-						<img
-							src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
-							alt="Camera"
-							className={`${styles.HalfImage}`}
-							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
-            				onDoubleClick={() => bump(1)}
-						/>
+						<ZoomableFeed resetKey={feedKey(1)}>
+							<img
+								src={images[1] && images[1].length > 0 ? images[1] : DefaultImage}
+								alt="Camera"
+								className={`${styles.HalfImage}`}
+								draggable={false}
+								style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+								onDoubleClick={() => bump(1)}
+							/>
+						</ZoomableFeed>
 						{renderTopicMeta(1, styles.TopicMeta)}
 					</div>
 					<div className={styles.BottomHalf}>
-						<img
-							src={images[2] && images[2].length > 0 ? images[2] : DefaultImage}
-							alt="Camera"
-							className={`${styles.HalfImage}`}
-							style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
-            				onDoubleClick={() => bump(2)}
-						/>
+						<ZoomableFeed resetKey={feedKey(2)}>
+							<img
+								src={images[2] && images[2].length > 0 ? images[2] : DefaultImage}
+								alt="Camera"
+								className={`${styles.HalfImage}`}
+								draggable={false}
+								style={{ transform: `rotate(${rotate[0] ?? 0}deg)` }}
+								onDoubleClick={() => bump(2)}
+							/>
+						</ZoomableFeed>
 						{renderTopicMeta(2, styles.TopicMeta)}
 					</div>
 				</div>
@@ -277,20 +302,23 @@ const CameraView = ({
 				{renderSelector()}
 				{[0, 1, 2, 3].map((i) => (
 				<div key={i} className={styles.QuarterWrapper}>
-					<img
-						src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
-						alt="Camera"
-						className={styles.Quarter}
-						style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
-						onDoubleClick={() => {
-							setRotateCams((old: number[]) => {
-								const r = Array.from({ length: 4 }, (_, k) => old?.[k] ?? 0);
-								const next = r.slice();
-								next[i] = ((next[i] ?? 0) + 180) % 360;
-								return next;
-							});
-						}}
-					/>
+					<ZoomableFeed resetKey={feedKey(i)}>
+						<img
+							src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+							alt="Camera"
+							className={styles.Quarter}
+							draggable={false}
+							style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+							onDoubleClick={() => {
+								setRotateCams((old: number[]) => {
+									const r = Array.from({ length: 4 }, (_, k) => old?.[k] ?? 0);
+									const next = r.slice();
+									next[i] = ((next[i] ?? 0) + 180) % 360;
+									return next;
+								});
+							}}
+						/>
+					</ZoomableFeed>
 					{renderTopicMeta(i, styles.TopicMeta)}
 				</div>
 				))}
@@ -310,13 +338,16 @@ const CameraView = ({
 					{Array.from({ length: cameraCount }, (_, i) => (
 						<div key={i} className={styles.GridItem}>
 							<div className={styles.GridImageWrapper}>
-								<img
-									src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
-									alt={`Camera ${i + 1}`}
-									className={styles.GridImage}
-									style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
-									onDoubleClick={() => bump(i)}
-								/>
+								<ZoomableFeed resetKey={feedKey(i)}>
+									<img
+										src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
+										alt={`Camera ${i + 1}`}
+										className={styles.GridImage}
+										draggable={false}
+										style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
+										onDoubleClick={() => bump(i)}
+									/>
+								</ZoomableFeed>
 							</div>
 							{renderTopicMeta(i, styles.GridTopicMeta)}
 						</div>
