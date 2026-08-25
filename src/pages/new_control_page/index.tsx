@@ -864,11 +864,11 @@ const NewControlPage = () => {
 									<button className={styles.confirmBtn} onClick={() => {
 										hdConfirmation(true)
 										setQrCode(null)
-									}}>Confirm</button>
+									}}>Continue</button>
 									<button className={styles.confirmBtn} onClick={() => {
 										hdConfirmation(false)
 										setQrCode(null)
-									}}>Cancel</button>
+									}}>Retry</button>
 								</div>
 								<RefreshWarning />
 							</div>
