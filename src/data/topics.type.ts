@@ -41,6 +41,10 @@ export enum Topics {
     HD_IMAGE_SELECTION = "/HD/ImageSelection",  // Service: image select
     HD_STACK_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Topic: confirmation
     HD_TASK_UPDATE = "/HD/task_executor/update_command", // Service: update running HD task command
+    /** `lifecycle_msgs/srv/ChangeState` on the HD motor lifecycle node — what `ros2 lifecycle set
+     *  /MotorController <transition>` calls. Used to re-run the EtherCAT bring-up (cleanup, then
+     *  configure) without restarting the motor docker. */
+    HD_MOTOR_CONTROLLER_CHANGE_STATE = "/MotorController/change_state",
     // ============================================
     // DRILL Subsystem Interface
     // ============================================

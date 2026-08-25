@@ -726,6 +726,38 @@
     border: 1px solid rgba(255, 255, 255, 0.16)
     background: rgba(255, 255, 255, 0.05)
 
+// Last group in the dock, so it sits at the right end of the bar. Text buttons rather than
+// QuickAction icons: the two transitions are ordered and the numbering is the instruction.
+.ethercatActionsGroup
+    display: flex
+    align-items: center
+    gap: 8px
+    padding: 6px 8px
+    border-radius: 16px
+    border: 1px solid rgba(255, 255, 255, 0.16)
+    background: rgba(255, 255, 255, 0.05)
+
+.ethercatButton
+    border: 1px solid rgba(255, 255, 255, 0.28)
+    background: rgba(255, 255, 255, 0.08)
+    color: white
+    border-radius: 12px
+    padding: 0.45rem 0.7rem
+    font-size: 0.78rem
+    font-weight: 600
+    white-space: nowrap
+    cursor: pointer
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease
+
+.ethercatButton:hover
+    transform: translateY(-1px)
+    background: rgba(255, 255, 255, 0.18)
+    border-color: rgba(255, 255, 255, 0.45)
+
+.ethercatButton:active
+    transform: translateY(0)
+    background: rgba(255, 255, 255, 0.24)
+
 .dockersAction
     background: rgba(255, 255, 255, 0.14)
     border: 1px solid rgba(255, 255, 255, 0.32)

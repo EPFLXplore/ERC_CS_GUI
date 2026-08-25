@@ -92,6 +92,7 @@ import { startCamModeService, startHdDepthCameraService } from "../../utils/chan
 import Gamepad from "../../components/Controls/Gamepad";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
+import {cleanupMotorController, configureMotorController} from "../../utils/hdLifecycleActions";
 import AvionicsModal from "../../components/modals/AvionicsModal";
 import WheelConfiguration from "../../components/data/WheelConfiguration";
 import ArucoTags from "../../components/data/ArucoTags";
@@ -1016,6 +1017,29 @@ const NewControlPage = () => {
 									icon={Stop}
 									tooltip={"Emergency Shutdown Requested"}
 								/>
+							</div>
+						</div>
+
+						<div className={styles.dockGroup}>
+							<div className={styles.dockGroupTitle}>HDS EtherCAT Reset</div>
+
+							<div className={styles.ethercatActionsGroup}>
+								<button
+									type="button"
+									className={styles.ethercatButton}
+									onClick={() => cleanupMotorController(ros, showSnackbar)}
+									title={"ros2 lifecycle set /MotorController cleanup"}
+								>
+									1. Cleanup
+								</button>
+								<button
+									type="button"
+									className={styles.ethercatButton}
+									onClick={() => configureMotorController(ros, showSnackbar)}
+									title={"ros2 lifecycle set /MotorController configure"}
+								>
+									2. Configure
+								</button>
 							</div>
 						</div>
 					</div>
