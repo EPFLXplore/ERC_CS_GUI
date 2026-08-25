@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import styles from "./style.module.sass";
 import DefaultImage from "../../../assets/images/NoCam.png";
 import MseVideo from "./MseVideo";
@@ -26,6 +26,7 @@ const CameraView = ({
 	onRemoveCam,
 	streamKinds = [],
 	registerVideoEl,
+	alignOverlays = [],
 }: {
 	images: Array<string>;
 	rotate?: number[];
@@ -46,7 +47,13 @@ const CameraView = ({
 	showSelector?: boolean;
 	showRemoveButton?: boolean;
 	onRemoveCam?: (index: number) => void;
+	/** Positionally parallel to `images`: the alignment wireframe a feed can overlay, if it has one.
+	 *  Entries that are null get no "Maintenance align" button. */
+	alignOverlays?: Array<string | null>;
 }) => {
+	// Keyed by overlay source, not cell index: removing a camera reshuffles the indices, and the
+	// operator's toggle should follow the feed rather than the slot it happened to occupy.
+	const [alignOverlayShown, setAlignOverlayShown] = useState<Record<string, boolean>>({});
 	const getGridDimensions = (count: number): { cols: number; rows: number } => {
 		if (count <= 1) return { cols: 1, rows: 1 };
 		if (count === 2) return { cols: 2, rows: 1 };
@@ -73,6 +80,34 @@ const CameraView = ({
 				{name ? <div className={styles.TopicMetaLabel}>{name}</div> : null}
 				{path ? <div className={styles.TopicMetaPath}>{path}</div> : null}
 			</div>
+		);
+	};
+
+	const toggleAlignOverlay = (overlay: string) =>
+		setAlignOverlayShown((previous) => ({ ...previous, [overlay]: !previous[overlay] }));
+
+	const renderAlignOverlay = (idx: number) => {
+		const overlay = alignOverlays[idx];
+		if (!overlay) return null;
+		const shown = alignOverlayShown[overlay] ?? false;
+		return (
+			<>
+				{shown && (
+					<img
+						src={overlay}
+						alt=""
+						aria-hidden
+						className={styles.AlignOverlayImage}
+					/>
+				)}
+				<button
+					type="button"
+					className={`${styles.AlignOverlayButton} ${shown ? styles.AlignOverlayButtonActive : ""}`}
+					onClick={() => toggleAlignOverlay(overlay)}
+				>
+					Maintenance align
+				</button>
+			</>
 		);
 	};
 
@@ -121,6 +156,7 @@ const CameraView = ({
 							×
 						</button>
 					)}
+					{renderAlignOverlay(i)}
 				</div>
 				{renderTopicMeta(i, styles.GridTopicMeta)}
 			</div>

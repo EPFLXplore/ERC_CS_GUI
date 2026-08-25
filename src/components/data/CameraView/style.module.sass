@@ -260,3 +260,30 @@
   cursor: pointer
   padding: 0
   z-index: 12
+.AlignOverlayImage
+  position: absolute
+  top: 0
+  left: 0
+  width: 100%
+  height: calc(100% - 2px)
+  object-fit: contain
+  pointer-events: none
+  user-select: none
+  z-index: 11
+
+.AlignOverlayButton
+  position: absolute
+  top: 2px
+  right: 2px
+  border: none
+  border-radius: 4px
+  background: rgba(0, 0, 0, 0.75)
+  color: white
+  font-size: 10px
+  line-height: 14px
+  padding: 2px 6px
+  cursor: pointer
+  z-index: 12
+
+.AlignOverlayButtonActive
+  background: rgba(220, 30, 30, 0.9)

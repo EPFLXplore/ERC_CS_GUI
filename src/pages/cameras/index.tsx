@@ -9,6 +9,8 @@ import useRoverCameraBandwidth from "../../hooks/useRoverCameraBandwidth";
 import { Topics } from "../../data/topics.type";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as ROSLIB from "roslib";
+import rightSteerAlignOverlay from "../../assets/images/maintenance_align/right_steer.png";
+import leftSteerAlignOverlay from "../../assets/images/maintenance_align/left_steer.png";
 
 const CAMERA_DEFS = [
 	{ id: "nav_front", name: "Front", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED, gstPort: 5006 },
@@ -69,11 +71,17 @@ const TASK_PRESETS = [
 ] as const;
 
 const getDefaultRotationByCameraId = (cameraId: string): number => {
-	if (cameraId === "hd_gripper") {
+	if (cameraId === "hd_gripper" || cameraId === "cs_right_steer" || cameraId === "cs_left_steer") {
 		return 180;
 	}
 
 	return 0;
+};
+
+/** Wireframes the operator lines the steer cams up against during maintenance. */
+const MAINTENANCE_ALIGN_OVERLAYS: Partial<Record<CameraId, string>> = {
+	cs_right_steer: rightSteerAlignOverlay,
+	cs_left_steer: leftSteerAlignOverlay,
 };
 
 const getDefaultRotations = (cameraIds: readonly string[]): number[] =>
@@ -340,6 +348,10 @@ const CamerasPage = () => {
 	}, []);
 	const topicNames = useMemo(
 		() => displayedCameras.map((camera) => camera.name),
+		[displayedCameras]
+	);
+	const alignOverlays = useMemo(
+		() => displayedCameras.map((camera) => MAINTENANCE_ALIGN_OVERLAYS[camera.id] ?? null),
 		[displayedCameras]
 	);
 	const topicPaths = useMemo(
@@ -666,6 +678,7 @@ const CamerasPage = () => {
 						currentCam={currentCam}
 						topicNames={topicNames}
 						topicPaths={topicPaths}
+						alignOverlays={alignOverlays}
 						streamKinds={streamKinds}
 						registerVideoEl={registerVideoEl}
 						changeCam={changeCam}
