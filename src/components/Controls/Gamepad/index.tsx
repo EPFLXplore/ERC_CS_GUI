@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import useGamepad, { GamepadCommandState } from "../../../hooks/gamepadHooks";
+import useGamepad, { GamepadCommandState, isDrillOn } from "../../../hooks/gamepadHooks";
 import GamepadDisplay from "./GamepadDisplay";
 import styles from "./style.module.sass";
 import { PublishTo, PublishToType } from "../../../data/publishTo.type";
 import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../../../utils/Gamepad/bindings";
+import States from "../../../data/states.type";
 
 /*
 Author: Ugo Balducci
@@ -19,19 +20,25 @@ const Gamepad = ({
 	submode,
 	visible = true,
 	ros,
+	drillState = States.OFF,
 }: {
 	selectorCallback?: () => void;
 	mode: PublishToType;
 	submode: string[];
 	visible?: boolean;
 	ros: ROSLIB.Ros | null;
+	/** Drill subsystem mode. While it is on, NAV commands are published with zeroed axes. */
+	drillState?: string;
 }) => {
 	const [gamepad, gamepadState, gamepadCommandState, togglePublishing] = useGamepad(
 		ros,
 		mode,
 		submode,
-		selectorCallback
+		selectorCallback,
+		drillState
 	);
+
+	const navHeldByDrill = mode === PublishTo.NAVIGATION && isDrillOn(drillState);
 
 	const wrapRef = useRef<HTMLDivElement>(null);
 	const dragSession = useRef<{
@@ -213,6 +220,9 @@ const Gamepad = ({
 								: "HD"}
 					</p>
 				</div>
+				{navHeldByDrill && (
+					<div className={styles.GamepadWarning}>Drill ON, cannot move NAV.</div>
+				)}
 				</div>
 			</div>
 		);

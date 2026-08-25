@@ -48,6 +48,13 @@ const MAX_DRILL_POSITION_CM = 55;
 const MIN_STEPS = 0;
 const MAX_STEPS = 50;
 
+/** Linear stage travel per step increment. */
+const CM_PER_INCREMENT = 0.1;
+
+/** Increments are whole numbers, so one decimal is exact — no rounding to hide. */
+const incrementsToCm = (increments: number): string =>
+	`${(increments * CM_PER_INCREMENT).toFixed(1)} cm`;
+
 /** Matches `uint16` ceiling in `custom_msg/action/DrillCmd.action` (max 65535); UI cap per ops need. */
 const MAX_DRILL_STEP_INCREMENT = 64000;
 
@@ -341,13 +348,17 @@ function DrillGoalModal({
 								}));
 							}}
 						>
-							{_action} : {actionSmallTask.task === _action ? actionSmallTask.multiple_increment : 0}
+							{_action} : {actionSmallTask.task === _action ? actionSmallTask.multiple_increment : 0} (
+							{incrementsToCm(actionSmallTask.task === _action ? actionSmallTask.multiple_increment : 0)})
 						</button>
 					))}
 					</div>
 
 					<div className={styles.StepSliderRow}>
-						<span className={styles.StepScaleLabel}>{MIN_STEPS}</span>
+						<span className={styles.StepScaleLabel}>
+							{MIN_STEPS}
+							<small>{incrementsToCm(MIN_STEPS)}</small>
+						</span>
 						<div className={styles.StepSliderWrap}>
 							<input
 								className={styles.HorizontalSlider}
@@ -361,14 +372,19 @@ function DrillGoalModal({
 								aria-label={`${actionSmallTask.task} step count`}
 							/>
 						</div>
-						<span className={styles.StepScaleLabel}>{MAX_STEPS}</span>
+						<span className={styles.StepScaleLabel}>
+							{MAX_STEPS}
+							<small>{incrementsToCm(MAX_STEPS)}</small>
+						</span>
 					</div>
 					{commandMode === "step" && (
 						<div className={styles.StepReadout}>
 							<span className={styles.StepReadoutLabel}>Selected</span>
 							<span className={styles.StepReadoutValue}>{actionSmallTask.task}</span>
 							<span className={styles.StepReadoutLabel}>Steps</span>
-							<span className={styles.StepReadoutValue}>{actionSmallTask.multiple_increment}</span>
+							<span className={styles.StepReadoutValue}>
+								{actionSmallTask.multiple_increment} ({incrementsToCm(actionSmallTask.multiple_increment)})
+							</span>
 						</div>
 					)}
 				</div>

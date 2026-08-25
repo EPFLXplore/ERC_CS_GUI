@@ -11,23 +11,16 @@ Description: Hook for managing the services currently running and everything rel
 is the stateServices that holds the objects Service. 
 */
 
-// These are a set of rules to activate a subsystem. For example the first one is the navigation.
-// The first rule is for the DRILL. To change the NAV in AUTO or MANUAL, the DRILL needs to be OFF
-const rulesNavigation: RuleRover[] = [
-	{
-		name: SubSystems.DRILL,
-		new_mode: [States.AUTO, States.ACKERMANN, States.OMNI_DIRECTIONAL],
-		state_sys: States.OFF,
-	}
-];
+// Rules that gate activating a subsystem: each entry says "to enter one of `new_mode`, subsystem
+// `name` must be in `state_sys`". Evaluated by Service.canChange, enforced in startService.
+//
+// NAV and DRILL used to lock each other out (drill only ON with NAV Off, and vice versa), which
+// forced the operator to tear down the NAV mode just to start drilling. That interlock now lives
+// where the actual requirement is: while the drill is on, the NAV gamepad publishes zeroed axes so
+// the rover cannot move (see isDrillOn / sendCommand in gamepadHooks).
+const rulesNavigation: RuleRover[] = [];
 
-const rulesDrill: RuleRover[] = [
-	{
-		name: SubSystems.NAGIVATION,
-		new_mode: [States.ON],
-		state_sys: States.OFF,
-	},
-];
+const rulesDrill: RuleRover[] = [];
 
 interface ServiceElement {
 	service: Service;

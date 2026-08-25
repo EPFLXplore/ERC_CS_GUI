@@ -113,6 +113,7 @@ const SimulationPage = () => {
 							mode={manualMode}
 							submode={[stateServices[SubSystems.NAGIVATION].service.state, stateServices[SubSystems.HANDLING_DEVICE].service.state]
 							}
+							drillState={stateServices[SubSystems.DRILL].service.state}
 							selectorCallback={changeMode}
 							visible={
 								stateServices[SubSystems.NAGIVATION].service.state ===

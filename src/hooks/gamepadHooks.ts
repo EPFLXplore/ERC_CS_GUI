@@ -28,11 +28,24 @@ export enum GamepadCommandState {
 	CONTROL,
 }
 
+/**
+ * The drill reports its mode as both "Off" and "off" depending on the node version — the same
+ * normalisation roverStateParser does for the motor module readout. Anything unrecognised counts
+ * as on, so an unparseable drill state fails safe (NAV held at zero) rather than free.
+ */
+export const isDrillOn = (state: string | undefined): boolean =>
+	state != null && state !== States.OFF && state.toLowerCase() !== "off";
+
+/** Neutral Joy input: no button held, every axis centred. */
+const NEUTRAL_BUTTONS = Array.from({ length: ClassicalGamepad.Button.HOME + 1 }, () => false);
+const NEUTRAL_AXES = Array.from({ length: ClassicalGamepad.Axis.RT + 1 }, () => 0);
+
 function useGamepad(
 	ros: ROSLIB.Ros | null,
 	mode: PublishToType,
 	submode: string[],
-	selectorCallback?: () => void
+	selectorCallback?: () => void,
+	drillState: string = States.OFF
 ) {
 
 	const [gamepad, setGamepad] = useState<GamepadController | null>(null);
@@ -65,6 +78,10 @@ function useGamepad(
 
 	const submodeRef = useRef(submode);
 	submodeRef.current = submode;
+
+	const drillStateRef = useRef(drillState);
+	drillStateRef.current = drillState;
+
 	const hdBindingsConfigRef = useRef(hdBindingsConfig);
 	hdBindingsConfigRef.current = hdBindingsConfig;
 
@@ -236,7 +253,17 @@ function useGamepad(
 		try {
 			if (currentMode === PublishTo.NAVIGATION || currentMode === PublishTo.DRILL) {
 				// DRILL reuses the NAV bindings — only the publish topic differs.
-				const msg = gp.handleNavigation(s.buttons, s.axes);
+				//
+				// While the drill is on, the rover must not drive off: keep publishing at the normal
+				// rate (so the rover node's 0.4s CMD_TIMEOUT stays fed) but force the axes to zero.
+				// NAV_gamepad_interface derives v_x/v_y/r_z from axes alone, so zeroed axes put both
+				// Ackermann and Omni on their "don't move" path. Buttons still pass through — none of
+				// them commands motion, and the crab branch is gated behind a non-zero left stick.
+				// Only the NAVIGATION target is held: PublishTo.DRILL is the microscope topic the
+				// operator needs *while* drilling.
+				const navLocked =
+					currentMode === PublishTo.NAVIGATION && isDrillOn(drillStateRef.current);
+				const msg = gp.handleNavigation(s.buttons, navLocked ? NEUTRAL_AXES : s.axes);
 				pub.publish(msg);
 				lastPublishRef.current = Date.now();
 
@@ -287,11 +314,8 @@ function useGamepad(
 			gamepadCommandState === GamepadCommandState.UI &&
 			canPublishNeutral
 		) {
-			const neutralButtons = Array.from(
-				{ length: ClassicalGamepad.Button.HOME + 1 },
-				() => false
-			);
-			const neutralAxes = Array.from({ length: ClassicalGamepad.Axis.RT + 1 }, () => 0);
+			const neutralButtons = NEUTRAL_BUTTONS;
+			const neutralAxes = NEUTRAL_AXES;
 			const sm = submodeRef.current;
 			const bindings = hdBindingsConfigRef.current;
 			try {
