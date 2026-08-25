@@ -4,7 +4,7 @@ import SubSystems from "../../../data/subsystems.type";
 import { AlertColor } from "@mui/material";
 import * as ROSLIB from "roslib";
 import { resetDrillHome } from "../../../utils/drillActions";
-import { roundToTwoDecimals } from "../../../utils/maths";
+import { patchTopicRosbridgeQoS } from "../../../utils/rosQos";
 import { Topics } from "../../../data/topics.type";
 
 /*
@@ -61,10 +61,34 @@ function clampStepIncrement(n: number): number {
 	return Math.min(Math.trunc(n), MAX_DRILL_STEP_INCREMENT);
 }
 
+/** Whole centimetres: the slider step and, via `deltaCm`, the `uint16 multiple_increment` sent
+ *  with the goal. Never use this for the readout — it is what hid the sub-centimetre position. */
 function clampAbsolutePositionCm(n: number): number {
 	if (!Number.isFinite(n)) return MIN_DRILL_POSITION_CM;
 	return Math.min(MAX_DRILL_POSITION_CM, Math.max(MIN_DRILL_POSITION_CM, Math.round(n)));
 }
+
+/** Display-only counterpart: clamps to the travel range but keeps the fractional part. */
+function clampAbsolutePositionCmPrecise(n: number): number {
+	if (!Number.isFinite(n)) return MIN_DRILL_POSITION_CM;
+	return Math.min(MAX_DRILL_POSITION_CM, Math.max(MIN_DRILL_POSITION_CM, n));
+}
+
+/** Linear stage feed speed presets, in cm/s, published on `Topics.DRILL_LIN_STAGE_SPEED_CMS`. */
+const SOIL_SPEED_PRESETS = [
+	{ label: "Soft soil", speed: 1.0 },
+	{ label: "Medium soil", speed: 0.35 },
+	{ label: "Hard soil", speed: 0.16 },
+] as const;
+
+/** rosbridge publisher QoS (ROSBRIDGE_PROTOCOL.md §4.2). Without this the bridge would advertise
+ *  reliable + transient_local, depth 100, and a late subscriber would get a stale speed replayed. */
+const LIN_STAGE_SPEED_PUBLISH_QOS = {
+	history: "keep_last",
+	depth: 1,
+	reliability: "best_effort",
+	durability: "volatile",
+} as const;
 
 interface DrillGoalModalProps {
 	task: DrillSmallActions,
@@ -122,6 +146,48 @@ function DrillGoalModal({
 
 	const currentAbsolutePositionCm =
 		positionCm === null ? null : clampAbsolutePositionCm(Math.abs(positionCm));
+	/** What the operator reads. Kept apart from the rounded value above, which the goal math needs. */
+	const currentAbsolutePositionCmPrecise =
+		positionCm === null ? null : clampAbsolutePositionCmPrecise(Math.abs(positionCm));
+
+	const linStageSpeedTopic = React.useMemo(
+		() => {
+			if (!ros) return null;
+			const topic = new ROSLIB.Topic<{ data: number }>({
+				ros,
+				name: Topics.DRILL_LIN_STAGE_SPEED_CMS,
+				messageType: "std_msgs/Float32",
+				queue_length: 1,
+				queue_size: 1,
+			});
+			patchTopicRosbridgeQoS(topic, LIN_STAGE_SPEED_PUBLISH_QOS, ["advertise"]);
+			return topic;
+		},
+		[ros]
+	);
+
+	React.useEffect(() => {
+		if (!linStageSpeedTopic) return;
+		return () => {
+			try {
+				linStageSpeedTopic.unadvertise();
+			} catch {
+				// Connection already gone; rosbridge drops the advertisement with the client.
+			}
+		};
+	}, [linStageSpeedTopic]);
+
+	const [selectedSoilSpeed, setSelectedSoilSpeed] = React.useState<number | null>(null);
+
+	/** Fire-and-forget: this is not a goal, so it deliberately leaves `commandMode` alone. */
+	const publishLinStageSpeed = (speed: number) => {
+		if (!ros || !linStageSpeedTopic) {
+			snackBar("error", "ROS connection not available");
+			return;
+		}
+		linStageSpeedTopic.publish({ data: speed });
+		setSelectedSoilSpeed(speed);
+	};
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 	const [actionSmallTask, setActionSmallTask] = React.useState<DrillGoalModalProps>({
 		task: DrillSmallActions.STEP_DOWN,
@@ -215,11 +281,27 @@ function DrillGoalModal({
 								aria-label="Absolute drill position"
 							/>
 						</div>
+						<div className={styles.SoilSpeedGroup}>
+							{SOIL_SPEED_PRESETS.map((preset) => (
+								<button
+									key={preset.label}
+									type="button"
+									className={`${styles.SoilSpeedButton} ${
+										selectedSoilSpeed === preset.speed ? styles.SoilSpeedButtonSelected : ""
+									}`}
+									onClick={() => publishLinStageSpeed(preset.speed)}
+								>
+									{preset.label}
+								</button>
+							))}
+						</div>
 					</div>
 					<div className={styles.PositionReadout}>
 						<span className={styles.PositionReadoutLabel}>Current</span>
 						<span className={styles.PositionReadoutValue}>
-							{currentAbsolutePositionCm === null ? "NO DATA" : `${roundToTwoDecimals(currentAbsolutePositionCm)} cm`}
+							{currentAbsolutePositionCmPrecise === null
+								? "NO DATA"
+								: `${currentAbsolutePositionCmPrecise.toFixed(2)} cm`}
 						</span>
 						<span className={styles.PositionReadoutLabel}>Target</span>
 						<span className={styles.PositionReadoutValue}>{targetPositionCm} cm</span>

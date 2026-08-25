@@ -87,12 +87,48 @@
   font-weight: 600
   color: rgba(255, 255, 255, 0.8)
 
+// Slider hard-left, soil speed presets hard-right, both inside the position panel.
 .PositionSliderRow
   width: 100%
   display: flex
   align-items: center
-  justify-content: center
+  justify-content: space-between
   gap: 18px
+  padding: 0 8px
+
+// The vertical slider is a rotated horizontal input, so its layout box is 240x24 while it looks
+// 24x240. Column width comes from .PositionSliderWrap, never from the input itself.
+.SoilSpeedGroup
+  display: flex
+  flex-direction: column
+  justify-content: center
+  gap: 10px
+  min-width: 160px
+
+.SoilSpeedButton
+  width: 100%
+  padding: 10px 12px
+  border-radius: 10px
+  background: rgba(255, 255, 255, 0.08)
+  color: white
+  font-size: 0.95rem
+  font-weight: 600
+  text-align: center
+  border: 1px solid rgba(255, 255, 255, 0.3)
+  transition: all 0.2s ease
+
+  &:hover
+    background: rgba(255, 255, 255, 0.16)
+    transform: translateY(-1px)
+    cursor: pointer
+
+  &.SoilSpeedButtonSelected
+    background: rgba(255, 255, 255, 0.28)
+    color: white
+    border-color: rgba(255, 255, 255, 0.55)
+
+    &:hover
+      background: rgba(255, 255, 255, 0.34)
 
 .PositionScale
   display: flex

@@ -51,6 +51,8 @@ export enum Topics {
     /** Legacy: same srv/DrillMode if interface node is old or only SC name is advertised */
     DRILL_CHANGE_MODE_LEGACY = "/SC/drill_mode_srv",
     DRILL_RESET_HOME = "/SC/ResetHomeDrillMotors",  // Service: reset drill motors to home
+    /** `std_msgs/Float32` — linear stage feed speed in cm/s (publish, best-effort depth 1). */
+    DRILL_LIN_STAGE_SPEED_CMS = "/SC/drill_lin_stage_speed_cms",
 
     // ============================================
     // MAINTENANCE Task Interface
