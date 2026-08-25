@@ -67,12 +67,14 @@ const StopWheelsControl: SSHCommands = {
 
 const ActivateHdMotorControl: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_motors.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './run_motors.sh'],
+    pty: true
 };
 
 const StopHdMotorControl: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_motors.sh']
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './stop_motors.sh'],
+    pty:true
 };
 
 const ActivateHdStack: SSHCommands = {
@@ -133,6 +135,12 @@ const ActivateZEDRgbOnly: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_rgb_only.sh']
 };
 
+const ActivateZEDQRCode: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_qr_scanner.sh']
+};
+
+
 const StopZed: SSHCommands = {
     device: JETSON_HD,
     commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './kill_zed_docker.sh']
@@ -150,6 +158,18 @@ const StopNavCamOpti: SSHCommands = {
     pty: true
 };
 
+const DeletePicturesHDS: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_HD/docker_humble_jetson', './delete_sand_rocks_images.sh'],
+    pty: true
+};
+
+const DeletePicturesSC: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './delete_photos_sand_rocks.sh'],
+    pty: true
+};
+
 
 const CommandsSSH = {
     "science": [
@@ -164,6 +184,10 @@ const CommandsSSH = {
     {
         name: "Start Microscope Drill",
         action: ActivateMicroscopeDrillNode,
+    },
+    {
+        name: "Delete Drill Pictures",
+        action: DeletePicturesSC,
     }],
     "avionics": [
     {
@@ -238,6 +262,10 @@ const CommandsSSH = {
     {
         name: "Stop HD Motors",
         action: StopHdMotorControl,
+    },
+    {
+        name: "Delete HDS Pictures",
+        action: DeletePicturesHDS,
     },
     ]
 };
@@ -346,6 +374,6 @@ const closeSSH = async (name: string, id: string) => {
     })
 }
 
-export {executeSSHCommand,StopNavCamOpti, ActivateNavCamOpti, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
+export {executeSSHCommand,DeletePicturesSC, DeletePicturesHDS, StopNavCamOpti, ActivateNavCamOpti, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))

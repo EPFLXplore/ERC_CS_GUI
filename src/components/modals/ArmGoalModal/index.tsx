@@ -153,6 +153,8 @@ function ArmGoalModal({
 				{ name: "debug", msg: "debug" },
 				{ name: "Pick Rock", msg: "rocks" },
 				{ name: "Approach Aruco", msg: "aruco_approach" },
+				{ name: "Store Rock", msg: "store_rock" },
+				{ name: "Store Sand", msg: "store_sand" },
 				{ name: "Grab Sand", msg: "sand_collect" },
 				{ name: "Maintenance", msg: "maintenance" },
 				{ name: "socket approach", msg: "approach_socket" },

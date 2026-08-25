@@ -63,7 +63,7 @@ const TASK_PRESETS = [
 	{ label: "Navigation", cameraIds: ["nav_right", "nav_left", "nav_back", "nav_front"] },
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer", "cs_left_steer"] },
 	{ label: "Exploration", cameraIds: ["cs_left_steer","nav_front", "cs_top", "cs_right_steer", "manipulation", "nav_right", "nav_back", "nav_left"] },
-	{ label: "Astro-Bio", cameraIds: ["cs_top", "nav_front", "cs_right_steer", "nav_right", "nav_back", "nav_left"] },
+	{ label: "Astro-Bio", cameraIds: ["cs_top", "nav_front", "hd_gripper", "nav_right", "nav_back", "nav_left"] },
 	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
 	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer", "drill_inside", "§nav_front"], },
 ] as const;
