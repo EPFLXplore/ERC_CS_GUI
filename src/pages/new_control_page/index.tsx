@@ -479,10 +479,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Driving Currents"
 					infos={[
-						{ info: { name: "FRONT LEFT DRIVE", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
-						{ info: { name: "FRONT RIGHT DRIVE", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
-						{ info: { name: "BACK RIGHT DRIVE", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
-						{ info: { name: "BACK LEFT DRIVE", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
+						{ info: { name: "Front Left Drive", value: getCurrentDriving(roverState)[0] }, connected: getDrivingState(roverState)[0] },
+						{ info: { name: "Front Right Drive", value: getCurrentDriving(roverState)[1] }, connected: getDrivingState(roverState)[1] },
+						{ info: { name: "Back Right Drive", value: getCurrentDriving(roverState)[2] }, connected: getDrivingState(roverState)[2] },
+						{ info: { name: "Back Left Drive", value: getCurrentDriving(roverState)[3] }, connected: getDrivingState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -494,10 +494,10 @@ const NewControlPage = () => {
 				<ControllerInfoBox
 					title="Steering Currents"
 					infos={[
-						{ info: { name: "FRONT LEFT STEER", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
-						{ info: { name: "FRONT RIGHT STEER", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
-						{ info: { name: "BACK RIGHT STEER", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
-						{ info: { name: "BACK LEFT STEER", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
+						{ info: { name: "Front Left Steer", value: getCurrentSteering(roverState)[0] }, connected: getSteeringState(roverState)[0] },
+						{ info: { name: "Front Right Steer", value: getCurrentSteering(roverState)[1] }, connected: getSteeringState(roverState)[1] },
+						{ info: { name: "Back Right Steer", value: getCurrentSteering(roverState)[2] }, connected: getSteeringState(roverState)[2] },
+						{ info: { name: "Back Left Steer", value: getCurrentSteering(roverState)[3] }, connected: getSteeringState(roverState)[3] },
 					]}
 					unit="mA"
 				/>
@@ -865,7 +865,7 @@ const NewControlPage = () => {
 										hdConfirmation(true)
 										setQrCode(null)
 									}}>Continue</button>
-									<button className={styles.confirmBtn} onClick={() => {
+									<button className={styles.retryBtn} onClick={() => {
 										hdConfirmation(false)
 										setQrCode(null)
 									}}>Retry</button>
