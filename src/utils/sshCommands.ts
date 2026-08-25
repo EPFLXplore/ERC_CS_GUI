@@ -298,7 +298,7 @@ const waitForSSHResult = async (connectionID: string): Promise<SSHResult | null>
     while (Date.now() < deadline) {
         try {
             const { data } = await axios.get<SSHResult>(
-                `http://localhost:5000/ssh-result/${connectionID}`
+                `http://169.254.55.166:5000/ssh-result/${connectionID}`
             );
             if (!data.running) return data;
         } catch (error) {
@@ -323,7 +323,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
     let connectionID: string;
 
     try {
-        const { data } = await axios.post('http://localhost:5000/ssh', {
+        const { data } = await axios.post('http://169.254.55.166:5000/ssh', {
             host: command.device.ip,
             username: command.device.hostname,
             password: command.device.password,
@@ -363,7 +363,7 @@ const executeSSHCommand = async (command: SSHCommands, snackBar: (severity: Aler
 }
 
 const closeSSH = async (name: string, id: string) => {
-    await axios.get(`http://localhost:5000/close-connection/${id}`)
+    await axios.get(`http://169.254.55.166:5000/close-connection/${id}`)
     .then(data => {
         if(data.data.status) {
             delete IDConnections[name]
