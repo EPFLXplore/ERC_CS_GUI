@@ -274,8 +274,8 @@ const NewControlPage = () => {
   	// Destructure:
   	const [
 		roverState,
-		qrCode,
-		setQrCode,
+		dataConfirmationHD,
+		setDataConfirmationHD,
 		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationSelectElements,
@@ -859,16 +859,21 @@ const NewControlPage = () => {
 							<div className={styles.confirm}>
 							<div className={styles.confirmBox}>
 								<p>Handling Device Confirmation</p>
-								<p>Data: {qrCode}</p>
+								<p>{dataConfirmationHD?.title}</p>
 								<div className={styles.confirmation}>
-									<button className={styles.confirmBtn} onClick={() => {
+									<button className={`${styles.confirmBtn}`} style={{ backgroundColor: (dataConfirmationHD?.default ? "#00FF00" : dataConfirmationHD?.left_color), 
+																						color: (dataConfirmationHD?.default ? "#000000" : dataConfirmationHD?.text_color_left)
+									 }} onClick={() => {
 										hdConfirmation(true)
-										setQrCode(null)
-									}}>Continue</button>
-									<button className={styles.retryBtn} onClick={() => {
+										setDataConfirmationHD(null)
+									}}>{dataConfirmationHD?.default ? "Confirm" : dataConfirmationHD?.left_text}</button>
+									<button className={`${styles.retryBtn}`} style={{ backgroundColor: (dataConfirmationHD?.default ? "#FF0000" : dataConfirmationHD?.right_color), 
+																						color: (dataConfirmationHD?.default ? "#FFFFFF" : dataConfirmationHD?.text_color_right)
+									 }} 
+									onClick={() => {
 										hdConfirmation(false)
-										setQrCode(null)
-									}}>Retry</button>
+										setDataConfirmationHD(null)
+									}}>{dataConfirmationHD?.default ? "Retry" : dataConfirmationHD?.right_text}</button>
 								</div>
 								<RefreshWarning />
 							</div>

@@ -12,6 +12,7 @@ import requestChangeMode from "../utils/changeSystemMode";
 import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
 import useOperatorRole from "./operatorRoleHooks";
+import { ConfirmationHd } from "../data/confirmationHd.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -129,10 +130,9 @@ const useRoverControls = (
 	const namedJointTargetTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: Topics.HD_NAMED_JOINT_TARGET, messageType: "custom_msg/NamedPose", queue_length: 1, queue_size: 1 }) : null, [ros]);
 
 	// HDS can send a requet to confirm something (continue a task for example)
-	// It can also send some string information, like a qr code value. The term qrCode is not write
-	// but its the only information that we send to the CS, but please rename it if you want.
+	// It can also send some string information
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
-	const [qrCode, setQrCode] = useState<string | null>(null);
+	const [dataConfirmationHD, setDataConfirmationHD] = useState<ConfirmationHd | null>(null);
 
 	// HDS sends a request to select elements on an image.
 	// The numberElementToSelect is also part of the request service RockSelection.srv and sets the number of click on the image
@@ -457,7 +457,7 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 
 		const clearConfirmationPrompt = () => {
 			setHDConfirmation(null);
-			setQrCode(null);
+			setDataConfirmationHD(null);
 		};
 
 		// Use the advertise() method to indicate that we want to provide this service
@@ -466,8 +466,25 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 				return { success: false };
 			}
 
-			const information = request.information;
-			setQrCode(information);
+			const defaultValue = request.default_font as boolean;
+			const title = request.title;
+			const left_color = request.left_color;
+			const right_color = request.right_color;
+			const left_text = request.left_text;
+			const right_text = request.right_text;
+			const text_color_left = request.text_color_left;
+			const text_color_right = request.text_color_right;
+
+			setDataConfirmationHD({
+				default: defaultValue,
+				title: title,
+				left_color: left_color,
+				right_color: right_color,
+				left_text: left_text,
+				right_text: right_text,
+				text_color_left: text_color_left,
+				text_color_right: text_color_right
+			});
 
 			const result = await new Promise<boolean>((resolve) => {
 				setHDConfirmation(() => (confirm: boolean) => {
@@ -638,8 +655,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 
 	return [
 		roverState,
-		qrCode,
-		setQrCode,
+		dataConfirmationHD,
+		setDataConfirmationHD,
 		hdStackLaunched,
 		hdConfirmation,
 		hdConfirmationSelectElements,
