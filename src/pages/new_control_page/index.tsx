@@ -73,6 +73,7 @@ import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
 import useCameraServo, { CameraServoProvider } from "../../hooks/cameraServoHooks";
 import useHdGamepadMode from "../../hooks/hdGamepadModeHooks";
+import useNavGamepadMode from "../../hooks/navGamepadModeHooks";
 import {
 	MANUAL_SLOW_FACTOR_EVENT,
 	MANUAL_SPEED_EVENT,
@@ -323,6 +324,11 @@ const NewControlPage = () => {
 	useHdGamepadMode(
 		manualMode,
 		stateServices[SubSystems.HANDLING_DEVICE].service.state,
+		startService
+	);
+	useNavGamepadMode(
+		manualMode,
+		stateServices[SubSystems.NAGIVATION].service.state,
 		startService
 	);
 
