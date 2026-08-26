@@ -5,6 +5,7 @@ interface ImageDisplayProps {
   imageData: string; // Base64 encoded image data
   number_element_to_select: number; // Number of elements to select
   setCoordinates: (x: number[], y: number[]) => void;
+  onRevert: () => void; // Answer the request with retry_asked instead of a selection
   onClose: () => void;
 }
 
@@ -12,6 +13,7 @@ const ImageSelection: React.FC<ImageDisplayProps> = ({
   imageData,
   number_element_to_select,
   setCoordinates,
+  onRevert,
   onClose,
 }) => {
   const imgRef = useRef<HTMLImageElement>(null);
@@ -73,6 +75,11 @@ const ImageSelection: React.FC<ImageDisplayProps> = ({
     onClose();
   };
 
+  const revertSelection = () => {
+    onRevert();
+    onClose();
+  };
+
   return (
     <div className={styles.Container}>
       <div className={styles.ImageArea}>
@@ -109,6 +116,13 @@ const ImageSelection: React.FC<ImageDisplayProps> = ({
             disabled={coordinates.x.length === 0}
           >
             Undo
+          </button>
+          <button
+            type="button"
+            className={styles.RevertButton}
+            onClick={revertSelection}
+          >
+            Revert
           </button>
           <button
             type="button"

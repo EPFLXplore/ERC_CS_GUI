@@ -855,6 +855,7 @@ const NewControlPage = () => {
 								imageData={imageToSelect}
 								number_element_to_select={numberElementToSelect}
 								setCoordinates={(x: number[], y: number[]) => hdConfirmationSelectElements(x, y)}
+								onRevert={() => hdConfirmationSelectElements([], [], true)}
 								onClose={() => setImageToSelect(null)}
 							/>
 							<RefreshWarning />
