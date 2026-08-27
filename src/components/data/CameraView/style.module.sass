@@ -288,6 +288,19 @@
     overflow: hidden
     align-content: stretch
 
+// Probing preset: two feeds on the top row, three on the bottom, both rows full width. Cells span a
+// 6-column grid (3+3 on row 1, 2+2+2 on row 2) — spans are set inline per cell in CameraView.
+.ProbingPanoramaGrid
+    width: 100%
+    height: 100%
+    display: grid
+    grid-template-columns: repeat(6, minmax(0, 1fr))
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr)
+    gap: 2px
+    padding: 2px
+    overflow: hidden
+    align-content: stretch
+
 .GridItem
   overflow: hidden
   background-color: black

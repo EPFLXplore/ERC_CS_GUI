@@ -18,6 +18,15 @@ type ArmTask = {
 	msg: string;
 };
 
+type ArmTaskGroup = {
+	category: string;
+	/** Predefined positions are sent immediately on click via onSendNamedPose, not queued. */
+	isPredefined?: boolean;
+	/** Render this group's buttons with the red variant instead of the default. */
+	isRed?: boolean;
+	items: ArmTask[];
+};
+
 const toHdGoal = (task: string) => {
 	const baseGoal = {
 		target: task,
@@ -97,7 +106,7 @@ function ArmGoalModal({
 }) {
 	const [tasks, setTasks] = React.useState<ArmTask[] | null>(null);
 
-	const armTasks = [
+	const armTasks: ArmTaskGroup[] = [
 		{
 			category: "Switches",
 			items: [
@@ -128,6 +137,16 @@ function ArmGoalModal({
 				{ name: "Control Switch 5", msg: "small_rotation_switch_5" },
 				{ name: "Power Switch 1", msg: "big_rotation_switch_1" },
 				{ name: "Power Switch 2", msg: "big_rotation_switch_2" },
+			],
+		},
+		{
+			category: "Probing Tasks",
+			isRed: true,
+			items: [
+				{ name: "Probe 1 UP", msg: "probe_u_1" },
+				{ name: "Probe 2 UP", msg: "probe_u_2" },
+				{ name: "Probe 3 UP", msg: "probe_u_3" },
+				{ name: "Probe SIDE", msg: "probe_s_1" },
 			],
 		},
 		{
@@ -170,10 +189,6 @@ function ArmGoalModal({
 				{ name: "Turn J6 30° NEG", msg: "turn_j6_30_neg" },
 				{ name: "Turn J6 45° NEG", msg: "turn_j6_45_neg" },
 				{ name: "Turn J6 90° NEG", msg: "turn_j6_90_neg" },
-				{ name: "Probe 1 UP", msg: "probe_u_1" },
-				{ name: "Probe 2 UP", msg: "probe_u_2" },
-				{ name: "Probe 3 UP", msg: "probe_u_3" },
-				{ name: "Probe SIDE", msg: "probe_s_1" },
 			],
 		},
 		{
@@ -233,7 +248,7 @@ function ArmGoalModal({
 								{group.items.map((item) => (
 									<button
 										key={item.name}
-										className={`${styles.Choice} ${!group.isPredefined && tasks?.some((t) => t.name === item.name) ? styles.Selected : ""}`}
+										className={`${group.isRed ? styles.ChoiceRed : styles.Choice} ${!group.isPredefined && tasks?.some((t) => t.name === item.name) ? styles.Selected : ""}`}
 										onClick={() => {
 											if (group.isPredefined) {
 												onSendNamedPose(item.msg);

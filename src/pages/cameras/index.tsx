@@ -66,9 +66,9 @@ const TASK_PRESETS = [
 	{ label: "Manipulation", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer", "cs_left_steer"] },
 	{ label: "Exploration", cameraIds: ["cs_left_steer","nav_front", "cs_top", "cs_right_steer", "manipulation", "nav_right", "nav_back", "nav_left"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_top", "nav_front", "hd_gripper", "nav_right", "nav_back", "nav_left"] },
-	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
+	{ label: "Probing", cameraIds: ["cs_top", "nav_front", "nav_left", "nav_back", "nav_right"] },
 	{ label: "Probing NAV", cameraIds: ["nav_front", "hd_gripper", "cs_top", "nav_back"] },
-	{ label: "Probing HDS", cameraIds: ["nav_front", "hd_gripper", "cs_right_steer", "cs_left_steer"] },
+	{ label: "Probing HDS", cameraIds: ["hd_gripper", "nav_front"] },
 	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer", "drill_inside", "§nav_front"], },
 ] as const;
 
@@ -388,6 +388,27 @@ const CamerasPage = () => {
 			displayedCameraIds[1] === "nav_left" &&
 			displayedCameraIds[2] === "nav_back" &&
 			displayedCameraIds[3] === "nav_front",
+		[viewMode, displayedCameraIds]
+	);
+	/** Probing HDS preset: Gripper stacked on top of Front, one column. */
+	const probingHdsLayout = useMemo(
+		() =>
+			viewMode === "custom" &&
+			displayedCameraIds.length === 2 &&
+			displayedCameraIds[0] === "hd_gripper" &&
+			displayedCameraIds[1] === "nav_front",
+		[viewMode, displayedCameraIds]
+	);
+	/** Probing preset: Top + Front on the first row, Top Left + Back + Top Right on the second. */
+	const probingPanoramaLayout = useMemo(
+		() =>
+			viewMode === "custom" &&
+			displayedCameraIds.length === 5 &&
+			displayedCameraIds[0] === "cs_top" &&
+			displayedCameraIds[1] === "nav_front" &&
+			displayedCameraIds[2] === "nav_left" &&
+			displayedCameraIds[3] === "nav_back" &&
+			displayedCameraIds[4] === "nav_right",
 		[viewMode, displayedCameraIds]
 	);
 	const displayedCameras = useMemo(() => {
@@ -799,6 +820,8 @@ const CamerasPage = () => {
 						changeCam={changeCam}
 						forceGrid={true}
 						navigationPanoramaLayout={navigationPanoramaLayout}
+						probingPanoramaLayout={probingPanoramaLayout}
+						verticalStack={probingHdsLayout}
 						showSelector={false}
 						showRemoveButton={true}
 						onRemoveCam={removeCameraByIndex}

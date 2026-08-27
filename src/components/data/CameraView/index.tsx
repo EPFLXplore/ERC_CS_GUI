@@ -23,6 +23,8 @@ const CameraView = ({
 	feedIds = [],
 	forceGrid = false,
 	navigationPanoramaLayout = false,
+	probingPanoramaLayout = false,
+	verticalStack = false,
 	showSelector = true,
 	showRemoveButton = false,
 	onRemoveCam,
@@ -54,6 +56,12 @@ const CameraView = ({
 	forceGrid?: boolean;
 	/** Top Left + Top Right on top row; Back + Front on bottom row (cameras page Navigation preset). */
 	navigationPanoramaLayout?: boolean;
+	/** Five feeds in two full-width rows: two on top, three below, in `images` order (cameras page
+	 *  Probing preset). */
+	probingPanoramaLayout?: boolean;
+	/** Force a single-column layout (feeds stacked top to bottom in `images` order) regardless of the
+	 *  camera count. Used by the cameras page Probing HDS preset. */
+	verticalStack?: boolean;
 	showSelector?: boolean;
 	showRemoveButton?: boolean;
 	onRemoveCam?: (index: number) => void;
@@ -132,15 +140,30 @@ const CameraView = ({
 	};
 
 	if (forceGrid && cameraCount > 0) {
+		const useNavPanorama =
+			navigationPanoramaLayout && (cameraCount === 3 || cameraCount === 4);
+		const useProbingPanorama = probingPanoramaLayout && cameraCount === 5;
+		// Probing: 6-column grid, row 1 = two cells of 3 cols, row 2 = three cells of 2 cols.
+		const probingCellStyles: React.CSSProperties[] = [
+			{ gridColumn: "1 / 4", gridRow: "1" },
+			{ gridColumn: "4 / 7", gridRow: "1" },
+			{ gridColumn: "1 / 3", gridRow: "2" },
+			{ gridColumn: "3 / 5", gridRow: "2" },
+			{ gridColumn: "5 / 7", gridRow: "2" },
+		];
+		const cellStyle = (i: number): React.CSSProperties | undefined => {
+			if (navigationPanoramaLayout && cameraCount === 3 && i === 2) {
+				return { gridColumn: "1 / -1" };
+			}
+			if (useProbingPanorama) return probingCellStyles[i];
+			return undefined;
+		};
+
 		const gridCell = (i: number) => (
 			<div
 				key={i}
 				className={styles.GridItem}
-				style={
-					navigationPanoramaLayout && cameraCount === 3 && i === 2
-						? { gridColumn: "1 / -1" }
-						: undefined
-				}
+				style={cellStyle(i)}
 			>
 				<div className={styles.GridImageWrapper}>
 					<ZoomableFeed resetKey={feedKey(i)}>
@@ -185,20 +208,27 @@ const CameraView = ({
 			</div>
 		);
 
-		const useNavPanorama =
-			navigationPanoramaLayout && (cameraCount === 3 || cameraCount === 4);
+		const effectiveLayout = verticalStack
+			? { cols: 1, rows: cameraCount }
+			: gridLayout;
 
 		return (
 			<div className={styles.Container}>
 				{renderSelector()}
 				<div
-					className={useNavPanorama ? styles.NavPanoramaGrid : styles.GridWrapper}
-					style={
+					className={
 						useNavPanorama
+							? styles.NavPanoramaGrid
+							: useProbingPanorama
+								? styles.ProbingPanoramaGrid
+								: styles.GridWrapper
+					}
+					style={
+						useNavPanorama || useProbingPanorama
 							? undefined
 							: {
-									gridTemplateColumns: `repeat(${gridLayout.cols}, minmax(0, 1fr))`,
-									gridTemplateRows: `repeat(${gridLayout.rows}, minmax(0, 1fr))`,
+									gridTemplateColumns: `repeat(${effectiveLayout.cols}, minmax(0, 1fr))`,
+									gridTemplateRows: `repeat(${effectiveLayout.rows}, minmax(0, 1fr))`,
 								}
 					}
 				>
