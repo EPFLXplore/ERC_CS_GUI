@@ -87,7 +87,7 @@
   font-weight: 600
   color: rgba(255, 255, 255, 0.8)
 
-// Slider hard-left, soil speed presets hard-right, both inside the position panel.
+// Vertical position slider hard-left, lin. stage speed control hard-right, both inside the panel.
 .PositionSliderRow
   width: 100%
   display: flex
@@ -96,14 +96,37 @@
   gap: 18px
   padding: 0 8px
 
-// The vertical slider is a rotated horizontal input, so its layout box is 240x24 while it looks
-// 24x240. Column width comes from .PositionSliderWrap, never from the input itself.
+// Lin. stage speed: a horizontal slider, its value readout, and the publish button, stacked.
 .SoilSpeedGroup
   display: flex
   flex-direction: column
   justify-content: center
   gap: 10px
-  min-width: 160px
+  min-width: 240px
+  flex: 1
+  max-width: 320px
+
+.SoilSpeedTitle
+  font-size: 0.95rem
+  font-weight: 700
+  color: white
+  text-align: center
+
+.SoilSpeedReadout
+  display: flex
+  align-items: baseline
+  justify-content: space-between
+  gap: 8px
+
+.SoilSpeedScaleLabel
+  font-size: 0.78rem
+  font-weight: 600
+  color: rgba(255, 255, 255, 0.6)
+
+.SoilSpeedValue
+  font-size: 1rem
+  font-weight: 700
+  color: white
 
 .SoilSpeedButton
   width: 100%
@@ -122,14 +145,6 @@
     transform: translateY(-1px)
     cursor: pointer
 
-  &.SoilSpeedButtonSelected
-    background: rgba(255, 255, 255, 0.28)
-    color: white
-    border-color: rgba(255, 255, 255, 0.55)
-
-    &:hover
-      background: rgba(255, 255, 255, 0.34)
-
 .PositionScale
   display: flex
   flex-direction: column
@@ -144,13 +159,42 @@
   letter-spacing: 0.02em
 
 .PositionSliderWrap
+  position: relative
   display: flex
   align-items: center
   justify-content: center
   min-height: 260px
   min-width: 48px
 
+// Fixed rail behind the vertical position slider so the red thumb always reads against something,
+// with a tick at each travel limit (0 cm top, 55 cm bottom).
+.PositionTrack
+  position: absolute
+  top: 50%
+  left: 50%
+  transform: translate(-50%, -50%)
+  z-index: 0
+  height: 240px
+  width: 10px
+  border-radius: 999px
+  background: rgba(255, 255, 255, 0.22)
+  border: 1px solid rgba(255, 255, 255, 0.3)
+  display: flex
+  flex-direction: column
+  justify-content: space-between
+  align-items: center
+  pointer-events: none
+
+.PositionTrackCap
+  width: 22px
+  height: 4px
+  border-radius: 999px
+  background: rgba(255, 255, 255, 0.85)
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.35)
+
 .VerticalSlider
+  position: relative
+  z-index: 1
   width: 240px
   height: 24px
   transform: rotate(90deg)

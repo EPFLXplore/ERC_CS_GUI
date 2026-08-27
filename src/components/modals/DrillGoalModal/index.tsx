@@ -46,7 +46,7 @@ const MIN_DRILL_POSITION_CM = 0;
 const MAX_DRILL_POSITION_CM = 55;
 
 const MIN_STEPS = 0;
-const MAX_STEPS = 50;
+const MAX_STEPS = 100;
 
 /** Linear stage travel per step increment. */
 const CM_PER_INCREMENT = 0.1;
@@ -81,12 +81,18 @@ function clampAbsolutePositionCmPrecise(n: number): number {
 	return Math.min(MAX_DRILL_POSITION_CM, Math.max(MIN_DRILL_POSITION_CM, n));
 }
 
-/** Linear stage feed speed presets, in cm/s, published on `Topics.DRILL_LIN_STAGE_SPEED_CMS`. */
-const SOIL_SPEED_PRESETS = [
-	{ label: "Soft soil", speed: 1.0 },
-	{ label: "Medium soil", speed: 0.35 },
-	{ label: "Hard soil", speed: 0.16 },
-] as const;
+/** Linear stage speed scaling factor (dimensionless), published on `Topics.DRILL_LIN_STAGE_SPEED_CMS`. */
+const MIN_LIN_STAGE_SPEED_SCALE = 0.05;
+const MAX_LIN_STAGE_SPEED_SCALE = 1.0;
+const DEFAULT_LIN_STAGE_SPEED_SCALE = 0.35;
+const LIN_STAGE_SPEED_SCALE_STEP = 0.01;
+
+/** Clamp to the allowed range and quantise to the slider step so the published value is exact. */
+function clampLinStageSpeedScale(n: number): number {
+	if (!Number.isFinite(n)) return DEFAULT_LIN_STAGE_SPEED_SCALE;
+	const clamped = Math.min(MAX_LIN_STAGE_SPEED_SCALE, Math.max(MIN_LIN_STAGE_SPEED_SCALE, n));
+	return Math.round(clamped / LIN_STAGE_SPEED_SCALE_STEP) * LIN_STAGE_SPEED_SCALE_STEP;
+}
 
 /** rosbridge publisher QoS (ROSBRIDGE_PROTOCOL.md §4.2). Without this the bridge would advertise
  *  reliable + transient_local, depth 100, and a late subscriber would get a stale speed replayed. */
@@ -184,16 +190,24 @@ function DrillGoalModal({
 		};
 	}, [linStageSpeedTopic]);
 
-	const [selectedSoilSpeed, setSelectedSoilSpeed] = React.useState<number | null>(null);
+	const [linStageSpeedScale, setLinStageSpeedScale] = React.useState<number>(
+		DEFAULT_LIN_STAGE_SPEED_SCALE
+	);
 
-	/** Fire-and-forget: this is not a goal, so it deliberately leaves `commandMode` alone. */
-	const publishLinStageSpeed = (speed: number) => {
+	const handleLinStageSpeedScaleChange = (value: string) => {
+		setLinStageSpeedScale(clampLinStageSpeedScale(Number.parseFloat(value)));
+	};
+
+	/** Fire-and-forget: this is not a goal, so it deliberately leaves `commandMode` alone. Runs only
+	 *  when the operator presses the publish button, never on slider drag. */
+	const publishLinStageSpeedScale = () => {
 		if (!ros || !linStageSpeedTopic) {
 			snackBar("error", "ROS connection not available");
 			return;
 		}
-		linStageSpeedTopic.publish({ data: speed });
-		setSelectedSoilSpeed(speed);
+		const scale = clampLinStageSpeedScale(linStageSpeedScale);
+		linStageSpeedTopic.publish({ data: scale });
+		snackBar("success", `Published lin. stage speed scaling: ${scale.toFixed(2)}`);
 	};
 	const [task, setTask] = React.useState<DrillTask | null>(null);
 	const [actionSmallTask, setActionSmallTask] = React.useState<DrillGoalModalProps>({
@@ -277,6 +291,10 @@ function DrillGoalModal({
 					</div>
 					<div className={styles.PositionSliderRow}>
 						<div className={styles.PositionSliderWrap}>
+							<div className={styles.PositionTrack} aria-hidden="true">
+								<span className={styles.PositionTrackCap} />
+								<span className={styles.PositionTrackCap} />
+							</div>
 							<input
 								className={styles.VerticalSlider}
 								type="range"
@@ -289,18 +307,29 @@ function DrillGoalModal({
 							/>
 						</div>
 						<div className={styles.SoilSpeedGroup}>
-							{SOIL_SPEED_PRESETS.map((preset) => (
-								<button
-									key={preset.label}
-									type="button"
-									className={`${styles.SoilSpeedButton} ${
-										selectedSoilSpeed === preset.speed ? styles.SoilSpeedButtonSelected : ""
-									}`}
-									onClick={() => publishLinStageSpeed(preset.speed)}
-								>
-									{preset.label}
-								</button>
-							))}
+							<span className={styles.SoilSpeedTitle}>Lin. stage speed scaling</span>
+							<input
+								className={styles.HorizontalSlider}
+								type="range"
+								min={MIN_LIN_STAGE_SPEED_SCALE}
+								max={MAX_LIN_STAGE_SPEED_SCALE}
+								step={LIN_STAGE_SPEED_SCALE_STEP}
+								value={linStageSpeedScale}
+								onChange={(event) => handleLinStageSpeedScaleChange(event.target.value)}
+								aria-label="Drill linear stage speed scaling factor"
+							/>
+							<div className={styles.SoilSpeedReadout}>
+								<span className={styles.SoilSpeedScaleLabel}>{MIN_LIN_STAGE_SPEED_SCALE.toFixed(2)}</span>
+								<span className={styles.SoilSpeedValue}>× {linStageSpeedScale.toFixed(2)}</span>
+								<span className={styles.SoilSpeedScaleLabel}>{MAX_LIN_STAGE_SPEED_SCALE.toFixed(2)}</span>
+							</div>
+							<button
+								type="button"
+								className={styles.SoilSpeedButton}
+								onClick={() => publishLinStageSpeedScale()}
+							>
+								publish drill lin. stage speed
+							</button>
 						</div>
 					</div>
 					<div className={styles.PositionReadout}>
