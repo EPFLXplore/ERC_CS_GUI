@@ -20,6 +20,7 @@ const CameraView = ({
 	currentCam,
 	topicNames = [],
 	topicPaths = [],
+	feedIds = [],
 	forceGrid = false,
 	navigationPanoramaLayout = false,
 	showSelector = true,
@@ -27,6 +28,7 @@ const CameraView = ({
 	onRemoveCam,
 	streamKinds = [],
 	registerVideoEl,
+	registerImgEl,
 	alignOverlays = [],
 }: {
 	images: Array<string>;
@@ -36,12 +38,19 @@ const CameraView = ({
 	currentCam: Array<string>;
 	topicNames?: Array<string>;
 	topicPaths?: Array<string>;
+	/** Stable per-cell identity for zoom reset (e.g. a camera id), independent of `topicPaths` —
+	 *  which can embed live bandwidth text and must never be used for that purpose. */
+	feedIds?: Array<string>;
 	/** Positionally parallel to `images`: which entries are fragmented-MP4 streams needing a
 	 *  <video>/MSE player rather than an <img>. Absent entries default to "img". */
 	streamKinds?: Array<"img" | "video">;
 	/** Lets the page reach a live <video> element, which screenshots have to draw from — an MSE
 	 *  stream cannot be re-fetched into an Image() the way an MJPEG URL can. */
 	registerVideoEl?: (index: number, el: HTMLVideoElement | null) => void;
+	/** Same idea for the <img> feeds: the on-screen element is already decoding the MJPEG stream, so
+	 *  screenshots draw from it rather than opening a second connection to the camera. Only wired for
+	 *  the grid layout (the cameras page), which is the only place screenshots are taken. */
+	registerImgEl?: (index: number, el: HTMLImageElement | null) => void;
 	forceGrid?: boolean;
 	/** Top Left + Top Right on top row; Back + Front on bottom row (cameras page Navigation preset). */
 	navigationPanoramaLayout?: boolean;
@@ -111,8 +120,9 @@ const CameraView = ({
 	};
 
 	/** What the zoom of a cell is tied to: reshuffling the cameras must not hand one feed's zoom to
-	 *  whichever one takes over its slot. */
-	const feedKey = (idx: number) => topicPaths[idx] ?? topicNames[idx] ?? String(idx);
+	 *  whichever one takes over its slot. `topicPaths` can embed live bandwidth text that changes
+	 *  every second, so it's only a fallback — `feedIds` is the stable identity when available. */
+	const feedKey = (idx: number) => feedIds[idx] ?? topicPaths[idx] ?? topicNames[idx] ?? String(idx);
 
 	const bump = (idx: number) => {
 		// make sure we have one rotation entry per image
@@ -143,11 +153,17 @@ const CameraView = ({
 								registerEl={(el) => registerVideoEl?.(i, el)}
 							/>
 						) : (
+							/* crossOrigin: the stream server sends CORS headers (app-wide cors()), so a
+							   screenshot can draw from this live element without tainting the canvas. */
 							<img
 								src={images[i] && images[i].length > 0 ? images[i] : DefaultImage}
 								alt={`Camera ${i + 1}`}
 								className={styles.GridImage}
 								draggable={false}
+								crossOrigin="anonymous"
+								ref={(el) => {
+									registerImgEl?.(i, el);
+								}}
 								style={{ transform: `rotate(${rotate[i] ?? 0}deg)` }}
 								onDoubleClick={() => bump(i)}
 							/>
@@ -164,8 +180,8 @@ const CameraView = ({
 						</button>
 					)}
 					{renderAlignOverlayButton(i)}
+					{renderTopicMeta(i, styles.GridTopicMeta)}
 				</div>
-				{renderTopicMeta(i, styles.GridTopicMeta)}
 			</div>
 		);
 
@@ -348,8 +364,8 @@ const CameraView = ({
 										onDoubleClick={() => bump(i)}
 									/>
 								</ZoomableFeed>
+								{renderTopicMeta(i, styles.GridTopicMeta)}
 							</div>
-							{renderTopicMeta(i, styles.GridTopicMeta)}
 						</div>
 					))}
 				</div>

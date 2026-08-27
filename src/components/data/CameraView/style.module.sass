@@ -105,18 +105,27 @@
     font-size: 11px
 
 .GridTopicMeta
+  position: absolute
+  bottom: 4px
+  left: 50%
+  transform: translateX(-50%)
+  max-width: calc(100% - 12px)
+  background-color: rgba(0, 0, 0, 0.7)
   color: white
   font-family: monospace
-  font-size: 11px
+  font-size: 15px
   text-align: center
-  line-height: 1.1
-  padding: 1px 4px 2px 4px
+  line-height: 1.2
+  padding: 3px 10px
+  border-radius: 5px
   white-space: nowrap
   overflow: hidden
   text-overflow: ellipsis
+  z-index: 10
+  pointer-events: none
 
 .GridTopicMeta .TopicMetaPath
-  font-size: 10px
+  font-size: 13px
   opacity: 0.8
 
 .Rotate0
@@ -280,15 +289,17 @@
     align-content: stretch
 
 .GridItem
-  display: grid
-  grid-template-rows: minmax(0, 1fr) auto
   overflow: hidden
   background-color: black
   min-height: 0
+  height: 100%
+  width: 100%
 
 .GridImageWrapper
   position: relative
   min-height: 0
+  height: 100%
+  width: 100%
   display: flex
   align-items: center
   justify-content: center
@@ -296,7 +307,7 @@
 
 .GridImage
   width: 100%
-  height: calc(100% - 2px)
+  height: 100%
   object-fit: contain
   display: block
   user-select: none

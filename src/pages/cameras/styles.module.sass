@@ -50,6 +50,32 @@
     gap: 6px
     padding: 8px
     overflow-y: auto
+    overflow-x: hidden
+    flex-shrink: 0
+    transition: width 0.2s ease-out, padding 0.2s ease-out
+
+.leftHubMinimized
+    width: 28px
+    padding: 8px 4px
+    overflow-y: hidden
+
+.leftHubToggle
+    align-self: flex-end
+    width: 20px
+    height: 20px
+    flex-shrink: 0
+    border: 1px solid rgba(255, 255, 255, 0.25)
+    background: rgba(255, 255, 255, 0.06)
+    color: white
+    border-radius: 6px
+    padding: 0
+    font-size: 13px
+    line-height: 1
+    text-align: center
+    cursor: pointer
+
+.leftHubToggle:hover
+    background: rgba(255, 255, 255, 0.16)
 
 .hubButton
     width: 100%

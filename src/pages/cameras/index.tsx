@@ -67,6 +67,8 @@ const TASK_PRESETS = [
 	{ label: "Exploration", cameraIds: ["cs_left_steer","nav_front", "cs_top", "cs_right_steer", "manipulation", "nav_right", "nav_back", "nav_left"] },
 	{ label: "Astro-Bio", cameraIds: ["cs_top", "nav_front", "hd_gripper", "nav_right", "nav_back", "nav_left"] },
 	{ label: "Probing", cameraIds: ["hd_gripper", "nav_front", "cs_top", "cs_right_steer"] },
+	{ label: "Probing NAV", cameraIds: ["nav_front", "hd_gripper", "cs_top", "nav_back"] },
+	{ label: "Probing HDS", cameraIds: ["nav_front", "hd_gripper", "cs_right_steer", "cs_left_steer"] },
 	{ label: "Sampling", cameraIds: ["hd_gripper", "cs_top", "cs_right_steer", "cs_left_steer", "drill_inside", "§nav_front"], },
 ] as const;
 
@@ -119,6 +121,85 @@ function getCameraBackendBaseUrl(port: number = 5000): string {
 	const protocol = window.location.protocol || "http:";
 	const hostname = window.location.hostname === "localhost" ? "127.0.0.1" : window.location.hostname;
 	return `${protocol}//${hostname}:${port}`;
+}
+
+/**
+ * Long edge a saved screenshot is capped at. Cameras run at wildly different resolutions (the
+ * microscope in particular); without a cap one 4K frame becomes a multi-MB base64 body — the
+ * backend rejects anything over 25 MB, and encoding several huge frames at once janks the page.
+ * Frames already smaller than this are only re-encoded, not upscaled.
+ */
+const SCREENSHOT_MAX_EDGE = 2560;
+const SCREENSHOT_JPEG_QUALITY = 0.9;
+/** A passthrough (ROS) frame is left untouched below this size — the original compressed frame is
+ *  both smaller and higher quality than a re-encode. Above it we downscale like any other. */
+const SCREENSHOT_REENCODE_BYTES = 3 * 1024 * 1024;
+
+/** Encode a canvas to a JPEG data URL off the main thread. Resolves null on any failure (including
+ *  a tainted canvas, which throws here rather than at draw time). */
+function canvasToJpegDataUrl(canvas: HTMLCanvasElement): Promise<string | null> {
+	return new Promise((resolve) => {
+		try {
+			canvas.toBlob(
+				(blob) => {
+					if (!blob) return resolve(null);
+					const reader = new FileReader();
+					reader.onload = () =>
+						resolve(typeof reader.result === "string" ? reader.result : null);
+					reader.onerror = () => resolve(null);
+					reader.readAsDataURL(blob);
+				},
+				"image/jpeg",
+				SCREENSHOT_JPEG_QUALITY,
+			);
+		} catch {
+			resolve(null);
+		}
+	});
+}
+
+/** Draw a decoded frame into a canvas no larger than SCREENSHOT_MAX_EDGE on its long side and return
+ *  a bounded JPEG data URL. Null if the source has no dimensions or the canvas ends up tainted. */
+function frameToBoundedJpeg(
+	source: CanvasImageSource,
+	srcWidth: number,
+	srcHeight: number,
+): Promise<string | null> {
+	if (!srcWidth || !srcHeight) return Promise.resolve(null);
+	const scale = Math.min(1, SCREENSHOT_MAX_EDGE / Math.max(srcWidth, srcHeight));
+	const canvas = document.createElement("canvas");
+	canvas.width = Math.max(1, Math.round(srcWidth * scale));
+	canvas.height = Math.max(1, Math.round(srcHeight * scale));
+	const ctx = canvas.getContext("2d");
+	if (!ctx) return Promise.resolve(null);
+	try {
+		ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+	} catch {
+		return Promise.resolve(null);
+	}
+	return canvasToJpegDataUrl(canvas);
+}
+
+/** Decode a URL (stream or data URL) into an <img>. `cors` must be true for a cross-origin stream
+ *  so the frame can be drawn to a canvas without tainting it. */
+function decodeImage(src: string, cors: boolean): Promise<HTMLImageElement | null> {
+	return new Promise((resolve) => {
+		const img = new Image();
+		const timer = setTimeout(() => {
+			img.src = "";
+			resolve(null);
+		}, 3000);
+		if (cors) img.crossOrigin = "anonymous";
+		img.onload = () => {
+			clearTimeout(timer);
+			resolve(img);
+		};
+		img.onerror = () => {
+			clearTimeout(timer);
+			resolve(null);
+		};
+		img.src = src;
+	});
 }
 
 /** Top Left (nav_right) on the left, Top Right (nav_left) on the right when only that pair is visible. */
@@ -184,6 +265,7 @@ const CamerasPage = () => {
 	const navBwMbps = useNavCameraBandwidth(ros);
 	const roverBwMbps = useRoverCameraBandwidth(ros);
 	const allCameraIds = useMemo(() => CAMERA_DEFS.map((camera) => camera.id), []);
+	const [hubMinimized, setHubMinimized] = useState(false);
 	const [viewMode, setViewMode] = useState<"all" | "custom">("all");
 	const [customCameraIds, setCustomCameraIds] = useState<string[]>(allCameraIds);
 	const [rotateCams, setRotateCams] = useState<number[]>(getDefaultRotations(allCameraIds));
@@ -346,8 +428,18 @@ const CamerasPage = () => {
 		if (el) videoElsRef.current.set(index, el);
 		else videoElsRef.current.delete(index);
 	}, []);
+	const imgElsRef = useRef(new Map<number, HTMLImageElement>());
+	const registerImgEl = useCallback((index: number, el: HTMLImageElement | null) => {
+		if (el) imgElsRef.current.set(index, el);
+		else imgElsRef.current.delete(index);
+	}, []);
 	const topicNames = useMemo(
 		() => displayedCameras.map((camera) => camera.name),
+		[displayedCameras]
+	);
+	// Stable per-cell identity for zoom reset — unlike topicPaths, never embeds live bandwidth text.
+	const feedIds = useMemo(
+		() => displayedCameras.map((camera) => camera.id),
 		[displayedCameras]
 	);
 	const alignOverlays = useMemo(
@@ -452,88 +544,97 @@ const CamerasPage = () => {
 	};
 	const removeCameraByIndex = useCallback((index: number) => removeCameraByIndexRef.current(index), []);
 
+	/** Grab one displayed feed's current frame as a bounded JPEG data URL, or null if unavailable.
+	 *  Every branch draws from what is already decoded on screen — no feed opens a second connection
+	 *  to the rover unless the on-screen element is somehow missing. */
+	const captureCameraFrame = useCallback(
+		async (index: number, camera: CameraDef): Promise<string | null> => {
+			const source = cameraSources[camera.id];
+
+			if (source === "ros") {
+				// Already a compressed frame in memory. Leave small ones exactly as received; only
+				// downscale the rare oversized one so the upload body stays sane.
+				const raw = imagesByTopic[camera.topic] ?? null;
+				if (!raw) return null;
+				if (raw.length * 0.75 <= SCREENSHOT_REENCODE_BYTES) return raw;
+				const decoded = await decodeImage(raw, false);
+				if (!decoded) return raw;
+				return (
+					(await frameToBoundedJpeg(decoded, decoded.naturalWidth, decoded.naturalHeight)) ??
+					raw
+				);
+			}
+
+			if (FMP4_CAMERAS.has(camera.id)) {
+				// An MSE stream cannot be re-opened into an Image() — a second connection only yields
+				// MP4 bytes. The on-screen <video> is the only source.
+				const video = videoElsRef.current.get(index);
+				if (video && video.videoWidth > 0) {
+					return frameToBoundedJpeg(video, video.videoWidth, video.videoHeight);
+				}
+				return null;
+			}
+
+			// MJPEG: the on-screen <img> is already decoding this stream in real time. Draw straight
+			// from it instead of opening a fresh connection and waiting for a keyframe.
+			const liveImg = imgElsRef.current.get(index);
+			if (liveImg && liveImg.complete && liveImg.naturalWidth > 0) {
+				const fromScreen = await frameToBoundedJpeg(
+					liveImg,
+					liveImg.naturalWidth,
+					liveImg.naturalHeight,
+				);
+				if (fromScreen) return fromScreen;
+			}
+			// Fallback only: element not mounted yet, or the draw tainted the canvas somehow.
+			const refetched = await decodeImage(getCameraStreamUrl(camera), true);
+			if (!refetched) return null;
+			return frameToBoundedJpeg(
+				refetched,
+				refetched.naturalWidth || 640,
+				refetched.naturalHeight || 480,
+			);
+		},
+		[cameraSources, imagesByTopic],
+	);
+
 	const saveCameraScreenshots = useCallback(async (): Promise<{ saved: number; failed: number }> => {
 		const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
 		const backendUrl = getCameraBackendBaseUrl();
-		let saved = 0;
-		let failed = 0;
-		for (let i = 0; i < displayedCameras.length; i++) {
-			const camera = displayedCameras[i];
-			const source = cameraSources[camera.id];
-			let dataUrl: string | null = null;
-			try {
-				if (source === "ros") {
-					dataUrl = imagesByTopic[camera.topic] ?? null;
-				} else if (FMP4_CAMERAS.has(camera.id)) {
-					// An MSE stream cannot be re-opened into an Image() the way an MJPEG URL can —
-					// a second connection would only yield MP4 bytes. Grab the frame already on
-					// screen instead, which is also one fewer stream off the rover.
-					const video = videoElsRef.current.get(i);
-					if (video && video.videoWidth > 0) {
-						try {
-							const canvas = document.createElement("canvas");
-							canvas.width = video.videoWidth;
-							canvas.height = video.videoHeight;
-							const ctx = canvas.getContext("2d");
-							if (ctx) {
-								ctx.drawImage(video, 0, 0);
-								dataUrl = canvas.toDataURL("image/jpeg", 0.9);
-							}
-						} catch {
-							dataUrl = null;
-						}
-					}
-				} else {
-					const streamUrl = getCameraStreamUrl(camera);
-					dataUrl = await new Promise<string | null>((resolve) => {
-						const img = new Image();
-						const timer = setTimeout(() => { img.src = ""; resolve(null); }, 3000);
-						img.crossOrigin = "anonymous";
-						img.onload = () => {
-							clearTimeout(timer);
-							try {
-								const canvas = document.createElement("canvas");
-								canvas.width = img.naturalWidth || 640;
-								canvas.height = img.naturalHeight || 480;
-								const ctx = canvas.getContext("2d");
-								if (!ctx) { resolve(null); return; }
-								ctx.drawImage(img, 0, 0);
-								img.src = "";
-								resolve(canvas.toDataURL("image/jpeg", 0.9));
-							} catch {
-								resolve(null);
-							}
-						};
-						img.onerror = () => { clearTimeout(timer); resolve(null); };
-						img.src = streamUrl;
+		const cameras = displayedCameras;
+
+		// Capture every feed at once so one slow camera doesn't hold up the rest.
+		const frames = await Promise.all(
+			cameras.map((camera, i) => captureCameraFrame(i, camera).catch(() => null)),
+		);
+
+		// Each screenshot is its own request (well under the backend's 25 MB body cap regardless of
+		// camera resolution); fire them together too.
+		const outcomes = await Promise.all(
+			frames.map(async (dataUrl, i) => {
+				if (!dataUrl) return false;
+				const camera = cameras[i];
+				try {
+					const response = await fetch(`${backendUrl}/save-screenshot`, {
+						method: "POST",
+						headers: { "Content-Type": "application/json" },
+						body: JSON.stringify({
+							cameraName: camera.name.replace(/\s+/g, "_"),
+							filename: `${ts}.jpg`,
+							imageData: dataUrl,
+						}),
 					});
-				}
-			} catch {
-				dataUrl = null;
-			}
-			if (!dataUrl) {
-				failed++;
-				continue;
-			}
-			const written = await fetch(`${backendUrl}/save-screenshot`, {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					cameraName: camera.name.replace(/\s+/g, "_"),
-					filename: `${ts}.jpg`,
-					imageData: dataUrl,
-				}),
-			})
-				.then((response) => response.ok)
-				.catch((err) => {
+					return response.ok;
+				} catch (err) {
 					console.error("[save-screenshot]", err);
 					return false;
-				});
-			if (written) saved++;
-			else failed++;
-		}
-		return { saved, failed };
-	}, [displayedCameras, cameraSources, imagesByTopic]);
+				}
+			}),
+		);
+
+		const saved = outcomes.filter(Boolean).length;
+		return { saved, failed: outcomes.length - saved };
+	}, [displayedCameras, captureCameraFrame]);
 
 	const drillCamera = CAMERA_DEFS.find((c) => c.id === "drill_inside")!;
 
@@ -586,89 +687,101 @@ const CamerasPage = () => {
 		<div className={"page " + styles.mainPage}>
 			<Background />
 			<div className={styles.control}>
-				<div className={styles.leftHub}>
+				<div className={`${styles.leftHub} ${hubMinimized ? styles.leftHubMinimized : ""}`}>
 					<button
 						type="button"
-						className={`${styles.hubButton} ${viewMode === "all" ? styles.hubButtonActive : ""}`}
-						onClick={switchToAll}
+						className={styles.leftHubToggle}
+						onClick={() => setHubMinimized((prev) => !prev)}
+						title={hubMinimized ? "Expand panel" : "Minimize panel"}
 					>
-						All Cams
+						{hubMinimized ? "›" : "‹"}
 					</button>
-					<button
-						type="button"
-						className={`${styles.hubButton} ${viewMode === "custom" ? styles.hubButtonActive : ""}`}
-						onClick={() => setViewMode("custom")}
-					>
-						Custom
-					</button>
-					<div className={styles.hubDivider} />
-					<div className={styles.hubSectionTitle}>Individual Cameras</div>
-					{CAMERA_DEFS.map((camera) => {
-						const isActive = displayedCameraIds.includes(camera.id);
-						const source = cameraSources[camera.id];
-						return (
-							<div key={camera.id} className={styles.cameraButtonRow}>
+					{!hubMinimized && (
+						<>
+							<button
+								type="button"
+								className={`${styles.hubButton} ${viewMode === "all" ? styles.hubButtonActive : ""}`}
+								onClick={switchToAll}
+							>
+								All Cams
+							</button>
+							<button
+								type="button"
+								className={`${styles.hubButton} ${viewMode === "custom" ? styles.hubButtonActive : ""}`}
+								onClick={() => setViewMode("custom")}
+							>
+								Custom
+							</button>
+							<div className={styles.hubDivider} />
+							<div className={styles.hubSectionTitle}>Individual Cameras</div>
+							{CAMERA_DEFS.map((camera) => {
+								const isActive = displayedCameraIds.includes(camera.id);
+								const source = cameraSources[camera.id];
+								return (
+									<div key={camera.id} className={styles.cameraButtonRow}>
+										<button
+											type="button"
+											className={`${styles.hubButton} ${styles.cameraVisibilityButton} ${
+												isActive ? styles.hubButtonActive : ""
+											}`}
+											onClick={() => toggleSingleCamera(camera.id)}
+										>
+											{camera.name}
+										</button>
+										<button
+											type="button"
+											className={`${styles.sourceToggle} ${
+												source === "ros" ? styles.sourceToggleRos : ""
+											}`}
+											title={`${camera.name}: ${source === "gst" ? "GStreamer" : "ROS"} feed`}
+											onClick={() => toggleCameraSource(camera.id)}
+										>
+											{source.toUpperCase()}
+										</button>
+									</div>
+								);
+							})}
+							<div className={styles.hubDivider} />
+							<div className={styles.hubSectionTitle}>Task Presets</div>
+							{TASK_PRESETS.map((preset) => (
 								<button
 									type="button"
-									className={`${styles.hubButton} ${styles.cameraVisibilityButton} ${
-										isActive ? styles.hubButtonActive : ""
+									key={preset.label}
+									className={`${styles.hubButton} ${
+										isNavigationPanoramaPreset(preset) ? styles.hubButtonNavPreset : ""
 									}`}
-									onClick={() => toggleSingleCamera(camera.id)}
+									onClick={() => setCustomLayout(preset.cameraIds)}
 								>
-									{camera.name}
+									{isNavigationPanoramaPreset(preset) ? (
+										<span className={styles.navPresetButtonInner}>
+											<span className={styles.navPresetRow}>
+												<span className={styles.navPresetCell} aria-hidden />
+												<span className={styles.navPresetCell} aria-hidden />
+											</span>
+											<span className={styles.navPresetRow}>
+												<span className={styles.navPresetCell} aria-hidden />
+												<span className={styles.navPresetCell} aria-hidden />
+											</span>
+										</span>
+									) : null}
+									<span className={styles.navPresetLabel}>{preset.label}</span>
 								</button>
-								<button
-									type="button"
-									className={`${styles.sourceToggle} ${
-										source === "ros" ? styles.sourceToggleRos : ""
-									}`}
-									title={`${camera.name}: ${source === "gst" ? "GStreamer" : "ROS"} feed`}
-									onClick={() => toggleCameraSource(camera.id)}
-								>
-									{source.toUpperCase()}
-								</button>
-							</div>
-						);
-					})}
-					<div className={styles.hubDivider} />
-					<div className={styles.hubSectionTitle}>Task Presets</div>
-					{TASK_PRESETS.map((preset) => (
-						<button
-							type="button"
-							key={preset.label}
-							className={`${styles.hubButton} ${
-								isNavigationPanoramaPreset(preset) ? styles.hubButtonNavPreset : ""
-							}`}
-							onClick={() => setCustomLayout(preset.cameraIds)}
-						>
-							{isNavigationPanoramaPreset(preset) ? (
-								<span className={styles.navPresetButtonInner}>
-									<span className={styles.navPresetRow}>
-										<span className={styles.navPresetCell} aria-hidden />
-										<span className={styles.navPresetCell} aria-hidden />
-									</span>
-									<span className={styles.navPresetRow}>
-										<span className={styles.navPresetCell} aria-hidden />
-										<span className={styles.navPresetCell} aria-hidden />
-									</span>
-								</span>
-							) : null}
-							<span className={styles.navPresetLabel}>{preset.label}</span>
-						</button>
-					))}
-					<div className={styles.hubDivider} />
-					<button
-						type="button"
-						className={styles.hubButton}
-						onClick={() => { void saveCameraScreenshots(); }}
-					>
-						Download Screenshots
-					</button>
-					<div className={styles.hubDivider} />
-					<BitrateSlider label="RPI CS Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onCsBitrateChange} />
-					<BitrateSlider label="NAV Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onNavBitrateChange} />
-					<BitrateSlider label="ZED Front Cam Bitrate" defaultValue={1000} min={100} max={8000} onChange={onZedBitrateChange} />
-					<BitrateSlider label="HD Gripper Cam Bitrate" defaultValue={1000} min={100} max={4000} onChange={onHdBitrateChange} />
+							))}
+							<div className={styles.hubDivider} />
+							<button
+								type="button"
+								className={styles.hubButton}
+								onClick={() => { void saveCameraScreenshots(); }}
+							>
+								Download Screenshots
+							</button>
+							<div className={styles.hubDivider} />
+							<BitrateSlider label="RPI CS Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onCsBitrateChange} />
+							<BitrateSlider label="NAV Cams Bitrate" defaultValue={1000} min={100} max={4000} onChange={onNavBitrateChange} />
+							<BitrateSlider label="ZED Front Cam Bitrate" defaultValue={1000} min={100} max={8000} onChange={onZedBitrateChange} />
+							<BitrateSlider label="HD Gripper Cam Bitrate" defaultValue={1000} min={100} max={4000} onChange={onHdBitrateChange} />
+						</>
+					)}
 				</div>
 				<div className={styles.visualization}>
 					<CameraView
@@ -678,9 +791,11 @@ const CamerasPage = () => {
 						currentCam={currentCam}
 						topicNames={topicNames}
 						topicPaths={topicPaths}
+						feedIds={feedIds}
 						alignOverlays={alignOverlays}
 						streamKinds={streamKinds}
 						registerVideoEl={registerVideoEl}
+						registerImgEl={registerImgEl}
 						changeCam={changeCam}
 						forceGrid={true}
 						navigationPanoramaLayout={navigationPanoramaLayout}
