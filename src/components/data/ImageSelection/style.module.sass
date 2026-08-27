@@ -97,7 +97,7 @@
     align-items: center
     gap: 8px
 
-.PrimaryButton, .SecondaryButton
+.PrimaryButton, .SecondaryButton, .RevertButton
     border-radius: 10px
     padding: 9px 12px
     font-size: 0.9rem
@@ -115,10 +115,15 @@
     background: rgba(255, 255, 255, 0.12)
     color: white
 
-.PrimaryButton:hover, .SecondaryButton:hover
+.RevertButton
+    border: 1px solid rgba(255, 255, 255, 0.3)
+    background: rgba(190, 70, 58, 0.9)
+    color: white
+
+.PrimaryButton:hover, .SecondaryButton:hover, .RevertButton:hover
     transform: translateY(-1px)
 
-.PrimaryButton:disabled, .SecondaryButton:disabled
+.PrimaryButton:disabled, .SecondaryButton:disabled, .RevertButton:disabled
     opacity: 0.45
     cursor: not-allowed
     transform: none

@@ -33,6 +33,7 @@ type ImageSelectionResult = {
 	x: number[];
 	y: number[];
 	success: boolean;
+	retry_asked: boolean;
 };
 
 /**
@@ -137,7 +138,10 @@ const useRoverControls = (
 	// HDS sends a request to select elements on an image.
 	// The numberElementToSelect is also part of the request service RockSelection.srv and sets the number of click on the image
 	// to continue the process..
-	const [hdConfirmationSelectElements, setHDConfirmationSelectElements] = useState<((x: number[], y: number[]) => void) | null>(null);
+	// `retryAsked` answers the request without a selection: the operator asks the rover to redo the
+	// step that produced this image (retry_asked in ControlStationSelection.srv) instead of picking
+	// points on a picture that is not usable.
+	const [hdConfirmationSelectElements, setHDConfirmationSelectElements] = useState<((x: number[], y: number[], retryAsked?: boolean) => void) | null>(null);
 	const [numberElementToSelect, setNumberElementToSelect] = useState<number>(0);
 	const [imageToSelect, setImageToSelect] = useState<string | null>(null);
 
@@ -413,15 +417,19 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 
 		imageSelectionService.advertiseAsync(async (request: any) => {
 			if (!active) {
-				return { x: [], y: [], success: false };
+				return { x: [], y: [], success: false, retry_asked: false };
 			}
 
 			setImageToSelect("data:image/jpeg;charset=utf-8;base64," + request.image.data);
 			setNumberElementToSelect(request.number_element_to_select);
 
 			return await new Promise<ImageSelectionResult>((resolve) => {
-				setHDConfirmationSelectElements(() => (x: number[], y: number[]) => {
-					resolve({ x, y, success: true });
+				setHDConfirmationSelectElements(() => (x: number[], y: number[], retryAsked: boolean = false) => {
+					// A revert is not a selection: no points travel back and success stays false, so
+					// the rover cannot mistake it for an empty but valid answer.
+					resolve(retryAsked
+						? { x: [], y: [], success: false, retry_asked: true }
+						: { x, y, success: true, retry_asked: false });
 					clearSelectionPrompt();
 				});
 			});
