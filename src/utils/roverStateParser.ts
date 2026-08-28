@@ -664,7 +664,7 @@ const getBatteryVoltage = (data: any) => {
 };
 
 /** Below this, the header shows WARNING BATTERY LOW next to the voltage. */
-const BATTERY_LOW_WARNING_VOLTAGE = 24.3;
+const BATTERY_LOW_WARNING_VOLTAGE = 25.0;
 
 /**
  * True when the avionics BMS reports a pack voltage whose magnitude is under
