@@ -13,6 +13,7 @@ import { Topics } from "../data/topics.type";
 import { Sensors } from "../data/sensors.types";
 import useOperatorRole from "./operatorRoleHooks";
 import { ConfirmationHd } from "../data/confirmationHd.type";
+import { MultipleChoiceHd } from "../data/multipleChoice.type";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -134,6 +135,11 @@ const useRoverControls = (
 	// It can also send some string information
 	const [hdConfirmation, setHDConfirmation] = useState<((confirm: boolean) => void) | null>(null);
 	const [dataConfirmationHD, setDataConfirmationHD] = useState<ConfirmationHd | null>(null);
+
+	// Same idea as hdConfirmation, but with an arbitrary number of answers: the request carries a
+	// list of option labels and the operator's click resolves the 0-based index into that list.
+	const [hdMultipleChoice, setHDMultipleChoice] = useState<((selection: number) => void) | null>(null);
+	const [dataMultipleChoiceHD, setDataMultipleChoiceHD] = useState<MultipleChoiceHd | null>(null);
 
 	// HDS sends a request to select elements on an image.
 	// The numberElementToSelect is also part of the request service RockSelection.srv and sets the number of click on the image
@@ -518,6 +524,66 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 		};
 	}, [ros, isOperator]);
 
+	// Same pattern as the confirmation service above, generalised to N answers: the request carries
+	// the button labels and the response is the index of the one the operator pressed.
+	useEffect(() => {
+		if (!ros || !isOperator) return;
+
+		const askUserMultipleChoice = new ROSLIB.Service({
+			ros: ros,
+			name: Topics.REQUEST_MULTIPLE_CHOICE_HD,
+			serviceType: "custom_msg/srv/MultipleChoiceRequest",
+		});
+		let active = true;
+
+		const clearMultipleChoicePrompt = () => {
+			setHDMultipleChoice(null);
+			setDataMultipleChoiceHD(null);
+		};
+
+		askUserMultipleChoice.advertiseAsync(async (request: any) => {
+			// -1 is not a choice: it only ever happens on a torn-down advertise, so the rover can
+			// tell it apart from any valid index.
+			if (!active) {
+				return { selection: -1 };
+			}
+
+			setDataMultipleChoiceHD({
+				default: request.default_font as boolean,
+				title: request.title,
+				color: request.color,
+				text: request.text,
+				text_color: request.text_color,
+				// An empty or malformed list would render a box with no button to answer it, which
+				// blocks the rover until the page reloads. Keep it renderable and let the overlay
+				// deal with the empty case.
+				options: Array.isArray(request.options) ? request.options : [],
+			});
+
+			const result = await new Promise<number>((resolve) => {
+				setHDMultipleChoice(() => (selection: number) => {
+					resolve(selection);
+					clearMultipleChoicePrompt();
+				});
+			});
+			return {
+				selection: result,
+			};
+		});
+
+		return () => {
+			active = false;
+			// See the two services above: a page reload or websocket reconnect must not be reported
+			// to the rover as the operator having picked an option.
+			clearMultipleChoicePrompt();
+			try {
+				askUserMultipleChoice.unadvertise();
+			} catch (error) {
+				console.warn("[rosbridge] HD multiple choice service cleanup failed:", error);
+			}
+		};
+	}, [ros, isOperator]);
+
 	useEffect(() => {
 		if (!ros || !isOperator) return;
 
@@ -579,7 +645,8 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 	 * the refresh before it happens.
 	 */
 	const confirmationPending =
-		hdStackLaunched !== null || hdConfirmationSelectElements !== null || hdConfirmation !== null;
+		hdStackLaunched !== null || hdConfirmationSelectElements !== null || hdConfirmation !== null ||
+		hdMultipleChoice !== null;
 
 	useEffect(() => {
 		if (!confirmationPending) return;
@@ -701,7 +768,11 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 		emergency_shutdown,
 		sendHdNamedPose,
 		updateHdTaskCommand,
-		stateTopicDiagnostics
+		stateTopicDiagnostics,
+		// Appended, not inserted: the control page destructures this array by position.
+		dataMultipleChoiceHD,
+		setDataMultipleChoiceHD,
+		hdMultipleChoice
 	] as const;
 };
 

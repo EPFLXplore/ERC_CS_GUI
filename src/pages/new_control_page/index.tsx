@@ -313,7 +313,10 @@ const NewControlPage = () => {
 		emergency_shutdown,
 		sendHdNamedPose,
 		updateHdTaskCommand,
-		stateTopicDiagnostics
+		stateTopicDiagnostics,
+		dataMultipleChoiceHD,
+		setDataMultipleChoiceHD,
+		hdMultipleChoice
   	] = roverControls;
 
 	// Owns the ZED front-camera servo angle and binds the gamepad D-pad to it. Lives here rather
@@ -887,6 +890,35 @@ const NewControlPage = () => {
 						</div>
 						)}
 					</>
+
+					{hdMultipleChoice !== null && (
+						<div className={styles.confirm} role="dialog" aria-modal="true" aria-label="Handling device multiple choice">
+							<div className={styles.confirmBox}>
+								<p>Handling Device Selection</p>
+								<p>{dataMultipleChoiceHD?.title}</p>
+								{dataMultipleChoiceHD?.text && <p>{dataMultipleChoiceHD.text}</p>}
+								<div className={styles.confirmation}>
+									{dataMultipleChoiceHD?.options.map((option, index) => (
+										<button
+											key={`${index}-${option}`}
+											className={styles.confirmBtn}
+											// default_font means "use the stylesheet", so the request's
+											// single color pair is only applied when it is false.
+											style={dataMultipleChoiceHD.default ? undefined : {
+												backgroundColor: dataMultipleChoiceHD.color,
+												color: dataMultipleChoiceHD.text_color,
+											}}
+											onClick={() => {
+												hdMultipleChoice(index)
+												setDataMultipleChoiceHD(null)
+											}}
+										>{option}</button>
+									))}
+								</div>
+								<RefreshWarning />
+							</div>
+						</div>
+					)}
 					<div className={`${styles.widgetSidebar} ${isWidgetMenuOpen ? styles.widgetSidebarExpanded : styles.widgetSidebarCollapsed}`}>
 						<button
 							type="button"

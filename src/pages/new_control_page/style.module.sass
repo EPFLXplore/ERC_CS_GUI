@@ -786,10 +786,12 @@
     z-index: 9999
 
 
-.confirmation 
+.confirmation
     display: flex
     flex-direction: row
     justify-content: space-around
+    // The multiple-choice dialog renders one button per option, so the row has to be able to wrap.
+    flex-wrap: wrap
     gap: 15px
 
 

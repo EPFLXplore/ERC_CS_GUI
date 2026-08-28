@@ -38,6 +38,7 @@ export enum Topics {
     HD_JOINT_GOAL = "/HD/kinematics/joint_goal",        // Topic: explicit joint goal (std_msgs/Float64MultiArray)
     HD_RESET_NODES = "/HD/kinematics/reset_nodes",  // Service: reset kinematics
     HD_HUMAN_VERIFICATION = "/Rover/HD/human_verification",  // Service: human verify
+    HD_MULTIPLE_CHOICE = "/Rover/HD/multiple_choice",  // Service: human picks one of N options
     HD_IMAGE_SELECTION = "/HD/ImageSelection",  // Service: image select
     HD_STACK_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Topic: confirmation
     HD_TASK_UPDATE = "/HD/task_executor/update_command", // Service: update running HD task command
@@ -109,5 +110,6 @@ export enum Topics {
     // HD Services - Control station interaction
     REQUEST_SELECTION_IMAGE = "/HD/ImageSelection",  // Same as HD_IMAGE_SELECTION
     REQUEST_HUMAIN_VERIFICATION_HD = "/Rover/HD/human_verification",  // Same as HD_HUMAN_VERIFICATION
+    REQUEST_MULTIPLE_CHOICE_HD = "/Rover/HD/multiple_choice",  // Same as HD_MULTIPLE_CHOICE
     CONFIRMATION_HDS_LAUNCHED = "/HD/kinematics/stackHDLaunched",  // Same as HD_STACK_LAUNCHED
 }
