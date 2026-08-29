@@ -801,7 +801,15 @@
     text-align: center
 
 
-.confirmBox 
+// The multiple-choice dialog has no hardcoded header above it: `title` from the request is the
+// heading, so it needs to read as one against the prompt below it.
+.confirm p.confirmTitle
+    font-size: 1.45rem
+    font-weight: bold
+    margin-bottom: 4px
+
+
+.confirmBox
     background: rgba(18, 44, 74, 0.9)
     border: 1px solid rgba(185, 228, 255, 0.35)
     backdrop-filter: blur(10px)

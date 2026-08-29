@@ -894,19 +894,20 @@ const NewControlPage = () => {
 					{hdMultipleChoice !== null && (
 						<div className={styles.confirm} role="dialog" aria-modal="true" aria-label="Handling device multiple choice">
 							<div className={styles.confirmBox}>
-								<p>Handling Device Selection</p>
-								<p>{dataMultipleChoiceHD?.title}</p>
+								<p className={styles.confirmTitle}>{dataMultipleChoiceHD?.title}</p>
 								{dataMultipleChoiceHD?.text && <p>{dataMultipleChoiceHD.text}</p>}
 								<div className={styles.confirmation}>
 									{dataMultipleChoiceHD?.options.map((option, index) => (
 										<button
 											key={`${index}-${option}`}
 											className={styles.confirmBtn}
-											// default_font means "use the stylesheet", so the request's
-											// single color pair is only applied when it is false.
+											// default_font means "use the stylesheet". Otherwise take this
+											// button's own entry, falling back to the stylesheet when the
+											// array is shorter than options or the entry is blank (a ROS
+											// string array pads with "").
 											style={dataMultipleChoiceHD.default ? undefined : {
-												backgroundColor: dataMultipleChoiceHD.color,
-												color: dataMultipleChoiceHD.text_color,
+												backgroundColor: dataMultipleChoiceHD.color[index] || undefined,
+												color: dataMultipleChoiceHD.text_color[index] || undefined,
 											}}
 											onClick={() => {
 												hdMultipleChoice(index)
