@@ -61,7 +61,7 @@ const BOWL_POSITIONS = [
  */
 const LAMP_SERVOS = [
 	{ id: 5, label: "Lamp — ID 5", openAngle: 35, closeAngle: 112 },
-	{ id: 4, label: "Lamp — ID 4", openAngle: 45, closeAngle: 122 },
+	{ id: 4, label: "Lamp — ID 4", openAngle: 127, closeAngle: 45 },
 	{ id: 6, label: "Lamp — ID 6", openAngle: 90, closeAngle: 2 },
 ] as const;
 
