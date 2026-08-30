@@ -554,12 +554,10 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 				// An empty or malformed list would render a box with no button to answer it, which
 				// blocks the rover until the page reloads. Keep it renderable and let the overlay
 				// deal with the empty case.
-				colors: Array.isArray(request.colors) ? request.colors : [],
+				colors: Array.isArray(request.color) ? request.color : [],
 				text: request.text,
-				text_colors: Array.isArray(request.text_colors) ? request.text_colors : [],
+				text_colors: Array.isArray(request.text_color) ? request.text_color : [],
 				options: Array.isArray(request.options) ? request.options : [],
-				color: Array.isArray(request.color) ? request.color : [],
-				text_color: Array.isArray(request.text_color) ? request.text_color : [],
 			});
 
 			const result = await new Promise<number>((resolve) => {
