@@ -60,9 +60,9 @@ const BOWL_POSITIONS = [
  * avionics); the servo is never parked in between. `id` is the ServoRequest id / PWM channel.
  */
 const LAMP_SERVOS = [
-	{ id: 5, label: "Lamp — ID 5", openAngle: 35, closeAngle: 112 },
-	{ id: 4, label: "Lamp — ID 4", openAngle: 127, closeAngle: 45 },
-	{ id: 6, label: "Lamp — ID 6", openAngle: 90, closeAngle: 2 },
+	{ id: 5, label: "Lamp — ID 5 - Right", openAngle: 35, closeAngle: 117 },
+	{ id: 4, label: "Lamp — ID 4 - Left", openAngle: 122, closeAngle: 40 },
+	{ id: 6, label: "Lamp — ID 6 - Bottom", openAngle: 90, closeAngle: 2 },
 ] as const;
 
 /**
@@ -382,13 +382,16 @@ function AvionicsModal({
 								type="button"
 								className={styles.ServoButton}
 								onClick={() => {
-									sendServo(LAMP_POWER_SERVO_ID, LAMP_POWER_ON_ANGLE, false);
 									LAMP_SERVOS.forEach((lamp) => sendServo(lamp.id, lamp.openAngle, false));
-									setLampsOn(true);
 									setLampAngles((previous) => ({
 										...previous,
 										...Object.fromEntries(LAMP_SERVOS.map((lamp) => [lamp.id, lamp.openAngle])),
 									}));
+									// Let the lamp servos swing clear before powering the lamps on.
+									setTimeout(() => {
+										sendServo(LAMP_POWER_SERVO_ID, LAMP_POWER_ON_ANGLE, false);
+										setLampsOn(true);
+									}, 700);
 								}}
 							>
 								Open &amp; Turn On All
