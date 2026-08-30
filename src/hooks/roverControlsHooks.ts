@@ -551,12 +551,12 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 			setDataMultipleChoiceHD({
 				default: request.default_font as boolean,
 				title: request.title,
+				// An empty or malformed list would render a box with no button to answer it, which
+				// blocks the rover until the page reloads. Keep it renderable and let the overlay
+				// deal with the empty case.
+				colors: Array.isArray(request.colors) ? request.colors : [],
 				text: request.text,
-				// An empty or malformed options list would render a box with no button to answer
-				// it, which blocks the rover until the page reloads. Keep it renderable and let the
-				// overlay deal with the empty case. color and text_color are indexed per button, so
-				// they have to be arrays too -- the overlay falls back to the stylesheet for any
-				// button they do not cover.
+				text_colors: Array.isArray(request.text_colors) ? request.text_colors : [],
 				options: Array.isArray(request.options) ? request.options : [],
 				color: Array.isArray(request.color) ? request.color : [],
 				text_color: Array.isArray(request.text_color) ? request.text_color : [],

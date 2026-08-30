@@ -901,13 +901,11 @@ const NewControlPage = () => {
 										<button
 											key={`${index}-${option}`}
 											className={styles.confirmBtn}
-											// default_font means "use the stylesheet". Otherwise take this
-											// button's own entry, falling back to the stylesheet when the
-											// array is shorter than options or the entry is blank (a ROS
-											// string array pads with "").
+											// default_font means "use the stylesheet", so the request's
+											// per-option color pair is only applied when it is false.
 											style={dataMultipleChoiceHD.default ? undefined : {
-												backgroundColor: dataMultipleChoiceHD.color[index] || undefined,
-												color: dataMultipleChoiceHD.text_color[index] || undefined,
+												backgroundColor: dataMultipleChoiceHD.colors[index],
+												color: dataMultipleChoiceHD.text_colors[index],
 											}}
 											onClick={() => {
 												hdMultipleChoice(index)

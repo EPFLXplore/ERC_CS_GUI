@@ -55,6 +55,23 @@ const BOWL_POSITIONS = [
 	},
 ] as const;
 
+/**
+ * Lamps. Each lamp sits on its own servo that swings it between two end stops (angles agreed with
+ * avionics); the servo is never parked in between. `id` is the ServoRequest id / PWM channel.
+ */
+const LAMP_SERVOS = [
+	{ id: 5, label: "Lamp — ID 5", openAngle: 35, closeAngle: 112 },
+	{ id: 4, label: "Lamp — ID 4", openAngle: 45, closeAngle: 122 },
+	{ id: 6, label: "Lamp — ID 6", openAngle: 90, closeAngle: 2 },
+] as const;
+
+/**
+ * ServoRequest id 7 is the lamps' power line rather than a mechanism: angle 0 = all lamps off,
+ * any other angle = on. The exact non-zero value is irrelevant, so we send a fixed one.
+ */
+const LAMP_POWER_SERVO_ID = 7;
+const LAMP_POWER_ON_ANGLE = 90;
+
 /** A load cell whose last packet is older than this is shown as stale. */
 const MASS_STALE_MS = 2000;
 const PH_STALE_MS = 5000;
@@ -83,6 +100,9 @@ function AvionicsModal({
 	const [selectedCell, setSelectedCell] = useState<number>(LOAD_CELLS[0].id);
 	// The bowl has no feedback topic, so this is the last angle *we* commanded — null until then.
 	const [bowlAngle, setBowlAngle] = useState<number | null>(null);
+	// Lamps have no feedback either: last angle we commanded per servo id, and whether power is on.
+	const [lampAngles, setLampAngles] = useState<Record<number, number | null>>({});
+	const [lampsOn, setLampsOn] = useState<boolean>(false);
 	// Freshness is a function of wall-clock time, so it needs its own tick to re-render.
 	const [now, setNow] = useState(() => Date.now());
 
@@ -347,6 +367,122 @@ function AvionicsModal({
 								))}
 							</div>
 						</div>
+					</section>
+
+					<section className={styles.Section}>
+						<div className={styles.SectionHeader}>
+							<h2>Lamps</h2>
+							<span className={styles.SectionHint}>
+								Power on ID {LAMP_POWER_SERVO_ID}, then open each lamp.
+							</span>
+						</div>
+
+						<div className={styles.ServoActions}>
+							<button
+								type="button"
+								className={styles.ServoButton}
+								onClick={() => {
+									sendServo(LAMP_POWER_SERVO_ID, LAMP_POWER_ON_ANGLE, false);
+									LAMP_SERVOS.forEach((lamp) => sendServo(lamp.id, lamp.openAngle, false));
+									setLampsOn(true);
+									setLampAngles((previous) => ({
+										...previous,
+										...Object.fromEntries(LAMP_SERVOS.map((lamp) => [lamp.id, lamp.openAngle])),
+									}));
+								}}
+							>
+								Open &amp; Turn On All
+							</button>
+							<button
+								type="button"
+								className={styles.ServoButton}
+								onClick={() => {
+									LAMP_SERVOS.forEach((lamp) => sendServo(lamp.id, lamp.closeAngle, false));
+									sendServo(LAMP_POWER_SERVO_ID, 0, false);
+									setLampsOn(false);
+									setLampAngles((previous) => ({
+										...previous,
+										...Object.fromEntries(LAMP_SERVOS.map((lamp) => [lamp.id, lamp.closeAngle])),
+									}));
+								}}
+							>
+								Close &amp; Turn Off All
+							</button>
+						</div>
+
+						<div className={styles.ServoRow}>
+							<div className={styles.ServoTitleRow}>
+								<span className={styles.ServoTitle}>Lamp Power</span>
+								<span className={styles.CellId}>ID {LAMP_POWER_SERVO_ID}</span>
+								<span className={styles.AngleValue}>{lampsOn ? "ON" : "OFF"}</span>
+							</div>
+
+							<div className={styles.ServoActions}>
+								<button
+									type="button"
+									className={styles.ServoButton}
+									onClick={() => {
+										setLampsOn(true);
+										sendServo(LAMP_POWER_SERVO_ID, LAMP_POWER_ON_ANGLE, false);
+									}}
+								>
+									Turn On
+								</button>
+								<button
+									type="button"
+									className={styles.ServoButton}
+									onClick={() => {
+										setLampsOn(false);
+										sendServo(LAMP_POWER_SERVO_ID, 0, false);
+									}}
+								>
+									Turn Off
+								</button>
+							</div>
+						</div>
+
+						{LAMP_SERVOS.map((lamp) => {
+							const current = lampAngles[lamp.id] ?? null;
+							const positions = [
+								{ angle: lamp.openAngle, label: "Open" },
+								{ angle: lamp.closeAngle, label: "Close" },
+							];
+							return (
+								<div className={styles.ServoRow} key={lamp.id}>
+									<div className={styles.ServoTitleRow}>
+										<span className={styles.ServoTitle}>{lamp.label}</span>
+										<span className={styles.CellId}>ID {lamp.id}</span>
+										<span className={styles.AngleValue}>
+											{current === null ? "—" : `${current}°`}
+										</span>
+									</div>
+
+									<div className={styles.BowlActions}>
+										{positions.map((position) => (
+											<button
+												type="button"
+												key={position.angle}
+												className={`${styles.BowlButton} ${
+													current === position.angle ? styles.BowlButtonActive : ""
+												}`}
+												aria-pressed={current === position.angle}
+												onClick={() => {
+													setLampAngles((previous) => ({
+														...previous,
+														[lamp.id]: position.angle,
+													}));
+													sendServo(lamp.id, position.angle, false);
+												}}
+											>
+												<span className={styles.BowlButtonLabel}>
+													{position.label} ({position.angle}°)
+												</span>
+											</button>
+										))}
+									</div>
+								</div>
+							);
+						})}
 					</section>
 				</div>
 

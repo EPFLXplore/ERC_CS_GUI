@@ -11,8 +11,8 @@ default stylesheet look.
 export type MultipleChoiceHd = {
 	default: boolean;
 	title: string;
-	color: string[];
+	colors: string[];
 	text: string;
-	text_color: string[];
+	text_colors: string[];
 	options: string[];
 };

@@ -6,6 +6,7 @@ import * as ROSLIB from "roslib";
 import { resetDrillHome } from "../../../utils/drillActions";
 import { patchTopicRosbridgeQoS } from "../../../utils/rosQos";
 import { Topics } from "../../../data/topics.type";
+import { getMotorModule, getMotorDrill, getStateFSM } from "../../../utils/roverStateParser";
 
 /*
 Author: Ugo Balducci and Giovanni Ranieri
@@ -54,6 +55,12 @@ const CM_PER_INCREMENT = 0.1;
 /** Increments are whole numbers, so one decimal is exact — no rounding to hide. */
 const incrementsToCm = (increments: number): string =>
 	`${(increments * CM_PER_INCREMENT).toFixed(1)} cm`;
+
+/** One-press relative moves. Sent straight to the drill on click, no "Set Task" needed. */
+const DRILL_PRESET_STEPS = [
+	{ label: "▼ Down 2 cm", action: "step_down", cm: 2 },
+	{ label: "▲ Up 0.5 cm", action: "step_up", cm: 0.5 },
+] as const;
 
 /** Matches `uint16` ceiling in `custom_msg/action/DrillCmd.action` (max 65535); UI cap per ops need. */
 const MAX_DRILL_STEP_INCREMENT = 64000;
@@ -121,12 +128,14 @@ function DrillGoalModal({
 	onCancelGoal: (system: string) => void;
 	snackBar: (sev: AlertColor, mes: string) => void;
 }) {
-	const [positionCm, setPositionCm] = React.useState<number | null>(null);
+	// The whole parsed `/SC/State` drill payload, so this modal shows exactly what the control page
+	// shows (same parser functions), and refreshes on every 1 Hz message rather than only at open.
+	const [drillState, setDrillState] = React.useState<any>(null);
 	const [commandMode, setCommandMode] = React.useState<"absolute" | "task" | "step" | "resetHome">("absolute");
 
 	React.useEffect(() => {
 		if (!ros) {
-			setPositionCm(null);
+			setDrillState(null);
 			return;
 		}
 
@@ -147,15 +156,24 @@ function DrillGoalModal({
 						: raw && typeof raw === "object"
 							? raw
 							: JSON.parse(String(raw));
-				const pos = data?.motors?.motor_module?.position;
-				setPositionCm(typeof pos === "number" ? pos : null);
+				setDrillState(data && typeof data === "object" ? data : null);
 			} catch {
-				setPositionCm(null);
+				setDrillState(null);
 			}
 		});
 
 		return () => listener.unsubscribe();
 	}, [ros]);
+
+	// Wrapped as `{ drill: ... }` because the shared parsers expect the full roverState shape.
+	const roverStateShim = drillState ? { drill: drillState } : {};
+	const motorModule = getMotorModule(roverStateShim);
+	const motorDrill = getMotorDrill(roverStateShim);
+	const fsmState = getStateFSM(roverStateShim);
+
+	// Raw (sub-centimetre) linear-stage position straight off the wire, for the goal math and readout.
+	const rawPosition = drillState?.motors?.motor_module?.position;
+	const positionCm = typeof rawPosition === "number" ? rawPosition : null;
 
 	const currentAbsolutePositionCm =
 		positionCm === null ? null : clampAbsolutePositionCm(Math.abs(positionCm));
@@ -229,6 +247,14 @@ function DrillGoalModal({
 		const parsedValue = Number.parseInt(value, 10);
 		setCommandMode("absolute");
 		setTargetPositionCm(clampAbsolutePositionCm(parsedValue));
+	};
+
+	/** Fire a relative step move immediately — used by the one-press presets. */
+	const sendPresetStep = (action: string, cm: number) => {
+		const increments = Math.round(cm / CM_PER_INCREMENT);
+		if (increments <= 0) return;
+		onSetGoal(SubSystems.DRILL, { action, multiple_increment: increments });
+		snackBar("info", `Drill ${action === "step_down" ? "down" : "up"} ${cm} cm`);
 	};
 
 	const sendDrillGoal = () => {
@@ -333,7 +359,7 @@ function DrillGoalModal({
 						</div>
 					</div>
 					<div className={styles.PositionReadout}>
-						<span className={styles.PositionReadoutLabel}>Current</span>
+						<span className={styles.PositionReadoutLabel}>Position</span>
 						<span className={styles.PositionReadoutValue}>
 							{currentAbsolutePositionCmPrecise === null
 								? "NO DATA"
@@ -341,6 +367,33 @@ function DrillGoalModal({
 						</span>
 						<span className={styles.PositionReadoutLabel}>Target</span>
 						<span className={styles.PositionReadoutValue}>{targetPositionCm} cm</span>
+
+						<span className={styles.PositionReadoutLabel}>FSM State</span>
+						<span className={styles.PositionReadoutValue}>{fsmState ?? "NO DATA"}</span>
+						<span className={styles.PositionReadoutLabel}>Homed</span>
+						<span className={styles.PositionReadoutValue}>{motorModule.homed}</span>
+
+						<span className={styles.PositionReadoutLabel}>Translation current</span>
+						<span className={styles.PositionReadoutValue}>
+							{drillState && Number.isFinite(motorModule.current)
+								? `${motorModule.current} mA`
+								: "NO DATA"}
+						</span>
+						<span className={styles.PositionReadoutLabel}>Drill current</span>
+						<span className={styles.PositionReadoutValue}>
+							{drillState && Number.isFinite(motorDrill.current)
+								? `${motorDrill.current} mA`
+								: "NO DATA"}
+						</span>
+
+						<span className={styles.PositionReadoutLabel}>Drill velocity</span>
+						<span className={styles.PositionReadoutValue}>
+							{drillState && Number.isFinite(motorDrill.speed)
+								? `${motorDrill.speed} rpm`
+								: "NO DATA"}
+						</span>
+						<span className={styles.PositionReadoutLabel}>Translation</span>
+						<span className={styles.PositionReadoutValue}>{motorModule.state}</span>
 					</div>
 				</div>
 				<div className={styles.ModalContent}>
@@ -416,6 +469,22 @@ function DrillGoalModal({
 							</span>
 						</div>
 					)}
+				</div>
+
+				<div className={styles.ModalContent}>
+					<span className={styles.PositionPanelHint}>Presets — sent immediately on click</span>
+					<div className={styles.ChoiceGroup}>
+						{DRILL_PRESET_STEPS.map((preset) => (
+							<button
+								key={preset.label}
+								type="button"
+								className={styles.Choice}
+								onClick={() => sendPresetStep(preset.action, preset.cm)}
+							>
+								{preset.label}
+							</button>
+						))}
+					</div>
 				</div>
 
 				<div className={styles.ModalContent}>
