@@ -400,13 +400,16 @@ function AvionicsModal({
 								type="button"
 								className={styles.ServoButton}
 								onClick={() => {
-									LAMP_SERVOS.forEach((lamp) => sendServo(lamp.id, lamp.closeAngle, false));
 									sendServo(LAMP_POWER_SERVO_ID, 0, false);
 									setLampsOn(false);
-									setLampAngles((previous) => ({
-										...previous,
-										...Object.fromEntries(LAMP_SERVOS.map((lamp) => [lamp.id, lamp.closeAngle])),
-									}));
+									// Let the lamps power down before swinging the servos closed.
+									setTimeout(() => {
+										LAMP_SERVOS.forEach((lamp) => sendServo(lamp.id, lamp.closeAngle, false));
+										setLampAngles((previous) => ({
+											...previous,
+											...Object.fromEntries(LAMP_SERVOS.map((lamp) => [lamp.id, lamp.closeAngle])),
+										}));
+									}, 700);
 								}}
 							>
 								Close &amp; Turn Off All
