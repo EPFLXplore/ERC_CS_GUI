@@ -135,9 +135,16 @@ const ActivateZEDRgbOnly: SSHCommands = {
     commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_rgb_only.sh']
 };
 
+const ActivateZEDArucoMaintenance: SSHCommands = {
+    device: JETSON_HD,
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './detect_aruco_maintenance.sh'],
+    pty: true
+};
+
 const ActivateZEDQRCode: SSHCommands = {
     device: JETSON_HD,
-    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './launch_zed_qr_scanner.sh']
+    commands: ['cd /home/xplore-hd/Documents/ZED_2i/docker/scripts', './detect_qr_code_astrobio.sh'],
+    pty: true
 };
 
 
@@ -167,6 +174,18 @@ const DeletePicturesHDS: SSHCommands = {
 const DeletePicturesSC: SSHCommands = {
     device: JETSON_HD,
     commands: ['cd /home/xplore-hd/Documents/ERC_SC_Drill/docker_humble_jetson', './delete_photos_sand_rocks.sh'],
+    pty: true
+};
+
+const ActivateNavCamOptiProbing: SSHCommands = {
+    device: JETSON_NAV,
+    commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './launch_cam_opti_probing.sh'],
+    pty: true
+};
+
+const StopNavCamOptiProbing: SSHCommands = {
+    device: JETSON_NAV,
+    commands: ['cd /home/xplore-nav/Documents/ERC_NAV/docker_humble_jetson', './stop_cam_opti_probing.sh'],
     pty: true
 };
 
@@ -240,7 +259,25 @@ const CommandsSSH = {
     {
         name: "Stop Nav Cam Opti",
         action: StopNavCamOpti,
-    }],
+    },
+    {
+        name: "Start Nav Cam Opti Probing",
+        action: ActivateNavCamOptiProbing,
+    },
+    {
+        name: "Stop Nav Cam Opti Probing",
+        action: StopNavCamOptiProbing,
+    },
+    {
+        name: "Detect QR Code Script Launch",
+        action: ActivateZEDQRCode,
+    },
+    {
+        name: "Detect Aruco Code Script Launch",
+        action: ActivateZEDArucoMaintenance,
+    }
+
+],
 
     "hd": [
     {
@@ -374,6 +411,6 @@ const closeSSH = async (name: string, id: string) => {
     })
 }
 
-export {executeSSHCommand,DeletePicturesSC, DeletePicturesHDS, StopNavCamOpti, ActivateNavCamOpti, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
+export {executeSSHCommand,ActivateZEDQRCode, ActivateZEDArucoMaintenance, ActivateNavCamOptiProbing, StopNavCamOptiProbing, DeletePicturesSC, DeletePicturesHDS, StopNavCamOpti, ActivateNavCamOpti, StopZed, ActivateZEDRgbOnly, ActivateZEDMaintenance, ActivateZEDNav, ActivateMicroscopeDrillNode, ActivateCSRpiTopCamNavTask, ActivateCSRpiTopSteeringDrillCams, ActivateHdMotorControl, StopHdMotorControl, CommandsSSH, closeSSH, IDConnections}
 export type {SSHCommands}
 const sleep = (delay: number) => new Promise((resolve) => setTimeout(resolve, delay))

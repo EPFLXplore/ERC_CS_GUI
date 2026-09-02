@@ -70,10 +70,12 @@ const CAMERA_GST_PORTS = {
  *
  * The two cannot coexist for one camera: a single pipeline owns the UDP port.
  * Mirrored in frontend/src/pages/cameras/index.tsx (CAMERA_TRANSPORTS) — keep in sync.
+ *
+ * Currently empty: hd_gripper was on `fmp4` but the MSE live-edge buffer added more latency than
+ * it saved, so it is back on the shared mjpeg path (identical receive pipeline to the NAV cams).
+ * The fmp4 machinery below is left intact for future use.
  */
-const CAMERA_TRANSPORTS = {
-  hd_gripper: 'fmp4',
-};
+const CAMERA_TRANSPORTS = {};
 
 function getCameraTransport(cameraId) {
   return CAMERA_TRANSPORTS[cameraId] || 'mjpeg';

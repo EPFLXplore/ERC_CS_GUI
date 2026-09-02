@@ -50,9 +50,12 @@ type CameraStreamStats = {
  * per RTP packet) and are not transcoded — the browser decodes the rover's H.264 itself. That costs
  * one <video>/MSE player here but removes a decode and a JPEG re-encode per frame on the CS.
  *
+ * Currently empty: hd_gripper was here but the MSE live-edge buffer added more latency than the
+ * transcode it removed, so it is back on the shared MJPEG path with the NAV cams.
+ *
  * Mirrored in frontend/ssh_backend/ssh_server.js (CAMERA_TRANSPORTS) — keep in sync.
  */
-const FMP4_CAMERAS = new Set<string>(["hd_gripper"]);
+const FMP4_CAMERAS = new Set<string>([]);
 
 const CAMERA_SOURCE_STORAGE_KEY = "erc-cs-camera-feed-sources-v1";
 
