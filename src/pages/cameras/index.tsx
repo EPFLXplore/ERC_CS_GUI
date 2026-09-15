@@ -13,7 +13,7 @@ import rightSteerAlignOverlay from "../../assets/images/maintenance_align/right_
 import leftSteerAlignOverlay from "../../assets/images/maintenance_align/left_steer.png";
 
 const CAMERA_DEFS = [
-	{ id: "nav_front", name: "Front", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED, gstPort: 5006 },
+	{ id: "nav_front", name: "GOONING", topic: Topics.NAV_FRONT_CAMERA_COMPRESSED, gstPort: 5006 },
 	{ id: "hd_gripper", name: "Gripper Cam", topic: "/ROVER/feed_camera_hd_0", gstPort: 5013 },
 	{ id: "cs_top", name: "CS Top", topic: "/ROVER/feed_camera_cs_top", gstPort: 5008 },
 	{ id: "cs_right_steer", name: "Right Steer", topic: "/ROVER/feed_camera_cs_right_steer", gstPort: 5010 },
