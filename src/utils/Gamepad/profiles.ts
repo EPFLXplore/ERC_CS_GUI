@@ -25,7 +25,7 @@ const computeNavigationCommandClassicGamepad = (
 			axes[ClassicalGamepad.Axis.LEFT_STICK_Y], // NORMAL MODE: Up/Down | LATERAL: MOVE FORWARD AND BACKWARD
 			axes[ClassicalGamepad.Axis.LT], // NORMAL MODE: BACKWARD | LATERAL: NOTHING
 			axes[ClassicalGamepad.Axis.RIGHT_STICK_Y], // NORMAL MODE: NOTHING | LATERAL: LEFT/RIGHT
-			0,
+			axes[ClassicalGamepad.Axis.RIGHT_STICK_X],
 			axes[ClassicalGamepad.Axis.RT], // NORMAL MODE: FORWARD | LATERAL: NOTHING
 			0,
 			0,
