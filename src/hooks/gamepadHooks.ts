@@ -256,8 +256,8 @@ function useGamepad(
 				//
 				// While the drill is on, the rover must not drive off: keep publishing at the normal
 				// rate (so the rover node's 0.4s CMD_TIMEOUT stays fed) but force the axes to zero.
-				// NAV_gamepad_interface derives v_x/v_y/r_z from axes alone, so zeroed axes put both
-				// Ackermann and Omni on their "don't move" path. Buttons still pass through — none of
+				// NAV_gamepad_interface derives v_x/v_y/r_z from axes alone, so zeroed axes put every
+				// drive mode on its "don't move" path. Buttons still pass through — none of
 				// them commands motion, and the crab branch is gated behind a non-zero left stick.
 				// Only the NAVIGATION target is held: PublishTo.DRILL is the microscope topic the
 				// operator needs *while* drilling.

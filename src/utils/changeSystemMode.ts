@@ -6,12 +6,17 @@ import { Topics } from "../data/topics.type";
 import { NAV_CAMERA_NAV_INDEX } from "../data/cameras.type";
 import { callStdSetBool } from "./changeCameraMode";
 
-// Map state strings to integers for backend (matching NAV interface node)
+// NAV interface node modes: Off:0, Manual:1, Auto:2
+const NAV_STATE_TO_MODE_INT: Record<string, number> = {
+  [States.OFF]: 0,
+  [States.MANUAL]: 1,
+  [States.AUTO]: 2,
+};
+
+// Map state strings to integers for the other backends (HD / Drill)
 const STATE_TO_MODE_INT: Record<string, number> = {
   [States.OFF]: 0,           // "Off" -> 0
-  [States.ACKERMANN]: 1,     // "Ackermann" -> 1
-  [States.OMNI_DIRECTIONAL]: 2,  // "Omni" -> 2
-  [States.AUTO]: 3,          // "Auto" -> 3
+  [States.AUTO]: 3,          // HD: "Auto" -> 3
   [States.MANUAL_DIRECT]: 1, // HD: Manual Direct -> 1
   [States.MANUAL_INVERSE]: 2, // HD: Manual Inverse -> 2
   [States.ON]: 1,            // Drill: On -> 1
@@ -145,7 +150,9 @@ const requestChangeMode = (
     }
 
     // Convert state string to integer mode for backend
-    const modeInt = STATE_TO_MODE_INT[request_mode.mode];
+    const modeMap =
+      request_mode.system === SubSystems.NAGIVATION ? NAV_STATE_TO_MODE_INT : STATE_TO_MODE_INT;
+    const modeInt = modeMap[request_mode.mode];
     if (modeInt === undefined) {
       snackBar("error", `Unknown mode: ${request_mode.mode}`);
       return;
@@ -157,7 +164,7 @@ const requestChangeMode = (
       serviceType === "custom_msg/srv/ChangeModeSystem"
         ? {
             system: SUBSYSTEM_TO_SYSTEM_INT[request_mode.system] ?? 0,
-            mode: modeInt, // Send integer (0, 1, 2, 3) to backend
+            mode: modeInt, // Send integer mode to backend
           }
         : {
             mode: modeInt,

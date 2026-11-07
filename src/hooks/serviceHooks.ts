@@ -22,6 +22,31 @@ const rulesNavigation: RuleRover[] = [];
 
 const rulesDrill: RuleRover[] = [];
 
+// NAV reports its mode as Off:0 / Manual:1 / Auto:2. Accept either the int or the name (any case)
+// so the CS shows the right state whichever form /NAV/State publishes.
+const NAV_MODE_FROM_INT: Record<number, string> = {
+	0: States.OFF,
+	1: States.MANUAL,
+	2: States.AUTO,
+};
+
+const normalizeNavMode = (mode: unknown): string => {
+	if (typeof mode === "number") return NAV_MODE_FROM_INT[mode] ?? States.OFF;
+	if (typeof mode !== "string" || mode === "") return States.OFF;
+	const trimmed = mode.trim();
+	if (/^\d+$/.test(trimmed)) return NAV_MODE_FROM_INT[Number(trimmed)] ?? States.OFF;
+	const match = [States.OFF, States.MANUAL, States.AUTO].find(
+		(s) => s.toLowerCase() === trimmed.toLowerCase()
+	);
+	return match ?? trimmed;
+};
+
+const readMode = (roverState: any, subsystemKey: string): string => {
+	const mode = roverState?.[subsystemKey]?.state?.mode;
+	if (subsystemKey === "navigation") return normalizeNavMode(mode);
+	return mode || States.OFF;
+};
+
 interface ServiceElement {
 	service: Service;
 }
@@ -35,11 +60,8 @@ function useService(
 
 	// Helper function to get subsystem state from new structure
 	const getSubsystemState = (subsystemKey: string) => {
-		if (!roverState || !roverState[subsystemKey]) {
-			return States.OFF; // Use States enum value: "Off"
-		}
 		// Each subsystem publishes state.mode in their 1Hz message
-		return roverState[subsystemKey]?.state?.mode || States.OFF;
+		return readMode(roverState, subsystemKey);
 	};
 
 	const [stateServices, setStateServices] = useState<ServiceType>({
@@ -93,7 +115,7 @@ function useService(
 					const subsystemKey = subsystemKeyMap[key];
 					
 					// Get current state from per-subsystem state topic
-					const currentState = roverState[subsystemKey]?.state?.mode || States.OFF;
+					const currentState = readMode(roverState, subsystemKey);
 					
 					// detect if rover state is different than client
 					if (service.service.state !== currentState) {

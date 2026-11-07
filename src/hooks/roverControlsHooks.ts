@@ -362,12 +362,12 @@ const ledRequestTopic = useMemo(() => ros ? new ROSLIB.Topic<any>({ ros, name: T
 
 	// Select the submode of subsystem
 	const selectSubMode = () => {
-		if(stateServices[SubSystems.NAGIVATION].service.state === States.ACKERMANN || stateServices[SubSystems.NAGIVATION].service.state === States.OMNI_DIRECTIONAL) {
+		if(stateServices[SubSystems.NAGIVATION].service.state === States.MANUAL) {
 			return stateServices[SubSystems.NAGIVATION].service.state
 		} else if (stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_DIRECT || stateServices[SubSystems.HANDLING_DEVICE].service.state === States.MANUAL_INVERSE) {
 			return stateServices[SubSystems.HANDLING_DEVICE].service.state
 		} else {
-			return States.ACKERMANN
+			return States.MANUAL
 		}
 	};
 

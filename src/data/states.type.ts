@@ -7,8 +7,7 @@ Description: Types of states for subsystems. This helps having the same names ev
 enum States {
 	ON = "On",
 	OFF = "Off",
-	ACKERMANN = "Ackermann",
-	OMNI_DIRECTIONAL = "Omni",
+	MANUAL = "Manual", // NAV manual driving (drive kinematics chosen on the rover side)
 	MANUAL_INVERSE = "Manual Inverse",
 	MANUAL_DIRECT = "Manual Direct",
 	AUTO = "Auto"

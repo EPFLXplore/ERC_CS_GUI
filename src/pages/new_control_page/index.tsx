@@ -73,7 +73,6 @@ import useAlert from "../../hooks/alertHooks";
 import useRoverControls, { typeModal, HDS_REFRESH_WARNING } from "../../hooks/roverControlsHooks";
 import useCameraServo, { CameraServoProvider } from "../../hooks/cameraServoHooks";
 import useHdGamepadMode from "../../hooks/hdGamepadModeHooks";
-import useNavGamepadMode from "../../hooks/navGamepadModeHooks";
 import {
 	MANUAL_SLOW_FACTOR_EVENT,
 	MANUAL_SPEED_EVENT,
@@ -147,8 +146,7 @@ const TASK_PRESETS: TaskPreset[] = [
  */
 const GAMEPAD_VISIBLE_NAV_STATES: string[] = [
 	States.AUTO,
-	States.ACKERMANN,
-	States.OMNI_DIRECTIONAL,
+	States.MANUAL,
 	States.OFF,
 ];
 
@@ -327,11 +325,6 @@ const NewControlPage = () => {
 	useHdGamepadMode(
 		manualMode,
 		stateServices[SubSystems.HANDLING_DEVICE].service.state,
-		startService
-	);
-	useNavGamepadMode(
-		manualMode,
-		stateServices[SubSystems.NAGIVATION].service.state,
 		startService
 	);
 
@@ -768,7 +761,7 @@ const NewControlPage = () => {
 					<SystemMode
 						system={"NAV"}
 						currentMode={stateServices[SubSystems.NAGIVATION].service.state}
-						modes={[States.AUTO, States.ACKERMANN, States.OMNI_DIRECTIONAL, States.OFF]}
+						modes={[States.AUTO, States.MANUAL, States.OFF]}
 						onSelect={(mode) => startService(SubSystems.NAGIVATION, mode, false)}
 					/>
 					<div className={styles.hdModeGroup}>

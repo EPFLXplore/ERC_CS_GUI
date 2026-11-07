@@ -117,9 +117,7 @@ const SimulationPage = () => {
 							selectorCallback={changeMode}
 							visible={
 								stateServices[SubSystems.NAGIVATION].service.state ===
-									States.ACKERMANN ||
-								stateServices[SubSystems.NAGIVATION].service.state ===
-									States.OMNI_DIRECTIONAL ||
+									States.MANUAL ||
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
 									States.MANUAL_DIRECT ||
 								stateServices[SubSystems.HANDLING_DEVICE].service.state ===
