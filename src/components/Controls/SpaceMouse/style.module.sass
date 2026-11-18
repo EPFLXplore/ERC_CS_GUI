@@ -1,0 +1,96 @@
+@import '../../../styles/variables'
+
+// Bottom-left by default so it never stacks on the Gamepad widget (bottom-right).
+.DraggableWrap
+    position: fixed
+    z-index: 25
+    left: 20px
+    bottom: 20px
+    touch-action: none
+    user-select: none
+    cursor: grab
+
+.DraggableWrapDragging
+    cursor: grabbing
+
+.Container
+    padding: 2vh 1.5vw
+    background-color: grey
+    border-radius: 2vh
+    position: relative
+
+.Outline
+    border: 2px solid $idleColor
+
+.Mode
+    position: absolute
+    top: 0
+    right: 0
+    margin: 0
+    padding-right: 10px
+    padding-top: 7px
+
+    p
+        margin: 0
+        padding: 0
+        color: white
+        font-weight: 600
+
+.PairHint
+    position: fixed
+    z-index: 25
+    left: 20px
+    bottom: 20px
+    display: flex
+    align-items: center
+    gap: 4px
+
+.PairButton
+    padding: 6px 12px
+    border: 2px solid $idleColor
+    border-radius: 12px
+    background: grey
+    color: white
+    font-weight: 600
+    cursor: pointer
+
+.DismissButton
+    border: none
+    background: transparent
+    color: grey
+    font-size: 1.1rem
+    cursor: pointer
+
+// Same red as the gamepad's active colour: unmistakable that the puck moves the arm.
+.Armed
+    border: 2px solid #FF4345
+    box-shadow: 0 0 10px rgba(255, 67, 69, 0.6)
+
+.ArmRow
+    display: flex
+    align-items: center
+    gap: 8px
+    margin-top: 6px
+
+.ArmButton
+    padding: 3px 12px
+    border: 2px solid $idleColor
+    border-radius: 10px
+    background: #333
+    color: white
+    font-weight: 700
+    font-size: 0.75rem
+    cursor: pointer
+
+    &:disabled
+        opacity: 0.45
+        cursor: not-allowed
+
+.ArmButtonActive
+    border-color: #FF4345
+    background: #FF4345
+
+.ArmHint
+    color: white
+    font-size: 0.65rem
+    opacity: 0.8

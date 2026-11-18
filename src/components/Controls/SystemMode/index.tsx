@@ -25,13 +25,22 @@ function SystemMode({
         }
     }
 	
+	// A <select> whose value matches no option silently displays the first one (e.g. "Auto"),
+	// which hides a mode mismatch with the rover. Show the unknown value instead, unselectable.
+	const isKnown = modes.includes(currentMode);
+
 	return (
 		<div className={`${styles.system}`}>
 			<h2 className={`${styles.name}`}>{system}</h2>
 			<div className={styles.selectWrapper}>
-				<select name="mode" id="mode" onChange={handleChange} value={currentMode} className={styles.select}>
+				<select name="mode" id="mode" onChange={handleChange} value={String(currentMode)} className={styles.select}>
+					{!isKnown && (
+						<option value={String(currentMode)} disabled>
+							{`Unknown (${String(currentMode)})`}
+						</option>
+					)}
 					{modes.map((mode) => (
-						<option value={mode}>
+						<option key={mode} value={mode}>
 							{mode}
 						</option>
 					))}

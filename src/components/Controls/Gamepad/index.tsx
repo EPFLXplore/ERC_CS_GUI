@@ -6,6 +6,7 @@ import { PublishTo, PublishToType } from "../../../data/publishTo.type";
 import * as ROSLIB from "roslib";
 import { ClassicalGamepad } from "../../../utils/Gamepad/bindings";
 import States from "../../../data/states.type";
+import { useSpaceMouseOwnsHd } from "../../../utils/hdInputOwner";
 
 /*
 Author: Ugo Balducci
@@ -39,6 +40,7 @@ const Gamepad = ({
 	);
 
 	const navHeldByDrill = mode === PublishTo.NAVIGATION && isDrillOn(drillState);
+	const hdHeldBySpaceMouse = useSpaceMouseOwnsHd() && mode === PublishTo.HANDLING_DEVICE;
 
 	const wrapRef = useRef<HTMLDivElement>(null);
 	const dragSession = useRef<{
@@ -222,6 +224,9 @@ const Gamepad = ({
 				</div>
 				{navHeldByDrill && (
 					<div className={styles.GamepadWarning}>Drill ON, cannot move NAV.</div>
+				)}
+				{hdHeldBySpaceMouse && (
+					<div className={styles.GamepadWarning}>SpaceMouse has the arm.</div>
 				)}
 				</div>
 			</div>

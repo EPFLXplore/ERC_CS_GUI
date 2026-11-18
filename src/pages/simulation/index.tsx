@@ -1,5 +1,6 @@
 import styles from "./styles.module.sass";
 import Gamepad from "../../components/Controls/Gamepad";
+import SpaceMouse from "../../components/Controls/SpaceMouse";
 import { useNavigate } from "react-router-dom";
 import Simulation from "../../components/data/Simulation";
 import logo from "../../assets/images/logos/logo_XPlore.png";
@@ -124,6 +125,10 @@ const SimulationPage = () => {
 									States.MANUAL_INVERSE
 							}
 							ros={ros}
+						/>
+						<SpaceMouse
+							ros={ros}
+							hdState={stateServices[SubSystems.HANDLING_DEVICE].service.state}
 						/>
 					</div>
 				</div>

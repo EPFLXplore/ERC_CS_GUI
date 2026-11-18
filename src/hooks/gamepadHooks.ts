@@ -22,6 +22,7 @@ import {
 	saveManualSlowFactor,
 	stepManualSlowFactor,
 } from "../utils/hdSpeedConfig";
+import { isSpaceMouseHdOwner } from "../utils/hdInputOwner";
 
 export enum GamepadCommandState {
 	UI,
@@ -268,6 +269,12 @@ function useGamepad(
 				lastPublishRef.current = Date.now();
 
 			} else if (currentMode === PublishTo.HANDLING_DEVICE) {
+				// The armed SpaceMouse owns the HD topic; publishing here too would interleave
+				// two command streams. Count it as a publish so the watchdog stays quiet.
+				if (isSpaceMouseHdOwner()) {
+					lastPublishRef.current = Date.now();
+					return;
+				}
 				const sm = submodeRef.current;
 				const bindings = hdBindingsConfigRef.current;
 
@@ -321,7 +328,7 @@ function useGamepad(
 			try {
 				if (mode === PublishTo.NAVIGATION || mode === PublishTo.DRILL) {
 					publisher.publish(gamepad.handleNavigation(neutralButtons, neutralAxes));
-				} else if (mode === PublishTo.HANDLING_DEVICE) {
+				} else if (mode === PublishTo.HANDLING_DEVICE && !isSpaceMouseHdOwner()) {
 					if (sm[1] === States.MANUAL_DIRECT) {
 						const remapped = applyHdBindingMap(neutralButtons, neutralAxes, bindings.direct);
 						publisher.publish(gamepad.handleDirectArm(remapped.buttons, remapped.axes));

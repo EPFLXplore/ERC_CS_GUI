@@ -90,6 +90,7 @@ import * as ROSLIB from "roslib";
 import CameraModal from "../../components/modals/CameraModal";
 import { startCamModeService, startHdDepthCameraService } from "../../utils/changeCameraMode";
 import Gamepad from "../../components/Controls/Gamepad";
+import SpaceMouse from "../../components/Controls/SpaceMouse";
 import RosDdsDevBanner from "../../components/ui/RosDdsDevBanner";
 import {resetFaults, resetHome, requestQrCodeScan} from "../../utils/navigationActions";
 import {cleanupMotorController, configureMotorController} from "../../utils/hdLifecycleActions";
@@ -1098,6 +1099,10 @@ const NewControlPage = () => {
 							)
 						}
 						ros={ros}
+					/>
+					<SpaceMouse
+						ros={ros}
+						hdState={stateServices[SubSystems.HANDLING_DEVICE].service.state}
 					/>
 				</div>
 			</div>
