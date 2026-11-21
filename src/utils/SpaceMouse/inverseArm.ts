@@ -21,14 +21,17 @@ If a direction is wrong on the arm, flip its sign in SLOT_MAP — test in simula
 
 type SlotSource = { axis: SpaceMouseAxis; sign: 1 | -1 };
 
+// Translations tested on the arm: slot 0 = X, slot 1 = Y, slot 2 = Z.
+// Rotations tested on the arm: slot 3 = RZ, slot 4 = RY, slots 5/6 = RX.
 const SLOT_MAP: SlotSource[] = [
-	{ axis: SpaceMouseAxis.TX, sign: 1 }, // slot 0: slide right  ~ right stick right
-	{ axis: SpaceMouseAxis.TZ, sign: -1 }, // slot 1: lift up     ~ right stick up
-	{ axis: SpaceMouseAxis.TY, sign: 1 }, // slot 2: push away    ~ RT
-	{ axis: SpaceMouseAxis.RY, sign: -1 }, // slot 3: tilt sideways
-	{ axis: SpaceMouseAxis.RX, sign: -1 }, // slot 4: tilt fwd/back
+	{ axis: SpaceMouseAxis.TX, sign: 1 }, // slot 0 -> linear.x  = arm X
+	{ axis: SpaceMouseAxis.TY, sign: 1 }, // slot 1 -> linear.y  = arm Y
+	{ axis: SpaceMouseAxis.TZ, sign: 1 }, // slot 2 -> linear.z  = arm Z
+	{ axis: SpaceMouseAxis.RZ, sign: 1 }, // slot 3 -> angular.z = arm RZ
+	{ axis: SpaceMouseAxis.RY, sign: -1 }, // slot 4 -> angular.y = arm RY
 ];
-const RZ_SIGN: 1 | -1 = 1; // slots 5/6: twist
+const SLOT56_AXIS = SpaceMouseAxis.RX; // slots 5/6 -> angular.x = arm RX (split +/-)
+const SLOT56_SIGN: 1 | -1 = -1;
 
 /** Overall gain on the six motion axes. The puck rarely reaches full deflection, so 1.0 is fine. */
 const SENSITIVITY = 1.0;
@@ -43,13 +46,13 @@ export const computeInverseArmCommandSpaceMouse = (
 	buttons: readonly boolean[]
 ): { buttons: number[]; axes: number[] } => {
 	const at = (s: SlotSource) => clamp(s.sign * (axes[s.axis] ?? 0) * SENSITIVITY);
-	const rz = clamp(RZ_SIGN * (axes[SpaceMouseAxis.RZ] ?? 0) * SENSITIVITY);
+	const s56 = clamp(SLOT56_SIGN * (axes[SLOT56_AXIS] ?? 0) * SENSITIVITY);
 
 	return {
 		axes: [
 			...SLOT_MAP.map(at),
-			Math.max(rz, 0),
-			Math.max(-rz, 0),
+			Math.max(s56, 0),
+			Math.max(-s56, 0),
 			// Right button opens (+, like B), left closes (-, like X); both cancel out.
 			((buttons[1] ? 1 : 0) - (buttons[0] ? 1 : 0)) * GRIPPER_SPEED,
 		],
